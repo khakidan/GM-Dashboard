@@ -7,13 +7,11 @@ import { cn } from '../lib/utils';
 import { updateSheetData, appendSheetData, fetchSpreadsheetMetadata, deleteSheetRow } from '../services/sheetsService';
 import { motion, AnimatePresence } from 'motion/react';
 
-const AnimatedHpDisplay = ({ value, onChange, maxHp, isActive, colorClass, disabled }: { value: number, onChange: (val: number) => void, maxHp: number, isActive: boolean, colorClass: string, disabled?: boolean }) => {
+const AnimatedHpDisplay = ({ value, maxHp, isActive, colorClass, className }: { value: number, maxHp: number, isActive: boolean, colorClass: string, className?: string }) => {
   const [prevHp, setPrevHp] = useState(value);
   const [animateState, setAnimateState] = useState<'idle' | 'heal' | 'damage'>('idle');
-  const [localValue, setLocalValue] = useState(value.toString());
 
   useEffect(() => {
-    setLocalValue(value.toString());
     if (value > prevHp) {
       setAnimateState('heal');
       const t = setTimeout(() => setAnimateState('idle'), 500);
@@ -26,34 +24,20 @@ const AnimatedHpDisplay = ({ value, onChange, maxHp, isActive, colorClass, disab
     setPrevHp(value);
   }, [value, prevHp]);
 
-  const commitChange = () => {
-    const num = parseInt(localValue);
-    if (!isNaN(num) && num !== value) {
-      onChange(num);
-    } else {
-      setLocalValue(value.toString());
-    }
-  };
-
   return (
     <motion.div
       animate={animateState === 'heal' ? { scale: [1, 1.2, 1], backgroundColor: ['transparent', '#86efac', 'transparent'] } : animateState === 'damage' ? { scale: [1, 0.9, 1], backgroundColor: ['transparent', '#fca5a5', 'transparent'] , x: [0, -4, 4, -4, 4, 0] } : {}}
       transition={{ duration: 0.4 }}
-      className="rounded-md mx-auto relative inline-block p-1"
+      className={cn("rounded-md relative inline-block p-1", className)}
     >
-      <input 
-        type="number" 
-        value={localValue}
-        onChange={(e) => setLocalValue(e.target.value)}
-        onBlur={commitChange}
-        onKeyDown={(e) => e.key === 'Enter' && commitChange()}
-        disabled={disabled}
+      <div 
         className={cn(
-          "w-16 bg-transparent border rounded px-1 py-1 text-center outline-none focus:border-[#5a5a40] focus:ring-1 focus:ring-[#5a5a40] font-sans font-bold block disabled:opacity-50",
-          isActive ? "border-transparent" : "border-[#e5e1d8]",
+          "min-w-8 text-center font-sans font-bold block",
           colorClass
         )}
-      />
+      >
+        {value}
+      </div>
     </motion.div>
   );
 };
@@ -74,6 +58,16 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [globalError, setGlobalError] = useState<string | null>(null);
   const [syncingIds, setSyncingIds] = useState<Set<string>>(new Set());
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+
+  const toggleExpand = (id: string) => {
+    setExpandedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   const handleError = (err: any, fallbackMsg: string) => {
     const _e = typeof err !== "undefined" ? err : null;
@@ -557,173 +551,185 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
             </div>
           </div>
 
-          <div className="overflow-x-auto flex-1 bg-white w-full">
-            <table className="w-full text-left border-collapse min-w-[900px]">
-              <thead>
-                <tr className="bg-[#f5f5f0] text-[#5a5a40] font-sans text-[10px] uppercase tracking-wider">
-                  <th className="p-4 font-bold min-w-[150px]">Combatant</th>
-                  <th className="p-4 font-bold w-12 text-center">Init</th>
-                  <th className="p-4 font-bold w-12 text-center">AC</th>
-                  <th className="p-4 font-bold w-16 text-center">Temp HP</th>
-                  <th className="p-4 font-bold w-16 text-center">Max HP</th>
-                  <th className="p-4 font-bold w-16 text-center">Current HP</th>
-                  <th className="p-4 font-bold w-20 text-center">Heal / Dmg</th>
-                  <th className="p-4 font-bold w-40">Conditions</th>
-                  <th className="p-4 font-bold w-12"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#f5f5f0] font-sans text-sm">
-                {state.combatState.combatants.length === 0 ? (
-                  <tr><td colSpan={7} className="p-8 text-center text-[#5a5a40] italic">No combatants in tracker.</td></tr>
-                ) : (
-                  state.combatState.combatants.map((c) => {
-                    const isActive = c.id === state.combatState.activeTurnId;
-                    return (
-                      <tr 
-                        key={c.id} 
-                        className={cn(
-                          "transition-colors",
-                          isActive ? "bg-yellow-50/50" : "hover:bg-[#fdfaf5]",
-                          c.currentHp <= 0 ? "opacity-50 grayscale" : ""
-                        )}
-                      >
-                        <td className="p-4 relative">
-                          {isActive && (
-                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#c5b358]" />
-                          )}
-                          <div className="flex flex-col ml-2">
-                            <div className="flex items-center gap-2">
-                              <span className={cn("font-bold font-serif text-base", c.type === 'npc' ? 'text-red-800' : 'text-[#2c2c26]')}>
-                                {c.name}
-                              </span>
-                              {c.conditions && c.conditions.split(',').map(cond => cond.trim()).filter(Boolean).map((cond, i) => (
-                                <div 
-                                  key={i}
-                                  title={cond}
-                                  className="w-3 h-3 rounded-full bg-red-500 border border-red-700 shadow-sm cursor-help relative group flex items-center justify-center hover:scale-110 transition-transform"
-                                >
-                                  <div className="absolute hidden group-hover:block bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-gray-900 text-white text-[10px] rounded whitespace-nowrap z-50">
-                                    {cond}
-                                    <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                            {c.notes && <span className="text-[10px] text-[#5a5a40] opacity-60 font-normal italic mt-0.5">{c.notes}</span>}
-                          </div>
-                        </td>
-                        <td className="p-2">
-                          <input 
-                            type="number" 
-                            value={c.initiative}
-                            onChange={(e) => updateCombatant(c.id, { initiative: parseInt(e.target.value) || 0 })}
-                            className={cn(
-                              "w-12 bg-transparent border rounded px-1 py-1 text-center font-bold text-[#c5b358] focus:border-[#5a5a40] focus:ring-1 focus:ring-[#5a5a40] outline-none mx-auto block",
-                              isActive ? "border-transparent" : "border-[#e5e1d8]"
-                            )}
-                          />
-                        </td>
-                        <td className="p-2">
-                          <div className="flex items-center justify-center gap-1 text-[#5a5a40] font-bold">
-                            <Shield className="w-4 h-4 opacity-50" />
-                            {c.ac}
-                          </div>
-                        </td>
-                        <td className="p-2 text-center">
-                           <input 
-                              type="number" 
-                              value={c.tempHp || ''}
-                              onChange={(e) => updateCombatant(c.id, { tempHp: e.target.value ? parseInt(e.target.value) : 0 })}
-                              placeholder="0"
-                              disabled={syncingIds.has(c.id)}
-                              className={cn(
-                                "w-12 bg-transparent border rounded px-1 py-1 text-center outline-none focus:border-[#5a5a40] focus:ring-1 focus:ring-[#5a5a40] font-sans font-bold text-blue-600 mx-auto block disabled:opacity-50",
-                                isActive ? "border-transparent" : "border-[#e5e1d8]"
-                              )}
-                            />
-                        </td>
-                        <td className="p-2 text-center text-[#5a5a40] font-bold font-sans">
-                          {c.maxHp}
-                        </td>
-                        <td className="p-2 text-center">
-                          <AnimatedHpDisplay 
-                            value={c.currentHp}
-                            onChange={(val) => updateCombatant(c.id, { currentHp: val })}
-                            maxHp={c.maxHp}
-                            isActive={isActive}
-                            colorClass={c.currentHp <= c.maxHp / 2 ? (c.currentHp <= 0 ? "text-red-700" : "text-[#c5b358]") : "text-[#2c2c26]"}
-                            disabled={syncingIds.has(c.id)}
-                          />
-                        </td>
-                        <td className="p-2 text-center">
-                          <div className="flex items-center justify-center gap-1 -ms-2">
+          <div className="flex-1 bg-white w-full p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 2xl:grid-cols-3 gap-6">
+              {state.combatState.combatants.length === 0 ? (
+                <div className="col-span-full py-20 text-center flex flex-col items-center justify-center">
+                  <Skull className="w-12 h-12 text-[#5a5a40] opacity-20 mb-4" />
+                  <p className="text-lg font-serif font-bold text-[#2c2c26]">No combatants in tracker</p>
+                  <p className="text-sm text-[#5a5a40] italic">Add players or NPCs from the sidebar to begin.</p>
+                </div>
+              ) : (
+                state.combatState.combatants.map((c) => {
+                  const isActive = c.id === state.combatState.activeTurnId;
+                  const isExpanded = expandedIds.has(c.id);
+                  const isSyncing = syncingIds.has(c.id);
+
+                  return (
+                    <motion.div
+                      layout
+                      key={c.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className={cn(
+                        "relative bg-white border-2 rounded-2xl transition-all h-fit",
+                        isActive ? "border-[#c5b358] shadow-md z-10" : "border-[#e5e1d8] hover:border-[#c5b358]/40",
+                        c.currentHp <= 0 ? "opacity-60 grayscale-[0.5]" : ""
+                      )}
+                    >
+                      {isActive && (
+                        <div className="absolute -top-3 left-6 bg-[#c5b358] text-[#2c2c26] text-[7px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full shadow-sm z-20 flex items-center gap-1">
+                          <Zap className="w-2 h-2 fill-current" /> Active
+                        </div>
+                      )}
+
+                      {/* Widget Header - Inline for Minimal State */}
+                      <div className="p-3 flex items-center justify-between gap-3">
+                        <div className="flex-1 min-w-0 flex items-center gap-2">
+                          <div className="flex flex-col items-center shrink-0">
+                            <span className="text-[6px] font-bold uppercase text-[#5a5a40] opacity-60 leading-none mb-0.5">Init</span>
                             <input 
                               type="number" 
-                              value={healthInputs[c.id] || ''}
-                              onChange={(e) => setHealthInputs(prev => ({ ...prev, [c.id]: e.target.value }))}
-                              placeholder="0"
-                              disabled={syncingIds.has(c.id)}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                  e.preventDefault();
-                                  applyHealthChange(c.id, c, true);
-                                }
-                              }}
-                              className={cn(
-                                "w-12 bg-transparent border rounded px-1 py-1 text-center outline-none focus:border-[#5a5a40] focus:ring-1 focus:ring-[#5a5a40] font-sans text-sm disabled:opacity-50",
-                                isActive ? "border-transparent bg-white/50" : "border-[#e5e1d8]"
-                              )}
+                              value={c.initiative}
+                              onChange={(e) => updateCombatant(c.id, { initiative: parseInt(e.target.value) || 0 })}
+                              className="w-12 h-6 bg-[#faf9f6]/50 border border-[#e5e1d8] rounded text-center font-bold text-[#c5b358] outline-none text-[10px] focus:border-[#c5b358] focus:bg-white"
                             />
-                            <div className="flex flex-col gap-[2px]">
-                              <button 
-                                onClick={() => applyHealthChange(c.id, c, false)}
-                                title="Heal"
-                                disabled={syncingIds.has(c.id)}
-                                className="px-1.5 py-[2px] leading-none bg-[#f0f9f0] border border-green-200 text-green-700 hover:bg-green-100 rounded text-[9px] font-bold uppercase disabled:opacity-50"
-                              >
-                                Heal
-                              </button>
-                              <button 
-                                onClick={() => applyHealthChange(c.id, c, true)}
-                                title="Damage"
-                                disabled={syncingIds.has(c.id)}
-                                className="px-1.5 py-[2px] leading-none bg-[#fff5f5] border border-red-200 text-red-700 hover:bg-red-100 rounded text-[9px] font-bold uppercase disabled:opacity-50"
-                              >
-                                Dmg
-                              </button>
-                            </div>
                           </div>
-                        </td>
-                        <td className="p-2">
-                           <input 
-                              type="text" 
-                              value={c.conditions || ''}
-                              onChange={(e) => updateCombatant(c.id, { conditions: e.target.value })}
-                              placeholder="e.g. Paralyzed"
-                              disabled={syncingIds.has(c.id)}
-                              title={c.conditions || 'Add Condition'}
-                              className={cn(
-                                "w-full bg-transparent border rounded px-2 py-1 text-left outline-none focus:border-[#5a5a40] focus:ring-1 focus:ring-[#5a5a40] font-sans text-xs italic disabled:opacity-50",
-                                isActive ? "border-transparent" : "border-[#e5e1d8]",
-                                c.conditions ? "text-red-700 font-bold pointer-events-auto" : "text-[#5a5a40]"
-                              )}
-                            />
-                        </td>
-                        <td className="p-2 text-right">
-                          <button 
-                            onClick={() => removeCombatant(c.id)}
-                            className="p-1.5 text-[#5a5a40] opacity-40 hover:opacity-100 hover:text-red-700 hover:bg-[#f5f5f0] rounded transition-all"
-                            title="Remove Combatant"
+                          <div className="min-w-0 flex items-center gap-2">
+                             <h3 className={cn(
+                               "text-base font-bold font-serif truncate",
+                               c.type === 'npc' ? 'text-red-800' : 'text-[#2c2c26]'
+                             )}>
+                               {c.name}
+                             </h3>
+                             <span className="text-[10px] font-bold text-[#b0a04f] whitespace-nowrap">(AC {c.ac})</span>
+                             {c.conditions && c.conditions.split(',').filter(Boolean).length > 0 && (
+                               <div className="flex -space-x-1">
+                                 {c.conditions.split(',').map((cond, i) => (
+                                   <div key={i} className="w-2 h-2 rounded-full bg-red-500 border border-white shadow-sm" title={cond.trim()} />
+                                 ))}
+                               </div>
+                             )}
+                          </div>
+                          
+                          <div className="flex items-center gap-2 border-l border-[#f5f5f0] pl-3">
+                             <div className="flex flex-col items-center">
+                               <AnimatedHpDisplay 
+                                 value={c.currentHp}
+                                 maxHp={c.maxHp}
+                                 isActive={isActive}
+                                 colorClass={c.currentHp <= c.maxHp / 2 ? (c.currentHp <= 0 ? "text-red-700" : "text-[#c5b358]") : "text-[#2c2c26]"}
+                                 className="p-0"
+                               />
+                             </div>
+                             
+                             <div className="flex items-center gap-1.5 ml-2">
+                                <input 
+                                  type="number" 
+                                  value={healthInputs[c.id] || ''}
+                                  onChange={(e) => setHealthInputs(prev => ({ ...prev, [c.id]: e.target.value }))}
+                                  placeholder="0"
+                                  disabled={isSyncing}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      e.preventDefault();
+                                      applyHealthChange(c.id, c, true);
+                                    }
+                                  }}
+                                  className={cn(
+                                    "w-14 bg-[#faf9f6] border border-[#e5e1d8] rounded px-1 py-1 text-center outline-none focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] font-sans text-xs font-bold disabled:opacity-50",
+                                    isActive && "bg-white border-[#c5b358]/50"
+                                  )}
+                                />
+                                <div className="flex flex-col gap-0.5">
+                                  <button 
+                                    onClick={() => applyHealthChange(c.id, c, false)}
+                                    disabled={isSyncing}
+                                    className="px-1.5 py-0.5 leading-none bg-green-50 text-green-700 hover:bg-green-100 border border-green-100 rounded-[4px] text-[7px] font-bold uppercase disabled:opacity-50"
+                                  >
+                                    H
+                                  </button>
+                                  <button 
+                                    onClick={() => applyHealthChange(c.id, c, true)}
+                                    disabled={isSyncing}
+                                    className="px-1.5 py-0.5 leading-none bg-red-50 text-red-700 hover:bg-red-100 border border-red-100 rounded-[4px] text-[7px] font-bold uppercase disabled:opacity-50"
+                                  >
+                                    D
+                                  </button>
+                                </div>
+                             </div>
+                          </div>
+                        </div>
+
+                        <button 
+                          onClick={() => toggleExpand(c.id)}
+                          className="p-1.5 text-[#5a5a40] opacity-40 hover:opacity-100 hover:bg-[#f5f5f0] rounded transition-all shrink-0"
+                        >
+                          <motion.div animate={{ rotate: isExpanded ? 180 : 0 }}>
+                            <Eye className="w-4 h-4" />
+                          </motion.div>
+                        </button>
+                      </div>
+
+                      {/* Expanded View */}
+                      <AnimatePresence>
+                        {isExpanded && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            className="overflow-hidden"
                           >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
+                            <div className="px-4 pb-4 pt-2 border-t border-[#f5f5f0] space-y-4">
+                              {c.notes && <p className="text-[10px] text-[#5a5a40] opacity-60 italic">{c.notes}</p>}
+                              <div className="grid grid-cols-2 gap-2">
+                                <div className="bg-[#faf9f6] p-2 rounded-xl border border-[#e5e1d8] text-center">
+                                  <span className="text-[7px] font-bold uppercase tracking-tighter text-[#5a5a40] block mb-1">Temp HP</span>
+                                  <input 
+                                    type="number" 
+                                    value={c.tempHp || ''}
+                                    onChange={(e) => updateCombatant(c.id, { tempHp: e.target.value ? parseInt(e.target.value) : 0 })}
+                                    placeholder="0"
+                                    disabled={isSyncing}
+                                    className="w-full bg-transparent text-center font-bold text-blue-600 outline-none text-sm disabled:opacity-50"
+                                  />
+                                </div>
+                                <div className="bg-[#faf9f6] p-2 rounded-xl border border-[#e5e1d8] text-center">
+                                  <span className="text-[7px] font-bold uppercase tracking-tighter text-[#5a5a40] block mb-1">Max HP</span>
+                                  <span className="font-bold text-sm text-[#5a5a40]">{c.maxHp}</span>
+                                </div>
+                              </div>
+
+                              <div>
+                                <label className="block text-[8px] font-bold uppercase tracking-widest text-[#5a5a40] mb-1">Conditions</label>
+                                <input 
+                                  type="text" 
+                                  value={c.conditions || ''}
+                                  onChange={(e) => updateCombatant(c.id, { conditions: e.target.value })}
+                                  placeholder="e.g. Paralyzed"
+                                  disabled={isSyncing}
+                                  className="w-full bg-[#faf9f6] border border-[#e5e1d8] rounded-xl px-2 py-1.5 text-xs italic outline-none focus:bg-white focus:border-[#c5b358] transition-all disabled:opacity-50"
+                                />
+                              </div>
+
+                              <div className="flex justify-between items-center pt-2 border-t border-[#f5f5f0]">
+                                <span className="text-[8px] text-[#5a5a40] opacity-40 font-mono">{c.id.split('-').pop()}</span>
+                                <button 
+                                  onClick={() => removeCombatant(c.id)}
+                                  className="flex items-center gap-1.5 px-3 py-1.5 text-[8px] font-bold uppercase tracking-widest text-red-600 hover:bg-red-50 rounded-full transition-all border border-transparent hover:border-red-100"
+                                >
+                                  <Trash2 className="w-3 h-3" /> Remove
+                                </button>
+                              </div>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </motion.div>
+                  );
+                })
+              )}
+            </div>
           </div>
         </div>
       </div>
