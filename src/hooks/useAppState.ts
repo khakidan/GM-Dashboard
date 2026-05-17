@@ -16,7 +16,7 @@ const defaultCombatState: CombatState = {
 };
 
 const defaultAppState: AppState = {
-  campaignName: "The Funky Tusk Lover's Campaign",
+  campaignName: "GM Encounter Dashboard",
   characters: initialCharacters,
   encounters: initialEncounters,
   npcs: initialNPCs,
@@ -34,7 +34,11 @@ let globalState = defaultAppState;
 try {
   const stored = localStorage.getItem(STORAGE_KEY);
   if (stored) {
-    globalState = { ...defaultAppState, ...JSON.parse(stored) };
+    globalState = { 
+      ...defaultAppState, 
+      ...JSON.parse(stored),
+      campaignName: "GM Encounter Dashboard"
+    };
   }
 } catch (e) {
   console.error("Failed to parse app state", e);

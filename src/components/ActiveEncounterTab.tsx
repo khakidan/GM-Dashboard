@@ -42,6 +42,50 @@ const AnimatedHpDisplay = ({ value, maxHp, isActive, colorClass, className }: { 
   );
 };
 
+const InitiativeInput = ({ value, onSave, disabled }: { value: number, onSave: (val: number) => void, disabled?: boolean }) => {
+  const [localValue, setLocalValue] = useState<string>(value.toString());
+
+  useEffect(() => {
+    setLocalValue(value.toString());
+  }, [value]);
+
+  const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    setLocalValue('');
+  };
+
+  const handleBlur = () => {
+    const num = parseInt(localValue);
+    if (!isNaN(num)) {
+      onSave(num);
+    } else {
+      setLocalValue(value.toString());
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      const num = parseInt(localValue);
+      if (!isNaN(num)) {
+        onSave(num);
+      }
+      e.currentTarget.blur();
+    }
+  };
+
+  return (
+    <input 
+      type="number" 
+      value={localValue}
+      onFocus={handleFocus}
+      onChange={(e) => setLocalValue(e.target.value)}
+      onBlur={handleBlur}
+      onKeyDown={handleKeyDown}
+      disabled={disabled}
+      className="w-12 h-6 bg-[#faf9f6]/50 border border-[#e5e1d8] rounded text-center font-bold text-[#c5b358] outline-none text-[10px] focus:border-[#c5b358] focus:bg-white disabled:opacity-50"
+    />
+  );
+};
+
 export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
   const { state, updateState } = useAppState();
   
@@ -588,11 +632,10 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
                         <div className="flex-1 min-w-0 flex items-center gap-2">
                           <div className="flex flex-col items-center shrink-0">
                             <span className="text-[6px] font-bold uppercase text-[#5a5a40] opacity-60 leading-none mb-0.5">Init</span>
-                            <input 
-                              type="number" 
+                            <InitiativeInput 
                               value={c.initiative}
-                              onChange={(e) => updateCombatant(c.id, { initiative: parseInt(e.target.value) || 0 })}
-                              className="w-12 h-6 bg-[#faf9f6]/50 border border-[#e5e1d8] rounded text-center font-bold text-[#c5b358] outline-none text-[10px] focus:border-[#c5b358] focus:bg-white"
+                              onSave={(val) => updateCombatant(c.id, { initiative: val })}
+                              disabled={isSyncing}
                             />
                           </div>
                           <div className="min-w-0 flex items-center gap-2">

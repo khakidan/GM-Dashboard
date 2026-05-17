@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useAppState } from '../hooks/useAppState';
 import { Encounter } from '../types';
-import { Swords, MapPin, Skull, Trash2, Loader2, AlertCircle } from 'lucide-react';
+import { Swords, MapPin, Skull, Trash2, Loader2, AlertCircle, Eye, ChevronDown } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { deleteEncounterFully } from '../services/dbOperations';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface EncounterCardProps {
   enc: Encounter;
   isDeleting: boolean;
+  isExpanded: boolean;
+  onToggleExpand: () => void;
   onDelete: (enc: Encounter) => void;
   onStart: (enc: Encounter) => void;
   onSyncRequested: () => Promise<void>;
@@ -16,6 +19,8 @@ interface EncounterCardProps {
 const EncounterCard: React.FC<EncounterCardProps> = ({ 
   enc, 
   isDeleting,
+  isExpanded,
+  onToggleExpand,
   onDelete, 
   onStart, 
   onSyncRequested 
@@ -92,12 +97,13 @@ const EncounterCard: React.FC<EncounterCardProps> = ({
 
   return (
     <div className={cn(
-      "bg-white rounded-2xl border border-[#e5e1d8] overflow-hidden flex flex-col group transition-all hover:shadow-md hover:border-[#c5b358]/40",
+      "bg-white rounded-2xl border border-[#e5e1d8] overflow-hidden flex flex-col group transition-all hover:shadow-md",
+      isExpanded ? "border-[#c5b358]/40" : "hover:border-[#c5b358]/20",
       (isUpdating || isDeleting) && "opacity-75 pointer-events-none"
     )}>
-      {/* Header Area */}
-      <div className="p-5 flex-1 flex flex-col gap-4">
-        <div className="flex justify-between items-start gap-4">
+      {/* Header Area - Always Visible */}
+      <div className="p-4 flex items-center justify-between gap-3">
+        <div className="flex-1 min-w-0 flex items-center gap-3">
           <div className="flex-1 min-w-0">
             <DebouncedInput 
               type="text"
@@ -106,98 +112,142 @@ const EncounterCard: React.FC<EncounterCardProps> = ({
               onBlur={handleUpdate}
               disabled={isUpdating || isDeleting}
               placeholder="Encounter Name"
-              className="text-lg font-bold text-[#2c2c26] font-serif bg-transparent border border-transparent rounded-lg hover:bg-[#fdfaf5] focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none w-full px-2 py-1 -ml-2 transition-all placeholder:text-gray-300 disabled:opacity-50"
+              className="text-base font-bold text-[#2c2c26] font-serif bg-transparent border border-transparent rounded-lg hover:bg-[#fdfaf5] focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none w-full px-2 py-0.5 -ml-2 transition-all placeholder:text-gray-300 disabled:opacity-50"
             />
-            <div className="flex items-center gap-2 mt-1">
-              <MapPin className="w-3 h-3 text-[#c5b358] shrink-0" />
-              <DebouncedInput 
-                type="text"
-                value={location}
-                onChange={(v) => setLocation(v as string)}
-                onBlur={handleUpdate}
-                disabled={isUpdating || isDeleting}
-                placeholder="Location"
-                className="text-xs text-[#5a5a40] opacity-80 uppercase tracking-wider font-bold bg-transparent border border-transparent rounded hover:bg-[#fdfaf5] focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none px-2 py-0.5 -ml-2 transition-all w-full placeholder:text-gray-300 disabled:opacity-50"
-              />
-            </div>
           </div>
           
+          <div className="flex items-center gap-2 pr-2 border-r border-[#f5f5f0]">
+             {!isExpanded && (
+               <div className="hidden md:flex items-center gap-1.5 px-3 border-r border-[#f5f5f0] whitespace-nowrap">
+                 <MapPin className="w-3.5 h-3.5 text-[#c5b358] opacity-70" />
+                 <span className="text-[14px] font-bold text-[#5a5a40] opacity-60 uppercase tracking-widest truncate max-w-[200px]">{location}</span>
+               </div>
+             )}
+             <div className={cn(
+               "px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-widest border",
+               difficultyId === 4 ? "bg-purple-100 text-purple-700 border-purple-200" :
+               difficultyId === 3 ? "bg-red-100 text-red-700 border-red-200" :
+               difficultyId === 2 ? "bg-orange-100 text-orange-700 border-orange-200" :
+               "bg-green-100 text-green-700 border-green-200"
+             )}>
+               {state.difficulties[difficultyId]}
+             </div>
+             <div className="flex items-center gap-1 text-[10px] font-bold text-[#c5b358]">
+               <Skull className="w-3 h-3" />
+               {npcCount}
+             </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-1">
           <button 
-            onClick={() => onDelete(enc)}
-            disabled={isDeleting || isUpdating}
-            className="flex items-center justify-center bg-transparent hover:bg-red-50 text-gray-400 hover:text-red-600 w-8 h-8 rounded-full border border-transparent hover:border-red-100 transition-all focus:outline-none focus:ring-2 focus:ring-red-200"
-            title="Delete Encounter"
+            onClick={() => onStart(enc)}
+            className="p-1.5 text-[#c5b358] hover:bg-[#c5b358]/10 rounded-full transition-all"
+            title="View Encounter"
           >
-            {isDeleting ? <Loader2 className="w-4 h-4 animate-spin text-red-600" /> : <Trash2 className="w-4 h-4" />}
+            <Swords className="w-4 h-4" />
+          </button>
+          <button 
+            onClick={onToggleExpand}
+            className="p-1.5 text-[#5a5a40] opacity-40 hover:opacity-100 hover:bg-[#f5f5f0] rounded-full transition-all"
+          >
+            <motion.div animate={{ rotate: isExpanded ? 180 : 0 }}>
+              <ChevronDown className="w-4 h-4" />
+            </motion.div>
           </button>
         </div>
+      </div>
 
-        {errorStatus && (
-          <div className="bg-red-50 border border-red-100 text-red-700 text-[10px] p-2 rounded-lg flex items-center gap-2 animate-pulse">
-            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-            <p className="font-bold uppercase tracking-tight">{errorStatus}</p>
-          </div>
+      {/* Expanded Content */}
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden border-t border-[#f5f5f0]"
+          >
+            <div className="p-5 flex flex-col gap-4">
+              <div className="flex justify-between items-start gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-3 h-3 text-[#c5b358] shrink-0" />
+                    <DebouncedInput 
+                      type="text"
+                      value={location}
+                      onChange={(v) => setLocation(v as string)}
+                      onBlur={handleUpdate}
+                      disabled={isUpdating || isDeleting}
+                      placeholder="Location"
+                      className="text-xs text-[#5a5a40] opacity-80 uppercase tracking-wider font-bold bg-transparent border border-transparent rounded hover:bg-[#fdfaf5] focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none px-2 py-0.5 -ml-2 transition-all w-full placeholder:text-gray-300 disabled:opacity-50"
+                    />
+                  </div>
+                </div>
+                
+                <button 
+                  onClick={() => onDelete(enc)}
+                  disabled={isDeleting || isUpdating}
+                  className="flex items-center justify-center bg-transparent hover:bg-red-50 text-gray-400 hover:text-red-600 w-8 h-8 rounded-full border border-transparent hover:border-red-100 transition-all focus:outline-none focus:ring-2 focus:ring-red-200"
+                  title="Delete Encounter"
+                >
+                  {isDeleting ? <Loader2 className="w-4 h-4 animate-spin text-red-600" /> : <Trash2 className="w-4 h-4" />}
+                </button>
+              </div>
+
+              {errorStatus && (
+                <div className="bg-red-50 border border-red-100 text-red-700 text-[10px] p-2 rounded-lg flex items-center gap-2">
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                  <p className="font-bold uppercase tracking-tight">{errorStatus}</p>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-[#fdfaf5] border border-[#e5e1d8] rounded-xl p-3 flex flex-col items-center">
+                  <div className="text-[9px] font-bold uppercase tracking-widest text-[#5a5a40] mb-2">Difficulty</div>
+                  <div className="relative w-full">
+                    <select 
+                      value={difficultyId}
+                      onChange={e => setDifficultyId(parseInt(e.target.value))}
+                      onBlur={handleUpdate}
+                      disabled={isUpdating || isDeleting}
+                      className={cn(
+                        "w-full text-[9px] uppercase tracking-widest font-bold pl-2 pr-6 py-1.5 rounded-full border transition-colors outline-none cursor-pointer appearance-none focus:ring-2 focus:ring-offset-1 focus:ring-[#c5b358]",
+                        difficultyId === 4 ? "bg-purple-100 text-purple-700 border-purple-200 hover:bg-purple-200" :
+                        difficultyId === 3 ? "bg-red-100 text-red-700 border-red-200 hover:bg-red-200" :
+                        difficultyId === 2 ? "bg-orange-100 text-orange-700 border-orange-200 hover:bg-orange-200" :
+                        "bg-green-100 text-green-700 border-green-200 hover:bg-green-200"
+                      )}
+                    >
+                      {Object.entries(state.difficulties).map(([id, nm]) => (
+                        <option key={id} value={id}>{nm}</option>
+                      ))}
+                    </select>
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-[8px] font-bold opacity-60">▼</div>
+                  </div>
+                </div>
+                <div className="bg-[#fdfaf5] border border-[#e5e1d8] rounded-xl p-3 flex flex-col items-center justify-center">
+                  <div className="text-[9px] font-bold uppercase tracking-widest text-[#5a5a40] mb-1">NPCs</div>
+                  <div className="flex items-center gap-2 font-bold text-lg text-[#2c2c26]">
+                    <Skull className="w-4 h-4 text-[#c5b358]" />
+                    {npcCount}
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <button 
+                  onClick={() => onStart(enc)}
+                  disabled={isDeleting || isUpdating}
+                  className="w-full bg-[#c5b358] hover:bg-[#b0a04f] text-[#2c2c26] py-2.5 rounded-xl text-[10px] uppercase tracking-widest font-bold transition-all shadow-sm flex items-center justify-center gap-2"
+                >
+                  <Swords className="w-3.5 h-3.5" />
+                  View / Run Encounter
+                </button>
+              </div>
+            </div>
+          </motion.div>
         )}
-
-        {/* Stats Row */}
-        <div className="grid grid-cols-2 gap-3 mt-auto">
-          <div className="bg-[#fdfaf5] border border-[#e5e1d8] rounded-xl p-3 flex flex-col items-center">
-            <div className="text-[9px] font-bold uppercase tracking-widest text-[#5a5a40] mb-2">Difficulty</div>
-            <div className="relative w-full">
-              <select 
-                value={difficultyId}
-                onChange={e => setDifficultyId(parseInt(e.target.value))}
-                onBlur={handleUpdate}
-                disabled={isUpdating || isDeleting}
-                className={cn(
-                  "w-full text-[9px] uppercase tracking-widest font-bold pl-2 pr-6 py-1.5 rounded-full border transition-colors outline-none cursor-pointer appearance-none focus:ring-2 focus:ring-offset-1 focus:ring-[#c5b358]",
-                  difficultyId === 4 ? "bg-purple-100 text-purple-700 border-purple-200 hover:bg-purple-200" :
-                  difficultyId === 3 ? "bg-red-100 text-red-700 border-red-200 hover:bg-red-200" :
-                  difficultyId === 2 ? "bg-orange-100 text-orange-700 border-orange-200 hover:bg-orange-200" :
-                  "bg-green-100 text-green-700 border-green-200 hover:bg-green-200"
-                )}
-              >
-                {Object.entries(state.difficulties).map(([id, nm]) => (
-                  <option key={id} value={id}>{nm}</option>
-                ))}
-              </select>
-              <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-[8px] font-bold opacity-60">▼</div>
-            </div>
-          </div>
-          <div className="bg-[#fdfaf5] border border-[#e5e1d8] rounded-xl p-3 flex flex-col items-center justify-center">
-            <div className="text-[9px] font-bold uppercase tracking-widest text-[#5a5a40] mb-1">NPCs</div>
-            <div className="flex items-center gap-2 font-bold text-lg text-[#2c2c26]">
-              <Skull className="w-4 h-4 text-[#c5b358]" />
-              {npcCount}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Action Footer */}
-      <div className="px-5 py-4 bg-[#fdfaf5] border-t border-[#e5e1d8] flex justify-between items-center group/footer">
-        <div className="flex -space-x-2 overflow-hidden">
-          {/* Visual fluff for "NPC types" */}
-          {[...Array(Math.min(3, npcCount))].map((_, i) => (
-            <div key={i} className="inline-block h-6 w-6 rounded-full ring-2 ring-[#fdfaf5] bg-[#e5e1d8] flex items-center justify-center">
-               <Skull className="w-3 h-3 text-[#5a5a40] opacity-50" />
-            </div>
-          ))}
-          {npcCount > 3 && (
-            <div className="inline-block h-6 w-6 rounded-full ring-2 ring-[#fdfaf5] bg-[#5a5a40] text-white text-[8px] font-bold flex items-center justify-center">
-              +{npcCount - 3}
-            </div>
-          )}
-        </div>
-        <button 
-          onClick={() => onStart(enc)}
-          disabled={isDeleting || isUpdating}
-          className="bg-[#c5b358] hover:bg-[#b0a04f] focus:ring-2 focus:ring-offset-1 focus:ring-[#c5b358] text-[#2c2c26] px-5 py-2 rounded-full text-xs uppercase tracking-widest font-bold transition-all shadow-sm group-hover/footer:shadow-md flex items-center gap-2 outline-none active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <Swords className="w-3.5 h-3.5" />
-          View / Run
-        </button>
-      </div>
+      </AnimatePresence>
     </div>
   );
 }
@@ -207,6 +257,16 @@ export function EncountersTab({ onSelectEncounter, onSyncRequested }: { onSelect
   const [isAdding, setIsAdding] = useState(false);
   const [isDeletingId, setIsDeletingId] = useState<string | null>(null);
   const [globalError, setGlobalError] = useState<string | null>(null);
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+
+  const toggleExpand = (id: string) => {
+    setExpandedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   const handleCreateEncounter = async () => {
     setIsAdding(true);
@@ -325,12 +385,14 @@ export function EncountersTab({ onSelectEncounter, onSyncRequested }: { onSelect
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 gap-8">
           {state.encounters.map(enc => (
             <EncounterCard 
               key={enc.id} 
               enc={enc} 
               isDeleting={isDeletingId === enc.id}
+              isExpanded={expandedIds.has(enc.id)}
+              onToggleExpand={() => toggleExpand(enc.id)}
               onDelete={handleDelete} 
               onStart={(e) => onSelectEncounter(e.id)} 
               onSyncRequested={onSyncRequested} 

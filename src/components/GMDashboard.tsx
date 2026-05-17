@@ -516,19 +516,15 @@ export function GMDashboard() {
             <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-2 -ml-2 text-[#5a5a40] hover:bg-black/5 rounded">
               <Menu className="w-6 h-6" />
             </button>
-            <input 
-              type="text" 
-              value={state.campaignName}
-              onChange={e => updateState(prev => ({ ...prev, campaignName: e.target.value }))}
-              placeholder="Campaign Name"
-              className="text-lg lg:text-xl font-bold text-[#2c2c26] bg-transparent border border-transparent hover:border-[#e5e1d8] focus:border-[#c5b358] focus:bg-white rounded px-2 py-1 outline-none w-full transition-all"
-            />
+            <h2 className="text-lg lg:text-xl font-bold text-[#2c2c26] px-2 py-1">
+              GM Encounter Dashboard
+            </h2>
           </div>
         </header>
 
         {/* Dashboard Content */}
         <section className="flex-1 p-4 lg:p-8">
-          <div className="max-w-6xl mx-auto">
+          <div className="max-w-7xl mx-auto">
             {activeTab === 'combat' && state.combatState.activeEncounterId ? (
               <ActiveEncounterTab onBack={clearEncounter} />
             ) : activeTab === 'party' ? (
