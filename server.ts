@@ -16,19 +16,25 @@ async function startServer() {
     res.status(200).send("OK");
   });
 
+  // Google Auth Config API
+  app.get("/api/auth/config", (req, res) => {
+    const clientId = process.env.VITE_GOOGLE_CLIENT_ID || process.env.CLIENT_ID || process.env.GOOGLE_CLIENT_ID;
+    res.json({ clientId: clientId || null });
+  });
+
   // Google Token Exchange API
   app.post("/api/auth/google-token", async (req, res) => {
     try {
       const { code, redirect_uri, refresh_token } = req.body;
-      const clientId = process.env.VITE_GOOGLE_CLIENT_ID;
-      const clientSecret = process.env.VITE_GOOGLE_CLIENT_SECRET;
+      const clientId = process.env.VITE_GOOGLE_CLIENT_ID || process.env.CLIENT_ID || process.env.GOOGLE_CLIENT_ID;
+      const clientSecret = process.env.VITE_GOOGLE_CLIENT_SECRET || process.env.CLIENT_SECRET || process.env.GOOGLE_CLIENT_SECRET;
 
       if (!clientId || !clientSecret) {
         console.warn('⚠️ [Server] Persistent Sync Disabled: Missing Google Client Secret or ID.');
         console.info('   To enable persistent background sync, set VITE_GOOGLE_CLIENT_ID and VITE_GOOGLE_CLIENT_SECRET in your .env or AI Studio Secrets.');
         return res.status(400).json({ 
           error: "CONFIGURATION_REQUIRED",
-          message: "VITE_GOOGLE_CLIENT_SECRET is not configured in the environment." 
+          message: "Google Client Secret/ID is not configured in the environment." 
         });
       }
 

@@ -14,12 +14,38 @@ export const setSpreadsheetId = (id: string) => {
   console.log(`[Sheets] Spreadsheet ID updated to: ${id}`);
 };
 
+let cachedClientId: string | null = null;
+export async function getGoogleClientId(): Promise<string> {
+  if (cachedClientId) return cachedClientId;
+  if (import.meta.env.VITE_GOOGLE_CLIENT_ID) {
+    cachedClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    return cachedClientId;
+  }
+  try {
+    const res = await fetch('/api/auth/config');
+    if (res.ok) {
+      const data = await res.json();
+      if (data.clientId) {
+        cachedClientId = data.clientId;
+        return cachedClientId;
+      }
+    }
+  } catch (err) {
+    console.error('[Sheets] Failed to fetch google client_id from server config:', err);
+  }
+  return '';
+}
+
 /**
  * Trigger a full-page redirect to Google's OAuth page.
  * Uses Authorization Code Flow for persistence.
  */
-export function signInWithRedirect() {
-  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+export async function signInWithRedirect() {
+  const clientId = await getGoogleClientId();
+  if (!clientId) {
+    console.error('[Sheets] Cannot sign in: No Google Client ID available.');
+    return;
+  }
   const redirectUri = window.location.origin; 
   const scope = 'https://www.googleapis.com/auth/spreadsheets';
   
@@ -43,8 +69,12 @@ export function signInWithRedirect() {
 /**
  * Trigger implicit flow for temporary access.
  */
-export function signInWithToken() {
-  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+export async function signInWithToken() {
+  const clientId = await getGoogleClientId();
+  if (!clientId) {
+    console.error('[Sheets] Cannot sign in: No Google Client ID available.');
+    return;
+  }
   const redirectUri = window.location.origin; 
   const scope = 'https://www.googleapis.com/auth/spreadsheets';
   
@@ -222,11 +252,11 @@ export async function initGoogleAuth(): Promise<void> {
   });
 }
 
-function setupClient(resolve: () => void, reject: (err: Error) => void) {
+async function setupClient(resolve: () => void, reject: (err: Error) => void) {
   try {
-    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    const clientId = await getGoogleClientId();
     if (!clientId) {
-      throw new Error("Missing VITE_GOOGLE_CLIENT_ID in environment variables.");
+      throw new Error("Missing Google Client ID in environment variables.");
     }
 
     tokenClient = window.google.accounts.oauth2.initTokenClient({
