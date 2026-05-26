@@ -2,6 +2,7 @@ import React from 'react';
 import { Coffee, Loader2, AlertCircle, Users } from 'lucide-react';
 import { useParty } from './PartyTab/hooks/useParty';
 import { CharacterCard } from './PartyTab/CharacterCard';
+import { cn } from '../lib/utils';
 
 export function PartyTab() {
   const {
@@ -16,6 +17,7 @@ export function PartyTab() {
     handleLongRest,
     handleDeletePlayer,
     handleUpdate,
+    handleResetNpcHp,
   } = useParty();
 
   return (
@@ -81,6 +83,61 @@ export function PartyTab() {
           ))}
         </div>
       )}
+
+      {/* NPC Section */}
+      <div id="npc-library-section" className="bg-white p-6 rounded-2xl border border-[#e5e1d8] shadow-sm space-y-4">
+        <div>
+          <h2 id="npc-library-title" className="text-xl font-bold text-[#2c2c26] font-serif">NPC Library</h2>
+          <p className="text-sm text-[#5a5a40] mt-1 font-sans">
+            Reference NPCs loaded from your library. Reset their HP back to maximum here.
+          </p>
+        </div>
+
+        {state.npcs.length === 0 ? (
+          <p className="text-sm text-[#5a5a40] italic">No NPCs loaded in library.</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {state.npcs.map(npc => {
+              const needsReset = npc.currentHp < npc.maxHp;
+              return (
+                <div 
+                  key={npc.id} 
+                  id={`npc-card-${npc.id}`}
+                  className={cn(
+                    "p-4 bg-white border rounded-xl flex items-center justify-between gap-4 transition-all hover:shadow-sm",
+                    syncingId === npc.id ? "border-[#c5b358]" : "border-[#e5e1d8]"
+                  )}
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-sm text-[#2c2c26] font-serif truncate">{npc.name}</span>
+                      <span className="text-[10px] text-[#5a5a40] font-bold whitespace-nowrap">(AC {npc.ac})</span>
+                    </div>
+                    <div className="text-[11px] text-[#5a5a40] mt-1 flex flex-wrap gap-x-3 gap-y-1">
+                      <span>HP: <strong className={npc.currentHp <= 0 ? "text-red-600" : "text-[#2c2c26]"}>{npc.currentHp}</strong>/{npc.maxHp}</span>
+                      {npc.conditions && (
+                        <span className="inline-block px-1.5 py-0.2 bg-red-50 text-red-700 border border-red-100 rounded text-[9px] font-bold">
+                          {npc.conditions}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  {needsReset && (
+                    <button
+                      id={`btn-reset-hp-${npc.id}`}
+                      onClick={() => handleResetNpcHp(npc.id, npc.maxHp)}
+                      disabled={syncingId === npc.id}
+                      className="px-3 py-1.5 bg-[#c5b358]/10 hover:bg-[#c5b358]/20 text-[#2c2c26] border border-[#c5b358]/25 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all whitespace-nowrap disabled:opacity-50"
+                    >
+                      Reset HP
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

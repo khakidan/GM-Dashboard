@@ -196,7 +196,10 @@ export async function addNpcDB(
   npcName: string,
   npcHp: number,
   npcAc: number,
-  npcNotes: string
+  npcNotes: string,
+  resistances: string = '',
+  immunities: string = '',
+  vulnerabilities: string = ''
 ) {
   const nextIdVal = await getNextId('NPCs');
   const finalId = nextIdVal.toString();
@@ -210,10 +213,22 @@ export async function addNpcDB(
     castInt(npcHp, 1),  // Current HP (starts at max)
     '',                 // Condition
     sanitizeString(npcNotes),
+    sanitizeString(resistances),
+    sanitizeString(immunities),
+    sanitizeString(vulnerabilities),
   ];
 
-  await appendSheetData('NPCs!A:H', [rowData]);
-  return { id: finalId, name: npcName, maxHp: npcHp, ac: npcAc, notes: npcNotes };
+  await appendSheetData('NPCs!A:K', [rowData]);
+  return {
+    id: finalId,
+    name: npcName,
+    maxHp: npcHp,
+    ac: npcAc,
+    notes: npcNotes,
+    resistances,
+    immunities,
+    vulnerabilities,
+  };
 }
 
 export async function updateNpcDB(
@@ -232,6 +247,18 @@ export async function updateNpcDB(
   queueWrite(`NPCs!E${a1Row}:G${a1Row}`, [
     [tempHp.toString(), currentHp.toString(), conditions],
   ]);
+}
+
+export async function resetNpcHpDB(
+  npcId: string,
+  maxHp: number
+): Promise<void> {
+  const rowIdx = await findRowIndexById('NPCs', npcId);
+  if (rowIdx === null) {
+    throw new Error(`NPC ${npcId} not found`);
+  }
+  const a1Row = rowIdx + 1;
+  await updateSheetData(`NPCs!F${a1Row}`, [[maxHp.toString()]]);
 }
 
 export async function addEncounterCombatantDB(
@@ -266,6 +293,18 @@ export async function updateEncounterCombatantQuantityDB(
   const a1Row = rowIdx + 1;
   // ✅ updateSheetData is now a static import — no dynamic import needed
   await updateSheetData(`Encounter_Combatants!E${a1Row}`, [[newQty.toString()]]);
+}
+
+export async function updateInitiativeDB(
+  ecId: string,
+  initiative: number
+): Promise<void> {
+  const rowIdx = await findRowIndexById('Encounter_Combatants', ecId);
+  if (rowIdx === null) {
+    throw new Error(`Encounter Combatant ${ecId} not found`);
+  }
+  const a1Row = rowIdx + 1;
+  await updateSheetData(`Encounter_Combatants!F${a1Row}`, [[initiative.toString()]]);
 }
 
 export async function deleteEncounterCombatantDB(ecId: string) {

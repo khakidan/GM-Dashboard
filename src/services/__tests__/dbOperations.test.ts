@@ -9,6 +9,8 @@ import {
   addCharacterDB,
   updateCharacterDB,
   deleteCharacterFully,
+  updateInitiativeDB,
+  resetNpcHpDB,
 } from '../dbOperations';
 import { SheetGrid, SheetRow } from '../sheetsService';
 
@@ -311,5 +313,79 @@ describe('exponential backoff delay calculation', () => {
   it('worst case within MAX_RETRIES=3 is 2200ms', () => {
     // attempt=2, full jitter
     expect(calcDelay(2, 1)).toBe(2200);
+  });
+});
+
+// ─── updateInitiativeDB ────────────────────────────
+
+describe('updateInitiativeDB', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('calls updateSheetData with the correct range and value when the combatant row is found', async () => {
+    vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({
+      values: [
+        ['ec-1', 'enc-1', 'pc-1', '', '1'],
+        ['ec-2', 'enc-1', 'pc-2', '', '1'],
+      ] as SheetGrid,
+    });
+
+    await updateInitiativeDB('ec-2', 15);
+
+    expect(sheetsService.updateSheetData).toHaveBeenCalledWith(
+      'Encounter_Combatants!F3',
+      [['15']]
+    );
+  });
+
+  it('throws when the ecId is not found', async () => {
+    vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({
+      values: [
+        ['ec-1', 'enc-1', 'pc-1', '', '1'],
+      ] as SheetGrid,
+    });
+
+    await expect(updateInitiativeDB('ec-nonexistent', 15)).rejects.toThrow(
+      'Encounter Combatant ec-nonexistent not found'
+    );
+    expect(sheetsService.updateSheetData).not.toHaveBeenCalled();
+  });
+});
+
+// ─── resetNpcHpDB ──────────────────────────────────
+
+describe('resetNpcHpDB', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('calls updateSheetData with the correct range and maxHits value when the NPC is found', async () => {
+    vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({
+      values: [
+        ['npc-1', 'Orc', '13', '15', '0', '10', '', 'Orc rogue'],
+        ['npc-2', 'Goblin', '15', '7', '0', '3', '', 'Goblin guard'],
+      ] as SheetGrid,
+    });
+
+    await resetNpcHpDB('npc-2', 7);
+
+    expect(sheetsService.updateSheetData).toHaveBeenCalledWith(
+      'NPCs!F3',
+      [['7']]
+    );
+  });
+
+  it('throws when the npcId is not found', async () => {
+    vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({
+      values: [
+        ['npc-1', 'Orc', '13', '15', '0', '10', '', 'Orc rogue'],
+      ] as SheetGrid,
+    });
+
+    await expect(resetNpcHpDB('npc-nonexistent', 7)).rejects.toThrow(
+      'NPC npc-nonexistent not found'
+    );
+    expect(sheetsService.updateSheetData).not.toHaveBeenCalled();
   });
 });

@@ -27,6 +27,9 @@ export interface NPC {
   currentHp: number;
   conditions: string;
   notes: string;
+  resistances?: string;
+  immunities?: string;
+  vulnerabilities?: string;
 }
 
 export interface Encounter {
@@ -62,6 +65,9 @@ export interface Combatant {
   sheetColCondition?: string;
   hpSheetName?: string;
   hpSheetRowIndex?: number;
+  resistances?: string;
+  immunities?: string;
+  vulnerabilities?: string;
 }
 
 export interface CombatState {
@@ -78,6 +84,7 @@ export interface EncounterCombatant {
   npcId: string | null;
   quantity: number;
   sheetRowIndex?: number;
+  initiative?: number;
 }
 
 export interface AppState {

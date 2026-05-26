@@ -189,7 +189,7 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
         },
       }));
 
-      const newNpc = await addNpcDB(npcName, npcHp as number, npcAc === '' ? 10 : npcAc, npcNotes);
+      const newNpc = await addNpcDB(npcName, npcHp as number, npcAc === '' ? 10 : npcAc, npcNotes, '', '', '');
       const newEc = await addEncounterCombatantDB(encounter?.id || '', null, newNpc.id, 1);
 
       updateState(prev => ({

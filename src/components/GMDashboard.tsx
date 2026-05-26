@@ -132,7 +132,7 @@ export function GMDashboard() {
 
       // 3. Fetch NPCs
       addLog('Step 4: Loading NPC library...');
-      const npcRes = await fetchSheetData('NPCs!A2:H');
+      const npcRes = await fetchSheetData('NPCs!A2:K');
       const parsedNPCs: NPC[] = [];
       (npcRes.values || []).forEach((row: any[], i: number) => {
         const parsed = NpcRowSchema.safeParse(row);
@@ -140,8 +140,20 @@ export function GMDashboard() {
           console.warn(`[GMDashboard] Validation failed for NPCs row ${i + 2}:`, parsed.error);
           return;
         }
-        const [id, name, ac, maxHp, tempHp, currentHp, conditions, notes] = parsed.data;
-        parsedNPCs.push({ id, name, ac, maxHp, tempHp, currentHp, conditions, notes });
+        const [id, name, ac, maxHp, tempHp, currentHp, conditions, notes, resistances, immunities, vulnerabilities] = parsed.data;
+        parsedNPCs.push({
+          id,
+          name,
+          ac,
+          maxHp,
+          tempHp,
+          currentHp,
+          conditions,
+          notes,
+          resistances: resistances || '',
+          immunities: immunities || '',
+          vulnerabilities: vulnerabilities || '',
+        });
       });
       addLog(`NPC entries loaded: ${parsedNPCs.length}`);
 
@@ -181,7 +193,7 @@ export function GMDashboard() {
       addLog('Step 7: Synching active combatants...');
       let parsedEncounterCombatants: EncounterCombatant[] = [];
       try {
-        const ecResponse = await fetchSheetData('Encounter_Combatants!A2:E');
+        const ecResponse = await fetchSheetData('Encounter_Combatants!A2:F');
         const ecRows = ecResponse.values || [];
         ecRows.forEach((row: any[], i: number) => {
           const parsed = EncounterCombatantRowSchema.safeParse(row);
@@ -189,13 +201,14 @@ export function GMDashboard() {
             console.warn(`[GMDashboard] Validation failed for Encounter_Combatants row ${i + 2}:`, parsed.error);
             return;
           }
-          const [id, encounterId, playerId, npcId, quantity] = parsed.data;
+          const [id, encounterId, playerId, npcId, quantity, initiative] = parsed.data;
           parsedEncounterCombatants.push({
             id,
             encounterId,
             playerId,
             npcId,
             quantity,
+            initiative: initiative || 0,
             sheetRowIndex: i + 1,
           });
         });
@@ -286,7 +299,7 @@ export function GMDashboard() {
               characterId: c.id,
               name: c.characterName,
               type: 'pc',
-              initiative: 0,
+              initiative: ec.initiative || 0,
               ac: c.ac,
               maxHp: c.maxHp,
               currentHp: c.currentHp,
@@ -310,7 +323,7 @@ export function GMDashboard() {
                 encounterCombatantId: ec.id,
                 name: `${npcTemplate.name}${ec.quantity > 1 ? ` ${i + 1}` : ''}`,
                 type: 'npc',
-                initiative: 0,
+                initiative: ec.initiative || 0,
                 ac: npcTemplate.ac,
                 maxHp: npcTemplate.maxHp,
                 currentHp: npcTemplate.currentHp,
@@ -318,6 +331,9 @@ export function GMDashboard() {
                 conditions: npcTemplate.conditions,
                 notes: npcTemplate.notes,
                 passivePerception: 10,
+                resistances: npcTemplate.resistances,
+                immunities: npcTemplate.immunities,
+                vulnerabilities: npcTemplate.vulnerabilities,
               });
             }
           }
@@ -371,6 +387,9 @@ export function GMDashboard() {
                 conditions: npcTemplate.conditions,
                 notes: npcTemplate.notes,
                 passivePerception: 10,
+                resistances: npcTemplate.resistances,
+                immunities: npcTemplate.immunities,
+                vulnerabilities: npcTemplate.vulnerabilities,
               });
             }
           }

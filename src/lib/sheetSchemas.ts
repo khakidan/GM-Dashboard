@@ -51,7 +51,7 @@ export const CharacterRowSchema = z.preprocess(padRow(12), z.tuple([
   stringDefault(''),                   // [11] notes
 ]));
 
-export const NpcRowSchema = z.preprocess(padRow(8), z.tuple([
+export const NpcRowSchema = z.preprocess(padRow(11), z.tuple([
   idSchema,                            // [0] id
   stringDefault('Unknown NPC'),        // [1] name
   coerceNumber(10),                    // [2] ac
@@ -60,6 +60,9 @@ export const NpcRowSchema = z.preprocess(padRow(8), z.tuple([
   coerceNumber(10),                    // [5] currentHp
   stringDefault(''),                   // [6] conditions
   stringDefault(''),                   // [7] notes
+  stringDefault(''),                   // [8] resistances
+  stringDefault(''),                   // [9] immunities
+  stringDefault(''),                   // [10] vulnerabilities
 ]));
 
 export const EncounterRowSchema = z.preprocess(padRow(5), z.tuple([
@@ -70,12 +73,13 @@ export const EncounterRowSchema = z.preprocess(padRow(5), z.tuple([
   stringDefault(''),                   // [4] npcDefinitions
 ]));
 
-export const EncounterCombatantRowSchema = z.preprocess(padRow(5), z.tuple([
+export const EncounterCombatantRowSchema = z.preprocess(padRow(6), z.tuple([
   idSchema,                            // [0] id
   idSchema,                            // [1] encounterId
   nullDefault(),                       // [2] playerId
   nullDefault(),                       // [3] npcId
   coerceNumber(1),                     // [4] quantity
+  coerceNumber(0),                     // [5] initiative
 ]));
 
 export const StatusRowSchema = z.preprocess(padRow(2), z.tuple([

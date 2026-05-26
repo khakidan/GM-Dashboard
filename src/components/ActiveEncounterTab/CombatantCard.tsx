@@ -244,6 +244,32 @@ export function CombatantCard({
               {c.notes && (
                 <p className="text-[10px] text-[#5a5a40] opacity-60 italic">{c.notes}</p>
               )}
+
+              {((c.resistances && c.resistances.trim()) ||
+                (c.immunities && c.immunities.trim()) ||
+                (c.vulnerabilities && c.vulnerabilities.trim())) && (
+                <div id={`combatant-defenses-${c.id}`} className="text-[10px] space-y-1 bg-[#faf9f6] p-2 rounded-xl border border-[#e5e1d8]">
+                  <div className="flex justify-between items-center gap-1">
+                    <span className="font-bold text-[#5a5a40]">Resistances:</span>
+                    <span className="font-medium text-amber-600 truncate max-w-[170px]" title={c.resistances}>
+                      {c.resistances || '—'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center gap-1">
+                    <span className="font-bold text-[#5a5a40]">Immunities:</span>
+                    <span className="font-medium text-red-600 truncate max-w-[170px]" title={c.immunities}>
+                      {c.immunities || '—'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center gap-1">
+                    <span className="font-bold text-[#5a5a40]">Vulnerabilities:</span>
+                    <span className="font-medium text-blue-600 truncate max-w-[170px]" title={c.vulnerabilities}>
+                      {c.vulnerabilities || '—'}
+                    </span>
+                  </div>
+                </div>
+              )}
+
               <div className="grid grid-cols-2 gap-2">
                 <div className="bg-[#faf9f6] p-2 rounded-xl border border-[#e5e1d8] text-center">
                   <span className="text-[7px] font-bold uppercase tracking-tighter text-[#5a5a40] block mb-1">Temp HP</span>

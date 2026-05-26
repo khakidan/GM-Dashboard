@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAppState } from '../../../hooks/useAppState';
 import { updateSheetData } from '../../../services/sheetsService';
-import { updateCharacterDB, updateNpcDB, deleteEncounterCombatantDB, updateEncounterCombatantQuantityDB } from '../../../services/dbOperations';
+import { updateCharacterDB, updateNpcDB, deleteEncounterCombatantDB, updateEncounterCombatantQuantityDB, updateInitiativeDB } from '../../../services/dbOperations';
 import { Combatant } from '../../../types';
 
 export function useCombatSync() {
@@ -113,16 +113,8 @@ export function useCombatSync() {
     };
 
     const syncDb = async () => {
-      if (
-        updates.initiative !== undefined &&
-        targetCombatant.sheetName &&
-        targetCombatant.sheetRowIndex &&
-        targetCombatant.sheetColInit
-      ) {
-        await updateSheetData(
-          `${targetCombatant.sheetName}!${targetCombatant.sheetColInit}${targetCombatant.sheetRowIndex}`,
-          [[updates.initiative]]
-        );
+      if (updates.initiative !== undefined && targetCombatant.encounterCombatantId) {
+        await updateInitiativeDB(targetCombatant.encounterCombatantId, updates.initiative);
       }
 
       if (targetCombatant.type === 'pc' && targetCombatant.characterId) {

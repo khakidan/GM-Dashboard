@@ -99,11 +99,22 @@ describe('sheetSchemas', () => {
 
   describe('NpcRowSchema', () => {
     it('parses a fully valid row correctly', () => {
+      const row = ['npc-1', 'Goblin', 15, 7, 0, 7, '', 'Watch out', 'Fire', 'Poison', 'Cold'];
+      const result = NpcRowSchema.safeParse(row);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toEqual(['npc-1', 'Goblin', 15, 7, 0, 7, '', 'Watch out', 'Fire', 'Poison', 'Cold']);
+      }
+    });
+
+    it('correctly parses resistances, immunities, and vulnerabilities and defaults them to empty strings when absent', () => {
       const row = ['npc-1', 'Goblin', 15, 7, 0, 7, '', 'Watch out'];
       const result = NpcRowSchema.safeParse(row);
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data).toEqual(['npc-1', 'Goblin', 15, 7, 0, 7, '', 'Watch out']);
+        expect(result.data[8]).toBe(''); // resistances
+        expect(result.data[9]).toBe(''); // immunities
+        expect(result.data[10]).toBe(''); // vulnerabilities
       }
     });
   });
@@ -121,21 +132,31 @@ describe('sheetSchemas', () => {
 
   describe('EncounterCombatantRowSchema', () => {
     it('parses a fully valid row correctly', () => {
-      const row = ['ec-1', 'enc-1', 'char-1', null, 1];
+      const row = ['ec-1', 'enc-1', 'char-1', null, 1, 15];
       const result = EncounterCombatantRowSchema.safeParse(row);
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data).toEqual(['ec-1', 'enc-1', 'char-1', null, 1]);
+        expect(result.data).toEqual(['ec-1', 'enc-1', 'char-1', null, 1, 15]);
       }
     });
 
-    it('handles empty string and null playerId/npcId by converting to null', () => {
+    it('handles empty string and null playerId/npcId by converting to null and defaults initiative', () => {
       const row = ['ec-2', 'enc-1', '', null, 1];
       const result = EncounterCombatantRowSchema.safeParse(row);
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data[2]).toBe(null);
         expect(result.data[3]).toBe(null);
+        expect(result.data[5]).toBe(0);
+      }
+    });
+
+    it('defaults initiative to 0 when absent', () => {
+      const row = ['ec-1', 'enc-1', 'char-1', null, 1];
+      const result = EncounterCombatantRowSchema.safeParse(row);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data[5]).toBe(0);
       }
     });
   });
