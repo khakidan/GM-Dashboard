@@ -5,6 +5,24 @@ declare global {
   }
 }
 
+import { toast } from 'sonner';
+
+async function withSheetToast<T>(promise: Promise<T>): Promise<T> {
+  const tId = toast.loading('Updating sheet...');
+  try {
+    const res = await promise;
+    toast.success('Sheet updated successfully', { id: tId });
+    return res;
+  } catch (err: any) {
+    if (err?.message !== 'UNAUTHENTICATED') {
+      toast.error('Failed to update sheet', { id: tId });
+    } else {
+      toast.dismiss(tId);
+    }
+    throw err;
+  }
+}
+
 let currentSpreadsheetId = localStorage.getItem('GM_DATA_SPREADSHEET_ID') || import.meta.env.VITE_DEFAULT_SPREADSHEET_ID || '';
 
 export const getSpreadsheetId = () => currentSpreadsheetId;
@@ -390,7 +408,11 @@ export async function fetchSheetData(range: string) {
   return await response.json();
 }
 
-export async function updateSheetData(range: string, values: any[][]) {
+export function updateSheetData(range: string, values: any[][]) {
+  return withSheetToast(_updateSheetData(range, values));
+}
+
+async function _updateSheetData(range: string, values: any[][]) {
   const sid = getSpreadsheetId();
   const response = await googleFetch(
     `https://sheets.googleapis.com/v4/spreadsheets/${sid}/values/${range}?valueInputOption=USER_ENTERED`,
@@ -410,7 +432,11 @@ export async function updateSheetData(range: string, values: any[][]) {
   return await response.json();
 }
 
-export async function appendSheetData(range: string, values: any[][]) {
+export function appendSheetData(range: string, values: any[][]) {
+  return withSheetToast(_appendSheetData(range, values));
+}
+
+async function _appendSheetData(range: string, values: any[][]) {
   const sid = getSpreadsheetId();
   const response = await googleFetch(
     `https://sheets.googleapis.com/v4/spreadsheets/${sid}/values/${range}:append?valueInputOption=USER_ENTERED`,
@@ -457,7 +483,11 @@ export async function fetchSpreadsheetMetadata() {
   return await response.json();
 }
 
-export async function batchUpdateSpreadsheet(requests: any[]) {
+export function batchUpdateSpreadsheet(requests: any[]) {
+  return withSheetToast(_batchUpdateSpreadsheet(requests));
+}
+
+async function _batchUpdateSpreadsheet(requests: any[]) {
   const sid = getSpreadsheetId();
   const response = await googleFetch(
     `https://sheets.googleapis.com/v4/spreadsheets/${sid}:batchUpdate`,
@@ -515,7 +545,7 @@ export async function initializeDatabaseSchema() {
       const createRequests = missingSheets.map(sheet => ({
         addSheet: { properties: { title: sheet.title } }
       }));
-      await batchUpdateSpreadsheet(createRequests);
+      await _batchUpdateSpreadsheet(createRequests);
       await new Promise(r => setTimeout(r, 1000));
     }
 
@@ -523,10 +553,10 @@ export async function initializeDatabaseSchema() {
       try {
         const data = await fetchSheetData(`${sheet.title}!A1:Z1`);
         if (!data.values || data.values.length === 0 || data.values[0].join(',') !== sheet.headers.join(',')) {
-          await updateSheetData(`${sheet.title}!A1:Z1`, [sheet.headers]);
+          await _updateSheetData(`${sheet.title}!A1:Z1`, [sheet.headers]);
         }
       } catch(e) {
-        await updateSheetData(`${sheet.title}!A1:${String.fromCharCode(65 + sheet.headers.length - 1)}1`, [sheet.headers]);
+        await _updateSheetData(`${sheet.title}!A1:${String.fromCharCode(65 + sheet.headers.length - 1)}1`, [sheet.headers]);
       }
     }
     

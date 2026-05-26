@@ -4,6 +4,7 @@ import { PlayerView } from './components/PlayerView';
 import { AuthRelay } from './components/AuthRelay';
 import { checkAndCaptureToken } from './services/sheetsService';
 import { useEffect, useState } from 'react';
+import { Toaster } from 'sonner';
 
 export default function App() {
   const [isCapturing, setIsCapturing] = useState(true);
@@ -25,13 +26,16 @@ export default function App() {
   }
 
   return (
-    <HashRouter>
-      <Routes>
-        <Route path="/" element={<GMDashboard />} />
-        <Route path="/player-view" element={<PlayerView />} />
-        <Route path="/auth-relay" element={<AuthRelay />} />
-      </Routes>
-    </HashRouter>
+    <>
+      <Toaster position="top-center" richColors />
+      <HashRouter>
+        <Routes>
+          <Route path="/" element={<GMDashboard />} />
+          <Route path="/player-view" element={<PlayerView />} />
+          <Route path="/auth-relay" element={<AuthRelay />} />
+        </Routes>
+      </HashRouter>
+    </>
   );
 }
 
