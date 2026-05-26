@@ -29,6 +29,9 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
   const [newAc, setNewAc] = useState<number>(character.ac);
   const [newPassivePerception, setNewPassivePerception] = useState<number>(character.passivePerception);
   const [newNotes, setNewNotes] = useState<string>(character.notes || '');
+  const [newResistances, setNewResistances] = useState<string>(character.resistances || '');
+  const [newImmunities, setNewImmunities] = useState<string>(character.immunities || '');
+  const [newVulnerabilities, setNewVulnerabilities] = useState<string>(character.vulnerabilities || '');
 
   // Keep states updated if the input character prop changes while open
   useEffect(() => {
@@ -39,6 +42,9 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
       setNewAc(character.ac);
       setNewPassivePerception(character.passivePerception);
       setNewNotes(character.notes || '');
+      setNewResistances(character.resistances || '');
+      setNewImmunities(character.immunities || '');
+      setNewVulnerabilities(character.vulnerabilities || '');
 
       setChkHp(false);
       setChkAc(false);
@@ -75,6 +81,18 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
 
     if (Number(newPassivePerception) !== character.passivePerception) {
       updates.passivePerception = Number(newPassivePerception);
+    }
+
+    if (newResistances !== (character.resistances || '')) {
+      updates.resistances = newResistances;
+    }
+
+    if (newImmunities !== (character.immunities || '')) {
+      updates.immunities = newImmunities;
+    }
+
+    if (newVulnerabilities !== (character.vulnerabilities || '')) {
+      updates.vulnerabilities = newVulnerabilities;
     }
 
     if (newNotes !== character.notes) {
@@ -290,6 +308,48 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
                   type="number"
                   value={newPassivePerception}
                   onChange={e => setNewPassivePerception(Math.max(0, parseInt(e.target.value) || 0))}
+                  className="w-full bg-[#faf9f6]/50 border border-[#e5e1d8] rounded-xl px-3 py-2 text-sm outline-none focus:bg-white focus:border-[#c5b358]"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="new-resistances" className="block text-[9px] font-bold uppercase tracking-wider text-[#5a5a40] mb-1">
+                  Resistances
+                </label>
+                <input
+                  id="new-resistances"
+                  type="text"
+                  value={newResistances}
+                  onChange={e => setNewResistances(e.target.value)}
+                  placeholder="e.g. fire, poison"
+                  className="w-full bg-[#faf9f6]/50 border border-[#e5e1d8] rounded-xl px-3 py-2 text-sm outline-none focus:bg-white focus:border-[#c5b358]"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="new-immunities" className="block text-[9px] font-bold uppercase tracking-wider text-[#5a5a40] mb-1">
+                  Immunities
+                </label>
+                <input
+                  id="new-immunities"
+                  type="text"
+                  value={newImmunities}
+                  onChange={e => setNewImmunities(e.target.value)}
+                  placeholder="e.g. poison, conditions"
+                  className="w-full bg-[#faf9f6]/50 border border-[#e5e1d8] rounded-xl px-3 py-2 text-sm outline-none focus:bg-white focus:border-[#c5b358]"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="new-vulnerabilities" className="block text-[9px] font-bold uppercase tracking-wider text-[#5a5a40] mb-1">
+                  Vulnerabilities
+                </label>
+                <input
+                  id="new-vulnerabilities"
+                  type="text"
+                  value={newVulnerabilities}
+                  onChange={e => setNewVulnerabilities(e.target.value)}
+                  placeholder="e.g. bludgeoning"
                   className="w-full bg-[#faf9f6]/50 border border-[#e5e1d8] rounded-xl px-3 py-2 text-sm outline-none focus:bg-white focus:border-[#c5b358]"
                 />
               </div>

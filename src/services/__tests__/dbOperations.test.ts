@@ -11,6 +11,7 @@ import {
   deleteCharacterFully,
   updateInitiativeDB,
   resetNpcHpDB,
+  updateConditionTimersDB,
 } from '../dbOperations';
 import { SheetGrid, SheetRow } from '../sheetsService';
 
@@ -178,7 +179,7 @@ describe('addCharacterDB logic', () => {
     });
 
     expect(result.id).toBe('pc-1');
-    expect(sheetsService.appendSheetData).toHaveBeenCalledWith('Characters!A:L', [[
+    expect(sheetsService.appendSheetData).toHaveBeenCalledWith('Characters!A:O', [[
       'pc-1',
       'Alice',      // trimmed playerName
       'Thorn',      // characterName
@@ -191,6 +192,9 @@ describe('addCharacterDB logic', () => {
       5,            // Level
       1,            // Status ID
       'Has darkvision', // notes
+      '',           // resistances default
+      '',           // immunities default
+      '',           // vulnerabilities default
     ]]);
   });
 
@@ -385,6 +389,43 @@ describe('resetNpcHpDB', () => {
 
     await expect(resetNpcHpDB('npc-nonexistent', 7)).rejects.toThrow(
       'NPC npc-nonexistent not found'
+    );
+    expect(sheetsService.updateSheetData).not.toHaveBeenCalled();
+  });
+});
+
+// ─── updateConditionTimersDB ─────────────────────────
+
+describe('updateConditionTimersDB', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('calls updateSheetData with the correct range and serialized JSON when the combatant row is found', async () => {
+    vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({
+      values: [
+        ['ec-1', 'enc-1', 'pc-1', '', '1'],
+        ['ec-2', 'enc-1', 'pc-2', '', '1'],
+      ] as SheetGrid,
+    });
+
+    await updateConditionTimersDB('ec-2', { Hasted: 7, Poisoned: 12 });
+
+    expect(sheetsService.updateSheetData).toHaveBeenCalledWith(
+      'Encounter_Combatants!G3',
+      [['{"Hasted":7,"Poisoned":12}']]
+    );
+  });
+
+  it('throws when the ecId is not found', async () => {
+    vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({
+      values: [
+        ['ec-1', 'enc-1', 'pc-1', '', '1'],
+      ] as SheetGrid,
+    });
+
+    await expect(updateConditionTimersDB('ec-nonexistent', { Hasted: 7 })).rejects.toThrow(
+      'Encounter Combatant ec-nonexistent not found'
     );
     expect(sheetsService.updateSheetData).not.toHaveBeenCalled();
   });

@@ -17,7 +17,7 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
   const { state, updateState } = useAppState();
   const encounter = state.encounters.find(e => e.id === state.combatState.activeEncounterId);
 
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isToolsModalOpen, setIsToolsModalOpen] = useState(false);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
   const {
@@ -139,7 +139,15 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
     }
   };
 
-  const handleAddNpc = async (npcName: string, npcHp: number | '', npcAc: number | '', npcNotes: string) => {
+  const handleAddNpc = async (
+    npcName: string, 
+    npcHp: number | '', 
+    npcAc: number | '', 
+    npcNotes: string,
+    resistances: string,
+    immunities: string,
+    vulnerabilities: string
+  ) => {
     const previousState = state;
     try {
       const nextIdStr = `temp-npc-${Date.now()}`;
@@ -156,6 +164,9 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
         passivePerception: 10,
         initiative: 0,
         notes: npcNotes,
+        resistances: resistances,
+        immunities: immunities,
+        vulnerabilities: vulnerabilities,
       };
 
       updateState(prev => ({
@@ -171,6 +182,9 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
             currentHp: npcHp as number,
             conditions: '',
             notes: npcNotes,
+            resistances: resistances,
+            immunities: immunities,
+            vulnerabilities: vulnerabilities,
           },
         ],
         encounterCombatants: [
@@ -191,7 +205,15 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
         },
       }));
 
-      const newNpc = await addNpcDB(npcName, npcHp as number, npcAc === '' ? 10 : npcAc, npcNotes, '', '', '');
+      const newNpc = await addNpcDB(
+        npcName, 
+        npcHp as number, 
+        npcAc === '' ? 10 : npcAc, 
+        npcNotes, 
+        resistances, 
+        immunities, 
+        vulnerabilities
+      );
       const newEc = await addEncounterCombatantDB(encounter?.id || '', null, newNpc.id, 1);
 
       updateState(prev => ({
@@ -297,38 +319,9 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
     }));
   };
 
-  const handleCustomAction = (customActionTargetId: string, actionType: 'poison' | 'haste') => {
-    const targetIds =
-      customActionTargetId === 'ALL'
-        ? state.combatState.combatants.map(c => c.id)
-        : customActionTargetId === 'ACTIVE'
-        ? ([state.combatState.activeTurnId].filter(id => id !== null) as string[])
-        : [customActionTargetId].filter(id => id !== '');
-
-    targetIds.forEach(id => {
-      const c = state.combatState.combatants.find(cm => cm.id === id);
-      if (c) {
-        const current = c.conditions
-          ? c.conditions.split(',').map(s => s.trim()).filter(Boolean)
-          : [];
-        
-        if (actionType === 'poison') {
-          if (!current.includes('Poisoned')) {
-            updateCombatant(id, { conditions: [...current, 'Poisoned'].join(', ') });
-          }
-          updateCombatant(id, { currentHp: Math.max(0, c.currentHp - 2) });
-        } else if (actionType === 'haste') {
-          if (!current.includes('Hasted')) {
-            updateCombatant(id, { conditions: [...current, 'Hasted'].join(', ') });
-          }
-        }
-      }
-    });
-  };
-
   return (
-    <div className="flex flex-col xl:flex-row gap-8 relative items-start">
-      <div className={cn('space-y-6 flex flex-col transition-all duration-300 w-full', isSidebarOpen ? 'xl:w-[calc(100%-384px)]' : 'xl:w-full')}>
+    <div className="flex flex-col gap-8 relative items-start">
+      <div className={cn('space-y-6 flex flex-col transition-all duration-300 w-full')}>
         {globalError && (
           <div className="bg-red-50 border border-red-100 p-4 rounded-xl flex items-center gap-3 text-red-800 text-sm shadow-sm transition-all absolute top-2 right-2 z-50">
             <AlertCircle className="w-5 h-5 shrink-0" />
@@ -340,8 +333,7 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
           <CombatHeader
             encounter={encounter}
             round={state.combatState.round}
-            isSidebarOpen={isSidebarOpen}
-            onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+            onOpenTools={() => setIsToolsModalOpen(true)}
             onRollNpcInit={rollInitForNPCs}
             onResetCombat={resetCombat}
             onNextTurn={nextTurn}
@@ -354,7 +346,7 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
                 <div className="col-span-full py-20 text-center flex flex-col items-center justify-center">
                   <Skull className="w-12 h-12 text-[#5a5a40] opacity-20 mb-4" />
                   <p className="text-lg font-serif font-bold text-[#2c2c26]">No combatants in tracker</p>
-                  <p className="text-sm text-[#5a5a40] italic">Add players or NPCs from the sidebar to begin.</p>
+                  <p className="text-sm text-[#5a5a40] italic">Add players or NPCs from the tools menu to begin.</p>
                 </div>
               ) : (
                 state.combatState.combatants.map(c => (
@@ -380,14 +372,12 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
       </div>
 
       <CombatSidebar
-        isSidebarOpen={isSidebarOpen}
+        isOpen={isToolsModalOpen}
+        onClose={() => setIsToolsModalOpen(false)}
         npcs={state.npcs}
         characters={state.characters}
-        combatants={state.combatState.combatants}
-        activeTurnId={state.combatState.activeTurnId}
         onAddPreset={handleAddPreset}
         onAddNpc={handleAddNpc}
-        onCustomAction={handleCustomAction}
       />
     </div>
   );

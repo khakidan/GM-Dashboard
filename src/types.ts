@@ -16,6 +16,9 @@ export interface Character {
   notes: string;
   isActive: boolean;
   sheetRowIndex?: number;
+  resistances?: string;
+  immunities?: string;
+  vulnerabilities?: string;
 }
 
 export interface NPC {
@@ -86,6 +89,7 @@ export interface EncounterCombatant {
   quantity: number;
   sheetRowIndex?: number;
   initiative?: number;
+  conditionTimers?: string;
 }
 
 export interface AppState {

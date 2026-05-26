@@ -11,14 +11,12 @@ describe('CombatSidebar', () => {
   const combatants: Combatant[] = [];
 
   const defaultProps = {
-    isSidebarOpen: true,
+    isOpen: true,
+    onClose: vi.fn(),
     npcs,
     characters,
-    combatants,
-    activeTurnId: null,
     onAddPreset: vi.fn(),
     onAddNpc: vi.fn(),
-    onCustomAction: vi.fn(),
   };
 
   it('The NPC and Player type toggle buttons are rendered', () => {
@@ -54,42 +52,71 @@ describe('CombatSidebar', () => {
     const onAddNpc = vi.fn();
     render(<CombatSidebar {...defaultProps} onAddNpc={onAddNpc} />);
     
-    const submitBtn = screen.getByRole('button', { name: '+ Add to Combat' });
+    const submitBtn = screen.getByRole('button', { name: '+ Add NPC' });
     fireEvent.click(submitBtn);
     expect(onAddNpc).not.toHaveBeenCalled();
     
     // Fill in values
     const nameInput = screen.getByPlaceholderText('e.g. Goblin Archer');
     const hpLabelBase = screen.getByText('HP', { selector: 'label' });
-    // Next input sibling or by container
     const hpInput = hpLabelBase.parentElement?.querySelector('input[type="number"]') as HTMLInputElement;
 
     fireEvent.change(nameInput, { target: { value: 'Test Npc' } });
     fireEvent.change(hpInput, { target: { value: '20' } });
     fireEvent.click(submitBtn);
 
-    expect(onAddNpc).toHaveBeenCalledWith('Test Npc', 20, '', '');
+    expect(onAddNpc).toHaveBeenCalledWith('Test Npc', 20, '', '', '', '', '');
+  });
+
+  it('Submitting Add New NPC form handles IRV fields', async () => {
+    const onAddNpc = vi.fn();
+    render(<CombatSidebar {...defaultProps} onAddNpc={onAddNpc} />);
+    
+    const submitBtn = screen.getByRole('button', { name: '+ Add NPC' });
+    
+    fireEvent.change(screen.getByPlaceholderText('e.g. Goblin Archer'), { target: { value: 'Dragon' } });
+    const hpLabelBase = screen.getByText('HP', { selector: 'label' });
+    const hpInput = hpLabelBase.parentElement?.querySelector('input[type="number"]') as HTMLInputElement;
+    fireEvent.change(hpInput, { target: { value: '100' } });
+    
+    // Use labels to find IRV fields
+    const resInput = screen.getByText('Resistances', { selector: 'label' }).parentElement?.querySelector('input') as HTMLInputElement;
+    const immInput = screen.getByText('Immunities', { selector: 'label' }).parentElement?.querySelector('input') as HTMLInputElement;
+    const vulInput = screen.getByText('Vulnerabilities', { selector: 'label' }).parentElement?.querySelector('input') as HTMLInputElement;
+
+    fireEvent.change(resInput, { target: { value: 'fire' } });
+    fireEvent.change(immInput, { target: { value: 'poison' } });
+    fireEvent.change(vulInput, { target: { value: 'cold' } });
+
+    fireEvent.click(submitBtn);
+
+    expect(onAddNpc).toHaveBeenCalledWith('Dragon', 100, '', '', 'fire', 'poison', 'cold');
   });
 
   it('While isAddingNpc is true the submit button shows a loading state', async () => {
-    // Setup a delayed promise
     let resolveAdd: any;
     const onAddNpc = vi.fn(() => new Promise<void>(res => { resolveAdd = res; }));
     
     render(<CombatSidebar {...defaultProps} onAddNpc={onAddNpc} />);
     
-    const nameInput = screen.getByPlaceholderText('e.g. Goblin Archer');
+    fireEvent.change(screen.getByPlaceholderText('e.g. Goblin Archer'), { target: { value: 'Test Npc' } });
     const hpLabelBase = screen.getByText('HP', { selector: 'label' });
     const hpInput = hpLabelBase.parentElement?.querySelector('input[type="number"]') as HTMLInputElement;
-
-    fireEvent.change(nameInput, { target: { value: 'Test Npc' } });
     fireEvent.change(hpInput, { target: { value: '20' } });
     
-    const submitBtn = screen.getByRole('button', { name: '+ Add to Combat' });
+    const submitBtn = screen.getByRole('button', { name: '+ Add NPC' });
     fireEvent.click(submitBtn);
 
     expect(screen.getByRole('button', { name: 'Adding...' })).toBeDefined();
     
     resolveAdd();
+  });
+
+  it('Clicking the close button calls onClose', () => {
+    const onClose = vi.fn();
+    render(<CombatSidebar {...defaultProps} onClose={onClose} />);
+    const closeBtn = screen.getByTitle('Close');
+    fireEvent.click(closeBtn);
+    expect(onClose).toHaveBeenCalled();
   });
 });

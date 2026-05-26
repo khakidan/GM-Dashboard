@@ -157,9 +157,12 @@ export async function addCharacterDB(character: Partial<Character>) {
     castInt(character.level, 1),
     castInt(character.statusId, 1),
     sanitizeString(character.notes),
+    sanitizeString(character.resistances || ''),
+    sanitizeString(character.immunities || ''),
+    sanitizeString(character.vulnerabilities || ''),
   ];
 
-  await appendSheetData('Characters!A:L', [rowData]);
+  await appendSheetData('Characters!A:O', [rowData]);
   return { ...character, id: finalId };
 }
 
@@ -185,11 +188,14 @@ export async function updateCharacterDB(
     castInt(character.level ?? fullState.level),
     castInt(character.statusId ?? fullState.statusId),
     sanitizeString(character.notes ?? fullState.notes),
+    sanitizeString(character.resistances ?? fullState.resistances ?? ''),
+    sanitizeString(character.immunities ?? fullState.immunities ?? ''),
+    sanitizeString(character.vulnerabilities ?? fullState.vulnerabilities ?? ''),
   ];
 
   const a1Row = charRowIdx + 1;
   // ✅ queueWrite replaces updateSheetData to prevent API quotas inside combat loops
-  queueWrite(`Characters!A${a1Row}:L${a1Row}`, [rowData]);
+  queueWrite(`Characters!A${a1Row}:O${a1Row}`, [rowData]);
 }
 
 export async function addNpcDB(
@@ -305,6 +311,19 @@ export async function updateInitiativeDB(
   }
   const a1Row = rowIdx + 1;
   await updateSheetData(`Encounter_Combatants!F${a1Row}`, [[initiative.toString()]]);
+}
+
+export async function updateConditionTimersDB(
+  ecId: string,
+  timers: Record<string, number>
+): Promise<void> {
+  const rowIdx = await findRowIndexById('Encounter_Combatants', ecId);
+  if (rowIdx === null) {
+    throw new Error(`Encounter Combatant ${ecId} not found`);
+  }
+  const a1Row = rowIdx + 1;
+  const jsonStr = JSON.stringify(timers);
+  await updateSheetData(`Encounter_Combatants!G${a1Row}`, [[jsonStr]]);
 }
 
 export async function deleteEncounterCombatantDB(ecId: string) {

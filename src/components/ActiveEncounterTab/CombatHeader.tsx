@@ -6,8 +6,7 @@ import { Encounter } from '../../types';
 interface CombatHeaderProps {
   encounter?: Encounter;
   round: number;
-  isSidebarOpen: boolean;
-  onToggleSidebar: () => void;
+  onOpenTools: () => void;
   onRollNpcInit: () => void;
   onResetCombat: () => void;
   onNextTurn: () => void;
@@ -17,8 +16,7 @@ interface CombatHeaderProps {
 export function CombatHeader({
   encounter,
   round,
-  isSidebarOpen,
-  onToggleSidebar,
+  onOpenTools,
   onRollNpcInit,
   onResetCombat,
   onNextTurn,
@@ -46,10 +44,10 @@ export function CombatHeader({
 
         <div className="flex items-center gap-2 flex-wrap ml-auto">
           <button
-            onClick={onToggleSidebar}
+            onClick={onOpenTools}
             className="flex items-center gap-2 px-3 py-1.5 text-xs font-sans font-bold uppercase bg-white border border-[#e5e1d8] hover:bg-[#f5f5f0] text-[#5a5a40] rounded-full transition-colors mr-2"
           >
-            {isSidebarOpen ? 'Hide Tools' : 'Show Tools'}
+            Tools
           </button>
           <Link
             to="/player-view"

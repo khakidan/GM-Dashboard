@@ -16,7 +16,7 @@ describe('sheetSchemas', () => {
       const result = CharacterRowSchema.safeParse(row);
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data).toEqual(['char-1', 'Alice', 'Thor', 15, 20, 5, 25, 'Blinded', 14, 3, 1, 'Notes']);
+        expect(result.data).toEqual(['char-1', 'Alice', 'Thor', 15, 20, 5, 25, 'Blinded', 14, 3, 1, 'Notes', '', '', '']);
       }
     });
 
@@ -38,6 +38,9 @@ describe('sheetSchemas', () => {
          1, // level
          1, // statusId
          '', // notes
+         '', // resistances
+         '', // immunities
+         '', // vulnerabilities
         ]);
       }
     });
@@ -84,6 +87,26 @@ describe('sheetSchemas', () => {
       // Compile-time check: assignable to BatchRequest
       assertType<BatchRequest>(req);
       expect(req).toBeDefined();
+    });
+
+    it('parses resistances at index 12, immunities at index 13, and vulnerabilities at index 14 and defaults to empty string when absent', () => {
+      const rowWithIrv = ['char-1', 'Alice', 'Thor', 15, 20, 5, 25, 'Blinded', 14, 3, 1, 'Notes', 'Fire', 'Poison', 'Acid'];
+      const resultWithIrv = CharacterRowSchema.safeParse(rowWithIrv);
+      expect(resultWithIrv.success).toBe(true);
+      if (resultWithIrv.success) {
+        expect(resultWithIrv.data[12]).toBe('Fire');         // resistances
+        expect(resultWithIrv.data[13]).toBe('Poison');       // immunities
+        expect(resultWithIrv.data[14]).toBe('Acid');         // vulnerabilities
+      }
+
+      const rowWithoutIrv = ['char-2', 'Bob', 'Loki', 15, 20, 5, 25, 'Blinded', 14, 3, 1, 'Notes'];
+      const resultWithoutIrv = CharacterRowSchema.safeParse(rowWithoutIrv);
+      expect(resultWithoutIrv.success).toBe(true);
+      if (resultWithoutIrv.success) {
+        expect(resultWithoutIrv.data[12]).toBe(''); // resistances
+        expect(resultWithoutIrv.data[13]).toBe(''); // immunities
+        expect(resultWithoutIrv.data[14]).toBe(''); // vulnerabilities
+      }
     });
 
     it('Passing a string where a number is expected in a SheetRow still parses correctly via Zod coercion', () => {
@@ -136,7 +159,7 @@ describe('sheetSchemas', () => {
       const result = EncounterCombatantRowSchema.safeParse(row);
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data).toEqual(['ec-1', 'enc-1', 'char-1', null, 1, 15]);
+        expect(result.data).toEqual(['ec-1', 'enc-1', 'char-1', null, 1, 15, '']);
       }
     });
 
@@ -157,6 +180,22 @@ describe('sheetSchemas', () => {
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data[5]).toBe(0);
+      }
+    });
+
+    it('parses conditionTimers at index 6 as a raw string and defaults to empty string when absent', () => {
+      const rowWithTimers = ['ec-1', 'enc-1', 'char-1', null, 1, 15, '{"Hasted":7}'];
+      const resultWithTimers = EncounterCombatantRowSchema.safeParse(rowWithTimers);
+      expect(resultWithTimers.success).toBe(true);
+      if (resultWithTimers.success) {
+        expect(resultWithTimers.data[6]).toBe('{"Hasted":7}');
+      }
+
+      const rowWithoutTimers = ['ec-2', 'enc-1', 'char-1', null, 1, 15];
+      const resultWithoutTimers = EncounterCombatantRowSchema.safeParse(rowWithoutTimers);
+      expect(resultWithoutTimers.success).toBe(true);
+      if (resultWithoutTimers.success) {
+        expect(resultWithoutTimers.data[6]).toBe('');
       }
     });
   });

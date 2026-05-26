@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAppState } from '../../../hooks/useAppState';
 import { updateSheetData } from '../../../services/sheetsService';
-import { updateCharacterDB, updateNpcDB, deleteEncounterCombatantDB, updateEncounterCombatantQuantityDB, updateInitiativeDB } from '../../../services/dbOperations';
+import { updateCharacterDB, updateNpcDB, deleteEncounterCombatantDB, updateEncounterCombatantQuantityDB, updateInitiativeDB, updateConditionTimersDB } from '../../../services/dbOperations';
 import { Combatant } from '../../../types';
 
 export function useCombatSync() {
@@ -91,6 +91,12 @@ export function useCombatSync() {
           }
           return c;
         }),
+        encounterCombatants: prev.encounterCombatants.map(item => {
+          if (targetCombatant.encounterCombatantId === item.id && updates.conditionTimers !== undefined) {
+            return { ...item, conditionTimers: JSON.stringify(updates.conditionTimers) };
+          }
+          return item;
+        }),
         combatState: { ...prev.combatState, combatants: nextCombatants },
       };
     });
@@ -115,6 +121,10 @@ export function useCombatSync() {
     const syncDb = async () => {
       if (updates.initiative !== undefined && targetCombatant.encounterCombatantId) {
         await updateInitiativeDB(targetCombatant.encounterCombatantId, updates.initiative);
+      }
+
+      if (updates.conditionTimers !== undefined && targetCombatant.encounterCombatantId) {
+        await updateConditionTimersDB(targetCombatant.encounterCombatantId, updates.conditionTimers);
       }
 
       if (targetCombatant.type === 'pc' && targetCombatant.characterId) {

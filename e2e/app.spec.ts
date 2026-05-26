@@ -21,6 +21,14 @@ test.describe('GM Encounter Dashboard E2E Tests', () => {
     await expect(page.locator('h2:has-text("Encounters Library")')).toBeVisible();
   });
 
+  test('Clicking the NPC Library nav item shows the NPC Library view', async ({ page }) => {
+    await page.goto('/');
+    // Click NPC Library nav button
+    await page.locator('button[title="NPC Library"]').click();
+    // Should show NPC Library header title
+    await expect(page.locator('h2:has-text("NPC Library")')).toBeVisible();
+  });
+
   test('The Settings button opens the Settings modal', async ({ page }) => {
     await page.goto('/');
     // Click App Settings button

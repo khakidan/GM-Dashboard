@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAppState } from '../hooks/useAppState';
-import { Swords, Eye, Users, Map, RefreshCw, PanelLeftClose, PanelLeft, Menu, AlertCircle, Info, LogIn } from 'lucide-react';
+import { Swords, Eye, Users, Map, RefreshCw, PanelLeftClose, PanelLeft, Menu, AlertCircle, Info, LogIn, BookOpen } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { PartyTab } from './PartyTab';
+import { NpcLibraryTab } from './NpcLibraryTab';
 import { EncountersTab } from './EncountersTab';
 import { ActiveEncounterTab } from './ActiveEncounterTab';
 import {
@@ -30,7 +31,7 @@ import {
   DifficultyRowSchema,
 } from '../lib/sheetSchemas';
 
-type Tab = 'party' | 'encounters' | 'combat';
+type Tab = 'party' | 'encounters' | 'npc-library' | 'combat';
 
 export function GMDashboard() {
   const { state, updateState } = useAppState();
@@ -159,7 +160,7 @@ export function GMDashboard() {
 
       // 4. Fetch Characters
       addLog('Step 5: Fetching character roster...');
-      const charactersResponse = await fetchSheetData('Characters!A2:L');
+      const charactersResponse = await fetchSheetData('Characters!A2:O');
       const characterRows = charactersResponse.values || [];
       addLog(`Character rows found: ${characterRows.length}`);
 
@@ -193,7 +194,7 @@ export function GMDashboard() {
       addLog('Step 7: Synching active combatants...');
       let parsedEncounterCombatants: EncounterCombatant[] = [];
       try {
-        const ecResponse = await fetchSheetData('Encounter_Combatants!A2:F');
+        const ecResponse = await fetchSheetData('Encounter_Combatants!A2:G');
         const ecRows = ecResponse.values || [];
         ecRows.forEach((row: any[], i: number) => {
           const parsed = EncounterCombatantRowSchema.safeParse(row);
@@ -201,7 +202,7 @@ export function GMDashboard() {
             console.warn(`[GMDashboard] Validation failed for Encounter_Combatants row ${i + 2}:`, parsed.error);
             return;
           }
-          const [id, encounterId, playerId, npcId, quantity, initiative] = parsed.data;
+          const [id, encounterId, playerId, npcId, quantity, initiative, conditionTimers] = parsed.data;
           parsedEncounterCombatants.push({
             id,
             encounterId,
@@ -209,6 +210,7 @@ export function GMDashboard() {
             npcId,
             quantity,
             initiative: initiative || 0,
+            conditionTimers: conditionTimers || '',
             sheetRowIndex: i + 1,
           });
         });
@@ -225,7 +227,7 @@ export function GMDashboard() {
             console.warn(`[GMDashboard] Validation failed for Characters row ${i + 2}:`, parsed.error);
             return;
           }
-          const [id, playerName, characterName, ac, maxHp, tempHp, currentHp, conditions, passivePerception, level, statusId, notes] = parsed.data;
+          const [id, playerName, characterName, ac, maxHp, tempHp, currentHp, conditions, passivePerception, level, statusId, notes, resistances, immunities, vulnerabilities] = parsed.data;
           parsedCharacters.push({
             id,
             playerName,
@@ -242,6 +244,9 @@ export function GMDashboard() {
             notes,
             isActive: statusId === 1,
             sheetRowIndex: i + 2,
+            resistances: resistances || '',
+            immunities: immunities || '',
+            vulnerabilities: vulnerabilities || '',
           });
         });
 
@@ -290,6 +295,15 @@ export function GMDashboard() {
 
     if (linkedCombatants.length > 0) {
       linkedCombatants.forEach(ec => {
+        let parsedTimers: Record<string, number> = {};
+        if (ec.conditionTimers) {
+          try {
+            parsedTimers = JSON.parse(ec.conditionTimers);
+          } catch (e) {
+            console.warn('Failed to parse conditionTimers JSON:', ec.conditionTimers, e);
+          }
+        }
+
         if (ec.playerId) {
           const c = state.characters.find(char => char.id === ec.playerId);
           if (c) {
@@ -312,6 +326,10 @@ export function GMDashboard() {
               sheetColCondition: 'H',
               hpSheetName: 'Characters',
               hpSheetRowIndex: c.sheetRowIndex,
+              resistances: c.resistances || '',
+              immunities: c.immunities || '',
+              vulnerabilities: c.vulnerabilities || '',
+              conditionTimers: parsedTimers,
             });
           }
         } else if (ec.npcId) {
@@ -334,6 +352,7 @@ export function GMDashboard() {
                 resistances: npcTemplate.resistances,
                 immunities: npcTemplate.immunities,
                 vulnerabilities: npcTemplate.vulnerabilities,
+                conditionTimers: parsedTimers,
               });
             }
           }
@@ -361,6 +380,10 @@ export function GMDashboard() {
           sheetColCondition: 'H',
           hpSheetName: 'Characters',
           hpSheetRowIndex: c.sheetRowIndex,
+          resistances: c.resistances || '',
+          immunities: c.immunities || '',
+          vulnerabilities: c.vulnerabilities || '',
+          conditionTimers: {},
         });
       });
     }
@@ -473,6 +496,24 @@ export function GMDashboard() {
           </button>
 
           <button
+            id="nav-npc-library"
+            onClick={() => {
+              setActiveTab('npc-library');
+              if (window.innerWidth < 1024) setSidebarOpen(false);
+            }}
+            className={cn(
+              'w-full text-left p-3 flex items-center transition-colors rounded-lg',
+              activeTab === 'npc-library' ? 'bg-[#3f3f37] text-white' : 'hover:bg-[#3f3f37]/50 opacity-70',
+              isSidebarOpen ? 'gap-3' : 'justify-center'
+            )}
+            title="NPC Library"
+          >
+            {activeTab === 'npc-library' && isSidebarOpen && <div className="w-2 h-2 rounded-full bg-[#c5b358] shrink-0"></div>}
+            <BookOpen className="w-5 h-5 shrink-0" />
+            {isSidebarOpen && <span className="font-bold font-sans line-clamp-1">NPC Library</span>}
+          </button>
+
+          <button
             onClick={() => {
               if (state.combatState.activeEncounterId) {
                 setActiveTab('combat');
@@ -580,6 +621,8 @@ export function GMDashboard() {
               <ActiveEncounterTab onBack={clearEncounter} />
             ) : activeTab === 'party' ? (
               <PartyTab />
+            ) : activeTab === 'npc-library' ? (
+              <NpcLibraryTab />
             ) : (
               <EncountersTab onSelectEncounter={startEncounter} onSyncRequested={handleSyncWithSheets} />
             )}

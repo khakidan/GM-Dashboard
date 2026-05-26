@@ -10,8 +10,7 @@ describe('CombatHeader', () => {
   });
   const defaultProps = {
     round: 3,
-    isSidebarOpen: false,
-    onToggleSidebar: vi.fn(),
+    onOpenTools: vi.fn(),
     onRollNpcInit: vi.fn(),
     onResetCombat: vi.fn(),
     onNextTurn: vi.fn(),
@@ -88,27 +87,17 @@ describe('CombatHeader', () => {
     expect(onRollNpcInit).toHaveBeenCalledTimes(1);
   });
 
-  it('The Show/Hide Tools button toggles the sidebar open prop callback', () => {
-    const onToggleSidebar = vi.fn();
-    const { rerender } = render(
+  it('The Tools button calls the onOpenTools prop callback', () => {
+    const onOpenTools = vi.fn();
+    render(
       <MemoryRouter>
-        <CombatHeader {...defaultProps} onToggleSidebar={onToggleSidebar} isSidebarOpen={false} />
+        <CombatHeader {...defaultProps} onOpenTools={onOpenTools} />
       </MemoryRouter>
     );
     
-    let btn = screen.getByRole('button', { name: /Show Tools/i });
+    const btn = screen.getByRole('button', { name: /Tools/i });
     expect(btn).toBeDefined();
     fireEvent.click(btn);
-    expect(onToggleSidebar).toHaveBeenCalledTimes(1);
-
-    rerender(
-      <MemoryRouter>
-        <CombatHeader {...defaultProps} onToggleSidebar={onToggleSidebar} isSidebarOpen={true} />
-      </MemoryRouter>
-    );
-    btn = screen.getByRole('button', { name: /Hide Tools/i });
-    expect(btn).toBeDefined();
-    fireEvent.click(btn);
-    expect(onToggleSidebar).toHaveBeenCalledTimes(2);
+    expect(onOpenTools).toHaveBeenCalledTimes(1);
   });
 });
