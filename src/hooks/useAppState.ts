@@ -1,3 +1,5 @@
+// src/hooks/useAppState.ts
+
 import { useCallback, useSyncExternalStore } from 'react';
 import { AppState, Character, Encounter, CombatState, NPC, EncounterCombatant } from '../types';
 
@@ -34,21 +36,22 @@ let globalState = defaultAppState;
 try {
   const stored = localStorage.getItem(STORAGE_KEY);
   if (stored) {
-    globalState = { 
-      ...defaultAppState, 
+    globalState = {
+      ...defaultAppState,
       ...JSON.parse(stored),
-      campaignName: "GM Encounter Dashboard"
+      // ✅ REMOVED: campaignName: "GM Encounter Dashboard"
+      // The stored value now wins, so campaign name changes persist across reloads.
     };
   }
 } catch (e) {
   console.error("Failed to parse app state", e);
 }
 
-function getSnapshot() {
+export function getSnapshot() {
   return globalState;
 }
 
-function setGlobalState(next: AppState) {
+export function setGlobalState(next: AppState) {
   globalState = next;
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(globalState));
@@ -57,6 +60,14 @@ function setGlobalState(next: AppState) {
   }
   listeners.forEach(l => l());
 }
+
+export const _testHooks = {
+  getListeners: () => listeners,
+  resetState: () => {
+    globalState = defaultAppState;
+    listeners.clear();
+  }
+};
 
 export function useAppState() {
   const state = useSyncExternalStore(
@@ -78,12 +89,13 @@ export function useAppState() {
         window.removeEventListener('storage', handleStorage);
       };
     },
+    getSnapshot,
     getSnapshot
   );
 
-  const updateState = useCallback((newStateOrUpdater: AppState | ((prev: AppState) => AppState)) => {
-    const next = typeof newStateOrUpdater === 'function' ? newStateOrUpdater(globalState) : newStateOrUpdater;
-    setGlobalState(next);
+  const updateState = useCallback((updates: Partial<AppState> | ((prev: AppState) => Partial<AppState>)) => {
+    const nextState = typeof updates === 'function' ? updates(globalState) : updates;
+    setGlobalState({ ...globalState, ...nextState });
   }, []);
 
   return { state, updateState };

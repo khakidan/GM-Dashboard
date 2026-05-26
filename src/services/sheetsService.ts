@@ -1,3 +1,5 @@
+// src/services/sheetsService.ts
+
 // Google Sheets Service with Authorization Code Flow Support
 declare global {
   interface Window {
@@ -64,23 +66,24 @@ export async function signInWithRedirect() {
     console.error('[Sheets] Cannot sign in: No Google Client ID available.');
     return;
   }
-  const redirectUri = window.location.origin; 
+  const redirectUri = window.location.origin;
   const scope = 'https://www.googleapis.com/auth/spreadsheets';
-  
+
   console.log(`[Sheets] signInWithRedirect: Starting OAuth redirect flow...`);
-  
+
   // Clear any stale tokens before starting a fresh flow
   clearTokens();
-  
+
   // Use code flow for offline access (refresh token)
-  const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` + 
+  const authUrl =
+    `https://accounts.google.com/o/oauth2/v2/auth?` +
     `client_id=${encodeURIComponent(clientId)}` +
     `&redirect_uri=${encodeURIComponent(redirectUri)}` +
-    `&response_type=code` + 
-    `&access_type=offline` + 
+    `&response_type=code` +
+    `&access_type=offline` +
     `&scope=${encodeURIComponent(scope)}` +
     `&prompt=consent select_account`; // Force consent to ensure we get a fresh refresh token
-    
+
   window.location.href = authUrl;
 }
 
@@ -93,19 +96,20 @@ export async function signInWithToken() {
     console.error('[Sheets] Cannot sign in: No Google Client ID available.');
     return;
   }
-  const redirectUri = window.location.origin; 
+  const redirectUri = window.location.origin;
   const scope = 'https://www.googleapis.com/auth/spreadsheets';
-  
+
   console.log(`[Sheets] signInWithToken: Starting Implicit flow...`);
-  
+
   clearTokens();
 
-  const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` + 
+  const authUrl =
+    `https://accounts.google.com/o/oauth2/v2/auth?` +
     `client_id=${encodeURIComponent(clientId)}` +
     `&redirect_uri=${encodeURIComponent(redirectUri)}` +
-    `&response_type=token` + 
+    `&response_type=token` +
     `&scope=${encodeURIComponent(scope)}`;
-    
+
   window.location.href = authUrl;
 }
 
@@ -132,31 +136,39 @@ export function hasToken() {
   return !!accessToken || !!refreshToken;
 }
 
-export function setManualToken(token: string) {
-  if (token.includes('//') && token.length > 50) {
-    localStorage.setItem('GM_GOOGLE_REFRESH_TOKEN', token);
-    refreshToken = token;
-    console.log('[Sheets] Manual Refresh Token successfully set and saved.');
-  } else {
-    localStorage.setItem('GM_GOOGLE_ACCESS_TOKEN', token);
-    accessToken = token;
-    console.log('[Sheets] Manual Access Token successfully set.');
-  }
+// ✅ REPLACED setManualToken with two explicit functions.
+// The old version used a fragile heuristic (checking for "//" and length > 50)
+// to guess which slot to write to. These are unambiguous.
+
+export function setManualAccessToken(token: string) {
+  localStorage.setItem('GM_GOOGLE_ACCESS_TOKEN', token);
+  accessToken = token;
+  console.log('[Sheets] Manual Access Token successfully set.');
+}
+
+export function setManualRefreshToken(token: string) {
+  localStorage.setItem('GM_GOOGLE_REFRESH_TOKEN', token);
+  refreshToken = token;
+  console.log('[Sheets] Manual Refresh Token successfully set and saved.');
 }
 
 export async function checkAndCaptureToken() {
   const url = new URL(window.location.href);
   const code = url.searchParams.get('code');
-  const hashParams = new URLSearchParams(window.location.hash.includes('?') ? window.location.hash.split('?')[1] : window.location.hash.substring(1));
+  const hashParams = new URLSearchParams(
+    window.location.hash.includes('?')
+      ? window.location.hash.split('?')[1]
+      : window.location.hash.substring(1)
+  );
   const hashToken = hashParams.get('access_token');
 
   if (hashToken) {
-     console.log('[Sheets] checkAndCaptureToken: Found access_token in hash (Implicit Flow).');
-     localStorage.setItem('GM_GOOGLE_ACCESS_TOKEN', hashToken);
-     accessToken = hashToken;
-     // Clean up hash
-     window.history.replaceState(null, '', window.location.pathname + window.location.search);
-     return true;
+    console.log('[Sheets] checkAndCaptureToken: Found access_token in hash (Implicit Flow).');
+    localStorage.setItem('GM_GOOGLE_ACCESS_TOKEN', hashToken);
+    accessToken = hashToken;
+    // Clean up hash
+    window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    return true;
   }
 
   if (code) {
@@ -167,7 +179,7 @@ export async function checkAndCaptureToken() {
       const res = await fetch('/api/auth/google-token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code, redirect_uri: redirectUri })
+        body: JSON.stringify({ code, redirect_uri: redirectUri }),
       });
 
       if (!res.ok) {
@@ -175,27 +187,31 @@ export async function checkAndCaptureToken() {
         console.error('❌ [Sheets] Token exchange FAILED:', errorData);
         // Clear code to prevent loops
         window.history.replaceState(null, '', window.location.pathname);
-        throw new Error(errorData.error || "Token exchange failed");
+        throw new Error(errorData.error || 'Token exchange failed');
       }
 
       const data = await res.json();
       console.log('✅ [Sheets] Token exchange SUCCESS.');
-      
+
       if (data.access_token) {
         localStorage.setItem('GM_GOOGLE_ACCESS_TOKEN', data.access_token);
         accessToken = data.access_token;
         console.log('[Sheets] Access token saved.');
       }
-      
+
       if (data.refresh_token) {
         localStorage.setItem('GM_GOOGLE_REFRESH_TOKEN', data.refresh_token);
         refreshToken = data.refresh_token;
         console.log('[Sheets] Refresh token received and saved. Persistent sync enabled.');
       } else {
-        console.warn('⚠️ [Sheets] NO REFRESH TOKEN RECEIVED. This usually happens if you have already authorized this app. Persistent background sync will FAIL when the access token expires in 1 hour.');
-        console.warn('💡 ACTION: Go to https://myaccount.google.com/permissions, remove this app, and sign in again.');
+        console.warn(
+          '⚠️ [Sheets] NO REFRESH TOKEN RECEIVED. This usually happens if you have already authorized this app. Persistent background sync will FAIL when the access token expires in 1 hour.'
+        );
+        console.warn(
+          '💡 ACTION: Go to https://myaccount.google.com/permissions, remove this app, and sign in again.'
+        );
       }
-      
+
       // Clean up URL
       window.history.replaceState(null, '', window.location.pathname);
       return true;
@@ -219,17 +235,17 @@ export async function refreshAccessToken(): Promise<string | null> {
     const res = await fetch('/api/auth/google-token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refresh_token: refreshToken })
+      body: JSON.stringify({ refresh_token: refreshToken }),
     });
 
     if (!res.ok) {
       const errData = await res.json().catch(() => ({}));
       console.error('❌ [Sheets] Background Refresh FAILED:', res.status, errData);
-      
-      if (errData.error === "invalid_grant") {
+
+      if (errData.error === 'invalid_grant') {
         console.warn('⚠️ [Sheets] Refresh token is invalid (expired or revoked). Clearing credentials.');
         clearTokens();
-      } else if (errData.message && errData.message.includes("VITE_GOOGLE_CLIENT_SECRET")) {
+      } else if (errData.message && errData.message.includes('VITE_GOOGLE_CLIENT_SECRET')) {
         console.error('❌ [Sheets] REFRESH FAILED: VITE_GOOGLE_CLIENT_SECRET is missing in AI Studio Secrets.');
       }
       return null;
@@ -251,7 +267,7 @@ export async function refreshAccessToken(): Promise<string | null> {
 export async function initGoogleAuth(): Promise<void> {
   console.log('[Sheets] initGoogleAuth: Initializing Google Identity Services...');
   refreshLocalTokens();
-  
+
   await checkAndCaptureToken();
 
   return new Promise((resolve, reject) => {
@@ -274,7 +290,7 @@ async function setupClient(resolve: () => void, reject: (err: Error) => void) {
   try {
     const clientId = await getGoogleClientId();
     if (!clientId) {
-      throw new Error("Missing Google Client ID in environment variables.");
+      throw new Error('Missing Google Client ID in environment variables.');
     }
 
     tokenClient = window.google.accounts.oauth2.initTokenClient({
@@ -303,7 +319,7 @@ export async function requestAccessToken(): Promise<string> {
     console.log('[Sheets] requestAccessToken: Using existing cached access token.');
     return accessToken;
   }
-  
+
   // 2. Try refreshing
   if (refreshToken) {
     console.log('[Sheets] requestAccessToken: Attempting silent refresh using refresh token...');
@@ -315,10 +331,10 @@ export async function requestAccessToken(): Promise<string> {
 
   // 3. Fallback: Trigger login
   console.log('[Sheets] requestAccessToken: No valid token available. Triggering fresh authentication...');
-  
-  // If we're in a background context, we can't show a popup. 
+
+  // If we're in a background context, we can't show a popup.
   // We throw UNAUTHENTICATED and let the UI handle it.
-  throw new Error("UNAUTHENTICATED");
+  throw new Error('UNAUTHENTICATED');
 }
 
 async function googleFetch(url: string, options: RequestInit = {}): Promise<Response> {
@@ -327,7 +343,7 @@ async function googleFetch(url: string, options: RequestInit = {}): Promise<Resp
     token = await requestAccessToken();
   } catch (err) {
     // If we can't get a token, we must fail with 401
-    return new Response(JSON.stringify({ error: "UNAUTHENTICATED" }), { status: 401 });
+    return new Response(JSON.stringify({ error: 'UNAUTHENTICATED' }), { status: 401 });
   }
 
   const MAX_RETRIES = 3;
@@ -369,7 +385,9 @@ async function googleFetch(url: string, options: RequestInit = {}): Promise<Resp
       if (response.status === 429 || response.status >= 500) {
         if (attempt < MAX_RETRIES) {
           const delay = Math.pow(2, attempt) * 500 + Math.random() * 200;
-          console.warn(`[Sheets] API returned ${response.status}. Retrying in ${Math.round(delay)}ms... (Attempt ${attempt + 1} of ${MAX_RETRIES})`);
+          console.warn(
+            `[Sheets] API returned ${response.status}. Retrying in ${Math.round(delay)}ms... (Attempt ${attempt + 1} of ${MAX_RETRIES})`
+          );
           await new Promise(res => setTimeout(res, delay));
           attempt++;
           continue;
@@ -381,7 +399,9 @@ async function googleFetch(url: string, options: RequestInit = {}): Promise<Resp
       lastError = err;
       if (attempt < MAX_RETRIES) {
         const delay = Math.pow(2, attempt) * 500 + Math.random() * 200;
-        console.warn(`[Sheets] Network error. Retrying in ${Math.round(delay)}ms... (Attempt ${attempt + 1} of ${MAX_RETRIES})`);
+        console.warn(
+          `[Sheets] Network error. Retrying in ${Math.round(delay)}ms... (Attempt ${attempt + 1} of ${MAX_RETRIES})`
+        );
         await new Promise(res => setTimeout(res, delay));
         attempt++;
       } else {
@@ -398,13 +418,13 @@ export async function fetchSheetData(range: string) {
   const response = await googleFetch(
     `https://sheets.googleapis.com/v4/spreadsheets/${sid}/values/${range}?valueRenderOption=UNFORMATTED_VALUE`
   );
-  
+
   if (!response.ok) {
-    if (response.status === 401) throw new Error("UNAUTHENTICATED");
+    if (response.status === 401) throw new Error('UNAUTHENTICATED');
     const errorText = await response.text();
     throw new Error(`Failed to fetch sheet data for ${range}: ${response.statusText}. Details: ${errorText}`);
   }
-  
+
   return await response.json();
 }
 
@@ -419,16 +439,16 @@ async function _updateSheetData(range: string, values: any[][]) {
     {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ values })
+      body: JSON.stringify({ values }),
     }
   );
-  
+
   if (!response.ok) {
-    if (response.status === 401) throw new Error("UNAUTHENTICATED");
+    if (response.status === 401) throw new Error('UNAUTHENTICATED');
     const errorText = await response.text();
     throw new Error(`Failed to update sheet data: ${errorText}`);
   }
-  
+
   return await response.json();
 }
 
@@ -443,43 +463,45 @@ async function _appendSheetData(range: string, values: any[][]) {
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ values })
+      body: JSON.stringify({ values }),
     }
   );
-  
+
   if (!response.ok) {
-    if (response.status === 401) throw new Error("UNAUTHENTICATED");
+    if (response.status === 401) throw new Error('UNAUTHENTICATED');
     const errorText = await response.text();
     throw new Error(`Failed to append sheet data: ${errorText}`);
   }
-  
+
   return await response.json();
 }
 
 export async function deleteSheetRow(sheetId: number, rowIndex: number) {
-  const requests = [{
-    deleteDimension: {
-      range: {
-        sheetId: sheetId,
-        dimension: "ROWS",
-        startIndex: rowIndex,
-        endIndex: rowIndex + 1
-      }
-    }
-  }];
+  const requests = [
+    {
+      deleteDimension: {
+        range: {
+          sheetId: sheetId,
+          dimension: 'ROWS',
+          startIndex: rowIndex,
+          endIndex: rowIndex + 1,
+        },
+      },
+    },
+  ];
   return await batchUpdateSpreadsheet(requests);
 }
 
 export async function fetchSpreadsheetMetadata() {
   const sid = getSpreadsheetId();
   const response = await googleFetch(`https://sheets.googleapis.com/v4/spreadsheets/${sid}`);
-  
+
   if (!response.ok) {
-    if (response.status === 401) throw new Error("UNAUTHENTICATED");
+    if (response.status === 401) throw new Error('UNAUTHENTICATED');
     const errorText = await response.text();
     throw new Error(`Failed to fetch metadata: ${errorText}`);
   }
-  
+
   return await response.json();
 }
 
@@ -494,16 +516,16 @@ async function _batchUpdateSpreadsheet(requests: any[]) {
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ requests })
+      body: JSON.stringify({ requests }),
     }
   );
-  
+
   if (!response.ok) {
-    if (response.status === 401) throw new Error("UNAUTHENTICATED");
+    if (response.status === 401) throw new Error('UNAUTHENTICATED');
     const errorText = await response.text();
     throw new Error(`Failed batch update: ${errorText}`);
   }
-  
+
   return await response.json();
 }
 
@@ -511,39 +533,39 @@ export async function initializeDatabaseSchema() {
   try {
     const metadata = await fetchSpreadsheetMetadata();
     const existingSheets = metadata.sheets.map((s: any) => s.properties.title);
-    
+
     const requiredSheets = [
       {
         title: 'Characters',
-        headers: ['Player_ID', 'Player_Name', 'Character_Name', 'AC', 'Max_HP', 'Temp_HP', 'Current_HP', 'Current_Condition', 'Passive_Perception', 'Current_Level', 'Status', 'Notes']
+        headers: ['Player_ID', 'Player_Name', 'Character_Name', 'AC', 'Max_HP', 'Temp_HP', 'Current_HP', 'Current_Condition', 'Passive_Perception', 'Current_Level', 'Status', 'Notes'],
       },
       {
         title: 'Status',
-        headers: ['Status_ID', 'Status_Name']
+        headers: ['Status_ID', 'Status_Name'],
       },
       {
         title: 'Encounters',
-        headers: ['Encounter_ID', 'Encounter_Name', 'Location', 'Difficulty', 'Number_of_NPCs']
+        headers: ['Encounter_ID', 'Encounter_Name', 'Location', 'Difficulty', 'Number_of_NPCs'],
       },
       {
         title: 'Difficulty_Level',
-        headers: ['Difficulty_ID', 'Difficulty_Name']
+        headers: ['Difficulty_ID', 'Difficulty_Name'],
       },
       {
         title: 'NPCs',
-        headers: ['NPC_ID', 'NPC_Name', 'AC', 'Max_HP', 'Temp_HP', 'Current_HP', 'Current_Condition', 'Notes']
+        headers: ['NPC_ID', 'NPC_Name', 'AC', 'Max_HP', 'Temp_HP', 'Current_HP', 'Current_Condition', 'Notes'],
       },
       {
         title: 'Encounter_Combatants',
-        headers: ['Encounter_Combatants_ID', 'Encounter_ID', 'Player_ID', 'NPC_ID', 'Quantity']
-      }
+        headers: ['Encounter_Combatants_ID', 'Encounter_ID', 'Player_ID', 'NPC_ID', 'Quantity'],
+      },
     ];
 
     const missingSheets = requiredSheets.filter(req => !existingSheets.includes(req.title));
-    
+
     if (missingSheets.length > 0) {
       const createRequests = missingSheets.map(sheet => ({
-        addSheet: { properties: { title: sheet.title } }
+        addSheet: { properties: { title: sheet.title } },
       }));
       await _batchUpdateSpreadsheet(createRequests);
       await new Promise(r => setTimeout(r, 1000));
@@ -555,16 +577,17 @@ export async function initializeDatabaseSchema() {
         if (!data.values || data.values.length === 0 || data.values[0].join(',') !== sheet.headers.join(',')) {
           await _updateSheetData(`${sheet.title}!A1:Z1`, [sheet.headers]);
         }
-      } catch(e) {
-        await _updateSheetData(`${sheet.title}!A1:${String.fromCharCode(65 + sheet.headers.length - 1)}1`, [sheet.headers]);
+      } catch (e) {
+        await _updateSheetData(
+          `${sheet.title}!A1:${String.fromCharCode(65 + sheet.headers.length - 1)}1`,
+          [sheet.headers]
+        );
       }
     }
-    
+
     return true;
   } catch (error) {
     console.error('[Sheets] initializeDatabaseSchema failed:', error);
     throw error;
   }
 }
-
-
