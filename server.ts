@@ -2,12 +2,15 @@ import express from "express";
 import path from "path";
 import fs from "fs";
 import { createServer as createViteServer } from "vite";
+import morgan from "morgan";
 import healthRouter from './src/server/routes/health';
 import authRouter from './src/server/routes/auth';
 
 async function startServer() {
   const app = express();
   const PORT = 3000;
+
+  app.use(morgan('dev'));
 
   // Increase payload size limit to accept large images
   app.use(express.json({ limit: '50mb' }));
