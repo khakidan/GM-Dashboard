@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAppState } from '../hooks/useAppState';
-import { Swords, Eye, Users, Map, RefreshCw, PanelLeftClose, PanelLeft, Menu, AlertCircle, Info, LogIn, BookOpen } from 'lucide-react';
+import { Swords, Eye, Users, Map, RefreshCw, PanelLeftClose, PanelLeft, Menu, AlertCircle, Info, LogIn, BookOpen, Skull } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { PartyTab } from './PartyTab';
 import { NpcLibraryTab } from './NpcLibraryTab';
@@ -509,7 +509,7 @@ export function GMDashboard() {
             title="NPC Library"
           >
             {activeTab === 'npc-library' && isSidebarOpen && <div className="w-2 h-2 rounded-full bg-[#c5b358] shrink-0"></div>}
-            <BookOpen className="w-5 h-5 shrink-0" />
+            <Skull className="w-5 h-5 shrink-0" />
             {isSidebarOpen && <span className="font-bold font-sans line-clamp-1">NPC Library</span>}
           </button>
 
