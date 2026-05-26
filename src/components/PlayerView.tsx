@@ -1,18 +1,23 @@
 import { useAppState } from '../hooks/useAppState';
 import { cn } from '../lib/utils';
 import { Skull, Heart, ShieldAlert, BadgeInfo, Swords } from 'lucide-react';
+import { getHealthStatus } from '../lib/combatLogic';
 
 export function PlayerView() {
   const { state: appState } = useAppState();
   const state = appState.combatState;
 
-  const getHealthStatus = (current: number, max: number, type: 'pc' | 'npc') => {
-    if (current <= 0) return { label: 'Defeated', color: 'text-red-700 opacity-60' };
-    const ratio = current / max;
-    if (ratio >= 0.9) return { label: 'Healthy', color: 'text-green-600' };
-    if (ratio > 0.5) return { label: 'Injured', color: 'text-yellow-600' };
-    return { label: 'Bloodied', color: 'text-red-600' };
-  };
+  if (!state.activeEncounterId) {
+    return (
+      <div className="min-h-screen bg-[#fdfaf5] text-[#2c2c26] p-4 md:p-8 font-serif flex flex-col items-center justify-center">
+        <div className="bg-white border border-[#e5e1d8] rounded-2xl text-center text-[#5a5a40] italic py-24 px-8 max-w-md flex flex-col items-center justify-center gap-3 shadow-sm">
+          <Swords className="w-12 h-12 opacity-20" />
+          <p className="font-sans font-bold uppercase tracking-widest text-[#5a5a40] text-xs">Waiting for GM to start the encounter...</p>
+          <p className="font-sans text-xs text-[#5a5a40] opacity-70">The GM has not activated combat yet. Standby...</p>
+        </div>
+      </div>
+    );
+  }
 
   const renderTable = (combatants: typeof state.combatants, isSecondary: boolean = false) => (
     <div className="bg-white border border-[#e5e1d8] rounded-2xl shadow-sm overflow-hidden h-fit">
@@ -28,7 +33,7 @@ export function PlayerView() {
         <tbody className="divide-y divide-[#f5f5f0] font-sans text-sm">
           {combatants.map((c) => {
             const isActive = c.id === state.activeTurnId;
-            const health = getHealthStatus(c.currentHp, c.maxHp, c.type);
+            const health = getHealthStatus(c.currentHp, c.maxHp);
             const isDead = c.currentHp <= 0;
 
             return (

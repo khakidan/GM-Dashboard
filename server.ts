@@ -7,6 +7,21 @@ import healthRouter from './src/server/routes/health';
 import authRouter from './src/server/routes/auth';
 
 async function startServer() {
+  const REQUIRED_ENV = [
+    'VITE_GOOGLE_CLIENT_ID',
+    'VITE_GOOGLE_CLIENT_SECRET',
+  ] as const;
+
+  const missing = REQUIRED_ENV.filter(key => !process.env[key]);
+  if (missing.length > 0) {
+    console.warn('⚠️  [Server] Missing environment variables:');
+    missing.forEach(key => 
+      console.warn(`   - ${key} is not set. Google Sheets sync will not work.`)
+    );
+  } else {
+    console.log('✅ [Server] All required environment variables are present.');
+  }
+
   const app = express();
   app.set('trust proxy', 1);
   const PORT = 3000;

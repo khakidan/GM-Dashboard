@@ -38,7 +38,18 @@ export function GMDashboard() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 1024);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
+    const stored = localStorage.getItem('gm_sidebar_open');
+    return stored !== null ? stored === 'true' : false;
+  });
+
+  const setSidebarOpen = (value: boolean | ((prev: boolean) => boolean)) => {
+    setIsSidebarOpen(prev => {
+      const next = typeof value === 'function' ? value(prev) : value;
+      localStorage.setItem('gm_sidebar_open', String(next));
+      return next;
+    });
+  };
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [tempSpreadsheetId, setTempSpreadsheetId] = useState(getSpreadsheetId());
   const [manualToken, setManualTokenState] = useState('');
@@ -398,7 +409,7 @@ export function GMDashboard() {
       {isSidebarOpen && (
         <div
           className="lg:hidden fixed inset-0 bg-[#2c2c26]/60 backdrop-blur-sm z-30"
-          onClick={() => setIsSidebarOpen(false)}
+          onClick={() => setSidebarOpen(false)}
         />
       )}
 
@@ -408,14 +419,14 @@ export function GMDashboard() {
         isSidebarOpen ? 'w-64 translate-x-0' : '-translate-x-full lg:translate-x-0 lg:w-20'
       )}>
         <button
-          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          onClick={() => setSidebarOpen(!isSidebarOpen)}
           className="hidden lg:flex absolute -right-3 top-6 bg-[#3f3f37] border border-[#1a1a14] p-1.5 rounded-full text-white hover:bg-[#5a5a40] transition-colors z-20"
         >
           {isSidebarOpen ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeft className="w-4 h-4" />}
         </button>
 
         <button
-          onClick={() => setIsSidebarOpen(false)}
+          onClick={() => setSidebarOpen(false)}
           className="lg:hidden absolute top-4 right-4 p-2 text-white/50 hover:text-white"
         >
           <X className="w-5 h-5" />
@@ -429,7 +440,7 @@ export function GMDashboard() {
             </div>
           ) : (
             <button
-              onClick={() => setIsSidebarOpen(true)}
+              onClick={() => setSidebarOpen(true)}
               className="p-3 hover:bg-[#3f3f37] rounded-xl text-[#c5b358] transition-all active:scale-95"
               title="Open Sidebar"
             >
@@ -442,7 +453,7 @@ export function GMDashboard() {
           <button
             onClick={() => {
               setActiveTab('party');
-              if (window.innerWidth < 1024) setIsSidebarOpen(false);
+              if (window.innerWidth < 1024) setSidebarOpen(false);
             }}
             className={cn(
               'w-full text-left p-3 flex items-center transition-colors rounded-lg',
@@ -459,7 +470,7 @@ export function GMDashboard() {
           <button
             onClick={() => {
               setActiveTab('encounters');
-              if (window.innerWidth < 1024) setIsSidebarOpen(false);
+              if (window.innerWidth < 1024) setSidebarOpen(false);
             }}
             className={cn(
               'w-full text-left p-3 flex items-center transition-colors rounded-lg',
@@ -477,7 +488,7 @@ export function GMDashboard() {
             onClick={() => {
               if (state.combatState.activeEncounterId) {
                 setActiveTab('combat');
-                if (window.innerWidth < 1024) setIsSidebarOpen(false);
+                if (window.innerWidth < 1024) setSidebarOpen(false);
               }
             }}
             disabled={!state.combatState.activeEncounterId}
@@ -496,7 +507,7 @@ export function GMDashboard() {
           <button
             onClick={() => {
               setIsSettingsOpen(true);
-              if (window.innerWidth < 1024) setIsSidebarOpen(false);
+              if (window.innerWidth < 1024) setSidebarOpen(false);
             }}
             className={cn(
               'w-full text-left p-3 flex items-center transition-colors rounded-lg hover:bg-[#3f3f37]/50 opacity-70',
@@ -564,7 +575,7 @@ export function GMDashboard() {
         {/* Top Header */}
         <header className="h-16 lg:h-20 shrink-0 border-b border-[#e5e1d8] px-4 lg:px-8 flex items-center justify-between bg-white/80 lg:bg-white/50 backdrop-blur-md sticky top-0 z-10 transition-all">
           <div className="flex-1 max-w-lg mr-4 group flex items-center gap-2">
-            <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-2 -ml-2 text-[#5a5a40] hover:bg-black/5 rounded">
+            <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-2 -ml-2 text-[#5a5a40] hover:bg-black/5 rounded">
               <Menu className="w-6 h-6" />
             </button>
             <h2 className="text-lg lg:text-xl font-bold text-[#2c2c26] px-2 py-1">
