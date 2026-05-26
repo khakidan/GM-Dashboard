@@ -70,7 +70,7 @@ export const EncounterRowSchema = z.preprocess(padRow(5), z.tuple([
   stringDefault('Unknown Encounter'),  // [1] name
   stringDefault(''),                   // [2] location
   coerceNumber(1),                     // [3] difficultyId
-  stringDefault(''),                   // [4] npcDefinitions
+  stringDefault(''),                   // [4] NPC_Definitions
 ]));
 
 export const EncounterCombatantRowSchema = z.preprocess(padRow(6), z.tuple([

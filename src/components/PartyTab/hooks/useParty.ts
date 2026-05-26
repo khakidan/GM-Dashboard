@@ -11,6 +11,47 @@ export function useParty() {
   const [isAddingPlayer, setIsAddingPlayer] = useState(false);
   const [globalError, setGlobalError] = useState<string | null>(null);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const [levelUpCharacter, setLevelUpCharacter] = useState<Character | null>(null);
+
+  const handleLevelUpConfirm = async (updates: Partial<Character>) => {
+    if (!levelUpCharacter) return;
+    const char = levelUpCharacter;
+    const previousState = state;
+
+    // 4. Close the dialog
+    setLevelUpCharacter(null);
+
+    // 1. Optimistically update local state with the new values
+    updateState(prev => ({
+      ...prev,
+      characters: prev.characters.map(c => 
+        c.id === char.id ? { ...c, ...updates } : c
+      )
+    }));
+
+    // 3. Show a sonner toast: "[CharacterName] is now level [N]!"
+    const newLevel = updates.level !== undefined ? updates.level : (char.level + 1);
+    toast.success(`${char.characterName} is now level ${newLevel}!`);
+
+    // 2. Call updateCharacterDB with the changed fields
+    setSyncingId(char.id);
+    try {
+      await updateCharacterDB(updates, char);
+    } catch (err: unknown) {
+      console.error("Failed to sync level-up update to sheets", err);
+      // rollback
+      updateState(previousState);
+      const errorObj = err as Record<string, unknown> | null;
+      if (errorObj?.message === "UNAUTHENTICATED" || errorObj?.error === "UNAUTHENTICATED") {
+        alert("Your session has expired. Please sign in again.");
+        window.location.reload();
+      } else {
+        setGlobalError(`Failed to sync level up for "${char.characterName}".`);
+      }
+    } finally {
+      setSyncingId(null);
+    }
+  };
 
   const toggleExpand = (id: string) => {
     setExpandedIds(prev => {
@@ -239,5 +280,8 @@ export function useParty() {
     handleDeletePlayer,
     handleUpdate,
     handleResetNpcHp,
+    levelUpCharacter,
+    setLevelUpCharacter,
+    handleLevelUpConfirm,
   };
 }

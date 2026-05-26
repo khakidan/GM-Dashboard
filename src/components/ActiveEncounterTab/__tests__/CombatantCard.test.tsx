@@ -25,6 +25,7 @@ describe('CombatantCard', () => {
     isExpanded: false,
     isSyncing: false,
     healthInput: '',
+    currentRound: 1,
     onHealthInputChange: vi.fn(),
     onHealthSubmit: vi.fn(),
     onToggleExpand: vi.fn(),

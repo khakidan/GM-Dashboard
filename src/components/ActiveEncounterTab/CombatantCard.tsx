@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Trash2, Eye, Zap } from 'lucide-react';
 import { cn } from '../../lib/utils';
-import { Combatant } from '../../types';
+import { Combatant, DamageType } from '../../types';
 
 const AnimatedHpDisplay = ({
   value,
@@ -111,8 +111,9 @@ export interface CombatantCardProps {
   isExpanded: boolean;
   isSyncing: boolean;
   healthInput: string;
+  currentRound: number;
   onHealthInputChange: (val: string) => void;
-  onHealthSubmit: (isDamage: boolean) => void;
+  onHealthSubmit: (isDamage: boolean, damageType?: DamageType | null) => void;
   onToggleExpand: () => void;
   onUpdateCombatant: (updates: Partial<Combatant>) => void;
   onRemoveCombatant: () => void | Promise<void>;
@@ -124,12 +125,16 @@ export function CombatantCard({
   isExpanded,
   isSyncing,
   healthInput,
+  currentRound,
   onHealthInputChange,
   onHealthSubmit,
   onToggleExpand,
   onUpdateCombatant,
   onRemoveCombatant
 }: CombatantCardProps) {
+  const [selectedDamageType, setSelectedDamageType] = useState<DamageType | null>(null);
+  const [timerConditionName, setTimerConditionName] = useState('');
+  const [timerRounds, setTimerRounds] = useState('');
   return (
     <motion.div
       layout
@@ -183,7 +188,7 @@ export function CombatantCard({
               />
             </div>
 
-            <div className="flex items-center gap-1.5 ml-2">
+            <div className="flex items-center gap-1.5 ml-2" id={`hp-controls-${c.id}`}>
               <input
                 type="number"
                 value={healthInput}
@@ -193,14 +198,46 @@ export function CombatantCard({
                 onKeyDown={e => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
-                    onHealthSubmit(true);
+                    if (selectedDamageType === null) {
+                      onHealthSubmit(true);
+                    } else {
+                      onHealthSubmit(true, selectedDamageType);
+                    }
+                    setSelectedDamageType(null);
                   }
                 }}
                 className={cn(
-                  'w-14 bg-[#faf9f6] border border-[#e5e1d8] rounded px-1 py-1 text-center outline-none focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] font-sans text-xs font-bold disabled:opacity-50',
+                  'w-14 bg-[#faf9f6]/50 border border-[#e5e1d8] rounded px-1 py-1 text-center outline-none focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] font-sans text-xs font-bold disabled:opacity-50',
                   isActive && 'bg-white border-[#c5b358]/50'
                 )}
               />
+
+              <select
+                id={`damage-type-select-${c.id}`}
+                value={selectedDamageType || ''}
+                onChange={e => setSelectedDamageType((e.target.value as DamageType) || null)}
+                disabled={isSyncing}
+                className="w-16 bg-[#faf9f6] border border-[#e5e1d8] rounded px-0.5 py-0.5 text-[8px] font-bold text-[#5a5a40] outline-none cursor-pointer focus:border-[#c5b358]"
+              >
+                <option value="">— type —</option>
+                <option value="acid">acid</option>
+                <option value="bludgeoning">bludgeoning</option>
+                <option value="bludgeoning (nonmagical)">bludgeoning (nonmagical)</option>
+                <option value="cold">cold</option>
+                <option value="fire">fire</option>
+                <option value="force">force</option>
+                <option value="lightning">lightning</option>
+                <option value="necrotic">necrotic</option>
+                <option value="piercing">piercing</option>
+                <option value="piercing (nonmagical)">piercing (nonmagical)</option>
+                <option value="poison">poison</option>
+                <option value="psychic">psychic</option>
+                <option value="radiant">radiant</option>
+                <option value="slashing">slashing</option>
+                <option value="slashing (nonmagical)">slashing (nonmagical)</option>
+                <option value="thunder">thunder</option>
+              </select>
+
               <div className="flex flex-col gap-0.5">
                 <button
                   onClick={() => onHealthSubmit(false)}
@@ -210,7 +247,14 @@ export function CombatantCard({
                   H
                 </button>
                 <button
-                  onClick={() => onHealthSubmit(true)}
+                  onClick={() => {
+                    if (selectedDamageType === null) {
+                      onHealthSubmit(true);
+                    } else {
+                      onHealthSubmit(true, selectedDamageType);
+                    }
+                    setSelectedDamageType(null);
+                  }}
                   disabled={isSyncing}
                   className="px-1.5 py-0.5 leading-none bg-red-50 text-red-700 hover:bg-red-100 border border-red-100 rounded-[4px] text-[7px] font-bold uppercase disabled:opacity-50"
                 >
@@ -298,6 +342,91 @@ export function CombatantCard({
                   disabled={isSyncing}
                   className="w-full bg-[#faf9f6] border border-[#e5e1d8] rounded-xl px-2 py-1.5 text-xs italic outline-none focus:bg-white focus:border-[#c5b358] transition-all disabled:opacity-50"
                 />
+              </div>
+
+              {/* Set Timer Section */}
+              <div className="space-y-2 mt-2">
+                <span className="block text-[8px] font-bold uppercase tracking-widest text-[#5a5a40]">Set Timer</span>
+                <div className="flex gap-1.5 items-center">
+                  <input
+                    type="text"
+                    placeholder="Condition name"
+                    value={timerConditionName}
+                    onChange={e => setTimerConditionName(e.target.value)}
+                    disabled={isSyncing}
+                    id={`timer-cond-name-${c.id}`}
+                    className="flex-1 bg-[#faf9f6] border border-[#e5e1d8] rounded-xl px-2.5 py-1 text-xs outline-none focus:bg-white focus:border-[#c5b358]"
+                  />
+                  <input
+                    type="number"
+                    placeholder="Rounds"
+                    value={timerRounds}
+                    onChange={e => setTimerRounds(e.target.value)}
+                    disabled={isSyncing}
+                    id={`timer-rounds-${c.id}`}
+                    className="w-16 bg-[#faf9f6]/50 border border-[#e5e1d8] rounded-xl px-2 py-1 text-center text-xs outline-none focus:bg-white focus:border-[#c5b358]"
+                  />
+                  <button
+                    onClick={() => {
+                      const condName = timerConditionName.trim();
+                      const rounds = parseInt(timerRounds);
+                      if (!condName || isNaN(rounds) || rounds <= 0) return;
+
+                      const expiresAtRound = currentRound + rounds;
+                      const currentConditions = c.conditions || '';
+                      const currentCondList = currentConditions.split(',').map(s => s.trim().toLowerCase());
+                      let newConditions = currentConditions;
+                      if (!currentCondList.includes(condName.toLowerCase())) {
+                        newConditions = currentConditions
+                          ? `${currentConditions}, ${condName}`
+                          : condName;
+                      }
+
+                      const newTimers = { ...(c.conditionTimers || {}) };
+                      newTimers[condName] = expiresAtRound;
+
+                      onUpdateCombatant({
+                        conditions: newConditions,
+                        conditionTimers: newTimers,
+                      });
+
+                      setTimerConditionName('');
+                      setTimerRounds('');
+                    }}
+                    disabled={isSyncing || !timerConditionName.trim() || !timerRounds}
+                    id={`add-timer-btn-${c.id}`}
+                    className="px-2.5 py-1 text-[8px] font-bold uppercase tracking-widest bg-[#c5b358] text-white hover:bg-[#b09e4b] rounded-full transition-all disabled:opacity-50"
+                  >
+                    + Add
+                  </button>
+                </div>
+
+                {/* Display active condition timers as pill badges */}
+                {c.conditionTimers && Object.keys(c.conditionTimers).length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-1.5" id={`condition-timers-list-${c.id}`}>
+                    {Object.entries(c.conditionTimers).map(([condName, expiresAt]) => (
+                      <span
+                        key={condName}
+                        className="inline-flex items-center gap-1 bg-[#faf9f6]/80 border border-[#e5e1d8] hover:border-[#c5b358] text-[#5a5a40] text-[8px] font-bold px-2 py-0.5 rounded-full transition-colors"
+                      >
+                        <span>{condName} ends round {expiresAt}</span>
+                        <button
+                          onClick={() => {
+                            const newTimers = { ...(c.conditionTimers || {}) };
+                            delete newTimers[condName];
+                            onUpdateCombatant({
+                              conditionTimers: newTimers,
+                            });
+                          }}
+                          className="hover:text-red-600 transition-colors cursor-pointer text-[10px] leading-none ml-1"
+                          title="Remove timer"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="flex justify-between items-center pt-2 border-t border-[#f5f5f0]">

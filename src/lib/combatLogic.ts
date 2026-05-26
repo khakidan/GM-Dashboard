@@ -1,6 +1,6 @@
 // src/lib/combatLogic.ts
 
-import { Combatant } from '../types';
+import { Combatant, DamageType } from '../types';
 
 // ─── Health change ────────────────────────────────────────────────────────────
 
@@ -108,4 +108,98 @@ export function rollNpcInitiatives(
   return [...combatants]
     .map(c => c.type === 'npc' ? { ...c, initiative: rollD20(rng) } : c)
     .sort((a, b) => b.initiative - a.initiative);
+}
+
+// ─── IRV (Immunity, Resistance, Vulnerability) Math ────────────────────────────
+
+export function checkIrvMatch(damageType: string, irvString: string | null | undefined): boolean {
+  if (!irvString || !damageType) return false;
+  const target = damageType.toLowerCase().trim();
+  const rawIrvNormalized = irvString.toLowerCase();
+  const parts = irvString.split(',').map(s => s.toLowerCase().trim());
+  
+  for (const part of parts) {
+    if (part === target) {
+      return true;
+    }
+    if (part.includes(target)) {
+      return true;
+    }
+    
+    // "bludgeoning (nonmagical)" should match an entry containing both "bludgeoning" and "nonmagical"
+    if (target.includes('nonmagical')) {
+      const baseType = target.replace('(nonmagical)', '').trim();
+      if (part.includes(baseType) && (part.includes('nonmagical') || rawIrvNormalized.includes('nonmagical'))) {
+        return true;
+      }
+    }
+  }
+  
+  // Also explicit check for compound entries containing both parts of the target
+  for (const part of parts) {
+    if (target === 'bludgeoning (nonmagical)' && part.includes('bludgeoning') && part.includes('nonmagical')) {
+      return true;
+    }
+    if (target === 'piercing (nonmagical)' && part.includes('piercing') && part.includes('nonmagical')) {
+      return true;
+    }
+    if (target === 'slashing (nonmagical)' && part.includes('slashing') && part.includes('nonmagical')) {
+      return true;
+    }
+  }
+  
+  return false;
+}
+
+export function computeDamageWithIrv(
+  baseDamage: number,
+  damageType: DamageType | null,
+  resistances: string | undefined,
+  immunities: string | undefined,
+  vulnerabilities: string | undefined
+): { finalDamage: number; modifier: 'immune' | 'resistant' | 'vulnerable' | 'normal' } {
+  if (damageType === null) {
+    return { finalDamage: baseDamage, modifier: 'normal' };
+  }
+  
+  if (checkIrvMatch(damageType, immunities)) {
+    return { finalDamage: 0, modifier: 'immune' };
+  }
+  
+  if (checkIrvMatch(damageType, resistances)) {
+    return { finalDamage: Math.floor(baseDamage / 2), modifier: 'resistant' };
+  }
+  
+  if (checkIrvMatch(damageType, vulnerabilities)) {
+    return { finalDamage: baseDamage * 2, modifier: 'vulnerable' };
+  }
+  
+  return { finalDamage: baseDamage, modifier: 'normal' };
+}
+
+// ─── Condition Expiry Tracking ────────────────────────────────────────────────
+
+export function getExpiredConditions(
+  combatants: Combatant[],
+  currentRound: number
+): Array<{ combatantId: string; combatantName: string; conditionName: string }> {
+  const expired: Array<{ combatantId: string; combatantName: string; conditionName: string }> = [];
+  for (const c of combatants) {
+    if (!c.conditionTimers) continue;
+    const condList = (c.conditions || '').split(',').map(s => s.toLowerCase().trim());
+    
+    for (const [conditionName, expiresAtRound] of Object.entries(c.conditionTimers)) {
+      if (expiresAtRound <= currentRound) {
+        const condNameLower = conditionName.toLowerCase().trim();
+        if (condList.includes(condNameLower) || (c.conditions || '').toLowerCase().includes(condNameLower)) {
+          expired.push({
+            combatantId: c.id,
+            combatantName: c.name,
+            conditionName,
+          });
+        }
+      }
+    }
+  }
+  return expired;
 }

@@ -68,6 +68,7 @@ export interface Combatant {
   resistances?: string;
   immunities?: string;
   vulnerabilities?: string;
+  conditionTimers?: Record<string, number>;
 }
 
 export interface CombatState {
@@ -97,4 +98,11 @@ export interface AppState {
   statuses: Record<string, string>;
   combatState: CombatState;
 }
+
+export type DamageType =
+  | 'acid' | 'bludgeoning' | 'bludgeoning (nonmagical)'
+  | 'cold' | 'fire' | 'force' | 'lightning' | 'necrotic'
+  | 'piercing' | 'piercing (nonmagical)' | 'poison'
+  | 'psychic' | 'radiant' | 'slashing' | 'slashing (nonmagical)'
+  | 'thunder';
 

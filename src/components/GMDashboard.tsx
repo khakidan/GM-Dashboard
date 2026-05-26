@@ -363,38 +363,6 @@ export function GMDashboard() {
           hpSheetRowIndex: c.sheetRowIndex,
         });
       });
-
-      // Parse NPCs from encounter.npcDefinitions
-      if (encounter.npcDefinitions) {
-        const npcDefs = encounter.npcDefinitions.split(',').map(s => s.trim());
-        npcDefs.forEach(def => {
-          const parts = def.split(':');
-          const npcId = parts[0].trim();
-          const count = parts.length > 1 ? parseInt(parts[1]) || 1 : 1;
-
-          const npcTemplate = state.npcs.find(n => n.id === npcId);
-          if (npcTemplate) {
-            for (let i = 0; i < count; i++) {
-              combatants.push({
-                id: `combat-npc-${npcTemplate.id}-${i}-${Date.now()}`,
-                name: `${npcTemplate.name}${count > 1 ? ` ${i + 1}` : ''}`,
-                type: 'npc',
-                initiative: 0,
-                ac: npcTemplate.ac,
-                maxHp: npcTemplate.maxHp,
-                currentHp: npcTemplate.currentHp,
-                tempHp: npcTemplate.tempHp,
-                conditions: npcTemplate.conditions,
-                notes: npcTemplate.notes,
-                passivePerception: 10,
-                resistances: npcTemplate.resistances,
-                immunities: npcTemplate.immunities,
-                vulnerabilities: npcTemplate.vulnerabilities,
-              });
-            }
-          }
-        });
-      }
     }
 
     updateState(prev => ({

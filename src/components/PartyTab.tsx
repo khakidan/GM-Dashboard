@@ -2,6 +2,7 @@ import React from 'react';
 import { Coffee, Loader2, AlertCircle, Users } from 'lucide-react';
 import { useParty } from './PartyTab/hooks/useParty';
 import { CharacterCard } from './PartyTab/CharacterCard';
+import { LevelUpDialog } from './PartyTab/LevelUpDialog';
 import { cn } from '../lib/utils';
 
 export function PartyTab() {
@@ -18,6 +19,9 @@ export function PartyTab() {
     handleDeletePlayer,
     handleUpdate,
     handleResetNpcHp,
+    levelUpCharacter,
+    setLevelUpCharacter,
+    handleLevelUpConfirm,
   } = useParty();
 
   return (
@@ -79,6 +83,7 @@ export function PartyTab() {
               onToggleExpand={() => toggleExpand(char.id)}
               onUpdate={(updates) => handleUpdate(char.id, updates)}
               onDelete={() => handleDeletePlayer(char.id)}
+              onLevelUpClick={() => setLevelUpCharacter(char)}
             />
           ))}
         </div>
@@ -138,6 +143,15 @@ export function PartyTab() {
           </div>
         )}
       </div>
+
+      {levelUpCharacter && (
+        <LevelUpDialog
+          character={levelUpCharacter}
+          isOpen={levelUpCharacter !== null}
+          onClose={() => setLevelUpCharacter(null)}
+          onConfirm={handleLevelUpConfirm}
+        />
+      )}
     </div>
   );
 }

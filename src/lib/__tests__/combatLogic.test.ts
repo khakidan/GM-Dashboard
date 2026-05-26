@@ -8,6 +8,9 @@ import {
   getHealthStatus,
   rollD20,
   rollNpcInitiatives,
+  checkIrvMatch,
+  computeDamageWithIrv,
+  getExpiredConditions,
 } from '../combatLogic';
 import type { Combatant } from '../../types';
 
@@ -232,5 +235,200 @@ describe('rollNpcInitiatives', () => {
     const result = rollNpcInitiatives([pc, npc1, npc2], rng);
     const initiatives = result.map(c => c.initiative);
     expect(initiatives).toEqual([...initiatives].sort((a, b) => b - a));
+  });
+});
+
+// ─── checkIrvMatch ─────────────────────────────────────────────────────────────
+
+describe('checkIrvMatch', () => {
+  it('Returns true when damageType exactly matches an irvString entry', () => {
+    expect(checkIrvMatch('fire', 'fire')).toBe(true);
+    expect(checkIrvMatch('fire', 'poison, fire, cold')).toBe(true);
+  });
+
+  it('Returns true when type is contained in a compound entry', () => {
+    expect(checkIrvMatch('fire', 'fire, poison')).toBe(true);
+    expect(checkIrvMatch('cold', 'poison, cold resistance')).toBe(true);
+  });
+
+  it("Returns true for 'bludgeoning (nonmagical)' against 'bludgeoning, piercing, slashing (nonmagical)'", () => {
+    expect(checkIrvMatch('bludgeoning (nonmagical)', 'bludgeoning, piercing, slashing (nonmagical)')).toBe(true);
+  });
+
+  it('Returns false when damageType is not present in irvString', () => {
+    expect(checkIrvMatch('fire', 'cold, poison')).toBe(false);
+  });
+
+  it('Is case insensitive', () => {
+    expect(checkIrvMatch('FIRE', 'fire')).toBe(true);
+    expect(checkIrvMatch('fire', 'FIRE, POISON')).toBe(true);
+  });
+
+  it('Returns false for empty irvString', () => {
+    expect(checkIrvMatch('fire', '')).toBe(false);
+    expect(checkIrvMatch('fire', null as any)).toBe(false);
+  });
+});
+
+// ─── computeDamageWithIrv ────────────────────────────────────────────────────────
+
+describe('computeDamageWithIrv', () => {
+  it('Returns normal modifier when damageType is null', () => {
+    const result = computeDamageWithIrv(10, null, 'fire', 'cold', 'poison');
+    expect(result).toEqual({ finalDamage: 10, modifier: 'normal' });
+  });
+
+  it('Returns immune with 0 damage when type matches immunities', () => {
+    const result = computeDamageWithIrv(10, 'cold', 'fire', 'cold', 'poison');
+    expect(result).toEqual({ finalDamage: 0, modifier: 'immune' });
+  });
+
+  it('Returns resistant with halved damage when type matches resistances', () => {
+    const result = computeDamageWithIrv(10, 'fire', 'fire', 'cold', 'poison');
+    expect(result).toEqual({ finalDamage: 5, modifier: 'resistant' });
+  });
+
+  it('Returns vulnerable with doubled damage when type matches vulnerabilities', () => {
+    const result = computeDamageWithIrv(10, 'poison', 'fire', 'cold', 'poison');
+    expect(result).toEqual({ finalDamage: 20, modifier: 'vulnerable' });
+  });
+
+  it('Immunities take priority over resistances when both match', () => {
+    const result = computeDamageWithIrv(10, 'fire', 'fire', 'fire', 'fire');
+    expect(result).toEqual({ finalDamage: 0, modifier: 'immune' });
+  });
+
+  it('Halved damage is floored', () => {
+    const result = computeDamageWithIrv(15, 'fire', 'fire', '', '');
+    expect(result).toEqual({ finalDamage: 7, modifier: 'resistant' });
+  });
+
+  it('Doubled damage is correct', () => {
+    const result = computeDamageWithIrv(15, 'poison', '', '', 'poison');
+    expect(result).toEqual({ finalDamage: 30, modifier: 'vulnerable' });
+  });
+});
+
+// ─── getExpiredConditions ────────────────────────────────────────────────────────
+
+describe('getExpiredConditions', () => {
+  it('Returns empty array when no combatants have conditionTimers', () => {
+    const combatants: Combatant[] = [
+      { id: '1', name: 'Actor 1', type: 'pc', ac: 10, maxHp: 10, currentHp: 10, passivePerception: 10, initiative: 10, conditions: 'Hasted' },
+    ];
+    const result = getExpiredConditions(combatants, 5);
+    expect(result).toEqual([]);
+  });
+
+  it('Returns empty array when no timers have expired yet', () => {
+    const combatants: Combatant[] = [
+      {
+        id: '1',
+        name: 'Actor 1',
+        type: 'pc',
+        ac: 10,
+        maxHp: 10,
+        currentHp: 10,
+        passivePerception: 10,
+        initiative: 10,
+        conditions: 'Hasted',
+        conditionTimers: { 'Hasted': 6 },
+      },
+    ];
+    const result = getExpiredConditions(combatants, 5);
+    expect(result).toEqual([]);
+  });
+
+  it('Returns the correct entry when one condition has expired', () => {
+    const combatants: Combatant[] = [
+      {
+        id: '1',
+        name: 'Actor 1',
+        type: 'pc',
+        ac: 10,
+        maxHp: 10,
+        currentHp: 10,
+        passivePerception: 10,
+        initiative: 10,
+        conditions: 'Hasted',
+        conditionTimers: { 'Hasted': 5 },
+      },
+    ];
+    const result = getExpiredConditions(combatants, 5);
+    expect(result).toEqual([
+      { combatantId: '1', combatantName: 'Actor 1', conditionName: 'Hasted' },
+    ]);
+  });
+
+  it('Returns multiple entries when multiple conditions have expired across different combatants', () => {
+    const combatants: Combatant[] = [
+      {
+        id: '1',
+        name: 'Actor 1',
+        type: 'pc',
+        ac: 10,
+        maxHp: 10,
+        currentHp: 10,
+        passivePerception: 10,
+        initiative: 10,
+        conditions: 'Hasted',
+        conditionTimers: { 'Hasted': 5 },
+      },
+      {
+        id: '2',
+        name: 'Actor 2',
+        type: 'npc',
+        ac: 10,
+        maxHp: 10,
+        currentHp: 10,
+        passivePerception: 10,
+        initiative: 10,
+        conditions: 'Poisoned, Blessed',
+        conditionTimers: { 'Poisoned': 4, 'Blessed': 6 },
+      },
+    ];
+    const result = getExpiredConditions(combatants, 5);
+    expect(result).toEqual([
+      { combatantId: '1', combatantName: 'Actor 1', conditionName: 'Hasted' },
+      { combatantId: '2', combatantName: 'Actor 2', conditionName: 'Poisoned' },
+    ]);
+  });
+
+  it('Does not return a timer entry if the condition name is no longer in the combatant string', () => {
+    const combatants: Combatant[] = [
+      {
+        id: '1',
+        name: 'Actor 1',
+        type: 'pc',
+        ac: 10,
+        maxHp: 10,
+        currentHp: 10,
+        passivePerception: 10,
+        initiative: 10,
+        conditions: '', // 'Hasted' timer is orphaned
+        conditionTimers: { 'Hasted': 5 },
+      },
+    ];
+    const result = getExpiredConditions(combatants, 5);
+    expect(result).toEqual([]);
+  });
+
+  it('Does not return entries where expiresAtRound is in the future', () => {
+    const combatants: Combatant[] = [
+      {
+        id: '1',
+        name: 'Actor 1',
+        type: 'pc',
+        ac: 10,
+        maxHp: 10,
+        currentHp: 10,
+        passivePerception: 10,
+        initiative: 10,
+        conditions: 'Hasted',
+        conditionTimers: { 'Hasted': 8 },
+      },
+    ];
+    const result = getExpiredConditions(combatants, 5);
+    expect(result).toEqual([]);
   });
 });

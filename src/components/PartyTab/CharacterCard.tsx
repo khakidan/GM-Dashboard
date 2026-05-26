@@ -13,6 +13,7 @@ export interface CharacterCardProps {
   onToggleExpand: () => void;
   onUpdate: (updates: Partial<Character>) => void;
   onDelete: () => void;
+  onLevelUpClick?: () => void;
 }
 
 export const CharacterCard: React.FC<CharacterCardProps> = ({ 
@@ -21,7 +22,8 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({
   isExpanded,
   onToggleExpand,
   onUpdate,
-  onDelete
+  onDelete,
+  onLevelUpClick
 }) => {
   return (
     <div className={cn(
@@ -106,7 +108,19 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-1 shrink-0 border-l border-[#f5f5f0] pl-2">
+        <div className="flex items-center gap-1.5 shrink-0 border-l border-[#f5f5f0] pl-2">
+          {character.statusId === 1 && onLevelUpClick && (
+            <button
+              id={`lvl-btn-${character.id}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                onLevelUpClick();
+              }}
+              className="px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider bg-[#c5b358]/10 text-[#5a5a40] hover:bg-[#c5b358] hover:text-white rounded-md transition-all cursor-pointer border border-[#c5b358]/20"
+            >
+              Level Up
+            </button>
+          )}
           <button 
             onClick={onToggleExpand}
             className="p-1.5 text-[#5a5a40] opacity-30 hover:opacity-100 hover:bg-[#f5f5f0] rounded-full transition-all"

@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { useAppState } from '../../hooks/useAppState';
+import { useAppState, getSnapshot } from '../../hooks/useAppState';
+import { toast } from 'sonner';
+import { getExpiredConditions } from '../../lib/combatLogic';
 import { Skull, AlertCircle } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { Combatant } from '../../types';
@@ -226,20 +228,22 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
   };
 
   const nextTurn = () => {
+    let nextRound = state.combatState.round;
+    const combatants = state.combatState.combatants;
+    if (combatants.length === 0) return;
+
+    const currentIndex = combatants.findIndex(
+      c => c.id === state.combatState.activeTurnId
+    );
+    const nextIndex =
+      currentIndex + 1 >= combatants.length ? 0 : currentIndex + 1;
+
+    if (currentIndex !== -1 && nextIndex === 0) {
+      nextRound += 1;
+    }
+
     updateState(prev => {
       if (prev.combatState.combatants.length === 0) return prev;
-
-      const currentIndex = prev.combatState.combatants.findIndex(
-        c => c.id === prev.combatState.activeTurnId
-      );
-      const nextIndex =
-        currentIndex + 1 >= prev.combatState.combatants.length ? 0 : currentIndex + 1;
-
-      let nextRound = prev.combatState.round;
-      if (currentIndex !== -1 && nextIndex === 0) {
-        nextRound += 1;
-      }
-
       return {
         ...prev,
         combatState: {
@@ -248,6 +252,36 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
           round: nextRound,
         },
       };
+    });
+
+    // Check for expired conditions
+    const expired = getExpiredConditions(combatants, nextRound);
+    expired.forEach(({ combatantId, combatantName, conditionName }) => {
+      toast(`${conditionName} on ${combatantName} has ended`, {
+        action: {
+          label: "Remove",
+          onClick: () => {
+            const currentState = getSnapshot();
+            const target = currentState.combatState.combatants.find(c => c.id === combatantId);
+            if (!target) return;
+
+            const conditionsStr = target.conditions || '';
+            const nextConditions = conditionsStr
+              .split(',')
+              .map(s => s.trim())
+              .filter(s => s.toLowerCase() !== conditionName.toLowerCase() && s !== '')
+              .join(', ');
+
+            const nextTimers = { ...(target.conditionTimers || {}) };
+            delete nextTimers[conditionName];
+
+            updateCombatant(combatantId, {
+              conditions: nextConditions,
+              conditionTimers: nextTimers,
+            });
+          },
+        },
+      });
     });
   };
 
@@ -331,8 +365,9 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
                     isExpanded={expandedIds.has(c.id)}
                     isSyncing={syncingIds.has(c.id)}
                     healthInput={healthInputs[c.id] || ''}
+                    currentRound={state.combatState.round}
                     onHealthInputChange={(val) => setHealthInputs(prev => ({ ...prev, [c.id]: val }))}
-                    onHealthSubmit={(isDamage) => handleHealthChange(c.id, c, isDamage)}
+                    onHealthSubmit={(isDamage, damageType) => handleHealthChange(c.id, c, isDamage, damageType)}
                     onToggleExpand={() => toggleExpand(c.id)}
                     onUpdateCombatant={(updates) => updateCombatant(c.id, updates)}
                     onRemoveCombatant={() => removeCombatant(c.id)}
