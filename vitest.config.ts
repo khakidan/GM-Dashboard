@@ -15,6 +15,7 @@ export default defineConfig({
   test: {
     // jsdom gives us window, localStorage, etc. in tests
     environment: 'jsdom',
+    exclude: ['**/e2e/**', '**/node_modules/**', '**/dist/**'],
 
     // Coverage via v8 — fast, no Babel required
     coverage: {

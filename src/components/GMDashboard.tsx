@@ -419,6 +419,7 @@ export function GMDashboard() {
         isSidebarOpen ? 'w-64 translate-x-0' : '-translate-x-full lg:translate-x-0 lg:w-20'
       )}>
         <button
+          id="sidebar-toggle-btn"
           onClick={() => setSidebarOpen(!isSidebarOpen)}
           className="hidden lg:flex absolute -right-3 top-6 bg-[#3f3f37] border border-[#1a1a14] p-1.5 rounded-full text-white hover:bg-[#5a5a40] transition-colors z-20"
         >
@@ -505,6 +506,7 @@ export function GMDashboard() {
           </button>
 
           <button
+            id="app-settings-btn"
             onClick={() => {
               setIsSettingsOpen(true);
               if (window.innerWidth < 1024) setSidebarOpen(false);
@@ -861,6 +863,7 @@ export function GMDashboard() {
                   Save & Sync Now
                 </button>
                 <button
+                  id="settings-cancel-btn"
                   onClick={() => setIsSettingsOpen(false)}
                   className="flex-1 bg-[#e5e1d8] hover:bg-[#d4cfc1] text-[#2c2c26] py-3 rounded-xl font-bold font-sans uppercase tracking-widest text-xs transition-all"
                 >
