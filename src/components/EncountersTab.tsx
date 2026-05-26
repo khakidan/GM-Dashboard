@@ -5,6 +5,7 @@ import { Swords, MapPin, Skull, Trash2, Loader2, AlertCircle, Eye, ChevronDown }
 import { cn } from '../lib/utils';
 import { deleteEncounterFully } from '../services/dbOperations';
 import { motion, AnimatePresence } from 'motion/react';
+import { DebouncedInput } from './ui/DebouncedInput';
 
 interface EncounterCardProps {
   enc: Encounter;
@@ -401,29 +402,6 @@ export function EncountersTab({ onSelectEncounter, onSyncRequested }: { onSelect
         </div>
       )}
     </div>
-  );
-}
-
-function DebouncedInput({ value, onChange, onBlur, ...props }: any) {
-  const [localValue, setLocalValue] = useState(value);
-  
-  useEffect(() => {
-    setLocalValue(value);
-  }, [value]);
-
-  const commit = () => {
-    if (localValue !== value) onChange(localValue);
-    if (onBlur) onBlur();
-  };
-
-  return (
-    <input 
-      value={localValue} 
-      onChange={e => setLocalValue(e.target.value)} 
-      onBlur={commit} 
-      onKeyDown={(e) => e.key === 'Enter' && commit()} 
-      {...props} 
-    />
   );
 }
 

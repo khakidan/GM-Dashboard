@@ -8,6 +8,7 @@ import authRouter from './src/server/routes/auth';
 
 async function startServer() {
   const app = express();
+  app.set('trust proxy', 1);
   const PORT = 3000;
 
   app.use(morgan('dev'));

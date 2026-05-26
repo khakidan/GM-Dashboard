@@ -2,6 +2,7 @@
 
 import { useCallback, useSyncExternalStore } from 'react';
 import { AppState, Character, Encounter, CombatState, NPC, EncounterCombatant } from '../types';
+import { retryPersistedWrites } from '../services/writeQueue';
 
 const STORAGE_KEY = 'dnd-app-state';
 
@@ -72,6 +73,10 @@ export const _testHooks = {
 export function useAppState() {
   const state = useSyncExternalStore(
     (callback) => {
+      if (listeners.size === 0) {
+        // First subscriber! Retry any persisted writes from previous sessions
+        void retryPersistedWrites();
+      }
       listeners.add(callback);
       const handleStorage = (e: StorageEvent) => {
         if (e.key === STORAGE_KEY && e.newValue) {

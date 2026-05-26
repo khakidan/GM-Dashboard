@@ -1,6 +1,14 @@
 // src/services/__tests__/sheetsService.test.ts
 
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, afterAll } from 'vitest';
+import { toast } from 'sonner';
+import {
+  setSheetNotifier,
+  getSheetNotifier,
+  silentNotifier,
+  updateSheetData,
+  Notifier
+} from '../sheetsService';
 
 // ─── Inline token store ───────────────────────────────────────────────────────
 // We test the token management logic in isolation by inlining a stripped-down
@@ -246,5 +254,82 @@ describe('exponential backoff delay formula', () => {
     const d2 = calcDelay(2);
     expect(d1).toBe(d0 * 2);
     expect(d2).toBe(d0 * 4);
+  });
+});
+
+// ─── Notifier Pattern ─────────────────────────────────────────────────────────
+
+describe('Notifier Pattern', () => {
+  const customNotifier: Notifier = {
+    loading: vi.fn().mockReturnValue('toast-id'),
+    success: vi.fn(),
+    error: vi.fn(),
+    dismiss: vi.fn()
+  };
+
+  const originalNotifier = getSheetNotifier();
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    localStorage.clear();
+    setSheetNotifier(customNotifier);
+  });
+
+  afterAll(() => {
+    setSheetNotifier(originalNotifier);
+    vi.unstubAllGlobals();
+  });
+
+  it('setSheetNotifier replaces the active notifier', () => {
+    setSheetNotifier(silentNotifier);
+    expect(getSheetNotifier()).toBe(silentNotifier);
+  });
+
+  it('getSheetNotifier returns the currently active notifier', () => {
+    setSheetNotifier(customNotifier);
+    expect(getSheetNotifier()).toBe(customNotifier);
+  });
+
+  it('After setting silentNotifier, getSheetNotifier returns silentNotifier', () => {
+    setSheetNotifier(silentNotifier);
+    expect(getSheetNotifier()).toBe(silentNotifier);
+  });
+
+  it('After setting a custom notifier object, its loading method is called when a sheet write begins', async () => {
+    localStorage.setItem('GM_GOOGLE_ACCESS_TOKEN', 'fake-token');
+    localStorage.setItem('GM_DATA_SPREADSHEET_ID', 'test-id');
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({}), { status: 200 })));
+
+    await updateSheetData('A1', [[1]]);
+    expect(customNotifier.loading).toHaveBeenCalledWith('Updating sheet...');
+  });
+
+  it("The notifier's success method is called when the write succeeds", async () => {
+    localStorage.setItem('GM_GOOGLE_ACCESS_TOKEN', 'fake-token');
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({}), { status: 200 })));
+
+    await updateSheetData('A1', [[1]]);
+    expect(customNotifier.success).toHaveBeenCalledWith('Sheet updated successfully', { id: 'toast-id' });
+  });
+
+  it("The notifier's error method is called when the write fails with a non-UNAUTHENTICATED error", async () => {
+    localStorage.setItem('GM_GOOGLE_ACCESS_TOKEN', 'fake-token');
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('Bad Request', { status: 400 })));
+
+    await expect(updateSheetData('A1', [[1]])).rejects.toThrow();
+    expect(customNotifier.error).toHaveBeenCalledWith('Failed to update sheet', { id: 'toast-id' });
+  });
+
+  it("The notifier's dismiss method is called when the write fails with an UNAUTHENTICATED error", async () => {
+    localStorage.setItem('GM_GOOGLE_ACCESS_TOKEN', 'fake-token');
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ error: 'UNAUTHENTICATED' }), { status: 401 })));
+
+    await expect(updateSheetData('A1', [[1]])).rejects.toThrow('UNAUTHENTICATED');
+    expect(customNotifier.dismiss).toHaveBeenCalledWith('toast-id');
+  });
+
+  it('Resetting to the default sonner toast restores normal behaviour', () => {
+    setSheetNotifier(toast);
+    expect(getSheetNotifier()).toBe(toast);
   });
 });

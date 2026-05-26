@@ -1,14 +1,16 @@
 // src/services/dbOperations.ts
 
-import { getSpreadsheetId, fetchSheetData, updateSheetData, batchUpdateSpreadsheet, appendSheetData, fetchSpreadsheetMetadata } from './sheetsService';
+import { getSpreadsheetId, fetchSheetData, updateSheetData, batchUpdateSpreadsheet, appendSheetData, fetchSpreadsheetMetadata, SheetGrid, BatchRequest } from './sheetsService';
+import { queueWrite } from './writeQueue';
 import { Character, Encounter, NPC, EncounterCombatant } from '../types';
 
-export function castInt(val: any, fallback: number = 0): number {
-  const parsed = parseInt(val, 10);
+export function castInt(val: unknown, fallback: number = 0): number {
+  if (val === null || val === undefined) return fallback;
+  const parsed = parseInt(String(val), 10);
   return isNaN(parsed) ? fallback : parsed;
 }
 
-export function sanitizeString(val: any): string {
+export function sanitizeString(val: unknown): string {
   if (!val) return '';
   return String(val).trim();
 }
@@ -73,16 +75,16 @@ async function buildCascadeDeleteRequests(
   primaryId: string,
   ecColumnIndex: number,
   ids: Record<string, number>
-): Promise<any[] | null> {
+): Promise<BatchRequest[] | null> {
   const rowIdx = await findRowIndexById(primarySheet, primaryId);
   if (rowIdx === null) return null;
 
-  const requests: any[] = [
+  const requests: BatchRequest[] = [
     {
       deleteDimension: {
         range: {
           sheetId: ids[primarySheet],
-          dimension: 'ROWS',
+          dimension: 'ROWS' as const,
           startIndex: rowIdx,
           endIndex: rowIdx + 1,
         },
@@ -96,9 +98,9 @@ async function buildCascadeDeleteRequests(
   // Collect matching row indices in reverse order so deletions don't shift
   // the indices of rows we haven't deleted yet.
   const toDelete = ecRows
-    .map((row: any[], i: number) => ({ row, i }))
+    .map((row: unknown[], i: number) => ({ row, i }))
     .filter(
-      ({ row }: { row: any[] }) =>
+      ({ row }: { row: unknown[] }) =>
         row && String(row[ecColumnIndex]).trim() === String(primaryId).trim()
     )
     .map(({ i }: { i: number }) => i + 1)
@@ -109,7 +111,7 @@ async function buildCascadeDeleteRequests(
       deleteDimension: {
         range: {
           sheetId: ids['Encounter_Combatants'],
-          dimension: 'ROWS',
+          dimension: 'ROWS' as const,
           startIndex: idx,
           endIndex: idx + 1,
         },
@@ -186,8 +188,8 @@ export async function updateCharacterDB(
   ];
 
   const a1Row = charRowIdx + 1;
-  // ✅ updateSheetData is now a static import — no dynamic import needed
-  await updateSheetData(`Characters!A${a1Row}:L${a1Row}`, [rowData]);
+  // ✅ queueWrite replaces updateSheetData to prevent API quotas inside combat loops
+  queueWrite(`Characters!A${a1Row}:L${a1Row}`, [rowData]);
 }
 
 export async function addNpcDB(
@@ -226,8 +228,8 @@ export async function updateNpcDB(
   }
   const a1Row = rowIdx + 1;
   // NPCs sheet: Column E = TempHP, F = CurrentHP, G = Conditions
-  // ✅ updateSheetData is now a static import — no dynamic import needed
-  await updateSheetData(`NPCs!E${a1Row}:G${a1Row}`, [
+  // ✅ queueWrite replaces updateSheetData to prevent API quotas inside combat loops
+  queueWrite(`NPCs!E${a1Row}:G${a1Row}`, [
     [tempHp.toString(), currentHp.toString(), conditions],
   ]);
 }
@@ -334,7 +336,7 @@ export async function syncAndSanitizeDatabase() {
     'Encounter_Combatants',
   ];
 
-  const requests: any[] = [];
+  const requests: BatchRequest[] = [];
 
   for (const sheet of sheets) {
     if (!ids[sheet]) continue;
@@ -345,13 +347,13 @@ export async function syncAndSanitizeDatabase() {
     for (let i = data.values.length - 1; i >= 0; i--) {
       const row = data.values[i];
       const hasData =
-        row && row.some((cell: any) => cell && String(cell).trim() !== '');
+        row && row.some((cell: unknown) => cell && String(cell).trim() !== '');
       if (!hasData) {
         requests.push({
           deleteDimension: {
             range: {
               sheetId: ids[sheet],
-              dimension: 'ROWS',
+              dimension: 'ROWS' as const,
               startIndex: i + 1, // +1 to account for header row
               endIndex: i + 2,
             },

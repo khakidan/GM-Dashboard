@@ -5,6 +5,8 @@ import { Shield, Eye, Heart, Coffee, Loader2, X, AlertCircle, Users, ChevronDown
 import { cn } from '../lib/utils';
 import { addCharacterDB, updateCharacterDB, deleteCharacterFully } from '../services/dbOperations';
 import { motion, AnimatePresence } from 'motion/react';
+import { DebouncedInput } from './ui/DebouncedInput';
+import { DebouncedTextarea } from './ui/DebouncedTextarea';
 
 export function PartyTab() {
   const { state, updateState } = useAppState();
@@ -491,31 +493,3 @@ const CharacterCard: React.FC<CharacterCardProps> = ({
     </div>
   );
 };
-
-function DebouncedInput({ value, onChange, ...props }: any) {
-  const [localValue, setLocalValue] = useState(value);
-  
-  React.useEffect(() => {
-    setLocalValue(value);
-  }, [value]);
-
-  const commit = () => {
-    if (localValue !== value) onChange(localValue);
-  };
-
-  return <input value={localValue} onChange={e => setLocalValue(e.target.value)} onBlur={commit} onKeyDown={(e) => e.key === 'Enter' && commit()} {...props} />;
-}
-
-function DebouncedTextarea({ value, onChange, ...props }: any) {
-  const [localValue, setLocalValue] = useState(value);
-
-  React.useEffect(() => {
-    setLocalValue(value);
-  }, [value]);
-
-  const commit = () => {
-    if (localValue !== value) onChange(localValue);
-  };
-
-  return <textarea value={localValue} onChange={e => setLocalValue(e.target.value)} onBlur={commit} {...props} />;
-}

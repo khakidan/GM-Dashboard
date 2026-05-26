@@ -21,6 +21,14 @@ import {
 } from '../services/sheetsService';
 import { Character, Encounter, Combatant, NPC, EncounterCombatant } from '../types';
 import { Settings, X, Save } from 'lucide-react';
+import {
+  CharacterRowSchema,
+  NpcRowSchema,
+  EncounterRowSchema,
+  EncounterCombatantRowSchema,
+  StatusRowSchema,
+  DifficultyRowSchema,
+} from '../lib/sheetSchemas';
 
 type Tab = 'party' | 'encounters' | 'combat';
 
@@ -86,8 +94,13 @@ export function GMDashboard() {
       // 1. Fetch Statuses
       addLog('Step 2: Fetching status definitions...');
       const statusRes = await fetchSheetData('Status!A2:B');
-      const statuses = (statusRes.values || []).reduce((acc: any, row: any[]) => {
-        if (row[0]) acc[row[0].toString()] = row[1] || '';
+      const statuses = (statusRes.values || []).reduce((acc: any, row: any[], i: number) => {
+        const parsed = StatusRowSchema.safeParse(row);
+        if (!parsed.success) {
+          console.warn(`[GMDashboard] Validation failed for Status row ${i + 2}:`, parsed.error);
+          return acc;
+        }
+        acc[parsed.data[0]] = parsed.data[1];
         return acc;
       }, {});
       addLog(`Status types loaded: ${Object.keys(statuses).length}`);
@@ -95,8 +108,13 @@ export function GMDashboard() {
       // 2. Fetch Difficulties
       addLog('Step 3: Fetching difficulty levels...');
       const diffRes = await fetchSheetData('Difficulty_Level!A2:B');
-      const difficulties = (diffRes.values || []).reduce((acc: any, row: any[]) => {
-        if (row[0]) acc[row[0].toString()] = row[1] || '';
+      const difficulties = (diffRes.values || []).reduce((acc: any, row: any[], i: number) => {
+        const parsed = DifficultyRowSchema.safeParse(row);
+        if (!parsed.success) {
+          console.warn(`[GMDashboard] Validation failed for Difficulty_Level row ${i + 2}:`, parsed.error);
+          return acc;
+        }
+        acc[parsed.data[0]] = parsed.data[1];
         return acc;
       }, {});
       addLog(`Difficulty settings loaded: ${Object.keys(difficulties).length}`);
@@ -104,16 +122,16 @@ export function GMDashboard() {
       // 3. Fetch NPCs
       addLog('Step 4: Loading NPC library...');
       const npcRes = await fetchSheetData('NPCs!A2:H');
-      const parsedNPCs: NPC[] = (npcRes.values || []).filter((r: any[]) => r[0]).map((row: any[]) => ({
-        id: row[0]?.toString(),
-        name: row[1] || 'Unknown NPC',
-        ac: parseInt(row[2]) || 10,
-        maxHp: parseInt(row[3]) || 10,
-        tempHp: parseInt(row[4]) || 0,
-        currentHp: parseInt(row[5]) || 10,
-        conditions: row[6] || '',
-        notes: row[7] || '',
-      }));
+      const parsedNPCs: NPC[] = [];
+      (npcRes.values || []).forEach((row: any[], i: number) => {
+        const parsed = NpcRowSchema.safeParse(row);
+        if (!parsed.success) {
+          console.warn(`[GMDashboard] Validation failed for NPCs row ${i + 2}:`, parsed.error);
+          return;
+        }
+        const [id, name, ac, maxHp, tempHp, currentHp, conditions, notes] = parsed.data;
+        parsedNPCs.push({ id, name, ac, maxHp, tempHp, currentHp, conditions, notes });
+      });
       addLog(`NPC entries loaded: ${parsedNPCs.length}`);
 
       // 4. Fetch Characters
@@ -128,21 +146,25 @@ export function GMDashboard() {
       const encounterRows = encountersResponse.values || [];
       addLog(`Encounters found: ${encounterRows.length}`);
 
-      const parsedEncounters: Encounter[] = encounterRows
-        .filter((row: any[]) => row[0])
-        .map((row: any[], i: number) => {
-          const diffId = row[3]?.toString();
-          return {
-            id: row[0].toString(),
-            name: row[1] || 'Unknown Encounter',
-            location: row[2] || '',
-            difficultyId: parseInt(row[3]) || 1,
-            difficultyName: difficulties[diffId] || 'Unknown',
-            npcDefinitions: row[4] || '',
-            status: 'planned',
-            sheetRowIndex: i + 1,
-          };
+      const parsedEncounters: Encounter[] = [];
+      encounterRows.forEach((row: any[], i: number) => {
+        const parsed = EncounterRowSchema.safeParse(row);
+        if (!parsed.success) {
+          console.warn(`[GMDashboard] Validation failed for Encounters row ${i + 2}:`, parsed.error);
+          return;
+        }
+        const [id, name, location, difficultyId, npcDefinitions] = parsed.data;
+        parsedEncounters.push({
+          id,
+          name,
+          location,
+          difficultyId,
+          difficultyName: difficulties[difficultyId.toString()] || 'Unknown',
+          npcDefinitions,
+          status: 'planned',
+          sheetRowIndex: i + 1,
         });
+      });
 
       // 6. Fetch Encounter Combatants
       addLog('Step 7: Synching active combatants...');
@@ -150,45 +172,54 @@ export function GMDashboard() {
       try {
         const ecResponse = await fetchSheetData('Encounter_Combatants!A2:E');
         const ecRows = ecResponse.values || [];
-        parsedEncounterCombatants = ecRows
-          .filter((row: any[]) => row[0])
-          .map((row: any[], i: number) => ({
-            id: row[0]?.toString(),
-            encounterId: row[1]?.toString(),
-            playerId: row[2] ? row[2].toString() : null,
-            npcId: row[3] ? row[3].toString() : null,
-            quantity: parseInt(row[4]) || 1,
+        ecRows.forEach((row: any[], i: number) => {
+          const parsed = EncounterCombatantRowSchema.safeParse(row);
+          if (!parsed.success) {
+            console.warn(`[GMDashboard] Validation failed for Encounter_Combatants row ${i + 2}:`, parsed.error);
+            return;
+          }
+          const [id, encounterId, playerId, npcId, quantity] = parsed.data;
+          parsedEncounterCombatants.push({
+            id,
+            encounterId,
+            playerId,
+            npcId,
+            quantity,
             sheetRowIndex: i + 1,
-          }));
+          });
+        });
         addLog(`Combatant links loaded: ${parsedEncounterCombatants.length}`);
       } catch (err) {
         addLog('Relational combatant data skipped.');
       }
 
       updateState(prev => {
-        const parsedCharacters: Character[] = characterRows
-          .filter((row: any[]) => row[2])
-          .map((row: any[], i: number) => {
-            const charId = row[0]?.toString() || `pc-${i}`;
-            const statusId = parseInt(row[10]) || 1;
-            return {
-              id: charId,
-              playerName: row[1] || 'Unknown',
-              characterName: row[2] || 'Unnamed',
-              ac: parseInt(row[3]) || 10,
-              maxHp: parseInt(row[4]) || 10,
-              tempHp: parseInt(row[5]) || 0,
-              currentHp: parseInt(row[6]) || 10,
-              conditions: row[7] || '',
-              passivePerception: parseInt(row[8]) || 10,
-              level: parseInt(row[9]) || 1,
-              statusId: statusId,
-              statusName: statuses[statusId.toString()] || 'Unknown',
-              notes: row[11] || '',
-              isActive: statusId === 1,
-              sheetRowIndex: i + 2,
-            };
+        const parsedCharacters: Character[] = [];
+        characterRows.forEach((row: any[], i: number) => {
+          const parsed = CharacterRowSchema.safeParse(row);
+          if (!parsed.success) {
+            console.warn(`[GMDashboard] Validation failed for Characters row ${i + 2}:`, parsed.error);
+            return;
+          }
+          const [id, playerName, characterName, ac, maxHp, tempHp, currentHp, conditions, passivePerception, level, statusId, notes] = parsed.data;
+          parsedCharacters.push({
+            id,
+            playerName,
+            characterName,
+            ac,
+            maxHp,
+            tempHp,
+            currentHp,
+            conditions,
+            passivePerception,
+            level,
+            statusId,
+            statusName: statuses[statusId.toString()] || 'Unknown',
+            notes,
+            isActive: statusId === 1,
+            sheetRowIndex: i + 2,
           });
+        });
 
         return {
           ...prev,

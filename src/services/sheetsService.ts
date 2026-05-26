@@ -9,17 +9,66 @@ declare global {
 
 import { toast } from 'sonner';
 
+export type SheetValue = string | number | boolean | null;
+
+export type SheetRow = SheetValue[];
+
+export type SheetGrid = SheetRow[];
+
+export interface DeleteDimensionRequest {
+  deleteDimension: {
+    range: {
+      sheetId: number;
+      dimension: 'ROWS' | 'COLUMNS';
+      startIndex: number;
+      endIndex: number;
+    };
+  };
+}
+
+export interface AddSheetRequest {
+  addSheet: {
+    properties: { title: string };
+  };
+}
+
+export type BatchRequest = DeleteDimensionRequest | AddSheetRequest;
+
+export interface Notifier {
+  loading: (message: string) => string | number;
+  success: (message: string, options?: { id: string | number }) => void;
+  error:   (message: string, options?: { id: string | number }) => void;
+  dismiss: (id: string | number) => void;
+}
+
+export const silentNotifier: Notifier = {
+  loading: () => '',
+  success: () => {},
+  error:   () => {},
+  dismiss: () => {},
+};
+
+let activeNotifier: Notifier = toast;
+
+export function setSheetNotifier(notifier: Notifier): void {
+  activeNotifier = notifier;
+}
+
+export function getSheetNotifier(): Notifier {
+  return activeNotifier;
+}
+
 async function withSheetToast<T>(promise: Promise<T>): Promise<T> {
-  const tId = toast.loading('Updating sheet...');
+  const tId = activeNotifier.loading('Updating sheet...');
   try {
     const res = await promise;
-    toast.success('Sheet updated successfully', { id: tId });
+    activeNotifier.success('Sheet updated successfully', { id: tId });
     return res;
   } catch (err: any) {
     if (err?.message !== 'UNAUTHENTICATED') {
-      toast.error('Failed to update sheet', { id: tId });
+      activeNotifier.error('Failed to update sheet', { id: tId });
     } else {
-      toast.dismiss(tId);
+      activeNotifier.dismiss(tId);
     }
     throw err;
   }
@@ -428,11 +477,11 @@ export async function fetchSheetData(range: string) {
   return await response.json();
 }
 
-export function updateSheetData(range: string, values: any[][]) {
+export function updateSheetData(range: string, values: SheetGrid) {
   return withSheetToast(_updateSheetData(range, values));
 }
 
-async function _updateSheetData(range: string, values: any[][]) {
+async function _updateSheetData(range: string, values: SheetGrid) {
   const sid = getSpreadsheetId();
   const response = await googleFetch(
     `https://sheets.googleapis.com/v4/spreadsheets/${sid}/values/${range}?valueInputOption=USER_ENTERED`,
@@ -452,11 +501,11 @@ async function _updateSheetData(range: string, values: any[][]) {
   return await response.json();
 }
 
-export function appendSheetData(range: string, values: any[][]) {
+export function appendSheetData(range: string, values: SheetGrid) {
   return withSheetToast(_appendSheetData(range, values));
 }
 
-async function _appendSheetData(range: string, values: any[][]) {
+async function _appendSheetData(range: string, values: SheetGrid) {
   const sid = getSpreadsheetId();
   const response = await googleFetch(
     `https://sheets.googleapis.com/v4/spreadsheets/${sid}/values/${range}:append?valueInputOption=USER_ENTERED`,
@@ -477,12 +526,12 @@ async function _appendSheetData(range: string, values: any[][]) {
 }
 
 export async function deleteSheetRow(sheetId: number, rowIndex: number) {
-  const requests = [
+  const requests: BatchRequest[] = [
     {
       deleteDimension: {
         range: {
           sheetId: sheetId,
-          dimension: 'ROWS',
+          dimension: 'ROWS' as const,
           startIndex: rowIndex,
           endIndex: rowIndex + 1,
         },
@@ -505,11 +554,33 @@ export async function fetchSpreadsheetMetadata() {
   return await response.json();
 }
 
-export function batchUpdateSpreadsheet(requests: any[]) {
+export async function batchUpdateValues(
+  data: Array<{ range: string; values: SheetGrid }>
+): Promise<void> {
+  const sid = getSpreadsheetId();
+  const response = await googleFetch(
+    `https://sheets.googleapis.com/v4/spreadsheets/${sid}/values:batchUpdate`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ valueInputOption: 'USER_ENTERED', data }),
+    }
+  );
+
+  if (!response.ok) {
+    if (response.status === 401) throw new Error('UNAUTHENTICATED');
+    const errorText = await response.text();
+    throw new Error(`Failed to batch update values: ${errorText}`);
+  }
+
+  await response.json();
+}
+
+export function batchUpdateSpreadsheet(requests: BatchRequest[]) {
   return withSheetToast(_batchUpdateSpreadsheet(requests));
 }
 
-async function _batchUpdateSpreadsheet(requests: any[]) {
+async function _batchUpdateSpreadsheet(requests: BatchRequest[]) {
   const sid = getSpreadsheetId();
   const response = await googleFetch(
     `https://sheets.googleapis.com/v4/spreadsheets/${sid}:batchUpdate`,

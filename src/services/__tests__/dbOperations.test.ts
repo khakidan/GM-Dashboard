@@ -10,6 +10,7 @@ import {
   updateCharacterDB,
   deleteCharacterFully,
 } from '../dbOperations';
+import { SheetGrid, SheetRow } from '../sheetsService';
 
 vi.mock('../sheetsService', () => ({
   fetchSheetData: vi.fn(),
@@ -104,22 +105,22 @@ describe('getNextId logic', () => {
   });
 
   it('returns 1 for an empty sheet', async () => {
-    vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({ values: [] });
+    vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({ values: [] as SheetGrid });
     expect(await getNextId('Characters')).toBe(1);
   });
 
   it('returns max numeric ID + 1', async () => {
-    vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({ values: [['3'], ['7'], ['2']] });
+    vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({ values: [['3'], ['7'], ['2']] as SheetGrid });
     expect(await getNextId('Characters')).toBe(8);
   });
 
   it('strips non-digit prefixes — e.g. "pc-5" → 5', async () => {
-    vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({ values: [['pc-1'], ['pc-3'], ['pc-2']] });
+    vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({ values: [['pc-1'], ['pc-3'], ['pc-2']] as SheetGrid });
     expect(await getNextId('Characters')).toBe(4);
   });
 
   it('ignores rows where the ID column is empty or null', async () => {
-    vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({ values: [[''], [null], ['5']] });
+    vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({ values: [[''], [null], ['5']] as SheetGrid });
     expect(await getNextId('Characters')).toBe(6);
   });
 
@@ -138,7 +139,7 @@ describe('getNextId logic', () => {
       values: [
         ['irrelevant', 'also-irrelevant', '10'],
         ['irrelevant', 'also-irrelevant', '3'],
-      ],
+      ] as SheetGrid,
     });
     expect(await getNextId('Encounter_Combatants', 2)).toBe(11);
   });
@@ -158,7 +159,7 @@ describe('addCharacterDB logic', () => {
   });
 
   it('builds a 12-column row matching the Characters sheet schema and appends it', async () => {
-    vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({ values: [] }); // For getNextId
+    vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({ values: [] as SheetGrid }); // For getNextId
 
     const result = await addCharacterDB({
       playerName: ' Alice ',
@@ -192,7 +193,7 @@ describe('addCharacterDB logic', () => {
   });
 
   it('uses sensible defaults for missing fields', async () => {
-    vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({ values: [['pc-98']] }); // ID will be 99
+    vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({ values: [['pc-98']] as SheetGrid }); // ID will be 99
 
     await addCharacterDB({});
 
@@ -208,7 +209,7 @@ describe('addCharacterDB logic', () => {
   });
 
   it('trims whitespace from string fields', async () => {
-    vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({ values: [['pc-1']] }); // ID will be 2
+    vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({ values: [['pc-1']] as SheetGrid }); // ID will be 2
 
     await addCharacterDB({
       playerName: '  Bob  ',
@@ -244,12 +245,12 @@ describe('deleteCharacterFully', () => {
     // Mock the characters sheet to find the row
     vi.mocked(sheetsService.fetchSheetData).mockImplementation((range) => {
       if (range.startsWith('Characters')) {
-        return Promise.resolve({ values: [['pc-99']] });
+        return Promise.resolve({ values: [['pc-99']] as SheetGrid });
       }
       if (range.startsWith('Encounter_Combatants')) {
-        return Promise.resolve({ values: [['ec-1', 'enc-1', 'pc-99', '', 1], ['ec-2', 'enc-1', 'pc-2', '', 1]] });
+        return Promise.resolve({ values: [['ec-1', 'enc-1', 'pc-99', '', 1], ['ec-2', 'enc-1', 'pc-2', '', 1]] as SheetGrid });
       }
-      return Promise.resolve({ values: [] });
+      return Promise.resolve({ values: [] as SheetGrid });
     });
 
     await deleteCharacterFully('pc-99');
@@ -272,7 +273,7 @@ describe('deleteCharacterFully', () => {
     });
 
     vi.mocked(sheetsService.fetchSheetData).mockImplementation((range) => {
-       return Promise.resolve({ values: [['pc-1']] }); // Doesn't match 'pc-99'
+       return Promise.resolve({ values: [['pc-1']] as SheetGrid }); // Doesn't match 'pc-99'
     });
 
     await deleteCharacterFully('pc-99');

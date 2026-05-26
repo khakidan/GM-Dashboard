@@ -13,8 +13,6 @@ const authLimiter = rateLimit({
   message: 'Too many auth requests, please try again later.',
 });
 
-router.use(authLimiter);
-
 // GET /api/auth/config
 router.get('/config', (req, res) => {
   const clientId =
@@ -25,7 +23,7 @@ router.get('/config', (req, res) => {
 });
 
 // POST /api/auth/google-token
-router.post('/google-token', async (req, res) => {
+router.post('/google-token', authLimiter, async (req, res) => {
   try {
     const { code, redirect_uri, refresh_token } = req.body;
     const clientId =
