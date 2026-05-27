@@ -24,9 +24,9 @@ import { hasToken } from '../services/googleAuth';
 import { useGoogleAuth } from '../hooks/useGoogleAuth';
 import { useSheetSync } from '../hooks/useSheetSync';
 import { SyncingOverlay } from './SyncingOverlay';
-import { SettingsModal } from './SettingsModal';
+import { SettingsPage } from './SettingsPage';
 
-type Tab = 'party' | 'encounters' | 'npc-library' | 'combat';
+type Tab = 'party' | 'encounters' | 'npc-library' | 'combat' | 'settings';
 
 export function GMDashboard() {
   const { state } = useAppState();
@@ -43,8 +43,6 @@ export function GMDashboard() {
       return next;
     });
   };
-
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const {
     handleSyncWithSheets,
@@ -195,15 +193,17 @@ export function GMDashboard() {
           <button
             id="app-settings-btn"
             onClick={() => {
-              setIsSettingsOpen(true);
+              setActiveTab('settings');
               if (window.innerWidth < 1024) setSidebarOpen(false);
             }}
             className={cn(
-              'w-full text-left p-3 flex items-center transition-colors rounded-lg hover:bg-[#3f3f37]/50 opacity-70',
+              'w-full text-left p-3 flex items-center transition-colors rounded-lg',
+              activeTab === 'settings' ? 'bg-[#3f3f37] text-white' : 'hover:bg-[#3f3f37]/50 opacity-70',
               isSidebarOpen ? 'gap-3' : 'justify-center'
             )}
             title="App Settings"
           >
+            {activeTab === 'settings' && isSidebarOpen && <div className="w-2 h-2 rounded-full bg-[#c5b358] shrink-0"></div>}
             <Settings className="w-5 h-5 shrink-0" />
             {isSidebarOpen && <span className="font-bold font-sans line-clamp-1">Settings</span>}
           </button>
@@ -282,6 +282,15 @@ export function GMDashboard() {
               <PartyTab />
             ) : activeTab === 'npc-library' ? (
               <NpcLibraryTab />
+            ) : activeTab === 'settings' ? (
+              <SettingsPage
+                isGoogleConnected={isGoogleConnected}
+                handleSignIn={handleSignIn}
+                handleSignOut={handleSignOut}
+                setIsGoogleConnected={setIsGoogleConnected}
+                handleSyncWithSheets={handleSyncWithSheets}
+                addLog={addLog}
+              />
             ) : (
               <EncountersTab
                 onSelectEncounter={startEncounter}
@@ -307,18 +316,6 @@ export function GMDashboard() {
         handleSignIn={handleSignIn}
         setSyncError={setSyncError}
         setIsSyncing={setIsSyncing}
-        addLog={addLog}
-      />
-
-      {/* Settings Modal */}
-      <SettingsModal
-        isSettingsOpen={isSettingsOpen}
-        setIsSettingsOpen={setIsSettingsOpen}
-        isGoogleConnected={isGoogleConnected}
-        handleSignIn={handleSignIn}
-        handleSignOut={handleSignOut}
-        setIsGoogleConnected={setIsGoogleConnected}
-        handleSyncWithSheets={handleSyncWithSheets}
         addLog={addLog}
       />
     </div>

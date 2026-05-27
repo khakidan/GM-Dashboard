@@ -5,6 +5,23 @@ import { AuthRelay } from './components/AuthRelay';
 import { checkAndCaptureToken } from './services/googleAuth';
 import { useEffect, useState } from 'react';
 import { Toaster } from 'sonner';
+import { ThemeProvider, useTheme } from './context/ThemeContext';
+
+function AppContent() {
+  const { theme } = useTheme();
+
+  return (
+    <div id="root-theme-wrapper" data-theme={theme} className="w-full min-h-[100dvh] flex flex-col transition-colors duration-300">
+      <HashRouter>
+        <Routes>
+          <Route path="/" element={<GMDashboard />} />
+          <Route path="/player-view" element={<PlayerView />} />
+          <Route path="/auth-relay" element={<AuthRelay />} />
+        </Routes>
+      </HashRouter>
+    </div>
+  );
+}
 
 export default function App() {
   const [isCapturing, setIsCapturing] = useState(true);
@@ -26,16 +43,10 @@ export default function App() {
   }
 
   return (
-    <>
+    <ThemeProvider>
       <Toaster position="top-center" richColors />
-      <HashRouter>
-        <Routes>
-          <Route path="/" element={<GMDashboard />} />
-          <Route path="/player-view" element={<PlayerView />} />
-          <Route path="/auth-relay" element={<AuthRelay />} />
-        </Routes>
-      </HashRouter>
-    </>
+      <AppContent />
+    </ThemeProvider>
   );
 }
 

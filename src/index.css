@@ -1,7 +1,254 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap');
 @import "tailwindcss";
 
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Playfair Display", ui-serif, Georgia, serif;
+}
+
+/* ==========================================================================
+   THEME STYLING OVERRIDES
+   ========================================================================== */
+
+/* ----------------------------------
+   CLASSIC D&D ADVENTURE (Warm Tabletop Sepia)
+   ---------------------------------- */
+[data-theme='dnd'] {
+  background-color: #f7ebd3 !important;
+  color: #2b1810 !important;
+}
+
+[data-theme='dnd'] .bg-\[\#fdfaf5\] {
+  background-color: #f7ebd3 !important;
+}
+
+[data-theme='dnd'] .bg-white {
+  background-color: #faf3e3 !important;
+}
+
+[data-theme='dnd'] .bg-\[\#f5f5f0\] {
+  background-color: #eddcb9 !important;
+}
+
+[data-theme='dnd'] .bg-\[\#2c2c26\] {
+  background-color: #3e2723 !important; /* deep rich leather */
+}
+
+[data-theme='dnd'] .bg-\[\#3f3f37\] {
+  background-color: #4e342e !important;
+}
+
+[data-theme='dnd'] .bg-\[\#5a5a40\] {
+  background-color: #5d4037 !important;
+  color: #ffffff !important;
+}
+
+[data-theme='dnd'] .bg-\[\#c5b358\] {
+  background-color: #d4af37 !important; /* aged gold */
+  color: #2b1810 !important;
+}
+
+[data-theme='dnd'] .text-\[\#2c2c26\] {
+  color: #2b1810 !important;
+}
+
+[data-theme='dnd'] .text-\[\#5a5a40\] {
+  color: #5d4037 !important;
+}
+
+[data-theme='dnd'] .text-\[\#c5b358\] {
+  color: #d4af37 !important;
+}
+
+[data-theme='dnd'] .text-\[\#e5e1d8\] {
+  color: #ecdcb9 !important;
+}
+
+[data-theme='dnd'] .border-\[\#e5e1d8\] {
+  border-color: #8d6e63 !important;
+  border-width: 2px !important;
+}
+
+[data-theme='dnd'] .border-\[\#1a1a14\] {
+  border-color: #2b1810 !important;
+}
+
+[data-theme='dnd'] .border-\[\#c5b358\] {
+  border-color: #d4af37 !important;
+}
+
+/* Chiseled gold/metallic double borders */
+[data-theme='dnd'] .shadow-md,
+[data-theme='dnd'] .shadow-lg,
+[data-theme='dnd'] .shadow-xl,
+[data-theme='dnd'] .shadow-2xl {
+  box-shadow: 4px 4px 0px rgba(67, 40, 24, 0.4) !important;
+  border: 3px double #d4af37 !important;
+}
+
+[data-theme='dnd'] h1, 
+[data-theme='dnd'] h2, 
+[data-theme='dnd'] h3, 
+[data-theme='dnd'] .font-serif {
+  font-family: var(--font-serif), "Playfair Display", Georgia, serif !important;
+  letter-spacing: 0.05em !important;
+  text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.4) !important;
+  color: #3e2723 !important;
+}
+
+
+/* ----------------------------------
+   MINIMALIST SLEEK (Light Slate & Tech Blue/Indigo productivity-app style)
+   ---------------------------------- */
+[data-theme='sleek-modern'] {
+  background-color: #fafbfd !important; /* Premium clean paper-white/light-slate */
+  color: #0f172a !important; /* Rich deep corporate charcoal-slate text */
+}
+
+/* Background overrides */
+[data-theme='sleek-modern'] .bg-\[\#fdfaf5\] {
+  background-color: #fafbfd !important;
+}
+
+[data-theme='sleek-modern'] .bg-white {
+  background-color: #ffffff !important;
+}
+
+[data-theme='sleek-modern'] .bg-\[\#f5f5f0\] {
+  background-color: #f1f5f9 !important; /* Clean neutral slate-100 header shading */
+}
+
+[data-theme='sleek-modern'] .bg-\[\#fcfbf9\] {
+  background-color: #f0f7ff !important; /* Soft premium ice-blue highlight for current turn / active focus */
+}
+
+[data-theme='sleek-modern'] .bg-\[\#2c2c26\] {
+  background-color: #f8fafc !important; /* Elegant light-sidebar like Notion/Linear */
+  border-right: 1px solid #e2e8f0 !important;
+}
+
+[data-theme='sleek-modern'] .bg-\[\#3f3f37\] {
+  background-color: #f1f5f9 !important; /* Subtle slate-100 action fields/buttons */
+}
+
+[data-theme='sleek-modern'] .bg-\[\#5a5a40\] {
+  background-color: #2563eb !important; /* Premium high-end corporate blue buttons */
+  color: #ffffff !important;
+}
+
+[data-theme='sleek-modern'] .bg-\[\#c5b358\] {
+  background-color: #2563eb !important; /* Crisp blue active highlighted badges */
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.15) !important;
+}
+
+/* Content Text Overrides */
+[data-theme='sleek-modern'] .text-\[\#2c2c26\] {
+  color: #0d1117 !important;
+}
+
+[data-theme='sleek-modern'] .text-\[\#5a5a40\] {
+  color: #64748b !important; /* Tasteful, accessible slate-500 secondary placeholder details */
+}
+
+[data-theme='sleek-modern'] .text-\[\#c5b358\] {
+  color: #2563eb !important; /* Active indicator blue branding tints */
+}
+
+[data-theme='sleek-modern'] .text-\[\#e5e1d8\] {
+  color: #94a3b8 !important; /* slate-400 placeholder and structural names spacer */
+}
+
+/* Structural border overrides (Figma / Linear / Notion style hairline grey lines) */
+[data-theme='sleek-modern'] .border-\[\#e5e1d8\] {
+  border-color: #e2e8f0 !important;
+}
+
+[data-theme='sleek-modern'] .border-\[\#1a1a14\] {
+  border-color: #2563eb !important;
+}
+
+[data-theme='sleek-modern'] .border-\[\#c5b358\] {
+  border-color: #2563eb !important;
+}
+
+/* Table Row and Dividers Override (Ensuring player facing lists and logs look pristine) */
+[data-theme='sleek-modern'] .divide-\[\#f5f5f0\] > :not([hidden]) ~ :not([hidden]) {
+  border-color: #e2e8f0 !important;
+}
+[data-theme='sleek-modern'] .divide-\[\#e5e1d8\] > :not([hidden]) ~ :not([hidden]) {
+  border-color: #e2e8f0 !important;
+}
+[data-theme='sleek-modern'] td {
+  border-color: #f1f5f9 !important;
+}
+
+/* Curved modern Apple/Linear corner profiles */
+[data-theme='sleek-modern'] .rounded-xl {
+  border-radius: 8px !important;
+}
+[data-theme='sleek-modern'] .rounded-2xl {
+  border-radius: 12px !important;
+}
+[data-theme='sleek-modern'] .rounded-3xl {
+  border-radius: 16px !important;
+}
+
+/* Standard modern Sans-Serif clean typography */
+[data-theme='sleek-modern'] h1, 
+[data-theme='sleek-modern'] h2, 
+[data-theme='sleek-modern'] h3, 
+[data-theme='sleek-modern'] .font-serif {
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif !important;
+  font-weight: 600 !important;
+  font-style: normal !important;
+  letter-spacing: -0.02em !important;
+  text-transform: none !important;
+  color: #0f172a !important;
+  text-shadow: none !important;
+}
+
+/* Smooth micro-interactive buttons & hover enhancements (Notion / Slack lift style) */
+[data-theme='sleek-modern'] button,
+[data-theme='sleek-modern'] [role='button'] {
+  border-radius: 8px !important;
+  transition: all 0.15s ease !important;
+}
+
+[data-theme='sleek-modern'] button:hover,
+[data-theme='sleek-modern'] [role='button']:hover {
+  background-color: #1d4ed8 !important; /* High-quality hover depth blue */
+  color: #ffffff !important;
+  transform: translateY(-0.5px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12) !important;
+}
+
+/* Secondary ghost-style icon buttons should hover slate-100 instead of solid blue */
+[data-theme='sleek-modern'] button.text-stone-400:hover,
+[data-theme='sleek-modern'] button.opacity-70:hover,
+[data-theme='sleek-modern'] #sidebar-menu button:hover,
+[data-theme='sleek-modern'] #user-profile-btn:hover {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Keep current action tab in light-sidebar perfectly readable and highlighted */
+[data-theme='sleek-modern'] #sidebar-menu .bg-\[\#3f3f37\] {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+/* Sleek subtle drop-shadow filters on floating widgets */
+[data-theme='sleek-modern'] .shadow-sm {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+  border: 1px solid #e2e8f0 !important;
+}
+[data-theme='sleek-modern'] .shadow-md,
+[data-theme='sleek-modern'] .shadow-lg,
+[data-theme='sleek-modern'] .shadow-xl,
+[data-theme='sleek-modern'] .shadow-2xl {
+  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.05), 0 2px 6px -1px rgba(0, 0, 0, 0.03) !important;
+  border: 1px solid #e2e8f0 !important;
 }
