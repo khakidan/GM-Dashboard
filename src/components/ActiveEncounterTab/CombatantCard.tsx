@@ -280,7 +280,7 @@ export function CombatantCard({
                     }
                   }}
                   className={cn(
-                    'w-12 h-8 bg-[#faf9f6]/50 border border-[#e5e1d8] rounded px-1 text-center outline-none focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] font-sans text-base font-bold disabled:opacity-50',
+                    'w-18 h-8 bg-[#faf9f6]/50 border border-[#e5e1d8] rounded px-1 text-center outline-none focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] font-sans text-base font-bold disabled:opacity-50',
                     isActive && 'bg-white border-[#c5b358]/50'
                   )}
                 />
@@ -289,7 +289,7 @@ export function CombatantCard({
                   value={selectedDamageType || ''}
                   onChange={e => setSelectedDamageType((e.target.value as DamageType) || null)}
                   disabled={isSyncing}
-                  className="w-24 h-8 bg-[#faf9f6] border border-[#e5e1d8] rounded px-1 text-xs font-bold text-[#5a5a40] outline-none cursor-pointer focus:border-[#c5b358] appearance-auto"
+                  className="w-28 h-8 bg-[#faf9f6] border border-[#e5e1d8] rounded px-1 text-xs font-bold text-[#5a5a40] outline-none cursor-pointer focus:border-[#c5b358] appearance-auto"
                 >
                   <option value="">Damage Type</option>
                   <option value="acid">acid</option>
@@ -337,7 +337,7 @@ export function CombatantCard({
                     }
                   }}
                   className={cn(
-                    'w-12 h-8 bg-[#faf9f6]/50 border border-[#e5e1d8] rounded px-1 text-center outline-none focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] font-sans text-base font-bold disabled:opacity-50',
+                    'w-18 h-8 bg-[#faf9f6]/50 border border-[#e5e1d8] rounded px-1 text-center outline-none focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] font-sans text-base font-bold disabled:opacity-50',
                     isActive && 'bg-white border-[#c5b358]/50'
                   )}
                 />

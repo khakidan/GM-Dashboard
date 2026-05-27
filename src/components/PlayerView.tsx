@@ -1,6 +1,6 @@
 import { useAppState } from '../hooks/useAppState';
 import { cn } from '../lib/utils';
-import { Skull, Heart, ShieldAlert, BadgeInfo, Swords } from 'lucide-react';
+import { Skull, Heart, ShieldAlert, Shield, Swords } from 'lucide-react';
 import { getHealthStatus } from '../lib/combatLogic';
 
 export function PlayerView() {
@@ -107,7 +107,7 @@ export function PlayerView() {
       
       <div className="w-full max-w-7xl mb-6 flex items-center justify-center">
         <div className="flex items-center gap-3 text-[#5a5a40] bg-white border border-[#e5e1d8] px-6 py-2 rounded-full shadow-sm">
-          <BadgeInfo className="w-5 h-5 opacity-70" />
+          <Shield className="w-5 h-5 opacity-70" />
           <span className="text-sm uppercase tracking-widest font-sans font-bold">Round {state.round}</span>
         </div>
       </div>
