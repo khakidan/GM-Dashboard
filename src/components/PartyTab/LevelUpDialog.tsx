@@ -236,6 +236,7 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
                   id="new-level-input"
                   type="number"
                   value={newLevel}
+                  onFocus={(e) => e.target.select()}
                   onChange={e => setNewLevel(Math.max(1, parseInt(e.target.value) || 0))}
                   className="w-full bg-[#faf9f6] border border-[#e5e1d8] rounded-xl px-3 py-2 text-sm outline-none focus:bg-white focus:border-[#c5b358]"
                 />
@@ -249,6 +250,7 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
                   id="new-ac-input"
                   type="number"
                   value={newAc}
+                  onFocus={(e) => e.target.select()}
                   onChange={e => setNewAc(Math.max(0, parseInt(e.target.value) || 0))}
                   className="w-full bg-[#faf9f6]/50 border border-[#e5e1d8] rounded-xl px-3 py-2 text-sm outline-none focus:bg-white focus:border-[#c5b358]"
                 />
@@ -264,6 +266,7 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
                   id="new-max-hp-input"
                   type="number"
                   value={newMaxHp}
+                  onFocus={(e) => e.target.select()}
                   onChange={e => setNewMaxHp(Math.max(1, parseInt(e.target.value) || 0))}
                   className="w-full bg-[#faf9f6] border border-[#e5e1d8] rounded-xl px-3 py-2 text-sm outline-none focus:bg-white focus:border-[#c5b358]"
                 />
@@ -307,6 +310,7 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
                   id="new-passive-perception"
                   type="number"
                   value={newPassivePerception}
+                  onFocus={(e) => e.target.select()}
                   onChange={e => setNewPassivePerception(Math.max(0, parseInt(e.target.value) || 0))}
                   className="w-full bg-[#faf9f6]/50 border border-[#e5e1d8] rounded-xl px-3 py-2 text-sm outline-none focus:bg-white focus:border-[#c5b358]"
                 />

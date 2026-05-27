@@ -447,7 +447,7 @@ export function GMDashboard() {
           {isSidebarOpen ? (
             <div className="w-full px-4">
               <h1 className="text-xl font-bold tracking-tight text-[#c5b358]">GAME MASTER</h1>
-              <div className="mt-0.5 text-[9px] uppercase tracking-widest opacity-50 font-sans">Campaign Hub</div>
+              <div className="mt-0.5 text-[11px] uppercase tracking-widest opacity-50 font-sans">Campaign Hub</div>
             </div>
           ) : (
             <button
@@ -479,23 +479,6 @@ export function GMDashboard() {
           </button>
 
           <button
-            onClick={() => {
-              setActiveTab('encounters');
-              if (window.innerWidth < 1024) setSidebarOpen(false);
-            }}
-            className={cn(
-              'w-full text-left p-3 flex items-center transition-colors rounded-lg',
-              activeTab === 'encounters' ? 'bg-[#3f3f37] text-white' : 'hover:bg-[#3f3f37]/50 opacity-70',
-              isSidebarOpen ? 'gap-3' : 'justify-center'
-            )}
-            title="Encounters"
-          >
-            {activeTab === 'encounters' && isSidebarOpen && <div className="w-2 h-2 rounded-full bg-[#c5b358] shrink-0"></div>}
-            <Map className="w-5 h-5 shrink-0" />
-            {isSidebarOpen && <span className="font-bold font-sans line-clamp-1">Encounters</span>}
-          </button>
-
-          <button
             id="nav-npc-library"
             onClick={() => {
               setActiveTab('npc-library');
@@ -511,6 +494,23 @@ export function GMDashboard() {
             {activeTab === 'npc-library' && isSidebarOpen && <div className="w-2 h-2 rounded-full bg-[#c5b358] shrink-0"></div>}
             <Skull className="w-5 h-5 shrink-0" />
             {isSidebarOpen && <span className="font-bold font-sans line-clamp-1">NPC Library</span>}
+          </button>
+
+          <button
+            onClick={() => {
+              setActiveTab('encounters');
+              if (window.innerWidth < 1024) setSidebarOpen(false);
+            }}
+            className={cn(
+              'w-full text-left p-3 flex items-center transition-colors rounded-lg',
+              activeTab === 'encounters' ? 'bg-[#3f3f37] text-white' : 'hover:bg-[#3f3f37]/50 opacity-70',
+              isSidebarOpen ? 'gap-3' : 'justify-center'
+            )}
+            title="Encounters"
+          >
+            {activeTab === 'encounters' && isSidebarOpen && <div className="w-2 h-2 rounded-full bg-[#c5b358] shrink-0"></div>}
+            <Map className="w-5 h-5 shrink-0" />
+            {isSidebarOpen && <span className="font-bold font-sans line-clamp-1">Encounters</span>}
           </button>
 
           <button
@@ -554,11 +554,11 @@ export function GMDashboard() {
           {isSidebarOpen ? (
             <div className="flex flex-col gap-3 p-3 bg-[#1a1a14] rounded-lg">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-[#5a5a40] flex items-center justify-center text-xs font-bold font-sans text-white shrink-0">G</div>
+                <div className="w-9 h-9 rounded-full bg-[#5a5a40] flex items-center justify-center text-sm font-bold font-sans text-white shrink-0">G</div>
                 <div className="overflow-hidden">
-                  <div className="text-sm font-bold font-sans truncate">Google Sheets</div>
+                  <div className="text-base font-bold font-sans truncate">Google Sheets</div>
                   <div className={cn(
-                    'text-[9px] uppercase tracking-widest font-bold truncate',
+                    'text-[10px] uppercase tracking-widest font-bold truncate',
                     lastSyncTime ? 'text-green-500' : 'text-yellow-500'
                   )}>
                     {lastSyncTime
@@ -571,12 +571,12 @@ export function GMDashboard() {
               <button
                 onClick={() => handleSyncWithSheets(true)}
                 disabled={isSyncing}
-                className="flex items-center justify-center gap-2 w-full bg-[#3f3f37] hover:bg-[#5a5a40] text-[#e5e1d8] rounded-md py-2 text-[10px] font-sans font-bold uppercase tracking-widest transition-colors disabled:opacity-50"
+                className="flex items-center justify-center gap-2 w-full bg-[#3f3f37] hover:bg-[#5a5a40] text-[#e5e1d8] rounded-md py-3 text-xs font-sans font-bold uppercase tracking-widest transition-colors disabled:opacity-50"
               >
-                <RefreshCw className={cn('w-3 h-3 shrink-0', isSyncing && 'animate-spin')} />
+                <RefreshCw className={cn('w-4 h-4 shrink-0', isSyncing && 'animate-spin')} />
                 {isSyncing ? 'Syncing...' : hasToken() ? 'Pull from Sheets' : 'Connect & Sync'}
               </button>
-              {syncError && <div className="text-[10px] text-red-400 font-sans mt-1 leading-tight">{syncError}</div>}
+              {syncError && <div className="text-xs text-red-400 font-sans mt-1 leading-tight">{syncError}</div>}
             </div>
           ) : (
             <div className="flex flex-col items-center gap-4 py-2">
@@ -642,7 +642,7 @@ export function GMDashboard() {
               </div>
             </div>
 
-            <div className="bg-[#2c2c26] rounded-xl p-4 font-mono text-[11px] text-[#e5e1d8]/80 h-48 overflow-y-auto flex flex-col gap-1 border border-black/20">
+            <div className="bg-[#2c2c26] rounded-xl p-5 font-mono text-xs text-[#e5e1d8]/80 h-56 overflow-y-auto flex flex-col gap-1.5 border border-black/20">
               {syncLogs.length === 0 && <span className="opacity-40 animate-pulse">Initializing connection...</span>}
               {syncLogs.map((log, i) => (
                 <div key={i} className="border-l-2 border-[#c5b358]/30 pl-2 leading-relaxed">
@@ -670,15 +670,15 @@ export function GMDashboard() {
                         addLog('Initiating Persistent Auth via Redirect...');
                         signInWithRedirect();
                       }}
-                      className="bg-[#c5b358] hover:bg-[#b09f4d] text-white px-4 py-3 rounded-xl font-bold font-sans uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 shadow-lg"
+                      className="bg-[#c5b358] hover:bg-[#b09f4d] text-white px-4 py-3 rounded-xl font-bold font-sans uppercase tracking-widest text-xs flex items-center justify-center gap-2 shadow-lg"
                     >
-                      <LogIn className="w-3.5 h-3.5" />
+                      <LogIn className="w-4 h-4" />
                       Reconnect with Google
                     </button>
 
                     <button
                       onClick={() => setIsSyncing(false)}
-                      className="text-white/40 hover:text-white/60 text-[9px] uppercase tracking-tighter font-bold py-2"
+                      className="text-white/40 hover:text-white/60 text-[10px] uppercase tracking-tighter font-bold py-2"
                     >
                       Dismiss and continue offline
                     </button>
@@ -688,12 +688,12 @@ export function GMDashboard() {
             </div>
 
             <div className="flex items-center justify-between">
-              <div className="text-[10px] uppercase tracking-widest text-[#5a5a40] font-bold opacity-60">
+              <div className="text-xs uppercase tracking-widest text-[#5a5a40] font-bold opacity-60">
                 {isGoogleConnected ? 'Connected to Google Account' : 'Accessing Google Services...'}
               </div>
               <button
                 onClick={() => setIsSyncing(false)}
-                className="text-[10px] uppercase tracking-widest text-red-500 font-bold hover:underline"
+                className="text-xs uppercase tracking-widest text-red-500 font-bold hover:underline"
               >
                 Cancel Sync
               </button>
@@ -728,7 +728,7 @@ export function GMDashboard() {
                 <div className="flex items-center justify-between gap-4">
                   <div>
                     <h3 className="text-xs font-bold uppercase tracking-widest text-[#2c2c26] mb-1">Google Connection</h3>
-                    <p className="text-[10px] text-[#5a5a40]">
+                    <p className="text-xs text-[#5a5a40]">
                       {isGoogleConnected
                         ? 'Currently connected to Google Services.'
                         : 'Sign in to sync your campaign data with Google Sheets.'}
@@ -747,12 +747,12 @@ export function GMDashboard() {
                               alert(`Failed to start login: ${err.message}`);
                             }
                           }}
-                          className="bg-[#c5b358] hover:bg-[#b09f4d] text-white px-6 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-widest shadow-md transition-all flex items-center justify-center gap-2"
+                          className="bg-[#c5b358] hover:bg-[#b09f4d] text-white px-6 py-3 rounded-full text-xs font-bold uppercase tracking-widest shadow-md transition-all flex items-center justify-center gap-2"
                         >
-                          <LogIn className="w-3.5 h-3.5" />
+                          <LogIn className="w-4 h-4" />
                           Sign In with Google
                         </button>
-                        <p className="text-[9px] text-[#5a5a40]/60 text-center px-4 leading-tight">
+                        <p className="text-[10px] text-[#5a5a40]/60 text-center px-4 leading-tight">
                           Authorization required for Sheets sync. Redirect flow is most reliable.
                         </p>
                       </div>
@@ -763,7 +763,7 @@ export function GMDashboard() {
                           setIsGoogleConnected(false);
                           addLog('Signed out of Google Account.');
                         }}
-                        className="bg-red-50 hover:bg-red-100 text-red-600 px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all"
+                        className="bg-red-50 hover:bg-red-100 text-red-600 px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all"
                       >
                         Sign Out
                       </button>
@@ -774,32 +774,32 @@ export function GMDashboard() {
                 {!isGoogleConnected && (
                   <div className="mt-4 pt-4 border-t border-[#e5e1d8]">
                     <div className="flex items-center justify-between mb-2">
-                      <p className="text-[9px] text-[#5a5a40] font-medium">Advanced Setup:</p>
+                      <p className="text-xs text-[#5a5a40] font-medium">Advanced Setup:</p>
                       <button
                         onClick={() => setShowAdvancedAuth(!showAdvancedAuth)}
-                        className="text-[9px] font-bold text-[#c5b358] hover:underline uppercase"
+                        className="text-xs font-bold text-[#c5b358] hover:underline uppercase"
                       >
                         {showAdvancedAuth ? 'Hide Manual' : 'Configure Manual Token'}
                       </button>
                     </div>
 
                     {showAdvancedAuth && (
-                      <div className="space-y-3 bg-white/30 p-3 rounded-xl border border-dashed border-[#c5b358]/50">
+                      <div className="space-y-3 bg-white/30 p-4 rounded-xl border border-dashed border-[#c5b358]/50">
                         <div className="space-y-1">
-                          <p className="text-[8px] text-[#5a5a40] uppercase font-bold opacity-70">Manual Configuration</p>
-                          <p className="text-[9px] text-[#5a5a40] leading-tight mb-2">
+                          <p className="text-[10px] text-[#5a5a40] uppercase font-bold opacity-70">Manual Configuration</p>
+                          <p className="text-xs text-[#5a5a40] leading-tight mb-2">
                             If the redirect flow fails, paste a refresh token below.
                           </p>
                         </div>
 
-                        <div className="space-y-1 pt-2">
+                        <div className="space-y-2 pt-2">
                           <div className="flex gap-2">
                             <input
                               type="password"
                               value={manualToken}
                               onChange={e => setManualTokenState(e.target.value)}
                               placeholder="paste_token_here..."
-                              className="flex-1 bg-white border border-[#e5e1d8] rounded px-2 py-1.5 text-xs font-mono"
+                              className="flex-1 bg-white border border-[#e5e1d8] rounded px-3 py-2 text-sm font-mono"
                             />
                             <button
                               onClick={() => {
@@ -815,7 +815,7 @@ export function GMDashboard() {
                                   }
                                 }
                               }}
-                              className="bg-[#c5b358] text-white px-3 py-1 rounded text-[10px] font-bold uppercase transition-all active:scale-95 shadow-sm"
+                              className="bg-[#c5b358] text-white px-4 py-2 rounded text-xs font-bold uppercase transition-all active:scale-95 shadow-sm"
                             >
                               Apply
                             </button>
@@ -862,7 +862,7 @@ export function GMDashboard() {
               )}
 
               <div>
-                <label className="block text-[10px] uppercase tracking-widest font-bold text-[#5a5a40] mb-2 px-1">
+                <label className="block text-xs uppercase tracking-widest font-bold text-[#5a5a40] mb-2 px-1">
                   Google Spreadsheet ID
                 </label>
                 <div className="relative group">
@@ -871,9 +871,9 @@ export function GMDashboard() {
                     value={tempSpreadsheetId}
                     onChange={e => setTempSpreadsheetId(e.target.value)}
                     placeholder="Enter Spreadsheet ID"
-                    className="w-full bg-[#f5f5f0] border-2 border-[#e5e1d8] rounded-xl px-4 py-3 font-sans text-sm outline-none focus:border-[#c5b358] transition-all"
+                    className="w-full bg-[#f5f5f0] border-2 border-[#e5e1d8] rounded-xl px-5 py-4 font-sans text-base outline-none focus:border-[#c5b358] transition-all"
                   />
-                  <div className="mt-2 text-[9px] text-[#5a5a40]/60 italic px-1">
+                  <div className="mt-2 text-xs text-[#5a5a40]/60 italic px-1">
                     This ID determines which Google Sheet the app syncs with.
                     Changes require a manual "Pull from Sheets" to take effect.
                   </div>

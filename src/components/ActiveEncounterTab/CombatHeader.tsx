@@ -1,25 +1,30 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Eye, RefreshCcw } from 'lucide-react';
+import { Eye, RefreshCcw, Zap } from 'lucide-react';
 import { Encounter } from '../../types';
+import { cn } from '../../lib/utils';
 
 interface CombatHeaderProps {
   encounter?: Encounter;
   round: number;
+  isMultiTargetMode: boolean;
   onOpenTools: () => void;
   onRollNpcInit: () => void;
   onResetCombat: () => void;
   onNextTurn: () => void;
+  onToggleMultiTargetMode: () => void;
   onBack: () => void;
 }
 
 export function CombatHeader({
   encounter,
   round,
+  isMultiTargetMode,
   onOpenTools,
   onRollNpcInit,
   onResetCombat,
   onNextTurn,
+  onToggleMultiTargetMode,
   onBack
 }: CombatHeaderProps) {
   return (
@@ -43,6 +48,19 @@ export function CombatHeader({
         </div>
 
         <div className="flex items-center gap-2 flex-wrap ml-auto">
+          <button
+            onClick={onToggleMultiTargetMode}
+            className={cn(
+              "flex items-center gap-2 px-4 py-1.5 text-xs font-sans font-bold uppercase rounded-full transition-all mr-2",
+              isMultiTargetMode 
+                ? "bg-amber-400 text-amber-950 border border-amber-500 shadow-sm" 
+                : "bg-white border border-[#e5e1d8] hover:bg-[#f5f5f0] text-[#5a5a40]"
+            )}
+          >
+            <Zap className={cn("w-3 h-3", isMultiTargetMode ? "fill-current" : "")} />
+            Multi-Target
+          </button>
+
           <button
             onClick={onOpenTools}
             className="flex items-center gap-2 px-3 py-1.5 text-xs font-sans font-bold uppercase bg-white border border-[#e5e1d8] hover:bg-[#f5f5f0] text-[#5a5a40] rounded-full transition-colors mr-2"

@@ -10,6 +10,7 @@ import { addNpcDB, addEncounterCombatantDB } from '../../services/dbOperations';
 import { CombatHeader } from './CombatHeader';
 import { CombatantCard } from './CombatantCard';
 import { CombatSidebar } from './CombatSidebar';
+import { MultiTargetActionBar } from './MultiTargetActionBar';
 import { useCombatSync } from './hooks/useCombatSync';
 import { useHealthChange } from './hooks/useHealthChange';
 
@@ -19,6 +20,10 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
 
   const [isToolsModalOpen, setIsToolsModalOpen] = useState(false);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+
+  // Multi-target Selection State
+  const [isMultiTargetMode, setIsMultiTargetMode] = useState(false);
+  const [selectedCombatantIds, setSelectedCombatantIds] = useState<Set<string>>(new Set());
 
   const {
     syncingIds,
@@ -41,6 +46,62 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
       else next.add(id);
       return next;
     });
+  };
+
+  const toggleMultiTargetMode = () => {
+    setIsMultiTargetMode(prev => {
+      if (prev) {
+        setSelectedCombatantIds(new Set());
+      }
+      return !prev;
+    });
+  };
+
+  const toggleCombatantSelection = (id: string) => {
+    setSelectedCombatantIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleApplyMultiDamage = (amount: number, type: any) => {
+    const selectedList = state.combatState.combatants.filter(c => selectedCombatantIds.has(c.id));
+    if (selectedList.length === 0) return;
+
+    selectedList.forEach(c => {
+      handleHealthChange(c.id, c, true, type, amount);
+    });
+
+    toast.success(`Damage applied to ${selectedList.length} targets`);
+  };
+
+  const handleApplyMultiHealing = (amount: number) => {
+    const selectedList = state.combatState.combatants.filter(c => selectedCombatantIds.has(c.id));
+    if (selectedList.length === 0) return;
+
+    selectedList.forEach(c => {
+      handleHealthChange(c.id, c, false, null, amount);
+    });
+
+    toast.success(`Healing applied to ${selectedList.length} targets`);
+  };
+
+  const handleApplyMultiCondition = (condition: string) => {
+    const selectedList = state.combatState.combatants.filter(c => selectedCombatantIds.has(c.id));
+    if (selectedList.length === 0) return;
+
+    selectedList.forEach(c => {
+      const currentConditions = c.conditions || '';
+      const list = currentConditions.split(',').map(s => s.trim()).filter(Boolean);
+      if (!list.includes(condition)) {
+        const next = [...list, condition].join(', ');
+        updateCombatant(c.id, { conditions: next });
+      }
+    });
+
+    toast.success(`${condition} applied to ${selectedList.length} targets`);
   };
 
   const handleAddPreset = async (type: 'pc' | 'npc', selectedPreset: string, presetQuantity: number) => {
@@ -333,10 +394,12 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
           <CombatHeader
             encounter={encounter}
             round={state.combatState.round}
+            isMultiTargetMode={isMultiTargetMode}
             onOpenTools={() => setIsToolsModalOpen(true)}
             onRollNpcInit={rollInitForNPCs}
             onResetCombat={resetCombat}
             onNextTurn={nextTurn}
+            onToggleMultiTargetMode={toggleMultiTargetMode}
             onBack={onBack}
           />
 
@@ -356,11 +419,14 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
                     isActive={c.id === state.combatState.activeTurnId}
                     isExpanded={expandedIds.has(c.id)}
                     isSyncing={syncingIds.has(c.id)}
+                    isSelectable={isMultiTargetMode}
+                    isSelected={selectedCombatantIds.has(c.id)}
                     healthInput={healthInputs[c.id] || ''}
                     currentRound={state.combatState.round}
                     onHealthInputChange={(val) => setHealthInputs(prev => ({ ...prev, [c.id]: val }))}
                     onHealthSubmit={(isDamage, damageType) => handleHealthChange(c.id, c, isDamage, damageType)}
                     onToggleExpand={() => toggleExpand(c.id)}
+                    onToggleSelect={toggleCombatantSelection}
                     onUpdateCombatant={(updates) => updateCombatant(c.id, updates)}
                     onRemoveCombatant={() => removeCombatant(c.id)}
                   />
@@ -370,6 +436,17 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
           </div>
         </div>
       </div>
+
+      <MultiTargetActionBar
+        selectedCount={selectedCombatantIds.size}
+        onApplyDamage={handleApplyMultiDamage}
+        onApplyHealing={handleApplyMultiHealing}
+        onApplyCondition={handleApplyMultiCondition}
+        onClearSelection={() => {
+          setSelectedCombatantIds(new Set());
+          setIsMultiTargetMode(false);
+        }}
+      />
 
       <CombatSidebar
         isOpen={isToolsModalOpen}

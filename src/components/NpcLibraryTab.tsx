@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNpcLibrary } from './NpcLibraryTab/hooks/useNpcLibrary';
-import { BookOpen, AlertCircle } from 'lucide-react';
+import { BookOpen, AlertCircle, Plus, Search, Filter, X, Shield } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { NewNpcDialog } from './NpcLibraryTab/NewNpcDialog';
+import { NpcCard } from './NpcLibraryTab/NpcCard';
 
 export function NpcLibraryTab() {
   const {
@@ -9,7 +11,47 @@ export function NpcLibraryTab() {
     syncingId,
     globalError,
     handleResetNpcHp,
+    handleAddNpc,
+    handleUpdateNpc,
+    handleDeleteNpc,
   } = useNpcLibrary();
+
+  const [isNewNpcDialogOpen, setIsNewNpcDialogOpen] = useState(false);
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+
+  // Search and Filter State
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterResistances, setFilterResistances] = useState('');
+  const [filterImmunities, setFilterImmunities] = useState('');
+  const [filterVulnerabilities, setFilterVulnerabilities] = useState('');
+
+  const toggleExpand = (id: string) => {
+    setExpandedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setFilterResistances('');
+    setFilterImmunities('');
+    setFilterVulnerabilities('');
+  };
+
+  const filteredNpcs = useMemo(() => {
+    return state.npcs.filter(npc => {
+      const matchesSearch = npc.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesRes = !filterResistances || npc.resistances?.toLowerCase().includes(filterResistances.toLowerCase());
+      const matchesImm = !filterImmunities || npc.immunities?.toLowerCase().includes(filterImmunities.toLowerCase());
+      const matchesVul = !filterVulnerabilities || npc.vulnerabilities?.toLowerCase().includes(filterVulnerabilities.toLowerCase());
+      return matchesSearch && matchesRes && matchesImm && matchesVul;
+    });
+  }, [state.npcs, searchQuery, filterResistances, filterImmunities, filterVulnerabilities]);
+
+  const hasActiveFilters = searchQuery || filterResistances || filterImmunities || filterVulnerabilities;
 
   return (
     <div className="space-y-6">
@@ -21,6 +63,13 @@ export function NpcLibraryTab() {
             Reference NPCs loaded from your campaign sheets. Directly inspect stats and health status.
           </p>
         </div>
+        <button
+          onClick={() => setIsNewNpcDialogOpen(true)}
+          className="flex items-center justify-center gap-2 bg-[#c5b358] hover:bg-[#b0a04f] text-[#2c2c26] px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#c5b358] shadow-sm active:scale-95"
+        >
+          <Plus className="w-4 h-4" />
+          Add New NPC
+        </button>
       </div>
 
       {globalError && (
@@ -30,66 +79,105 @@ export function NpcLibraryTab() {
         </div>
       )}
 
-      {/* NPC Section */}
-      <div id="npc-library-section" className="bg-white p-6 rounded-2xl border border-[#e5e1d8] shadow-sm space-y-4">
-        <div>
-          <h3 id="npc-library-title" className="text-lg font-bold text-[#2c2c26] font-serif flex items-center gap-2">
-            <BookOpen className="w-5 h-5 text-[#c5b358]" />
-            Library Content
-          </h3>
-          <p className="text-xs text-[#5a5a40] mt-0.5 font-sans">
-            Reset their HP back to maximum. Any modifications are queued to Google Sheets.
-          </p>
+      {/* Search and Filters */}
+      <div className="bg-white p-6 rounded-2xl border border-[#e5e1d8] shadow-sm space-y-4">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2 text-[#2c2c26]">
+            <Filter className="w-4 h-4 text-[#c5b358]" />
+            <h3 className="text-sm font-bold uppercase tracking-widest">Search & Filter</h3>
+          </div>
+          {hasActiveFilters && (
+            <button
+              onClick={clearFilters}
+              className="text-[10px] font-bold uppercase tracking-widest text-red-500 hover:text-red-600 transition-colors flex items-center gap-1"
+            >
+              <X className="w-3 h-3" />
+              Clear Filters
+            </button>
+          )}
         </div>
 
-        {state.npcs.length === 0 ? (
-          <div className="py-12 text-center text-[#5a5a40] italic flex flex-col items-center justify-center border border-dashed border-[#e5e1d8] rounded-xl bg-gray-50/50">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search by name..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="w-full bg-[#fdfaf5]/50 border border-[#e5e1d8] rounded-xl pl-10 pr-4 py-2.5 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all"
+            />
+          </div>
+          <div className="relative">
+            <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-400 opacity-50" />
+            <input
+              type="text"
+              placeholder="Resistance..."
+              value={filterResistances}
+              onChange={e => setFilterResistances(e.target.value)}
+              className="w-full bg-[#fdfaf5]/50 border border-[#e5e1d8] rounded-xl pl-10 pr-4 py-2.5 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all"
+            />
+          </div>
+          <div className="relative">
+            <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-green-400 opacity-50" />
+            <input
+              type="text"
+              placeholder="Immunity..."
+              value={filterImmunities}
+              onChange={e => setFilterImmunities(e.target.value)}
+              className="w-full bg-[#fdfaf5]/50 border border-[#e5e1d8] rounded-xl pl-10 pr-4 py-2.5 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all"
+            />
+          </div>
+          <div className="relative">
+            <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-red-400 opacity-50" />
+            <input
+              type="text"
+              placeholder="Vulnerability..."
+              value={filterVulnerabilities}
+              onChange={e => setFilterVulnerabilities(e.target.value)}
+              className="w-full bg-[#fdfaf5]/50 border border-[#e5e1d8] rounded-xl pl-10 pr-4 py-2.5 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* NPC List */}
+      <div className="space-y-4">
+        {filteredNpcs.length === 0 ? (
+          <div className="bg-white py-12 text-center text-[#5a5a40] italic flex flex-col items-center justify-center border border-dashed border-[#e5e1d8] rounded-2xl bg-gray-50/50">
             <BookOpen className="w-10 h-10 text-gray-300 mb-2" />
-            <span>No NPCs loaded in library. Ensure your sheet is connection-synced.</span>
+            {state.npcs.length === 0 ? (
+              <span>No NPCs loaded in library. Click "Add New NPC" to begin.</span>
+            ) : (
+              <span>No NPCs match your filters.</span>
+            )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {state.npcs.map(npc => {
-              const needsReset = npc.currentHp < npc.maxHp;
-              return (
-                <div 
-                  key={npc.id} 
-                  id={`npc-card-${npc.id}`}
-                  className={cn(
-                    "p-4 bg-white border rounded-xl flex items-center justify-between gap-4 transition-all hover:shadow-sm",
-                    syncingId === npc.id ? "border-[#c5b358]" : "border-[#e5e1d8]"
-                  )}
-                >
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-sm text-[#2c2c26] font-serif truncate">{npc.name}</span>
-                      <span className="text-[10px] text-[#5a5a40] font-bold whitespace-nowrap">(AC {npc.ac})</span>
-                    </div>
-                    <div className="text-[11px] text-[#5a5a40] mt-1 flex flex-wrap gap-x-3 gap-y-1">
-                      <span>HP: <strong className={npc.currentHp <= 0 ? "text-red-600" : "text-[#2c2c26]"}>{npc.currentHp}</strong>/{npc.maxHp}</span>
-                      {npc.conditions && (
-                        <span className="inline-block px-1.5 py-0.2 bg-red-50 text-red-700 border border-red-100 rounded text-[9px] font-bold">
-                          {npc.conditions}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  {needsReset && (
-                    <button
-                      id={`btn-reset-hp-${npc.id}`}
-                      onClick={() => handleResetNpcHp(npc.id, npc.maxHp)}
-                      disabled={syncingId === npc.id}
-                      className="px-3 py-1.5 bg-[#c5b358]/10 hover:bg-[#c5b358]/20 text-[#2c2c26] border border-[#c5b358]/25 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all whitespace-nowrap disabled:opacity-50"
-                    >
-                      Reset HP
-                    </button>
-                  )}
-                </div>
-              );
-            })}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {filteredNpcs.map(npc => (
+              <NpcCard
+                key={npc.id}
+                npc={npc}
+                isSyncing={syncingId === npc.id}
+                isExpanded={expandedIds.has(npc.id)}
+                onToggleExpand={() => toggleExpand(npc.id)}
+                onUpdate={(updates) => handleUpdateNpc(npc.id, updates)}
+                onDelete={() => handleDeleteNpc(npc.id)}
+                onResetHp={() => handleResetNpcHp(npc.id, npc.maxHp)}
+              />
+            ))}
           </div>
         )}
       </div>
+
+      <NewNpcDialog 
+        isOpen={isNewNpcDialogOpen}
+        onClose={() => setIsNewNpcDialogOpen(false)}
+        onConfirm={(data) => {
+          handleAddNpc(data);
+          setIsNewNpcDialogOpen(false);
+        }}
+      />
     </div>
   );
 }

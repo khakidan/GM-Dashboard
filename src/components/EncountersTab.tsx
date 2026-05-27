@@ -1,7 +1,9 @@
-import React from 'react';
-import { Swords, Loader2, AlertCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { Swords, Loader2, AlertCircle, Plus } from 'lucide-react';
 import { useEncounters } from './EncountersTab/hooks/useEncounters';
 import { EncounterCard } from './EncountersTab/EncounterCard';
+import { NewEncounterDialog } from './EncountersTab/NewEncounterDialog';
+import { DifficultyLevel } from '../types';
 
 export function EncountersTab({ 
   onSelectEncounter, 
@@ -15,11 +17,16 @@ export function EncountersTab({
     isAdding,
     isDeletingId,
     globalError,
-    expandedIds,
-    toggleExpand,
     handleCreateEncounter,
     handleDelete,
   } = useEncounters({ onSelectEncounter, onSyncRequested });
+
+  const [isNewDialogOpen, setIsNewDialogOpen] = useState(false);
+
+  const difficulties: DifficultyLevel[] = Object.entries(state.difficulties).map(([id, name]) => ({
+    id: parseInt(id),
+    name: name as string
+  }));
 
   return (
     <div className="space-y-6">
@@ -29,11 +36,12 @@ export function EncountersTab({
           <p className="text-sm text-[#5a5a40] mt-1 font-sans">Manage your campaign encounters. Tap to view details or trigger dynamic combat.</p>
         </div>
         <button 
-          onClick={handleCreateEncounter}
+          onClick={() => setIsNewDialogOpen(true)}
           disabled={isAdding}
-          className="w-full sm:w-auto bg-[#c5b358] hover:bg-[#b0a04f] focus:ring-2 focus:ring-offset-2 focus:ring-[#c5b358] text-[#2c2c26] px-6 py-2.5 rounded-full text-xs font-bold font-sans uppercase tracking-widest transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2 outline-none"
+          className="w-full sm:w-auto bg-[#c5b358] hover:bg-[#b0a04f] focus:ring-2 focus:ring-offset-2 focus:ring-[#c5b358] text-[#2c2c26] px-8 py-3 rounded-full text-sm font-bold font-sans uppercase tracking-widest transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-3 outline-none active:scale-95 disabled:opacity-50"
         >
-          {isAdding ? <><Loader2 className="w-4 h-4 animate-spin" /> Adding...</> : "+ New Encounter"}
+          {isAdding ? <Loader2 className="w-5 h-5 animate-spin" /> : <Plus className="w-4 h-4" />}
+          New Encounter
         </button>
       </div>
 
@@ -52,22 +60,20 @@ export function EncountersTab({
             Your encounter library is empty. Start by creating a new scenario for your players to overcome.
           </p>
           <button 
-            onClick={handleCreateEncounter}
+            onClick={() => setIsNewDialogOpen(true)}
             disabled={isAdding}
-            className="bg-[#c5b358] hover:bg-[#b0a04f] text-[#2c2c26] px-8 py-3 rounded-full text-xs font-bold uppercase tracking-widest transition-all shadow-md active:scale-95"
+            className="bg-[#c5b358] hover:bg-[#b0a04f] text-[#2c2c26] px-10 py-4 rounded-full text-sm font-bold uppercase tracking-widest transition-all shadow-md active:scale-95"
           >
             Create Your First Encounter
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-8">
+        <div className="grid grid-cols-1 gap-4">
           {state.encounters.map(enc => (
             <EncounterCard 
               key={enc.id} 
               enc={enc} 
               isDeleting={isDeletingId === enc.id}
-              isExpanded={expandedIds.has(enc.id)}
-              onToggleExpand={() => toggleExpand(enc.id)}
               onDelete={handleDelete} 
               onStart={(e) => onSelectEncounter(e.id)} 
               onSyncRequested={onSyncRequested} 
@@ -75,6 +81,16 @@ export function EncountersTab({
           ))}
         </div>
       )}
+
+      <NewEncounterDialog
+        isOpen={isNewDialogOpen}
+        onClose={() => setIsNewDialogOpen(false)}
+        onConfirm={(data) => {
+          handleCreateEncounter(data);
+          setIsNewDialogOpen(false);
+        }}
+        difficulties={difficulties}
+      />
     </div>
   );
 }

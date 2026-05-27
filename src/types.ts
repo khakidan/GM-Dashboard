@@ -92,6 +92,11 @@ export interface EncounterCombatant {
   conditionTimers?: string;
 }
 
+export interface DifficultyLevel {
+  id: number;
+  name: string;
+}
+
 export interface AppState {
   campaignName: string;
   characters: Character[];

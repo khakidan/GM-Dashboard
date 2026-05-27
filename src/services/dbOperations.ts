@@ -231,10 +231,52 @@ export async function addNpcDB(
     maxHp: npcHp,
     ac: npcAc,
     notes: npcNotes,
+    tempHp: 0,
+    currentHp: npcHp,
+    conditions: '',
     resistances,
     immunities,
     vulnerabilities,
   };
+}
+
+export async function updateNpcFullDB(npc: NPC) {
+  const rowIdx = await findRowIndexById('NPCs', npc.id);
+  if (rowIdx === null) {
+    throw new Error(`NPC ${npc.id} not found`);
+  }
+  const a1Row = rowIdx + 1;
+  const rowData = [
+    npc.id,
+    sanitizeString(npc.name),
+    castInt(npc.ac, 10),
+    castInt(npc.maxHp, 1),
+    castInt(npc.tempHp, 0),
+    castInt(npc.currentHp, 1),
+    sanitizeString(npc.conditions),
+    sanitizeString(npc.notes),
+    sanitizeString(npc.resistances || ''),
+    sanitizeString(npc.immunities || ''),
+    sanitizeString(npc.vulnerabilities || ''),
+  ];
+
+  // Using queueWrite to be consistent with updateCharacterDB
+  queueWrite(`NPCs!A${a1Row}:K${a1Row}`, [rowData]);
+}
+
+export async function deleteNpcDB(npcId: string) {
+  const ids = await getSheetIds();
+  const rowIdx = await findRowIndexById('NPCs', npcId);
+  if (rowIdx === null) {
+    throw new Error(`NPC ${npcId} not found`);
+  }
+
+  // NPCs also appear in Encounter_Combatants. ID is column index 3 (NPC_ID)
+  // Encounter combatants: 0=ID, 1=Encounter_ID, 2=Player_ID, 3=NPC_ID
+  const requests = await buildCascadeDeleteRequests('NPCs', npcId, 3, ids);
+  if (requests && requests.length > 0) {
+    await batchUpdateSpreadsheet(requests);
+  }
 }
 
 export async function updateNpcDB(

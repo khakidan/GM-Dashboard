@@ -43,10 +43,10 @@ describe('NpcLibraryTab', () => {
     render(<NpcLibraryTab />);
 
     expect(screen.getByText(/No NPCs loaded in library/i)).toBeDefined();
-    expect(screen.getByText(/Library Content/i)).toBeDefined();
+    expect(screen.queryByText(/Library Content/i)).toBeNull();
   });
 
-  it('renders a list of NPCs from application state', () => {
+  it('renders a list of NPCs and supports searching', () => {
     const mockNpcs = [
       {
         id: 'npc_goblin',
@@ -57,6 +57,9 @@ describe('NpcLibraryTab', () => {
         currentHp: 15,
         conditions: '',
         notes: 'Small and stealthy.',
+        resistances: 'None',
+        immunities: 'None',
+        vulnerabilities: 'None',
       },
       {
         id: 'npc_orc',
@@ -64,9 +67,12 @@ describe('NpcLibraryTab', () => {
         ac: 13,
         maxHp: 30,
         tempHp: 0,
-        currentHp: 20, // Damaged, should display Reset HP button
+        currentHp: 20, 
         conditions: 'Poisoned',
         notes: 'Fierce battle hardened leader.',
+        resistances: 'Fire',
+        immunities: 'Cold',
+        vulnerabilities: 'Acid',
       },
     ];
 
@@ -88,24 +94,33 @@ describe('NpcLibraryTab', () => {
 
     render(<NpcLibraryTab />);
 
-    // Check goblin info
-    expect(screen.getByText('Goblin Scout')).toBeDefined();
-    expect(screen.getByText('(AC 12)')).toBeDefined();
+    // Check goblin info (Collapsed state)
+    expect(screen.getByDisplayValue('Goblin Scout')).toBeDefined();
+    expect(screen.getByText('12')).toBeDefined(); // AC
+    expect(screen.getByText('15/15')).toBeDefined(); // HP
 
     // Check Orc info
-    expect(screen.getByText('Orc Warrior')).toBeDefined();
-    expect(screen.getByText('(AC 13)')).toBeDefined();
-    expect(screen.getByText('Poisoned')).toBeDefined();
+    expect(screen.getByDisplayValue('Orc Warrior')).toBeDefined();
+    expect(screen.getByText('20/30')).toBeDefined(); // HP
 
-    // Check that damaged Orc has a visible Reset HP button
-    const orcCard = document.getElementById('npc-card-npc_orc');
-    expect(orcCard).toBeDefined();
-    const resetButton = orcCard?.querySelector('#btn-reset-hp-npc_orc');
-    expect(resetButton).toBeDefined();
+    // Test Search
+    const searchInput = screen.getByPlaceholderText(/Search by name.../i);
+    fireEvent.change(searchInput, { target: { value: 'Goblin' } });
+    
+    expect(screen.getByDisplayValue('Goblin Scout')).toBeDefined();
+    expect(screen.queryByDisplayValue('Orc Warrior')).toBeNull();
 
-    // The goblin shouldn't have a reset button since its current HP equals max HP
-    const goblinCard = document.getElementById('npc-card-npc_goblin');
-    const goblinResetBtn = goblinCard?.querySelector('#btn-reset-hp-npc_goblin');
-    expect(goblinResetBtn).toBeNull();
+    // Test Filter by Resistance
+    fireEvent.change(searchInput, { target: { value: '' } }); // Clear search
+    const resInput = screen.getByPlaceholderText(/Resistance.../i);
+    fireEvent.change(resInput, { target: { value: 'Fire' } });
+    
+    expect(screen.queryByDisplayValue('Goblin Scout')).toBeNull();
+    expect(screen.getByDisplayValue('Orc Warrior')).toBeDefined();
+
+    // Clear filters
+    fireEvent.click(screen.getByText(/Clear Filters/i));
+    expect(screen.getByDisplayValue('Goblin Scout')).toBeDefined();
+    expect(screen.getByDisplayValue('Orc Warrior')).toBeDefined();
   });
 });

@@ -23,14 +23,14 @@ export function PlayerView() {
     <div className="bg-white border border-[#e5e1d8] rounded-2xl shadow-sm overflow-hidden h-fit">
       <table className="w-full text-left border-collapse">
         <thead>
-          <tr className="bg-[#f5f5f0] border-b border-[#e5e1d8] text-[#5a5a40] font-sans text-[10px] uppercase tracking-wider text-left">
-            <th className="p-3 font-bold w-12 text-center border-r border-[#e5e1d8]">Init</th>
-            <th className="p-3 font-bold">Combatant</th>
+          <tr className="bg-[#f5f5f0] border-b border-[#e5e1d8] text-[#5a5a40] font-sans text-xs uppercase tracking-widest text-left">
+            <th className="p-3 font-bold w-14 text-center border-r border-[#e5e1d8]">Init</th>
+            <th className="p-3 font-bold px-4">Combatant</th>
             <th className="p-3 font-bold text-center">Status</th>
-            <th className="p-3 font-bold w-20 text-center">HP</th>
+            <th className="p-3 font-bold w-24 text-center">HP</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-[#f5f5f0] font-sans text-sm">
+        <tbody className="divide-y divide-[#f5f5f0] font-sans text-base">
           {combatants.map((c) => {
             const isActive = c.id === state.activeTurnId;
             const health = getHealthStatus(c.currentHp, c.maxHp);
@@ -45,49 +45,49 @@ export function PlayerView() {
                   isDead && "opacity-60"
                 )}
               >
-                <td className="p-2 border-r border-[#f5f5f0]">
+                <td className="p-3 border-r border-[#f5f5f0]">
                   <div className={cn(
-                    "w-7 h-7 mx-auto rounded-full flex items-center justify-center font-bold text-xs border transition-all shadow-sm",
+                    "w-9 h-9 mx-auto rounded-full flex items-center justify-center font-bold text-base border transition-all shadow-sm",
                     isActive ? "bg-[#c5b358] border-transparent text-white scale-110" : "bg-white border-[#e5e1d8] text-[#5a5a40]"
                   )}>
                     {c.initiative}
                   </div>
                 </td>
-                <td className="p-3">
-                  <div className="flex items-center gap-2">
-                    {isActive && <div className="w-1.5 h-1.5 rounded-full bg-[#c5b358] shrink-0"></div>}
+                <td className="p-4 px-5">
+                  <div className="flex items-center gap-3">
+                    {isActive && <div className="w-2 h-2 rounded-full bg-[#c5b358] shrink-0"></div>}
                     <div className="min-w-0">
                       <div className={cn(
-                        "font-bold text-sm truncate transition-colors",
+                        "font-bold text-base md:text-lg truncate transition-colors",
                         isActive ? "text-[#c5b358]" : "text-[#2c2c26]",
                         isDead && "line-through text-[#5a5a40]"
                       )}>
                         {c.name.split(' ')[0]}
                       </div>
                       {c.conditions && (
-                          <div className="text-[9px] text-red-600 font-bold italic mt-0.5 truncate max-w-[120px]" title={c.conditions}>{c.conditions}</div>
+                          <div className="text-xs text-red-600 font-bold italic mt-1 truncate max-w-[150px]" title={c.conditions}>{c.conditions}</div>
                       )}
                     </div>
                   </div>
                 </td>
-                <td className="p-2 font-bold text-[9px] uppercase tracking-wider">
+                <td className="p-3 font-bold text-xs uppercase tracking-wider">
                   <div className="flex justify-center">
                     <div className={cn(
-                      "flex items-center gap-1 px-2 py-1 rounded-full bg-[#f5f5f0]",
+                      "flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#f5f5f0]",
                       health.color
                     )}>
-                      {isDead ? <Skull className="w-2.5 h-2.5" /> : (health.label === 'Healthy' ? <Heart className="w-2.5 h-2.5" /> : <ShieldAlert className="w-2.5 h-2.5" />)}
+                      {isDead ? <Skull className="w-3.5 h-3.5" /> : (health.label === 'Healthy' ? <Heart className="w-3.5 h-3.5" /> : <ShieldAlert className="w-3.5 h-3.5" />)}
                       <span className="hidden sm:inline">{health.label}</span>
                     </div>
                   </div>
                 </td>
-                <td className="p-2 text-center text-[11px]">
+                <td className="p-3 text-center text-sm md:text-base">
                   {c.type === 'pc' && !isDead ? (
                     <div className="font-sans font-bold text-[#2c2c26]">
                       {c.currentHp} <span className="text-[#5a5a40] opacity-70">/ {c.maxHp}</span>
                     </div>
                   ) : (
-                     <span className="text-[#5a5a40] opacity-50">-</span>
+                     <span className="text-[#5a5a40] opacity-50 font-bold">-</span>
                   )}
                 </td>
               </tr>

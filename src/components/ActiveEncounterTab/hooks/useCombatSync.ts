@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useAppState } from '../../../hooks/useAppState';
+import { useAppState, getSnapshot } from '../../../hooks/useAppState';
 import { updateSheetData } from '../../../services/sheetsService';
 import { updateCharacterDB, updateNpcDB, deleteEncounterCombatantDB, updateEncounterCombatantQuantityDB, updateInitiativeDB, updateConditionTimersDB } from '../../../services/dbOperations';
 import { Combatant } from '../../../types';
@@ -21,8 +21,9 @@ export function useCombatSync() {
   };
 
   const removeCombatant = async (id: string) => {
-    const combatant = state.combatState.combatants.find(c => c.id === id);
-    const previousState = state;
+    const latestSnapshot = getSnapshot();
+    const combatant = latestSnapshot.combatState.combatants.find(c => c.id === id);
+    const previousState = latestSnapshot;
 
     updateState(prev => ({
       ...prev,
@@ -63,9 +64,9 @@ export function useCombatSync() {
   };
 
   const updateCombatant = (id: string, updates: Partial<Combatant>) => {
-    const previousState = state;
+    const previousState = getSnapshot();
 
-    const currentCombatant = state.combatState.combatants.find(c => c.id === id);
+    const currentCombatant = previousState.combatState.combatants.find(c => c.id === id);
     if (!currentCombatant) return;
     const targetCombatant = { ...currentCombatant, ...updates };
 
@@ -128,7 +129,8 @@ export function useCombatSync() {
       }
 
       if (targetCombatant.type === 'pc' && targetCombatant.characterId) {
-        const char = state.characters.find(c => c.id === targetCombatant.characterId);
+        const latestSnapshot = getSnapshot();
+        const char = latestSnapshot.characters.find(c => c.id === targetCombatant.characterId);
         if (char) {
           await updateCharacterDB(
             {
@@ -140,7 +142,8 @@ export function useCombatSync() {
           );
         }
       } else if (targetCombatant.type === 'npc') {
-        const ec = state.encounterCombatants.find(
+        const latestSnapshot = getSnapshot();
+        const ec = latestSnapshot.encounterCombatants.find(
           e => e.id === targetCombatant.encounterCombatantId
         );
         if (ec && ec.npcId) {

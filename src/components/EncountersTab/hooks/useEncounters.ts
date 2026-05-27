@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAppState } from '../../../hooks/useAppState';
 import { Encounter } from '../../../types';
 import { deleteEncounterFully } from '../../../services/dbOperations';
+import { toast } from 'sonner';
 
 interface UseEncountersProps {
   onSelectEncounter: (id: string) => void;
@@ -13,18 +14,8 @@ export function useEncounters({ onSelectEncounter, onSyncRequested }: UseEncount
   const [isAdding, setIsAdding] = useState(false);
   const [isDeletingId, setIsDeletingId] = useState<string | null>(null);
   const [globalError, setGlobalError] = useState<string | null>(null);
-  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
-  const toggleExpand = (id: string) => {
-    setExpandedIds(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
-
-  const handleCreateEncounter = async () => {
+  const handleCreateEncounter = async (data: { name: string; location: string; difficultyId: number }) => {
     setIsAdding(true);
     setGlobalError(null);
     const previousState = state;
@@ -35,10 +26,10 @@ export function useEncounters({ onSelectEncounter, onSyncRequested }: UseEncount
 
     const optimisticEncounter: Encounter = {
       id: optimisticId,
-      name: `New Encounter ${optimisticId}`,
-      location: 'Unknown Location',
-      difficultyId: 2,
-      difficultyName: 'Medium',
+      name: data.name,
+      location: data.location || 'Unknown Location',
+      difficultyId: data.difficultyId,
+      difficultyName: state.difficulties[data.difficultyId] || 'Unknown',
       npcDefinitions: '',
       status: 'planned'
     };
@@ -50,13 +41,14 @@ export function useEncounters({ onSelectEncounter, onSyncRequested }: UseEncount
 
     try {
       const { addEncounterDB } = await import('../../../services/dbOperations');
-      const realEnc = await addEncounterDB(`New Encounter ${optimisticId}`, 'Unknown Location', 2, 0);
+      const realEnc = await addEncounterDB(data.name, data.location, data.difficultyId, 0);
 
       updateState(prev => ({
         ...prev,
-        encounters: prev.encounters.map(e => e.id === optimisticId ? { ...e, id: realEnc.id } : e)
+        encounters: prev.encounters.map(e => e.id === optimisticId ? { ...e, ...realEnc } : e)
       }));
       
+      toast.success(`${data.name} added to Encounters`);
       onSyncRequested().catch(console.error);
     } catch (err: unknown) {
       console.error("Failed to create encounter", err);
@@ -109,8 +101,6 @@ export function useEncounters({ onSelectEncounter, onSyncRequested }: UseEncount
     isAdding,
     isDeletingId,
     globalError,
-    expandedIds,
-    toggleExpand,
     handleCreateEncounter,
     handleDelete,
   };

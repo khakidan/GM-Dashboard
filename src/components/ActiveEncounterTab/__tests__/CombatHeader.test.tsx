@@ -10,10 +10,12 @@ describe('CombatHeader', () => {
   });
   const defaultProps = {
     round: 3,
+    isMultiTargetMode: false,
     onOpenTools: vi.fn(),
     onRollNpcInit: vi.fn(),
     onResetCombat: vi.fn(),
     onNextTurn: vi.fn(),
+    onToggleMultiTargetMode: vi.fn(),
     onBack: vi.fn(),
   };
 

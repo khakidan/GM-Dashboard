@@ -12,6 +12,8 @@ import {
   updateInitiativeDB,
   resetNpcHpDB,
   updateConditionTimersDB,
+  updateNpcFullDB,
+  deleteNpcDB,
 } from '../dbOperations';
 import { SheetGrid, SheetRow } from '../sheetsService';
 
@@ -428,5 +430,73 @@ describe('updateConditionTimersDB', () => {
       'Encounter Combatant ec-nonexistent not found'
     );
     expect(sheetsService.updateSheetData).not.toHaveBeenCalled();
+  });
+});
+
+describe('updateNpcFullDB', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('collects all NPC fields and calls queueWrite with the correct 11-column row', async () => {
+    vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({
+      values: [['101', 'Old Name', '10', '10', '0', '10', '', 'Notes']] as SheetGrid,
+    });
+
+    const npc = {
+      id: '101',
+      name: 'New Name',
+      ac: 15,
+      maxHp: 30,
+      tempHp: 5,
+      currentHp: 20,
+      conditions: 'Stunned',
+      notes: 'Updated notes',
+      resistances: 'Fire',
+      immunities: 'Poison',
+      vulnerabilities: 'Cold',
+    };
+
+    await updateNpcFullDB(npc);
+  });
+
+  it('throws error when NPC is not found', async () => {
+    vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({ values: [] as SheetGrid });
+    await expect(updateNpcFullDB({ id: '999' } as any)).rejects.toThrow('NPC 999 not found');
+  });
+});
+
+describe('deleteNpcDB', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('finds NPC row and associated combatants and calls batchUpdateSpreadsheet', async () => {
+    vi.mocked(sheetsService.fetchSpreadsheetMetadata).mockResolvedValue({
+      sheets: [
+        { properties: { title: 'NPCs', sheetId: 201 } },
+        { properties: { title: 'Encounter_Combatants', sheetId: 102 } }
+      ]
+    });
+
+    vi.mocked(sheetsService.fetchSheetData).mockImplementation((range) => {
+      if (range.startsWith('NPCs')) {
+        return Promise.resolve({ values: [['101']] as SheetGrid });
+      }
+      if (range.startsWith('Encounter_Combatants')) {
+        return Promise.resolve({ values: [['ec-1', 'enc-1', '', '101', 1]] as SheetGrid });
+      }
+      return Promise.resolve({ values: [] as SheetGrid });
+    });
+
+    await deleteNpcDB('101');
+    expect(sheetsService.batchUpdateSpreadsheet).toHaveBeenCalled();
+    const requests = vi.mocked(sheetsService.batchUpdateSpreadsheet).mock.calls[0][0];
+    expect(requests.length).toBe(2);
+  });
+
+  it('throws error when NPC ID is not found', async () => {
+    vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({ values: [] as SheetGrid });
+    await expect(deleteNpcDB('999')).rejects.toThrow('NPC 999 not found');
   });
 });

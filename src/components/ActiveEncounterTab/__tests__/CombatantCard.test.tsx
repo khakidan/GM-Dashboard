@@ -56,7 +56,7 @@ describe('CombatantCard', () => {
     const onToggleExpand = vi.fn();
     render(<CombatantCard {...defaultProps} onToggleExpand={onToggleExpand} />);
     const buttons = screen.getAllByRole('button');
-    // The Eye button is the third button (H is 0, D is 1, Eye is 2)
+    // The Eye button is the third button (HEAL is 0, DMG is 1, Eye is 2)
     fireEvent.click(buttons[2]);
     expect(onToggleExpand).toHaveBeenCalled();
   });
@@ -75,17 +75,17 @@ describe('CombatantCard', () => {
     expect(onRemoveCombatant).toHaveBeenCalledTimes(1);
   });
 
-  it('Clicking the H button calls onHealthChange with isDamage false', () => {
+  it('Clicking the HEAL button calls onHealthChange with isDamage false', () => {
     const onHealthSubmit = vi.fn();
     render(<CombatantCard {...defaultProps} onHealthSubmit={onHealthSubmit} />);
-    fireEvent.click(screen.getByRole('button', { name: 'H' }));
+    fireEvent.click(screen.getByRole('button', { name: /HEAL/i }));
     expect(onHealthSubmit).toHaveBeenCalledWith(false);
   });
 
-  it('Clicking the D button calls onHealthChange with isDamage true', () => {
+  it('Clicking the DMG button calls onHealthChange with isDamage true', () => {
     const onHealthSubmit = vi.fn();
     render(<CombatantCard {...defaultProps} onHealthSubmit={onHealthSubmit} />);
-    fireEvent.click(screen.getByRole('button', { name: 'D' }));
+    fireEvent.click(screen.getByRole('button', { name: /DMG/i }));
     expect(onHealthSubmit).toHaveBeenCalledWith(true);
   });
 

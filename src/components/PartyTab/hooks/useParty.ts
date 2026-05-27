@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useAppState } from '../../../hooks/useAppState';
+import { useAppState, getSnapshot } from '../../../hooks/useAppState';
 import { Character } from '../../../types';
 import { addCharacterDB, updateCharacterDB, deleteCharacterFully } from '../../../services/dbOperations';
 import { toast } from 'sonner';
@@ -15,8 +15,8 @@ export function useParty() {
 
   const handleLevelUpConfirm = async (updates: Partial<Character>) => {
     if (!levelUpCharacter) return;
-    const char = levelUpCharacter;
-    const previousState = state;
+    const previousState = getSnapshot();
+    const charId = levelUpCharacter.id;
 
     // 4. Close the dialog
     setLevelUpCharacter(null);
@@ -25,18 +25,25 @@ export function useParty() {
     updateState(prev => ({
       ...prev,
       characters: prev.characters.map(c => 
-        c.id === char.id ? { ...c, ...updates } : c
+        c.id === charId ? { ...c, ...updates } : c
       )
     }));
+
+    // Find the latest char info to ensure we have the right name for the toast
+    const char = getSnapshot().characters.find(c => c.id === charId) || levelUpCharacter;
 
     // 3. Show a sonner toast: "[CharacterName] is now level [N]!"
     const newLevel = updates.level !== undefined ? updates.level : (char.level + 1);
     toast.success(`${char.characterName} is now level ${newLevel}!`);
 
     // 2. Call updateCharacterDB with the changed fields
-    setSyncingId(char.id);
+    setSyncingId(charId);
     try {
-      await updateCharacterDB(updates, char);
+      // Re-fetch char to ensure it's not stale from the component scope
+      const latestChar = getSnapshot().characters.find(c => c.id === charId);
+      if (!latestChar) throw new Error("Character not found");
+      
+      await updateCharacterDB(updates, latestChar);
     } catch (err: unknown) {
       console.error("Failed to sync level-up update to sheets", err);
       // rollback
@@ -62,7 +69,7 @@ export function useParty() {
     });
   };
 
-  const handleAddPlayer = async () => {
+  const handleCreateCharacter = async (newCharData: Omit<Character, 'id' | 'sheetRowIndex'>) => {
     setIsAddingPlayer(true);
     setGlobalError(null);
     const previousState = state;
@@ -70,20 +77,8 @@ export function useParty() {
     // We create a temporary character strictly for optimistic UI
     const tempId = `pc-temp-${Date.now()}`;
     const newChar: Character = {
+      ...newCharData,
       id: tempId,
-      playerName: "New Player",
-      characterName: "New Character",
-      ac: 10,
-      maxHp: 10,
-      currentHp: 10,
-      tempHp: 0,
-      conditions: "",
-      passivePerception: 10,
-      level: 1,
-      statusId: 1,
-      statusName: 'Active',
-      notes: '',
-      isActive: true,
     };
 
     updateState(prev => ({
@@ -98,6 +93,7 @@ export function useParty() {
         ...prev,
         characters: prev.characters.map(c => c.id === tempId ? { ...savedChar } : c) as Character[]
       }));
+      toast.success(`${newCharData.characterName} added to the roster`);
     } catch (err: unknown) {
       console.warn(err);
       updateState(previousState);
@@ -119,7 +115,7 @@ export function useParty() {
     setIsResting(true);
     setGlobalError(null);
     
-    const previousState = state;
+    const previousState = getSnapshot();
     // 1. Update local state optimistically
     updateState(prev => ({
       ...prev,
@@ -130,7 +126,8 @@ export function useParty() {
 
     try {
       // It's best to rely on dbOperations update loop for safety
-      const activePCs = state.characters.filter(c => c.isActive);
+      // Use getSnapshot() to ensure we aren't using stale 'state' from the hook closure
+      const activePCs = getSnapshot().characters.filter(c => c.isActive);
       
       const updatePromises = activePCs.map(char => {
         return updateCharacterDB({ currentHp: char.maxHp, tempHp: 0 }, char);
@@ -184,7 +181,7 @@ export function useParty() {
   };
 
   const handleUpdate = async (id: string, updates: Partial<Character>) => {
-    const previousState = state;
+    const previousState = getSnapshot();
     // Deep validation on updates
     const sanitizedUpdates = { ...updates };
     if (typeof sanitizedUpdates.characterName === 'string') sanitizedUpdates.characterName = sanitizedUpdates.characterName.trim();
@@ -208,12 +205,13 @@ export function useParty() {
 
     // 2. Check if we need to sync to sheets (if we updated data that lives in the sheet)
     const isSheetData = Object.keys(sanitizedUpdates).some(k => 
-      ['playerName', 'characterName', 'ac', 'maxHp', 'tempHp', 'currentHp', 'conditions', 'passivePerception', 'level', 'statusId', 'notes'].includes(k)
+      ['playerName', 'characterName', 'ac', 'maxHp', 'tempHp', 'currentHp', 'conditions', 'passivePerception', 'level', 'statusId', 'notes', 'resistances', 'immunities', 'vulnerabilities'].includes(k)
     );
 
     if (!isSheetData) return;
 
-    const char = state.characters.find(c => c.id === id);
+    // Use getSnapshot() to get the absolute latest state before syncing
+    const char = getSnapshot().characters.find(c => c.id === id);
     if (!char) return;
     
     setSyncingId(id);
@@ -243,7 +241,7 @@ export function useParty() {
     globalError,
     expandedIds,
     toggleExpand,
-    handleAddPlayer,
+    handleCreateCharacter,
     handleLongRest,
     handleDeletePlayer,
     handleUpdate,

@@ -3,6 +3,7 @@ import { Coffee, Loader2, AlertCircle, Users } from 'lucide-react';
 import { useParty } from './PartyTab/hooks/useParty';
 import { CharacterCard } from './PartyTab/CharacterCard';
 import { LevelUpDialog } from './PartyTab/LevelUpDialog';
+import { NewPlayerDialog } from './PartyTab/NewPlayerDialog';
 import { cn } from '../lib/utils';
 
 export function PartyTab() {
@@ -14,7 +15,7 @@ export function PartyTab() {
     globalError,
     expandedIds,
     toggleExpand,
-    handleAddPlayer,
+    handleCreateCharacter,
     handleLongRest,
     handleDeletePlayer,
     handleUpdate,
@@ -22,6 +23,8 @@ export function PartyTab() {
     setLevelUpCharacter,
     handleLevelUpConfirm,
   } = useParty();
+
+  const [isNewPlayerDialogOpen, setIsNewPlayerDialogOpen] = React.useState(false);
 
   return (
     <div className="space-y-6">
@@ -40,7 +43,7 @@ export function PartyTab() {
             Long Rest
           </button>
           <button
-            onClick={handleAddPlayer}
+            onClick={() => setIsNewPlayerDialogOpen(true)}
             disabled={isAddingPlayer}
             className="flex-1 sm:flex-none items-center justify-center gap-2 bg-[#c5b358] hover:bg-[#b0a04f] focus:ring-2 focus:ring-offset-2 focus:ring-[#c5b358] outline-none text-[#2c2c26] px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all shadow-sm hover:shadow-md disabled:opacity-50 inline-flex"
           >
@@ -64,7 +67,7 @@ export function PartyTab() {
             Your party roster is empty. Add players to track their health, conditions, and active status during encounters.
           </p>
           <button
-            onClick={handleAddPlayer}
+            onClick={() => setIsNewPlayerDialogOpen(true)}
             disabled={isAddingPlayer}
             className="flex items-center justify-center gap-2 bg-[#c5b358] hover:bg-[#b0a04f] text-[#2c2c26] px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#c5b358] shadow-sm disabled:opacity-50"
           >
@@ -95,6 +98,14 @@ export function PartyTab() {
           onConfirm={handleLevelUpConfirm}
         />
       )}
+      <NewPlayerDialog
+        isOpen={isNewPlayerDialogOpen}
+        onClose={() => setIsNewPlayerDialogOpen(false)}
+        onConfirm={(data) => {
+          handleCreateCharacter(data);
+          setIsNewPlayerDialogOpen(false);
+        }}
+      />
     </div>
   );
 }

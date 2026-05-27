@@ -9,8 +9,6 @@ import { DebouncedInput } from '../ui/DebouncedInput';
 export interface EncounterCardProps {
   enc: Encounter;
   isDeleting: boolean;
-  isExpanded: boolean;
-  onToggleExpand: () => void;
   onDelete: (enc: Encounter) => void;
   onStart: (enc: Encounter) => void;
   onSyncRequested: () => Promise<void>;
@@ -19,8 +17,6 @@ export interface EncounterCardProps {
 export const EncounterCard: React.FC<EncounterCardProps> = ({ 
   enc, 
   isDeleting,
-  isExpanded,
-  onToggleExpand,
   onDelete, 
   onStart, 
   onSyncRequested 
@@ -38,21 +34,21 @@ export const EncounterCard: React.FC<EncounterCardProps> = ({
     setDifficultyId(enc.difficultyId);
   }, [enc]);
 
-  const handleUpdate = async () => {
+  const handleUpdate = async (newDifficultyId?: number) => {
     const trimmedName = name.trim();
     const trimmedLocation = location.trim();
+    const activeDifficultyId = newDifficultyId ?? difficultyId;
     
     // Validate empty required fields
-    if (!trimmedName || !trimmedLocation) {
+    if (!trimmedName) {
       setName(enc.name || '-');
-      setLocation(enc.location || '-');
       return;
     }
 
     if (
       trimmedName === enc.name && 
       trimmedLocation === enc.location && 
-      difficultyId === enc.difficultyId
+      activeDifficultyId === enc.difficultyId
     ) return;
     
     setIsUpdating(true);
@@ -63,14 +59,14 @@ export const EncounterCard: React.FC<EncounterCardProps> = ({
       ...prev,
       encounters: prev.encounters.map(e => 
         e.id === enc.id 
-          ? { ...e, name: trimmedName, location: trimmedLocation, difficultyId }
+          ? { ...e, name: trimmedName, location: trimmedLocation, difficultyId: activeDifficultyId }
           : e
       )
     }));
 
     try {
       const { updateEncounterDB } = await import('../../services/dbOperations');
-      await updateEncounterDB(enc.id, trimmedName, trimmedLocation, difficultyId);
+      await updateEncounterDB(enc.id, trimmedName, trimmedLocation, activeDifficultyId);
       onSyncRequested().catch(console.error);
     } catch (err: unknown) {
       console.error("Failed to update encounter", err);
@@ -98,157 +94,101 @@ export const EncounterCard: React.FC<EncounterCardProps> = ({
 
   return (
     <div className={cn(
-      "bg-white rounded-2xl border border-[#e5e1d8] overflow-hidden flex flex-col group transition-all hover:shadow-md",
-      isExpanded ? "border-[#c5b358]/40" : "hover:border-[#c5b358]/20",
+      "bg-white rounded-2xl border border-[#e5e1d8] overflow-hidden group transition-all hover:shadow-md",
       (isUpdating || isDeleting) && "opacity-75 pointer-events-none"
     )}>
-      {/* Header Area - Always Visible */}
-      <div className="p-4 flex items-center justify-between gap-3 px-6">
-        <div className="flex-1 min-w-0 flex items-center gap-3">
-          <div className="flex-1 min-w-0">
+      <div className="p-4 flex flex-col md:flex-row items-stretch md:items-center gap-4 px-6">
+        {/* Name Field */}
+        <div className="flex-[2] min-w-0">
+          <div className="text-[10px] uppercase text-[#5a5a40] font-bold tracking-widest mb-1 md:hidden">Encounter Name</div>
+          <DebouncedInput 
+            type="text"
+            value={name}
+            onChange={(v) => setName(v as string)}
+            onBlur={() => handleUpdate()}
+            disabled={isUpdating || isDeleting}
+            placeholder="Encounter Name"
+            className="text-base font-bold text-[#2c2c26] font-serif bg-transparent border-none focus:ring-0 w-full p-0 truncate disabled:opacity-50"
+          />
+        </div>
+
+        {/* Location Field */}
+        <div className="flex-1 min-w-0 border-t border-[#f5f5f0] pt-4 md:pt-0 md:border-t-0 md:border-l md:pl-4">
+          <div className="text-[10px] uppercase text-[#5a5a40] font-bold tracking-widest mb-1 md:hidden">Location</div>
+          <div className="flex items-center gap-2">
+            <MapPin className="w-3.5 h-3.5 text-[#c5b358] shrink-0" />
             <DebouncedInput 
               type="text"
-              value={name}
-              onChange={(v) => setName(v as string)}
-              onBlur={handleUpdate}
+              value={location}
+              onChange={(v) => setLocation(v as string)}
+              onBlur={() => handleUpdate()}
               disabled={isUpdating || isDeleting}
-              placeholder="Encounter Name"
-              className="text-base font-bold text-[#2c2c26] font-serif bg-transparent border border-transparent rounded-lg hover:bg-[#fdfaf5] focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none w-full px-2 py-0.5 -ml-2 transition-all placeholder:text-gray-300 disabled:opacity-50"
+              placeholder="No Location"
+              className="text-xs text-[#5a5a40] font-bold uppercase tracking-widest bg-transparent border-none focus:ring-0 p-0 w-full truncate placeholder:text-gray-300 disabled:opacity-50"
             />
           </div>
-          
-          <div className="flex items-center gap-2 pr-2 border-r border-[#f5f5f0]">
-             {!isExpanded && (
-               <div className="hidden md:flex items-center gap-1.5 px-3 border-r border-[#f5f5f0] whitespace-nowrap">
-                 <MapPin className="w-3.5 h-3.5 text-[#c5b358] opacity-70" />
-                 <span className="text-[14px] font-bold text-[#5a5a40] opacity-60 uppercase tracking-widest truncate max-w-[200px]">{location}</span>
-               </div>
-             )}
-             <div className={cn(
-               "px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-widest border",
-               difficultyId === 4 ? "bg-purple-100 text-purple-700 border-purple-200" :
-               difficultyId === 3 ? "bg-red-100 text-red-700 border-red-200" :
-               difficultyId === 2 ? "bg-orange-100 text-orange-700 border-orange-200" :
-               "bg-green-100 text-green-700 border-green-200"
-             )}>
-               {state.difficulties[difficultyId]}
-             </div>
-             <div className="flex items-center gap-1 text-[10px] font-bold text-[#c5b358]">
-               <Skull className="w-3 h-3" />
-               {npcCount}
-             </div>
-          </div>
         </div>
 
-        <div className="flex items-center gap-1">
+        {/* Difficulty Select */}
+        <div className="w-full md:w-36 border-t border-[#f5f5f0] pt-4 md:pt-0 md:border-t-0 md:border-l md:pl-4">
+          <div className="text-[10px] uppercase text-[#5a5a40] font-bold tracking-widest mb-1 md:hidden">Difficulty</div>
+          <select 
+            value={difficultyId}
+            onChange={e => {
+              const val = parseInt(e.target.value);
+              setDifficultyId(val);
+              handleUpdate(val);
+            }}
+            disabled={isUpdating || isDeleting}
+            className={cn(
+              "w-full text-[10px] uppercase tracking-widest font-bold px-3 py-1.5 rounded-full border transition-all outline-none cursor-pointer appearance-none text-center",
+              difficultyId === 4 ? "bg-purple-50 text-purple-700 border-purple-200" :
+              difficultyId === 3 ? "bg-red-50 text-red-700 border-red-200" :
+              difficultyId === 2 ? "bg-orange-50 text-orange-700 border-orange-200" :
+              "bg-green-50 text-green-700 border-green-200"
+            )}
+          >
+            {Object.entries(state.difficulties).map(([id, nm]) => (
+              <option key={id} value={id}>{nm}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* NPC Count */}
+        <div className="flex items-center gap-2 border-t border-[#f5f5f0] pt-4 md:pt-0 md:border-t-0 md:border-l md:pl-4 px-2">
+          <div className="text-[10px] uppercase text-[#5a5a40] font-bold tracking-widest md:hidden">NPCs:</div>
+          <Skull className="w-4 h-4 text-[#c5b358]" />
+          <span className="text-sm font-bold text-[#2c2c26]">{npcCount}</span>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex items-center gap-2 border-t border-[#f5f5f0] pt-4 md:pt-0 md:border-t-0 md:border-l md:pl-4">
           <button 
             onClick={() => onStart(enc)}
-            className="p-1.5 text-[#c5b358] hover:bg-[#c5b358]/10 rounded-full transition-all"
-            title="View Encounter"
+            disabled={isDeleting || isUpdating}
+            className="flex-1 md:flex-none p-2.5 bg-[#c5b358]/10 hover:bg-[#c5b358]/20 text-[#c5b358] rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-30"
+            title="View / Run Encounter"
           >
-            <Swords className="w-4 h-4" />
+            <Swords className="w-5 h-5" />
+            <span className="md:hidden text-[10px] font-bold uppercase tracking-widest">Run</span>
           </button>
           <button 
-            onClick={onToggleExpand}
-            className="p-1.5 text-[#5a5a40] opacity-40 hover:opacity-100 hover:bg-[#f5f5f0] rounded-full transition-all"
+            onClick={() => onDelete(enc)}
+            disabled={isDeleting || isUpdating}
+            className="flex-1 md:flex-none p-2.5 bg-red-50 hover:bg-red-100 text-red-500 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-30"
+            title="Delete Encounter"
           >
-            <motion.div animate={{ rotate: isExpanded ? 180 : 0 }}>
-              <ChevronDown className="w-4 h-4" />
-            </motion.div>
+            {isDeleting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Trash2 className="w-5 h-5" />}
+            <span className="md:hidden text-[10px] font-bold uppercase tracking-widest">Delete</span>
           </button>
         </div>
-      </div>
 
-      {/* Expanded Content */}
-      <AnimatePresence>
-        {isExpanded && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden border-t border-[#f5f5f0]"
-          >
-            <div className="p-5 flex flex-col gap-4">
-              <div className="flex justify-between items-start gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="w-3 h-3 text-[#c5b358] shrink-0" />
-                    <DebouncedInput 
-                      type="text"
-                      value={location}
-                      onChange={(v) => setLocation(v as string)}
-                      onBlur={handleUpdate}
-                      disabled={isUpdating || isDeleting}
-                      placeholder="Location"
-                      className="text-xs text-[#5a5a40] opacity-80 uppercase tracking-wider font-bold bg-transparent border border-transparent rounded hover:bg-[#fdfaf5] focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none px-2 py-0.5 -ml-2 transition-all w-full placeholder:text-gray-300 disabled:opacity-50"
-                    />
-                  </div>
-                </div>
-                
-                <button 
-                  onClick={() => onDelete(enc)}
-                  disabled={isDeleting || isUpdating}
-                  className="flex items-center justify-center bg-transparent hover:bg-red-50 text-gray-400 hover:text-red-600 w-8 h-8 rounded-full border border-transparent hover:border-red-100 transition-all focus:outline-none focus:ring-2 focus:ring-red-200"
-                  title="Delete Encounter"
-                >
-                  {isDeleting ? <Loader2 className="w-4 h-4 animate-spin text-red-600" /> : <Trash2 className="w-4 h-4" />}
-                </button>
-              </div>
-
-              {errorStatus && (
-                <div className="bg-red-50 border border-red-100 text-red-700 text-[10px] p-2 rounded-lg flex items-center gap-2">
-                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                  <p className="font-bold uppercase tracking-tight">{errorStatus}</p>
-                </div>
-              )}
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-[#fdfaf5] border border-[#e5e1d8] rounded-xl p-3 flex flex-col items-center">
-                  <div className="text-[9px] font-bold uppercase tracking-widest text-[#5a5a40] mb-2">Difficulty</div>
-                  <div className="relative w-full">
-                    <select 
-                      value={difficultyId}
-                      onChange={e => setDifficultyId(parseInt(e.target.value))}
-                      onBlur={handleUpdate}
-                      disabled={isUpdating || isDeleting}
-                      className={cn(
-                        "w-full text-[9px] uppercase tracking-widest font-bold pl-2 pr-6 py-1.5 rounded-full border transition-colors outline-none cursor-pointer appearance-none focus:ring-2 focus:ring-offset-1 focus:ring-[#c5b358]",
-                        difficultyId === 4 ? "bg-purple-100 text-purple-700 border-purple-200 hover:bg-purple-200" :
-                        difficultyId === 3 ? "bg-red-100 text-red-700 border-red-200 hover:bg-red-200" :
-                        difficultyId === 2 ? "bg-orange-100 text-orange-700 border-orange-200 hover:bg-orange-200" :
-                        "bg-green-100 text-green-700 border-green-200 hover:bg-green-200"
-                      )}
-                    >
-                      {Object.entries(state.difficulties).map(([id, nm]) => (
-                        <option key={id} value={id}>{nm}</option>
-                      ))}
-                    </select>
-                    <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-[8px] font-bold opacity-60">▼</div>
-                  </div>
-                </div>
-                <div className="bg-[#fdfaf5] border border-[#e5e1d8] rounded-xl p-3 flex flex-col items-center justify-center">
-                  <div className="text-[9px] font-bold uppercase tracking-widest text-[#5a5a40] mb-1">NPCs</div>
-                  <div className="flex items-center gap-2 font-bold text-lg text-[#2c2c26]">
-                    <Skull className="w-4 h-4 text-[#c5b358]" />
-                    {npcCount}
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-2">
-                <button 
-                  onClick={() => onStart(enc)}
-                  disabled={isDeleting || isUpdating}
-                  className="w-full bg-[#c5b358] hover:bg-[#b0a04f] text-[#2c2c26] py-2.5 rounded-xl text-[10px] uppercase tracking-widest font-bold transition-all shadow-sm flex items-center justify-center gap-2"
-                >
-                  <Swords className="w-3.5 h-3.5" />
-                  View / Run Encounter
-                </button>
-              </div>
-            </div>
-          </motion.div>
+        {errorStatus && (
+          <div className="absolute top-0 right-0 p-1">
+            <AlertCircle className="w-4 h-4 text-red-500" title={errorStatus} />
+          </div>
         )}
-      </AnimatePresence>
+      </div>
     </div>
   );
-}
+};

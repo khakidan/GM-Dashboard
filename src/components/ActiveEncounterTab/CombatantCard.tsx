@@ -99,7 +99,7 @@ const InitiativeInput = ({
       onBlur={handleBlur}
       onKeyDown={handleKeyDown}
       disabled={disabled}
-      className="w-12 h-6 bg-[#faf9f6]/50 border border-[#e5e1d8] rounded text-center font-bold text-[#c5b358] outline-none text-[10px] focus:border-[#c5b358] focus:bg-white disabled:opacity-50"
+      className="w-14 h-8 bg-[#faf9f6]/50 border border-[#e5e1d8] rounded text-center font-bold text-[#c5b358] outline-none text-xs focus:border-[#c5b358] focus:bg-white disabled:opacity-50"
     />
   );
 };
@@ -110,11 +110,14 @@ export interface CombatantCardProps {
   isActive: boolean;
   isExpanded: boolean;
   isSyncing: boolean;
+  isSelectable?: boolean;
+  isSelected?: boolean;
   healthInput: string;
   currentRound: number;
   onHealthInputChange: (val: string) => void;
   onHealthSubmit: (isDamage: boolean, damageType?: DamageType | null) => void;
   onToggleExpand: () => void;
+  onToggleSelect?: (id: string) => void;
   onUpdateCombatant: (updates: Partial<Combatant>) => void;
   onRemoveCombatant: () => void | Promise<void>;
 }
@@ -124,11 +127,14 @@ export function CombatantCard({
   isActive,
   isExpanded,
   isSyncing,
+  isSelectable,
+  isSelected,
   healthInput,
   currentRound,
   onHealthInputChange,
   onHealthSubmit,
   onToggleExpand,
+  onToggleSelect,
   onUpdateCombatant,
   onRemoveCombatant
 }: CombatantCardProps) {
@@ -142,21 +148,42 @@ export function CombatantCard({
       animate={{ opacity: 1, y: 0 }}
       className={cn(
         'relative bg-white border-2 rounded-2xl transition-all h-fit',
-        isActive ? 'border-[#c5b358] shadow-md z-10' : 'border-[#e5e1d8] hover:border-[#c5b358]/40',
+        isSelected ? 'border-[#c5b358] shadow-[0_0_15px_rgba(197,179,88,0.2)]' : (isActive ? 'border-[#c5b358] shadow-md z-10' : 'border-[#e5e1d8] hover:border-[#c5b358]/40'),
         c.currentHp <= 0 ? 'opacity-60 grayscale-[0.5]' : ''
       )}
     >
-      {isActive && (
-        <div className="absolute -top-3 left-6 bg-[#c5b358] text-[#2c2c26] text-[7px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full shadow-sm z-20 flex items-center gap-1">
-          <Zap className="w-2 h-2 fill-current" /> Active
+      {isActive && !isSelectable && (
+        <div className="absolute -top-3 left-6 bg-[#c5b358] text-[#2c2c26] text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full shadow-sm z-20 flex items-center gap-1">
+          <Zap className="w-3 h-3 fill-current" /> Active
+        </div>
+      )}
+
+      {isSelectable && (
+        <div className="absolute top-3 left-3 z-30">
+          <input
+            type="checkbox"
+            checked={isSelected}
+            onChange={() => onToggleSelect?.(c.id)}
+            className="w-5 h-5 rounded border-[#c5b358] text-[#c5b358] focus:ring-[#c5b358] cursor-pointer"
+          />
         </div>
       )}
 
       {/* Widget Header */}
-      <div className="p-3 flex items-center justify-between gap-3">
-        <div className="flex-1 min-w-0 flex items-center gap-2">
-          <div className="flex flex-col items-center shrink-0">
-            <span className="text-[6px] font-bold uppercase text-[#5a5a40] opacity-60 leading-none mb-0.5">Init</span>
+      <div 
+        className={cn("p-4 flex items-center justify-between gap-3", isSelectable && "cursor-pointer")}
+        onClick={(e) => {
+          if (isSelectable) {
+            onToggleSelect?.(c.id);
+          }
+        }}
+      >
+        <div className={cn("flex-1 min-w-0 flex items-center gap-3", isSelectable && "pl-8")}>
+          <div 
+            className="flex flex-col items-center shrink-0"
+            onClick={e => e.stopPropagation()}
+          >
+            <span className="text-[9px] font-bold uppercase text-[#5a5a40] opacity-60 leading-none mb-1">Init</span>
             <InitiativeInput
               value={c.initiative}
               onSave={val => onUpdateCombatant({ initiative: val })}
@@ -164,20 +191,23 @@ export function CombatantCard({
             />
           </div>
           <div className="min-w-0 flex items-center gap-2">
-            <h3 className={cn('text-base font-bold font-serif truncate', c.type === 'npc' ? 'text-red-800' : 'text-[#2c2c26]')}>
+            <h3 className={cn('text-lg font-bold font-serif truncate', c.type === 'npc' ? 'text-red-800' : 'text-[#2c2c26]')}>
               {c.name}
             </h3>
-            <span className="text-[10px] font-bold text-[#b0a04f] whitespace-nowrap">(AC {c.ac})</span>
+            <span className="text-xs font-bold text-[#b0a04f] whitespace-nowrap">(AC {c.ac})</span>
             {c.conditions && c.conditions.split(',').filter(Boolean).length > 0 && (
               <div className="flex -space-x-1">
                 {c.conditions.split(',').map((cond, i) => (
-                  <div key={i} className="w-2 h-2 rounded-full bg-red-500 border border-white shadow-sm" title={cond.trim()} />
+                  <div key={i} className="w-2.5 h-2.5 rounded-full bg-red-500 border border-white shadow-sm" title={cond.trim()} />
                 ))}
               </div>
             )}
           </div>
 
-          <div className="flex items-center gap-2 border-l border-[#f5f5f0] pl-3">
+          <div 
+            className="flex items-center gap-3 border-l border-[#f5f5f0] pl-4"
+            onClick={e => e.stopPropagation()}
+          >
             <div className="flex flex-col items-center">
               <AnimatedHpDisplay
                 value={c.currentHp}
@@ -188,7 +218,7 @@ export function CombatantCard({
               />
             </div>
 
-            <div className="flex items-center gap-1.5 ml-2" id={`hp-controls-${c.id}`}>
+            <div className="flex items-center gap-2 ml-2" id={`hp-controls-${c.id}`}>
               <input
                 type="number"
                 value={healthInput}
@@ -207,7 +237,7 @@ export function CombatantCard({
                   }
                 }}
                 className={cn(
-                  'w-14 bg-[#faf9f6]/50 border border-[#e5e1d8] rounded px-1 py-1 text-center outline-none focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] font-sans text-xs font-bold disabled:opacity-50',
+                  'w-16 h-8 bg-[#faf9f6]/50 border border-[#e5e1d8] rounded px-2 py-1 text-center outline-none focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] font-sans text-sm font-bold disabled:opacity-50',
                   isActive && 'bg-white border-[#c5b358]/50'
                 )}
               />
@@ -217,9 +247,9 @@ export function CombatantCard({
                 value={selectedDamageType || ''}
                 onChange={e => setSelectedDamageType((e.target.value as DamageType) || null)}
                 disabled={isSyncing}
-                className="w-16 bg-[#faf9f6] border border-[#e5e1d8] rounded px-0.5 py-0.5 text-[8px] font-bold text-[#5a5a40] outline-none cursor-pointer focus:border-[#c5b358]"
+                className="w-28 h-8 bg-[#faf9f6] border border-[#e5e1d8] rounded px-2 py-1 text-xs font-bold text-[#5a5a40] outline-none cursor-pointer focus:border-[#c5b358] appearance-auto"
               >
-                <option value="">— type —</option>
+                <option value="">Damage Type</option>
                 <option value="acid">acid</option>
                 <option value="bludgeoning">bludgeoning</option>
                 <option value="bludgeoning (nonmagical)">bludgeoning (nonmagical)</option>
@@ -238,13 +268,14 @@ export function CombatantCard({
                 <option value="thunder">thunder</option>
               </select>
 
-              <div className="flex flex-col gap-0.5">
+              <div className="flex flex-col gap-1">
                 <button
                   onClick={() => onHealthSubmit(false)}
                   disabled={isSyncing}
-                  className="px-1.5 py-0.5 leading-none bg-green-50 text-green-700 hover:bg-green-100 border border-green-100 rounded-[4px] text-[7px] font-bold uppercase disabled:opacity-50"
+                  className="px-2 py-1 leading-none bg-green-50 text-green-700 hover:bg-green-100 border border-green-100 rounded-md text-[10px] font-bold uppercase disabled:opacity-50"
+                  title="Heal"
                 >
-                  H
+                  HEAL
                 </button>
                 <button
                   onClick={() => {
@@ -256,9 +287,10 @@ export function CombatantCard({
                     setSelectedDamageType(null);
                   }}
                   disabled={isSyncing}
-                  className="px-1.5 py-0.5 leading-none bg-red-50 text-red-700 hover:bg-red-100 border border-red-100 rounded-[4px] text-[7px] font-bold uppercase disabled:opacity-50"
+                  className="px-2 py-1 leading-none bg-red-50 text-red-700 hover:bg-red-100 border border-red-100 rounded-md text-[10px] font-bold uppercase disabled:opacity-50"
+                  title="Damage"
                 >
-                  D
+                  DMG
                 </button>
               </div>
             </div>
@@ -266,11 +298,14 @@ export function CombatantCard({
         </div>
 
         <button
-          onClick={onToggleExpand}
-          className="p-1.5 text-[#5a5a40] opacity-40 hover:opacity-100 hover:bg-[#f5f5f0] rounded transition-all shrink-0"
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleExpand();
+          }}
+          className="p-2 text-[#5a5a40] opacity-40 hover:opacity-100 hover:bg-[#f5f5f0] rounded transition-all shrink-0"
         >
           <motion.div animate={{ rotate: isExpanded ? 180 : 0 }}>
-            <Eye className="w-4 h-4" />
+            <Eye className="w-5 h-5" />
           </motion.div>
         </button>
       </div>
@@ -284,28 +319,28 @@ export function CombatantCard({
             exit={{ height: 0, opacity: 0 }}
             className="overflow-hidden"
           >
-            <div className="px-4 pb-4 pt-2 border-t border-[#f5f5f0] space-y-4">
+            <div className="px-6 pb-6 pt-2 border-t border-[#f5f5f0] space-y-5">
               {c.notes && (
-                <p className="text-[10px] text-[#5a5a40] opacity-60 italic">{c.notes}</p>
+                <p className="text-xs text-[#5a5a40] opacity-60 italic">{c.notes}</p>
               )}
 
               {((c.resistances && c.resistances.trim()) ||
                 (c.immunities && c.immunities.trim()) ||
                 (c.vulnerabilities && c.vulnerabilities.trim())) && (
-                <div id={`combatant-defenses-${c.id}`} className="text-[10px] space-y-1 bg-[#faf9f6] p-2 rounded-xl border border-[#e5e1d8]">
-                  <div className="flex justify-between items-center gap-1">
+                <div id={`combatant-defenses-${c.id}`} className="text-xs space-y-2 bg-[#faf9f6] p-4 rounded-xl border border-[#e5e1d8]">
+                  <div className="flex justify-between items-center gap-2">
                     <span className="font-bold text-[#5a5a40]">Resistances:</span>
                     <span className="font-medium text-amber-600 truncate max-w-[170px]" title={c.resistances}>
                       {c.resistances || '—'}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center gap-1">
+                  <div className="flex justify-between items-center gap-2">
                     <span className="font-bold text-[#5a5a40]">Immunities:</span>
                     <span className="font-medium text-red-600 truncate max-w-[170px]" title={c.immunities}>
                       {c.immunities || '—'}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center gap-1">
+                  <div className="flex justify-between items-center gap-2">
                     <span className="font-bold text-[#5a5a40]">Vulnerabilities:</span>
                     <span className="font-medium text-blue-600 truncate max-w-[170px]" title={c.vulnerabilities}>
                       {c.vulnerabilities || '—'}
@@ -314,40 +349,40 @@ export function CombatantCard({
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-2">
-                <div className="bg-[#faf9f6] p-2 rounded-xl border border-[#e5e1d8] text-center">
-                  <span className="text-[7px] font-bold uppercase tracking-tighter text-[#5a5a40] block mb-1">Temp HP</span>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-[#faf9f6] p-3 rounded-xl border border-[#e5e1d8] text-center">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-[#5a5a40] block mb-1">Temp HP</span>
                   <input
                     type="number"
                     value={c.tempHp || ''}
                     onChange={e => onUpdateCombatant({ tempHp: e.target.value ? parseInt(e.target.value) : 0 })}
                     placeholder="0"
                     disabled={isSyncing}
-                    className="w-full bg-transparent text-center font-bold text-blue-600 outline-none text-sm disabled:opacity-50"
+                    className="w-full bg-transparent text-center font-bold text-blue-600 outline-none text-base disabled:opacity-50"
                   />
                 </div>
-                <div className="bg-[#faf9f6] p-2 rounded-xl border border-[#e5e1d8] text-center">
-                  <span className="text-[7px] font-bold uppercase tracking-tighter text-[#5a5a40] block mb-1">Max HP</span>
-                  <span className="font-bold text-sm text-[#5a5a40]">{c.maxHp}</span>
+                <div className="bg-[#faf9f6] p-3 rounded-xl border border-[#e5e1d8] text-center">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-[#5a5a40] block mb-1">Max HP</span>
+                  <span className="font-bold text-base text-[#5a5a40]">{c.maxHp}</span>
                 </div>
               </div>
 
               <div>
-                <label className="block text-[8px] font-bold uppercase tracking-widest text-[#5a5a40] mb-1">Conditions</label>
+                <label className="block text-[10px] font-bold uppercase tracking-widest text-[#5a5a40] mb-2">Conditions</label>
                 <input
                   type="text"
                   value={c.conditions || ''}
                   onChange={e => onUpdateCombatant({ conditions: e.target.value })}
                   placeholder="e.g. Paralyzed"
                   disabled={isSyncing}
-                  className="w-full bg-[#faf9f6] border border-[#e5e1d8] rounded-xl px-2 py-1.5 text-xs italic outline-none focus:bg-white focus:border-[#c5b358] transition-all disabled:opacity-50"
+                  className="w-full bg-[#faf9f6] border border-[#e5e1d8] rounded-xl px-4 py-2 text-sm italic outline-none focus:bg-white focus:border-[#c5b358] transition-all disabled:opacity-50"
                 />
               </div>
 
               {/* Set Timer Section */}
-              <div className="space-y-2 mt-2">
-                <span className="block text-[8px] font-bold uppercase tracking-widest text-[#5a5a40]">Set Timer</span>
-                <div className="flex gap-1.5 items-center">
+              <div className="space-y-3 mt-4">
+                <span className="block text-[10px] font-bold uppercase tracking-widest text-[#5a5a40]">Set Timer</span>
+                <div className="flex gap-2 items-center">
                   <input
                     type="text"
                     placeholder="Condition name"
@@ -355,7 +390,7 @@ export function CombatantCard({
                     onChange={e => setTimerConditionName(e.target.value)}
                     disabled={isSyncing}
                     id={`timer-cond-name-${c.id}`}
-                    className="flex-1 bg-[#faf9f6] border border-[#e5e1d8] rounded-xl px-2.5 py-1 text-xs outline-none focus:bg-white focus:border-[#c5b358]"
+                    className="flex-1 bg-[#faf9f6] border border-[#e5e1d8] rounded-xl px-3 py-2 text-sm outline-none focus:bg-white focus:border-[#c5b358]"
                   />
                   <input
                     type="number"
@@ -364,7 +399,7 @@ export function CombatantCard({
                     onChange={e => setTimerRounds(e.target.value)}
                     disabled={isSyncing}
                     id={`timer-rounds-${c.id}`}
-                    className="w-16 bg-[#faf9f6]/50 border border-[#e5e1d8] rounded-xl px-2 py-1 text-center text-xs outline-none focus:bg-white focus:border-[#c5b358]"
+                    className="w-20 bg-[#faf9f6]/50 border border-[#e5e1d8] rounded-xl px-3 py-2 text-center text-sm outline-none focus:bg-white focus:border-[#c5b358]"
                   />
                   <button
                     onClick={() => {
@@ -395,7 +430,7 @@ export function CombatantCard({
                     }}
                     disabled={isSyncing || !timerConditionName.trim() || !timerRounds}
                     id={`add-timer-btn-${c.id}`}
-                    className="px-2.5 py-1 text-[8px] font-bold uppercase tracking-widest bg-[#c5b358] text-white hover:bg-[#b09e4b] rounded-full transition-all disabled:opacity-50"
+                    className="px-4 py-2 text-[10px] font-bold uppercase tracking-widest bg-[#c5b358] text-white hover:bg-[#b09e4b] rounded-full transition-all disabled:opacity-50"
                   >
                     + Add
                   </button>
@@ -403,11 +438,11 @@ export function CombatantCard({
 
                 {/* Display active condition timers as pill badges */}
                 {c.conditionTimers && Object.keys(c.conditionTimers).length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-1.5" id={`condition-timers-list-${c.id}`}>
+                  <div className="flex flex-wrap gap-2 mt-2" id={`condition-timers-list-${c.id}`}>
                     {Object.entries(c.conditionTimers).map(([condName, expiresAt]) => (
                       <span
                         key={condName}
-                        className="inline-flex items-center gap-1 bg-[#faf9f6]/80 border border-[#e5e1d8] hover:border-[#c5b358] text-[#5a5a40] text-[8px] font-bold px-2 py-0.5 rounded-full transition-colors"
+                        className="inline-flex items-center gap-2 bg-[#faf9f6]/80 border border-[#e5e1d8] hover:border-[#c5b358] text-[#5a5a40] text-[10px] font-bold px-3 py-1 rounded-full transition-colors"
                       >
                         <span>{condName} ends round {expiresAt}</span>
                         <button
@@ -418,7 +453,7 @@ export function CombatantCard({
                               conditionTimers: newTimers,
                             });
                           }}
-                          className="hover:text-red-600 transition-colors cursor-pointer text-[10px] leading-none ml-1"
+                          className="hover:text-red-600 transition-colors cursor-pointer text-xs leading-none ml-1 font-black"
                           title="Remove timer"
                         >
                           ×
@@ -429,13 +464,13 @@ export function CombatantCard({
                 )}
               </div>
 
-              <div className="flex justify-between items-center pt-2 border-t border-[#f5f5f0]">
-                <span className="text-[8px] text-[#5a5a40] opacity-40 font-mono">{c.id.split('-').pop()}</span>
+              <div className="flex justify-between items-center pt-4 border-t border-[#f5f5f0]">
+                <span className="text-[10px] text-[#5a5a40] opacity-40 font-mono tracking-tighter">{c.id.split('-').pop()}</span>
                 <button
                   onClick={onRemoveCombatant}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-[8px] font-bold uppercase tracking-widest text-red-600 hover:bg-red-50 rounded-full transition-all border border-transparent hover:border-red-100"
+                  className="flex items-center gap-2 px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-red-600 hover:bg-red-50 rounded-full transition-all border border-transparent hover:border-red-100"
                 >
-                  <Trash2 className="w-3 h-3" /> Remove
+                  <Trash2 className="w-4 h-4" /> Remove Combatant
                 </button>
               </div>
             </div>

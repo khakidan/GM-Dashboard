@@ -13,10 +13,11 @@ export function useHealthChange(
     id: string,
     c: Combatant,
     isDamage: boolean,
-    damageType?: DamageType | null
+    damageType?: DamageType | null,
+    amountOverride?: number
   ) => {
     if (syncingIds.has(id)) return;
-    const val = parseInt(healthInputs[id]);
+    const val = amountOverride !== undefined ? amountOverride : parseInt(healthInputs[id]);
     if (!isNaN(val)) {
       let finalDamageAmount = val;
       if (isDamage && damageType) {
