@@ -1,9 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import { useNpcLibrary } from './NpcLibraryTab/hooks/useNpcLibrary';
-import { BookOpen, AlertCircle, Plus, Search, Filter, X, Shield } from 'lucide-react';
+import { BookOpen, AlertCircle, Plus, Search, Filter, X, Shield, Activity } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { NewNpcDialog } from './NpcLibraryTab/NewNpcDialog';
 import { NpcCard } from './NpcLibraryTab/NpcCard';
+import { checkIrvMatch } from '../lib/combatLogic';
+import { DAMAGE_TYPE_OPTIONS, CONDITION_OPTIONS } from '../lib/irvOptions';
 
 export function NpcLibraryTab() {
   const {
@@ -24,6 +26,7 @@ export function NpcLibraryTab() {
   const [filterResistances, setFilterResistances] = useState('');
   const [filterImmunities, setFilterImmunities] = useState('');
   const [filterVulnerabilities, setFilterVulnerabilities] = useState('');
+  const [filterConditions, setFilterConditions] = useState('');
 
   const toggleExpand = (id: string) => {
     setExpandedIds(prev => {
@@ -39,19 +42,45 @@ export function NpcLibraryTab() {
     setFilterResistances('');
     setFilterImmunities('');
     setFilterVulnerabilities('');
+    setFilterConditions('');
   };
 
   const filteredNpcs = useMemo(() => {
     return state.npcs.filter(npc => {
-      const matchesSearch = npc.name.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesRes = !filterResistances || npc.resistances?.toLowerCase().includes(filterResistances.toLowerCase());
-      const matchesImm = !filterImmunities || npc.immunities?.toLowerCase().includes(filterImmunities.toLowerCase());
-      const matchesVul = !filterVulnerabilities || npc.vulnerabilities?.toLowerCase().includes(filterVulnerabilities.toLowerCase());
-      return matchesSearch && matchesRes && matchesImm && matchesVul;
+      const matchesSearch = !searchQuery || npc.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesRes = !filterResistances || checkIrvMatch(filterResistances, npc.resistances);
+      const matchesImm = !filterImmunities || checkIrvMatch(filterImmunities, npc.immunities);
+      const matchesVul = !filterVulnerabilities || checkIrvMatch(filterVulnerabilities, npc.vulnerabilities);
+      const matchesCond = !filterConditions || (npc.conditions?.toLowerCase() || '').includes(filterConditions.toLowerCase());
+      return matchesSearch && matchesRes && matchesImm && matchesVul && matchesCond;
     });
-  }, [state.npcs, searchQuery, filterResistances, filterImmunities, filterVulnerabilities]);
+  }, [state.npcs, searchQuery, filterResistances, filterImmunities, filterVulnerabilities, filterConditions]);
 
-  const hasActiveFilters = searchQuery || filterResistances || filterImmunities || filterVulnerabilities;
+  const hasActiveFilters = Boolean(
+    searchQuery || filterResistances || filterImmunities || filterVulnerabilities || filterConditions
+  );
+
+  const renderFilterSelect = (icon: React.ReactNode, placeholder: string, value: string, setter: (v: string) => void) => (
+    <div className="relative">
+      <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center pointer-events-none">
+        {icon}
+      </div>
+      <select
+        aria-label={placeholder}
+        value={value}
+        onChange={e => setter(e.target.value)}
+        className="w-full bg-[#fdfaf5]/50 border border-[#e5e1d8] rounded-xl pl-9 pr-3 py-2.5 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all appearance-auto cursor-pointer text-[#2c2c26]"
+      >
+        <option value="">{placeholder}: All</option>
+        <optgroup label="Damage Types">
+          {DAMAGE_TYPE_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+        </optgroup>
+        <optgroup label="Conditions">
+          {CONDITION_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+        </optgroup>
+      </select>
+    </div>
+  );
 
   return (
     <div className="space-y-6">
@@ -97,7 +126,7 @@ export function NpcLibraryTab() {
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
@@ -108,33 +137,17 @@ export function NpcLibraryTab() {
               className="w-full bg-[#fdfaf5]/50 border border-[#e5e1d8] rounded-xl pl-10 pr-4 py-2.5 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all"
             />
           </div>
+          {renderFilterSelect(<Shield className="w-4 h-4 text-blue-400 opacity-50" />, 'Resistance', filterResistances, setFilterResistances)}
+          {renderFilterSelect(<Shield className="w-4 h-4 text-green-400 opacity-50" />, 'Immunity', filterImmunities, setFilterImmunities)}
+          {renderFilterSelect(<Shield className="w-4 h-4 text-red-400 opacity-50" />, 'Vulnerability', filterVulnerabilities, setFilterVulnerabilities)}
+          
           <div className="relative">
-            <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-400 opacity-50" />
+            <Activity className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400 opacity-50" />
             <input
               type="text"
-              placeholder="Resistance..."
-              value={filterResistances}
-              onChange={e => setFilterResistances(e.target.value)}
-              className="w-full bg-[#fdfaf5]/50 border border-[#e5e1d8] rounded-xl pl-10 pr-4 py-2.5 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all"
-            />
-          </div>
-          <div className="relative">
-            <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-green-400 opacity-50" />
-            <input
-              type="text"
-              placeholder="Immunity..."
-              value={filterImmunities}
-              onChange={e => setFilterImmunities(e.target.value)}
-              className="w-full bg-[#fdfaf5]/50 border border-[#e5e1d8] rounded-xl pl-10 pr-4 py-2.5 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all"
-            />
-          </div>
-          <div className="relative">
-            <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-red-400 opacity-50" />
-            <input
-              type="text"
-              placeholder="Vulnerability..."
-              value={filterVulnerabilities}
-              onChange={e => setFilterVulnerabilities(e.target.value)}
+              placeholder="Conditions..."
+              value={filterConditions}
+              onChange={e => setFilterConditions(e.target.value)}
               className="w-full bg-[#fdfaf5]/50 border border-[#e5e1d8] rounded-xl pl-10 pr-4 py-2.5 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all"
             />
           </div>

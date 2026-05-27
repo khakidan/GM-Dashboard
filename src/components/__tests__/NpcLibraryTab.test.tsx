@@ -112,8 +112,8 @@ describe('NpcLibraryTab', () => {
 
     // Test Filter by Resistance
     fireEvent.change(searchInput, { target: { value: '' } }); // Clear search
-    const resInput = screen.getByPlaceholderText(/Resistance.../i);
-    fireEvent.change(resInput, { target: { value: 'Fire' } });
+    const resInput = screen.getByRole('combobox', { name: 'Resistance' });
+    fireEvent.change(resInput, { target: { value: 'fire' } });
     
     expect(screen.queryByDisplayValue('Goblin Scout')).toBeNull();
     expect(screen.getByDisplayValue('Orc Warrior')).toBeDefined();
