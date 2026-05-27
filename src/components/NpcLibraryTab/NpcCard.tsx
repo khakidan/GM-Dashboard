@@ -5,6 +5,7 @@ import { cn } from '../../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 import { DebouncedInput } from '../ui/DebouncedInput';
 import { DebouncedTextarea } from '../ui/DebouncedTextarea';
+import { IrvMultiSelect } from '../ui/IrvMultiSelect';
 
 export interface NpcCardProps {
   npc: NPC;
@@ -158,39 +159,24 @@ export const NpcCard: React.FC<NpcCardProps> = ({
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div>
-                    <div className="text-[10px] uppercase text-[#5a5a40] font-bold tracking-widest mb-1.5 px-1">Resists</div>
-                    <DebouncedInput
-                      type="text"
-                      value={npc.resistances || ''}
-                      onChange={(v) => onUpdate({ resistances: v as string })}
-                      placeholder="None"
-                      className="w-full text-xs text-[#2c2c26] bg-[#fdfaf5] p-3 rounded-lg border border-[#e5e1d8] focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all placeholder:text-[#cccbcb] disabled:opacity-50 font-sans"
-                      disabled={isSyncing}
-                    />
-                  </div>
-                  <div>
-                    <div className="text-[10px] uppercase text-[#5a5a40] font-bold tracking-widest mb-1.5 px-1">Immune</div>
-                    <DebouncedInput
-                      type="text"
-                      value={npc.immunities || ''}
-                      onChange={(v) => onUpdate({ immunities: v as string })}
-                      placeholder="None"
-                      className="w-full text-xs text-[#2c2c26] bg-[#fdfaf5] p-3 rounded-lg border border-[#e5e1d8] focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all placeholder:text-[#cccbcb] disabled:opacity-50 font-sans"
-                      disabled={isSyncing}
-                    />
-                  </div>
-                  <div>
-                    <div className="text-[10px] uppercase text-[#5a5a40] font-bold tracking-widest mb-1.5 px-1">Vuln</div>
-                    <DebouncedInput
-                      type="text"
-                      value={npc.vulnerabilities || ''}
-                      onChange={(v) => onUpdate({ vulnerabilities: v as string })}
-                      placeholder="None"
-                      className="w-full text-xs text-[#2c2c26] bg-[#fdfaf5] p-3 rounded-lg border border-[#e5e1d8] focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all placeholder:text-[#cccbcb] disabled:opacity-50 font-sans"
-                      disabled={isSyncing}
-                    />
-                  </div>
+                  <IrvMultiSelect
+                    label="Resists"
+                    value={npc.resistances || ''}
+                    onChange={(v) => onUpdate({ resistances: v })}
+                    placeholder="None"
+                  />
+                  <IrvMultiSelect
+                    label="Immune"
+                    value={npc.immunities || ''}
+                    onChange={(v) => onUpdate({ immunities: v })}
+                    placeholder="None"
+                  />
+                  <IrvMultiSelect
+                    label="Vuln"
+                    value={npc.vulnerabilities || ''}
+                    onChange={(v) => onUpdate({ vulnerabilities: v })}
+                    placeholder="None"
+                  />
                 </div>
 
                 <div>

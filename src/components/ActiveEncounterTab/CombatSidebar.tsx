@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Library, Plus } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { NPC as Npc, Character } from '../../types';
+import { IrvMultiSelect } from '../ui/IrvMultiSelect';
 
 interface CombatSidebarProps {
   isOpen: boolean;
@@ -138,8 +139,9 @@ export function CombatSidebar({
                 </div>
 
                 <div>
-                  <label className="block text-[9px] text-[#5a5a40] uppercase tracking-wider font-bold mb-1 ml-1">Select {presetType.toUpperCase()}</label>
+                  <label htmlFor="preset-select" className="block text-[9px] text-[#5a5a40] uppercase tracking-wider font-bold mb-1 ml-1">Select {presetType.toUpperCase()}</label>
                   <select
+                    id="preset-select"
                     value={selectedPreset}
                     onChange={e => setSelectedPreset(e.target.value)}
                     required
@@ -157,8 +159,9 @@ export function CombatSidebar({
 
                 {presetType === 'npc' && (
                   <div>
-                    <label className="block text-[9px] text-[#5a5a40] uppercase tracking-wider font-bold mb-1 ml-1">Quantity</label>
+                    <label htmlFor="preset-quantity" className="block text-[9px] text-[#5a5a40] uppercase tracking-wider font-bold mb-1 ml-1">Quantity</label>
                     <input
+                      id="preset-quantity"
                       type="number"
                       value={presetQuantity}
                       onChange={e => setPresetQuantity(parseInt(e.target.value) || 1)}
@@ -198,8 +201,9 @@ export function CombatSidebar({
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[9px] text-[#5a5a40] uppercase tracking-wider font-bold mb-1 ml-1">HP</label>
+                    <label htmlFor="npc-hp" className="block text-[9px] text-[#5a5a40] uppercase tracking-wider font-bold mb-1 ml-1">HP</label>
                     <input
+                      id="npc-hp"
                       type="number"
                       value={npcHp}
                       onChange={e => setNpcHp(e.target.value ? parseInt(e.target.value) : '')}
@@ -209,8 +213,9 @@ export function CombatSidebar({
                     />
                   </div>
                   <div>
-                    <label className="block text-[9px] text-[#5a5a40] uppercase tracking-wider font-bold mb-1 ml-1">AC</label>
+                    <label htmlFor="npc-ac" className="block text-[9px] text-[#5a5a40] uppercase tracking-wider font-bold mb-1 ml-1">AC</label>
                     <input
+                      id="npc-ac"
                       type="number"
                       value={npcAc}
                       onChange={e => setNpcAc(e.target.value ? parseInt(e.target.value) : '')}
@@ -229,36 +234,25 @@ export function CombatSidebar({
                   />
                 </div>
                 
-                <div className="space-y-2 pt-2 mt-2 border-t border-[#e5e1d8]">
-                  <div className="flex gap-2">
-                    <div className="flex-1">
-                      <label className="block text-[8px] text-[#5a5a40] uppercase tracking-wider font-bold mb-0.5">Resistances</label>
-                      <input
-                        type="text"
-                        value={npcResistances}
-                        onChange={e => setNpcResistances(e.target.value)}
-                        className="w-full bg-[#fdfaf5] border border-[#e5e1d8] rounded-md px-2 py-1.5 text-xs focus:bg-white outline-none transition-all"
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <label className="block text-[8px] text-[#5a5a40] uppercase tracking-wider font-bold mb-0.5">Immunities</label>
-                      <input
-                        type="text"
-                        value={npcImmunities}
-                        onChange={e => setNpcImmunities(e.target.value)}
-                        className="w-full bg-[#fdfaf5] border border-[#e5e1d8] rounded-md px-2 py-1.5 text-xs focus:bg-white outline-none transition-all"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-[8px] text-[#5a5a40] uppercase tracking-wider font-bold mb-0.5">Vulnerabilities</label>
-                    <input
-                      type="text"
-                      value={npcVulnerabilities}
-                      onChange={e => setNpcVulnerabilities(e.target.value)}
-                      className="w-full bg-[#fdfaf5] border border-[#e5e1d8] rounded-md px-2 py-1.5 text-xs focus:bg-white outline-none transition-all"
-                    />
-                  </div>
+                <div className="space-y-3 pt-2 mt-2 border-t border-[#e5e1d8]">
+                  <IrvMultiSelect
+                    label="Resistances"
+                    value={npcResistances}
+                    onChange={setNpcResistances}
+                    placeholder="e.g. fire"
+                  />
+                  <IrvMultiSelect
+                    label="Immunities"
+                    value={npcImmunities}
+                    onChange={setNpcImmunities}
+                    placeholder="e.g. poison"
+                  />
+                  <IrvMultiSelect
+                    label="Vulnerabilities"
+                    value={npcVulnerabilities}
+                    onChange={setNpcVulnerabilities}
+                    placeholder="e.g. cold"
+                  />
                 </div>
 
                 <button

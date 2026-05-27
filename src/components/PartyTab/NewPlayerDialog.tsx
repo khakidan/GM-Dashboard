@@ -3,6 +3,7 @@ import { X, UserPlus, Shield, Heart, Eye, Star, Info, Save } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react';
 import { Character } from '../../types';
 import { cn } from '../../lib/utils';
+import { IrvMultiSelect } from '../ui/IrvMultiSelect';
 
 interface NewPlayerDialogProps {
   isOpen: boolean;
@@ -210,48 +211,27 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                     <option value={3}>Deceased</option>
                   </select>
                 </div>
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40] mb-1.5 px-1">
-                    Resistances
-                  </label>
-                  <input
-                    id="new-character-resistances"
-                    type="text"
-                    value={formData.resistances}
-                    onChange={e => setFormData({ ...formData, resistances: e.target.value })}
-                    placeholder="e.g. fire, cold"
-                    className="w-full bg-white border border-[#e5e1d8] rounded-xl px-4 py-3 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all"
-                  />
-                </div>
+                <IrvMultiSelect
+                  label="Resistances"
+                  value={formData.resistances}
+                  onChange={v => setFormData({ ...formData, resistances: v })}
+                  placeholder="e.g. fire, cold"
+                />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40] mb-1.5 px-1">
-                    Immunities
-                  </label>
-                  <input
-                    id="new-character-immunities"
-                    type="text"
-                    value={formData.immunities}
-                    onChange={e => setFormData({ ...formData, immunities: e.target.value })}
-                    placeholder="e.g. poison, charmed"
-                    className="w-full bg-white border border-[#e5e1d8] rounded-xl px-4 py-3 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40] mb-1.5 px-1">
-                    Vulnerabilities
-                  </label>
-                  <input
-                    id="new-character-vulnerabilities"
-                    type="text"
-                    value={formData.vulnerabilities}
-                    onChange={e => setFormData({ ...formData, vulnerabilities: e.target.value })}
-                    placeholder="e.g. thunder"
-                    className="w-full bg-white border border-[#e5e1d8] rounded-xl px-4 py-3 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all"
-                  />
-                </div>
+                <IrvMultiSelect
+                  label="Immunities"
+                  value={formData.immunities}
+                  onChange={v => setFormData({ ...formData, immunities: v })}
+                  placeholder="e.g. poison, charmed"
+                />
+                <IrvMultiSelect
+                  label="Vulnerabilities"
+                  value={formData.vulnerabilities}
+                  onChange={v => setFormData({ ...formData, vulnerabilities: v })}
+                  placeholder="e.g. thunder"
+                />
               </div>
 
               <div>

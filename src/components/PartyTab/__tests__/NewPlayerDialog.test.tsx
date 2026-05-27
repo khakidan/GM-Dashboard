@@ -3,6 +3,27 @@ import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { NewPlayerDialog } from '../NewPlayerDialog';
 
+vi.mock('../../ui/IrvMultiSelect', () => ({
+  IrvMultiSelect: ({ label, value, onChange }: any) => {
+    // Determine which ID to use based on label
+    const idMap: Record<string, string> = {
+      'Resistances': 'new-character-resistances',
+      'Immunities': 'new-character-immunities',
+      'Vulnerabilities': 'new-character-vulnerabilities'
+    };
+    return (
+      <div>
+        <label>{label}</label>
+        <input 
+          id={idMap[label]}
+          value={value} 
+          onChange={(e) => onChange(e.target.value)} 
+        />
+      </div>
+    );
+  }
+}));
+
 describe('NewPlayerDialog', () => {
   afterEach(() => {
     cleanup();

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Character } from '../../types';
 import { X, ArrowRight, CheckSquare, Square } from 'lucide-react';
+import { IrvMultiSelect } from '../ui/IrvMultiSelect';
 
 export interface LevelUpDialogProps {
   character: Character;
@@ -316,47 +317,26 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
                 />
               </div>
 
-              <div>
-                <label htmlFor="new-resistances" className="block text-[9px] font-bold uppercase tracking-wider text-[#5a5a40] mb-1">
-                  Resistances
-                </label>
-                <input
-                  id="new-resistances"
-                  type="text"
-                  value={newResistances}
-                  onChange={e => setNewResistances(e.target.value)}
-                  placeholder="e.g. fire, poison"
-                  className="w-full bg-[#faf9f6]/50 border border-[#e5e1d8] rounded-xl px-3 py-2 text-sm outline-none focus:bg-white focus:border-[#c5b358]"
-                />
-              </div>
+              <IrvMultiSelect
+                label="Resistances"
+                value={newResistances}
+                onChange={setNewResistances}
+                placeholder="e.g. fire, poison"
+              />
 
-              <div>
-                <label htmlFor="new-immunities" className="block text-[9px] font-bold uppercase tracking-wider text-[#5a5a40] mb-1">
-                  Immunities
-                </label>
-                <input
-                  id="new-immunities"
-                  type="text"
-                  value={newImmunities}
-                  onChange={e => setNewImmunities(e.target.value)}
-                  placeholder="e.g. poison, conditions"
-                  className="w-full bg-[#faf9f6]/50 border border-[#e5e1d8] rounded-xl px-3 py-2 text-sm outline-none focus:bg-white focus:border-[#c5b358]"
-                />
-              </div>
+              <IrvMultiSelect
+                label="Immunities"
+                value={newImmunities}
+                onChange={setNewImmunities}
+                placeholder="e.g. poison, conditions"
+              />
 
-              <div>
-                <label htmlFor="new-vulnerabilities" className="block text-[9px] font-bold uppercase tracking-wider text-[#5a5a40] mb-1">
-                  Vulnerabilities
-                </label>
-                <input
-                  id="new-vulnerabilities"
-                  type="text"
-                  value={newVulnerabilities}
-                  onChange={e => setNewVulnerabilities(e.target.value)}
-                  placeholder="e.g. bludgeoning"
-                  className="w-full bg-[#faf9f6]/50 border border-[#e5e1d8] rounded-xl px-3 py-2 text-sm outline-none focus:bg-white focus:border-[#c5b358]"
-                />
-              </div>
+              <IrvMultiSelect
+                label="Vulnerabilities"
+                value={newVulnerabilities}
+                onChange={setNewVulnerabilities}
+                placeholder="e.g. bludgeoning"
+              />
 
               <div>
                 <label htmlFor="new-notes" className="block text-[9px] font-bold uppercase tracking-wider text-[#5a5a40] mb-1">

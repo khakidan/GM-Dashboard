@@ -3,6 +3,9 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Trash2, Eye, Zap } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { Combatant, DamageType } from '../../types';
+import { getHealthStatus } from '../../lib/combatLogic';
+import { IrvMultiSelect } from '../ui/IrvMultiSelect';
+import { ConditionChips } from '../ui/ConditionChips';
 
 const AnimatedHpDisplay = ({
   value,
@@ -194,6 +197,14 @@ export function CombatantCard({
             <h3 className={cn('text-lg font-bold font-serif truncate', c.type === 'npc' ? 'text-red-800' : 'text-[#2c2c26]')}>
               {c.name}
             </h3>
+            {c.currentHp < c.maxHp && c.currentHp > 0 && (
+              <span className={cn(
+                "text-[10px] font-bold px-2 py-0.5 rounded-full border border-current bg-white/50 shrink-0",
+                getHealthStatus(c.currentHp, c.maxHp).color
+              )}>
+                {getHealthStatus(c.currentHp, c.maxHp).label}
+              </span>
+            )}
             <span className="text-xs font-bold text-[#b0a04f] whitespace-nowrap">(AC {c.ac})</span>
             {c.conditions && c.conditions.split(',').filter(Boolean).length > 0 && (
               <div className="flex -space-x-1">
@@ -324,30 +335,26 @@ export function CombatantCard({
                 <p className="text-xs text-[#5a5a40] opacity-60 italic">{c.notes}</p>
               )}
 
-              {((c.resistances && c.resistances.trim()) ||
-                (c.immunities && c.immunities.trim()) ||
-                (c.vulnerabilities && c.vulnerabilities.trim())) && (
-                <div id={`combatant-defenses-${c.id}`} className="text-xs space-y-2 bg-[#faf9f6] p-4 rounded-xl border border-[#e5e1d8]">
-                  <div className="flex justify-between items-center gap-2">
-                    <span className="font-bold text-[#5a5a40]">Resistances:</span>
-                    <span className="font-medium text-amber-600 truncate max-w-[170px]" title={c.resistances}>
-                      {c.resistances || '—'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center gap-2">
-                    <span className="font-bold text-[#5a5a40]">Immunities:</span>
-                    <span className="font-medium text-red-600 truncate max-w-[170px]" title={c.immunities}>
-                      {c.immunities || '—'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center gap-2">
-                    <span className="font-bold text-[#5a5a40]">Vulnerabilities:</span>
-                    <span className="font-medium text-blue-600 truncate max-w-[170px]" title={c.vulnerabilities}>
-                      {c.vulnerabilities || '—'}
-                    </span>
-                  </div>
-                </div>
-              )}
+              <div id={`combatant-defenses-${c.id}`} className="space-y-3 bg-[#faf9f6]/30 p-4 rounded-xl border border-[#e5e1d8]">
+                <IrvMultiSelect
+                  label="Resistances"
+                  value={c.resistances || ''}
+                  onChange={(v) => onUpdateCombatant({ resistances: v })}
+                  placeholder="None"
+                />
+                <IrvMultiSelect
+                  label="Immunities"
+                  value={c.immunities || ''}
+                  onChange={(v) => onUpdateCombatant({ immunities: v })}
+                  placeholder="None"
+                />
+                <IrvMultiSelect
+                  label="Vulnerabilities"
+                  value={c.vulnerabilities || ''}
+                  onChange={(v) => onUpdateCombatant({ vulnerabilities: v })}
+                  placeholder="None"
+                />
+              </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-[#faf9f6] p-3 rounded-xl border border-[#e5e1d8] text-center">
@@ -369,13 +376,11 @@ export function CombatantCard({
 
               <div>
                 <label className="block text-[10px] font-bold uppercase tracking-widest text-[#5a5a40] mb-2">Conditions</label>
-                <input
-                  type="text"
+                <ConditionChips
                   value={c.conditions || ''}
                   onChange={e => onUpdateCombatant({ conditions: e.target.value })}
-                  placeholder="e.g. Paralyzed"
+                  immunities={c.immunities || ''}
                   disabled={isSyncing}
-                  className="w-full bg-[#faf9f6] border border-[#e5e1d8] rounded-xl px-4 py-2 text-sm italic outline-none focus:bg-white focus:border-[#c5b358] transition-all disabled:opacity-50"
                 />
               </div>
 

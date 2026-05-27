@@ -4,6 +4,19 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import { CombatSidebar } from '../CombatSidebar';
 import type { Combatant, NPC, Character } from '../../../types';
 
+vi.mock('../../ui/IrvMultiSelect', () => ({
+  IrvMultiSelect: ({ label, value, onChange }: any) => (
+    <div>
+      <label>{label}</label>
+      <input 
+        data-testid={`mock-irv-${label}`}
+        value={value} 
+        onChange={(e) => onChange(e.target.value)} 
+      />
+    </div>
+  )
+}));
+
 describe('CombatSidebar', () => {
   afterEach(() => cleanup());
   const npcs: NPC[] = [{ id: 'n1', name: 'Goblin', ac: 15, maxHp: 7, currentHp: 7, tempHp: 0, conditions: '', notes: '' }];
@@ -80,9 +93,9 @@ describe('CombatSidebar', () => {
     fireEvent.change(hpInput, { target: { value: '100' } });
     
     // Use labels to find IRV fields
-    const resInput = screen.getByText('Resistances', { selector: 'label' }).parentElement?.querySelector('input') as HTMLInputElement;
-    const immInput = screen.getByText('Immunities', { selector: 'label' }).parentElement?.querySelector('input') as HTMLInputElement;
-    const vulInput = screen.getByText('Vulnerabilities', { selector: 'label' }).parentElement?.querySelector('input') as HTMLInputElement;
+    const resInput = screen.getByTestId('mock-irv-Resistances');
+    const immInput = screen.getByTestId('mock-irv-Immunities');
+    const vulInput = screen.getByTestId('mock-irv-Vulnerabilities');
 
     fireEvent.change(resInput, { target: { value: 'fire' } });
     fireEvent.change(immInput, { target: { value: 'poison' } });

@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { useAppState } from '../hooks/useAppState';
 import { Swords, Eye, Users, Map, RefreshCw, PanelLeftClose, PanelLeft, Menu, AlertCircle, Info, LogIn, BookOpen, Skull } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { toast } from 'sonner';
 import { PartyTab } from './PartyTab';
 import { NpcLibraryTab } from './NpcLibraryTab';
 import { EncountersTab } from './EncountersTab';
@@ -624,7 +625,16 @@ export function GMDashboard() {
             ) : activeTab === 'npc-library' ? (
               <NpcLibraryTab />
             ) : (
-              <EncountersTab onSelectEncounter={startEncounter} onSyncRequested={handleSyncWithSheets} />
+              <EncountersTab
+                onSelectEncounter={startEncounter}
+                onSyncRequested={async () => {
+                  toast.promise(handleSyncWithSheets(false), {
+                    loading: 'Syncing with Google Sheets...',
+                    success: 'Sync complete',
+                    error: 'Sync failed — changes saved locally',
+                  });
+                }}
+              />
             )}
           </div>
         </section>
@@ -847,7 +857,11 @@ export function GMDashboard() {
                             const deletedCount = await syncAndSanitizeDatabase();
                             addLog(`Sanitize complete. Removed ${deletedCount} empty rows.`);
                             alert(`Sanitize complete. Removed ${deletedCount} empty rows.`);
-                            handleSyncWithSheets(true);
+                            toast.promise(handleSyncWithSheets(false), {
+                              loading: 'Syncing with Google Sheets...',
+                              success: 'Sync complete',
+                              error: 'Sync failed — changes saved locally',
+                            });
                           } catch (err: any) {
                             alert('Sanitize failed: ' + err.message);
                           }
@@ -885,7 +899,11 @@ export function GMDashboard() {
                   onClick={() => {
                     setSpreadsheetId(tempSpreadsheetId);
                     setIsSettingsOpen(false);
-                    handleSyncWithSheets().catch(console.error);
+                    toast.promise(handleSyncWithSheets(false), {
+                      loading: 'Syncing with Google Sheets...',
+                      success: 'Sync complete',
+                      error: 'Sync failed — changes saved locally',
+                    });
                   }}
                   className="flex-1 bg-[#5a5a40] hover:bg-[#3f3f37] text-white py-3 rounded-xl font-bold font-sans uppercase tracking-widest text-xs flex items-center justify-center gap-2 transition-all shadow-md active:scale-95"
                 >

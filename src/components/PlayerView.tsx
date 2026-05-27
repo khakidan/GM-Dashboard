@@ -62,7 +62,7 @@ export function PlayerView() {
                         isActive ? "text-[#c5b358]" : "text-[#2c2c26]",
                         isDead && "line-through text-[#5a5a40]"
                       )}>
-                        {c.name.split(' ')[0]}
+                        {c.name}
                       </div>
                       {c.conditions && (
                           <div className="text-xs text-red-600 font-bold italic mt-1 truncate max-w-[150px]" title={c.conditions}>{c.conditions}</div>

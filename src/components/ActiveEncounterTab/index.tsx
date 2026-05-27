@@ -5,7 +5,7 @@ import { getExpiredConditions } from '../../lib/combatLogic';
 import { Skull, AlertCircle } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { Combatant } from '../../types';
-import { addNpcDB, addEncounterCombatantDB } from '../../services/dbOperations';
+import { addNpcDB, addEncounterCombatantDB, updateInitiativeDB } from '../../services/dbOperations';
 
 import { CombatHeader } from './CombatHeader';
 import { CombatantCard } from './CombatantCard';
@@ -139,7 +139,7 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
         if (npcTemplate) {
           for (let i = 0; i < presetQuantity; i++) {
             newCombatants.push({
-              id: `combat-npc-${npcTemplate.id}-${i}-${Date.now()}`,
+              id: `combat-npc-${npcTemplate.id}-${i}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
               encounterCombatantId: nextId,
               name: `${npcTemplate.name}${presetQuantity > 1 ? ` ${i + 1}` : ''}`,
               type: 'npc',
@@ -211,11 +211,11 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
   ) => {
     const previousState = state;
     try {
-      const nextIdStr = `temp-npc-${Date.now()}`;
-      const nextEcId = `temp-ec-${Date.now()}`;
+      const nextIdStr = `temp-npc-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+      const nextEcId = `temp-ec-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
       const newNpcCombatant: Combatant = {
-        id: `combat-npc-${nextIdStr}-0-${Date.now()}`,
+        id: `combat-npc-${nextIdStr}-0-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
         encounterCombatantId: nextEcId.toString(),
         name: npcName,
         type: 'npc',
@@ -378,6 +378,16 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
         combatants: prev.combatState.combatants.map(c => ({ ...c, initiative: 0 })),
       },
     }));
+
+    // BUG 1 Fix: Sync zeroed initiatives to the sheet
+    const latestCombatants = state.combatState.combatants;
+    latestCombatants.forEach(c => {
+      if (c.encounterCombatantId) {
+        updateInitiativeDB(c.encounterCombatantId, 0).catch(err => {
+          console.error(`Failed to reset initiative for combatant ${c.id}`, err);
+        });
+      }
+    });
   };
 
   return (
@@ -404,7 +414,7 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
           />
 
           <div className="flex-1 bg-white w-full p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 2xl:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-4">
               {state.combatState.combatants.length === 0 ? (
                 <div className="col-span-full py-20 text-center flex flex-col items-center justify-center">
                   <Skull className="w-12 h-12 text-[#5a5a40] opacity-20 mb-4" />

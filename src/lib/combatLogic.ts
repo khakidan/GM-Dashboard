@@ -114,40 +114,35 @@ export function rollNpcInitiatives(
 
 export function checkIrvMatch(damageType: string, irvString: string | null | undefined): boolean {
   if (!irvString || !damageType) return false;
-  const target = damageType.toLowerCase().trim();
-  const rawIrvNormalized = irvString.toLowerCase();
-  const parts = irvString.split(',').map(s => s.toLowerCase().trim());
-  
+
+  // Normalise: strip hyphens so 'non-magical' and 'nonmagical' are treated
+  // identically. This gives backward compat for any older sheet data.
+  const norm = (s: string) => s.replace(/-/g, '').toLowerCase().trim();
+
+  const target  = norm(damageType);
+  const rawNorm = norm(irvString);
+  const parts   = irvString.split(',').map(s => norm(s));
+
   for (const part of parts) {
-    if (part === target) {
-      return true;
-    }
-    if (part.includes(target)) {
-      return true;
-    }
-    
-    // "bludgeoning (nonmagical)" should match an entry containing both "bludgeoning" and "nonmagical"
+    // Exact match after normalisation
+    if (part === target) return true;
+
+    // Part contains the full target string
+    if (part.includes(target)) return true;
+
+    // Handle compound entries where 'nonmagical' qualifies a group, e.g.
+    // "bludgeoning, piercing, slashing (nonmagical)" — after splitting we get
+    // separate 'bludgeoning' and 'slashing (nonmagical)' parts, so we check
+    // whether the base type appears in this part AND nonmagical appears
+    // anywhere in the full IRV string.
     if (target.includes('nonmagical')) {
-      const baseType = target.replace('(nonmagical)', '').trim();
-      if (part.includes(baseType) && (part.includes('nonmagical') || rawIrvNormalized.includes('nonmagical'))) {
+      const baseType = target.replace(/\(nonmagical\)/g, '').trim();
+      if (part.includes(baseType) && rawNorm.includes('nonmagical')) {
         return true;
       }
     }
   }
-  
-  // Also explicit check for compound entries containing both parts of the target
-  for (const part of parts) {
-    if (target === 'bludgeoning (nonmagical)' && part.includes('bludgeoning') && part.includes('nonmagical')) {
-      return true;
-    }
-    if (target === 'piercing (nonmagical)' && part.includes('piercing') && part.includes('nonmagical')) {
-      return true;
-    }
-    if (target === 'slashing (nonmagical)' && part.includes('slashing') && part.includes('nonmagical')) {
-      return true;
-    }
-  }
-  
+
   return false;
 }
 
