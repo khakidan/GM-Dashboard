@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import { X, UserPlus, Shield, Heart, Info, Save } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { NPC } from '../../types';
 import { cn } from '../../lib/utils';
 import { IrvMultiSelect } from '../ui/IrvMultiSelect';
+import { useFormState } from '../../hooks/useFormState';
 
 interface NewNpcDialogProps {
   isOpen: boolean;
@@ -12,7 +13,7 @@ interface NewNpcDialogProps {
 }
 
 export function NewNpcDialog({ isOpen, onClose, onConfirm }: NewNpcDialogProps) {
-  const [formData, setFormData] = useState({
+  const { values: formData, handleChange, reset } = useFormState({
     name: '',
     ac: 10,
     maxHp: 10,
@@ -21,6 +22,12 @@ export function NewNpcDialog({ isOpen, onClose, onConfirm }: NewNpcDialogProps) 
     immunities: '',
     vulnerabilities: '',
   });
+
+  useEffect(() => {
+    if (!isOpen) {
+      reset();
+    }
+  }, [isOpen, reset]);
 
   const isFormValid = formData.name.trim() !== '' && formData.maxHp > 0;
 
@@ -84,7 +91,7 @@ export function NewNpcDialog({ isOpen, onClose, onConfirm }: NewNpcDialogProps) 
                     type="text"
                     required
                     value={formData.name}
-                    onChange={e => setFormData({ ...formData, name: e.target.value })}
+                    onChange={e => handleChange('name', e.target.value)}
                     placeholder="e.g. Ancient Red Dragon"
                     className="w-full bg-white border border-[#e5e1d8] rounded-xl px-4 py-3 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all font-serif italic"
                   />
@@ -104,7 +111,7 @@ export function NewNpcDialog({ isOpen, onClose, onConfirm }: NewNpcDialogProps) 
                         required
                         value={formData.ac}
                         onFocus={(e) => e.target.select()}
-                        onChange={e => setFormData({ ...formData, ac: parseInt(e.target.value) || 0 })}
+                        onChange={e => handleChange('ac', parseInt(e.target.value) || 0)}
                         className="w-full bg-white border border-[#e5e1d8] rounded-xl pl-10 pr-4 py-3 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all"
                       />
                     </div>
@@ -122,7 +129,7 @@ export function NewNpcDialog({ isOpen, onClose, onConfirm }: NewNpcDialogProps) 
                         required
                         value={formData.maxHp}
                         onFocus={(e) => e.target.select()}
-                        onChange={e => setFormData({ ...formData, maxHp: parseInt(e.target.value) || 0 })}
+                        onChange={e => handleChange('maxHp', parseInt(e.target.value) || 0)}
                         className="w-full bg-white border border-[#e5e1d8] rounded-xl pl-10 pr-4 py-3 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all font-bold"
                       />
                     </div>
@@ -134,19 +141,19 @@ export function NewNpcDialog({ isOpen, onClose, onConfirm }: NewNpcDialogProps) 
                 <IrvMultiSelect
                   label="Resistances"
                   value={formData.resistances}
-                  onChange={v => setFormData({ ...formData, resistances: v })}
+                  onChange={v => handleChange('resistances', v)}
                   placeholder="e.g. fire"
                 />
                 <IrvMultiSelect
                   label="Immunities"
                   value={formData.immunities}
-                  onChange={v => setFormData({ ...formData, immunities: v })}
+                  onChange={v => handleChange('immunities', v)}
                   placeholder="e.g. poison"
                 />
                 <IrvMultiSelect
                   label="Vulnerabilities"
                   value={formData.vulnerabilities}
-                  onChange={v => setFormData({ ...formData, vulnerabilities: v })}
+                  onChange={v => handleChange('vulnerabilities', v)}
                   placeholder="e.g. cold"
                 />
               </div>
@@ -158,7 +165,7 @@ export function NewNpcDialog({ isOpen, onClose, onConfirm }: NewNpcDialogProps) 
                 <textarea
                   id="new-npc-notes"
                   value={formData.notes}
-                  onChange={e => setFormData({ ...formData, notes: e.target.value })}
+                  onChange={e => handleChange('notes', e.target.value)}
                   placeholder="Special abilities or description..."
                   rows={3}
                   className="w-full bg-white border border-[#e5e1d8] rounded-xl px-4 py-3 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all resize-none"

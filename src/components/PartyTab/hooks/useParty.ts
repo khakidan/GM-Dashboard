@@ -50,8 +50,10 @@ export function useParty() {
       updateState(previousState);
       const errorObj = err as Record<string, unknown> | null;
       if (errorObj?.message === "UNAUTHENTICATED" || errorObj?.error === "UNAUTHENTICATED") {
-        alert("Your session has expired. Please sign in again.");
-        window.location.reload();
+        toast.error('Session expired — please sign in again.', {
+          description: 'Your Google session timed out. Use the Connect & Sync button to reconnect.',
+          duration: 8000,
+        });
       } else {
         setGlobalError(`Failed to sync level up for "${char.characterName}".`);
       }
@@ -99,8 +101,10 @@ export function useParty() {
       updateState(previousState);
       const errorObj = err as Record<string, unknown> | null;
       if (errorObj?.message === "UNAUTHENTICATED" || errorObj?.error === "UNAUTHENTICATED") {
-        alert("Your session has expired. Please sign in again.");
-        window.location.reload();
+        toast.error('Session expired — please sign in again.', {
+          description: 'Your Google session timed out. Use the Connect & Sync button to reconnect.',
+          duration: 8000,
+        });
       } else {
         setGlobalError("Failed to add player. Please try again.");
       }
@@ -140,8 +144,10 @@ export function useParty() {
       updateState(previousState);
       const errorObj = err as Record<string, unknown> | null;
       if (errorObj?.message === "UNAUTHENTICATED" || errorObj?.error === "UNAUTHENTICATED") {
-        alert("Your session has expired. Please sign in again.");
-        window.location.reload();
+        toast.error('Session expired — please sign in again.', {
+          description: 'Your Google session timed out. Use the Connect & Sync button to reconnect.',
+          duration: 8000,
+        });
       } else {
         setGlobalError("Failed to complete long rest synchronisation.");
       }
@@ -164,6 +170,8 @@ export function useParty() {
       characters: prev.characters.filter(c => c.id !== id)
     }));
 
+    toast.success(`${char.characterName} removed from roster.`);
+
     try {
       await deleteCharacterFully(id);
     } catch (err: unknown) {
@@ -172,8 +180,10 @@ export function useParty() {
       
       const errorObj = err as Record<string, unknown> | null;
       if (errorObj?.message === "UNAUTHENTICATED" || errorObj?.error === "UNAUTHENTICATED") {
-        alert("Your session has expired. Please sign in again.");
-        window.location.reload();
+        toast.error('Session expired — please sign in again.', {
+          description: 'Your Google session timed out. Use the Connect & Sync button to reconnect.',
+          duration: 8000,
+        });
       } else {
         setGlobalError(`Failed to delete "${char.characterName}". Please try again.`);
       }
@@ -223,8 +233,10 @@ export function useParty() {
       updateState(previousState);
       const errorObj = err as Record<string, unknown> | null;
       if (errorObj?.message === "UNAUTHENTICATED" || errorObj?.error === "UNAUTHENTICATED") {
-        alert("Your session has expired. Please sign in again.");
-        window.location.reload();
+        toast.error('Session expired — please sign in again.', {
+          description: 'Your Google session timed out. Use the Connect & Sync button to reconnect.',
+          duration: 8000,
+        });
       } else {
         setGlobalError(`Failed to update details for "${char.characterName}".`);
       }

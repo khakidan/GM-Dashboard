@@ -3,6 +3,7 @@ import { useAppState } from '../../hooks/useAppState';
 import { Encounter } from '../../types';
 import { Swords, MapPin, Skull, Trash2, Loader2, AlertCircle, ChevronDown } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'motion/react';
 import { DebouncedInput } from '../ui/DebouncedInput';
 
@@ -77,8 +78,10 @@ export const EncounterCard: React.FC<EncounterCardProps> = ({
       
       const errorObj = err as Record<string, unknown> | null;
       if (errorObj?.message === "UNAUTHENTICATED" || errorObj?.error === "UNAUTHENTICATED") {
-        alert("Your session has expired. Please sign in again.");
-        window.location.reload();
+        toast.error('Session expired — please sign in again.', {
+          description: 'Your Google session timed out. Use the Connect & Sync button to reconnect.',
+          duration: 8000,
+        });
       } else {
         setErrorStatus("Failed to sync changes.");
         setTimeout(() => setErrorStatus(null), 3000);

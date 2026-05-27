@@ -55,8 +55,33 @@ export function ConditionChips({
   
   const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
 
-  const chips = value
-    ? value.split(',').map(s => s.trim()).filter(Boolean)
+  const [localValue, setLocalValue] = useState(value);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
+
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, []);
+
+  const debouncedOnChange = (newValue: string) => {
+    setLocalValue(newValue);
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    debounceRef.current = setTimeout(() => {
+      onChange(newValue);
+    }, 300);
+  };
+
+  const chips = localValue
+    ? localValue.split(',').map(s => s.trim()).filter(Boolean)
     : [];
 
   const chipsLower = chips.map(c => c.toLowerCase());
@@ -139,7 +164,7 @@ export function ConditionChips({
   }
 
   function commitChip(label: string) {
-    onChange([...chips, label].join(', '));
+    debouncedOnChange([...chips, label].join(', '));
     setQuery('');
     setOpen(false);
   }
@@ -188,7 +213,7 @@ export function ConditionChips({
   }
 
   function removeChip(chip: string) {
-    onChange(chips.filter(c => c !== chip).join(', '));
+    debouncedOnChange(chips.filter(c => c !== chip).join(', '));
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {

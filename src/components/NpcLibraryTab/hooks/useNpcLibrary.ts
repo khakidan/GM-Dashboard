@@ -30,8 +30,10 @@ export function useNpcLibrary() {
       updateState(previousState);
       const errorObj = err as Record<string, unknown> | null;
       if (errorObj?.message === "UNAUTHENTICATED" || errorObj?.error === "UNAUTHENTICATED") {
-        alert("Your session has expired. Please sign in again.");
-        window.location.reload();
+        toast.error('Session expired — please sign in again.', {
+          description: 'Your Google session timed out. Use the Connect & Sync button to reconnect.',
+          duration: 8000,
+        });
       } else {
         setGlobalError("Failed to reset NPC HP.");
         toast.error("Failed to reset NPC HP.");
@@ -117,11 +119,12 @@ export function useNpcLibrary() {
       npcs: prev.npcs.filter(n => n.id !== npcId)
     }));
 
+    toast.success(`${npc.name} removed from library.`);
+
     setSyncingId(npcId);
 
     try {
       await deleteNpcDB(npcId);
-      toast.success(`${npc.name} deleted.`);
     } catch (err: unknown) {
       console.error("Failed to delete NPC", err);
       updateState(previousState);

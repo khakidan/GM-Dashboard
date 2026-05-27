@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Copy, Check, LogIn, AlertCircle, Info, RefreshCcw } from 'lucide-react';
-import { signInWithRedirect, signInWithToken } from '../services/sheetsService';
+import { signInWithRedirect, signInWithToken } from '../services/googleAuth';
 
 export function AuthRelay() {
   const [token, setToken] = useState<string | null>(null);

@@ -3,6 +3,7 @@ import { useAppState, getSnapshot } from '../../../hooks/useAppState';
 import { updateSheetData } from '../../../services/sheetsService';
 import { updateCharacterDB, updateNpcDB, deleteEncounterCombatantDB, updateEncounterCombatantQuantityDB, updateInitiativeDB, updateConditionTimersDB } from '../../../services/dbOperations';
 import { Combatant } from '../../../types';
+import { toast } from 'sonner';
 
 export function useCombatSync() {
   const { state, updateState } = useAppState();
@@ -12,8 +13,10 @@ export function useCombatSync() {
   const handleError = (err: any, fallbackMsg: string) => {
     const _e = typeof err !== 'undefined' ? err : null;
     if (_e && ((_e as any).message === 'UNAUTHENTICATED' || (_e as any).error === 'UNAUTHENTICATED')) {
-      alert('Your session has expired. Please sign in again.');
-      window.location.reload();
+      toast.error('Session expired — please sign in again.', {
+        description: 'Your Google session timed out. Use the Connect & Sync button to reconnect.',
+        duration: 8000,
+      });
     } else {
       setGlobalError(fallbackMsg);
       setTimeout(() => setGlobalError(null), 5000);

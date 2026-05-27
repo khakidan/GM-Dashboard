@@ -24,8 +24,33 @@ export function IrvMultiSelect({
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const selectedItems = value
-    ? value.split(',').map((s) => s.trim()).filter(Boolean)
+  const [localValue, setLocalValue] = useState(value);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
+
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, []);
+
+  const debouncedOnChange = (newValue: string) => {
+    setLocalValue(newValue);
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    debounceRef.current = setTimeout(() => {
+      onChange(newValue);
+    }, 300);
+  };
+
+  const selectedItems = localValue
+    ? localValue.split(',').map((s) => s.trim()).filter(Boolean)
     : [];
 
   const filteredOptions = options.filter(
@@ -46,7 +71,7 @@ export function IrvMultiSelect({
 
   const handleSelectItem = (item: string) => {
     const newItems = [...selectedItems, item];
-    onChange(newItems.join(', '));
+    debouncedOnChange(newItems.join(', '));
     setSearchTerm('');
     // Stay open if there are more options
     if (filteredOptions.length <= 1) {
@@ -56,7 +81,7 @@ export function IrvMultiSelect({
 
   const handleRemoveItem = (itemToRemove: string) => {
     const newItems = selectedItems.filter((item) => item !== itemToRemove);
-    onChange(newItems.join(', '));
+    debouncedOnChange(newItems.join(', '));
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

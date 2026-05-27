@@ -73,7 +73,7 @@ router.post('/google-token', authLimiter, async (req, res) => {
 
     console.log('✅ [Server] Token operation successful.');
     res.json(data);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('❌ [Server] Token exchange exception', error);
     res.status(500).json({ error: 'Internal server error during token exchange' });
   }

@@ -233,6 +233,17 @@ describe('addCharacterDB logic', () => {
     expect(row[2]).toBe('Grunk');
     expect(row[11]).toBe('big sword');
   });
+
+  it('re-throws when fetchSheetData throws and logs to console.error', async () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const error = new Error('Fetch failed');
+    vi.mocked(sheetsService.fetchSheetData).mockRejectedValueOnce(error);
+    vi.mocked(sheetsService.appendSheetData).mockRejectedValueOnce(error);
+
+    await expect(addCharacterDB({})).rejects.toThrow('Fetch failed');
+    expect(consoleSpy).toHaveBeenCalledWith('[DB] addCharacterDB failed:', error);
+    consoleSpy.mockRestore();
+  });
 });
 
 // ─── deleteCharacterFully logic ───────────────────────────────────────────────
@@ -286,6 +297,31 @@ describe('deleteCharacterFully', () => {
 
     await deleteCharacterFully('pc-99');
     expect(sheetsService.batchUpdateSpreadsheet).not.toHaveBeenCalled();
+  });
+
+  it('re-throws when batchUpdateSpreadsheet throws and logs to console.error', async () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const error = new Error('Batch update failed');
+    
+    vi.mocked(sheetsService.fetchSpreadsheetMetadata).mockResolvedValue({
+      sheets: [
+        { properties: { title: 'Characters', sheetId: 101 } },
+        { properties: { title: 'Encounter_Combatants', sheetId: 102 } }
+      ]
+    });
+    
+    vi.mocked(sheetsService.fetchSheetData).mockImplementation((range) => {
+      if (range.startsWith('Characters')) {
+        return Promise.resolve({ values: [['pc-99']] as SheetGrid });
+      }
+      return Promise.resolve({ values: [] as SheetGrid });
+    });
+
+    vi.mocked(sheetsService.batchUpdateSpreadsheet).mockRejectedValueOnce(error);
+
+    await expect(deleteCharacterFully('pc-99')).rejects.toThrow('Batch update failed');
+    expect(consoleSpy).toHaveBeenCalledWith('[DB] deleteCharacterFully failed:', error);
+    consoleSpy.mockRestore();
   });
 });
 

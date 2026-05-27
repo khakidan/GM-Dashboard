@@ -2,7 +2,7 @@ import { HashRouter, Routes, Route } from 'react-router-dom';
 import { GMDashboard } from './components/GMDashboard';
 import { PlayerView } from './components/PlayerView';
 import { AuthRelay } from './components/AuthRelay';
-import { checkAndCaptureToken } from './services/sheetsService';
+import { checkAndCaptureToken } from './services/googleAuth';
 import { useEffect, useState } from 'react';
 import { Toaster } from 'sonner';
 

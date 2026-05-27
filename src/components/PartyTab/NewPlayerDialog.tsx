@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import { X, UserPlus, Shield, Heart, Eye, Star, Info, Save } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Character } from '../../types';
 import { cn } from '../../lib/utils';
 import { IrvMultiSelect } from '../ui/IrvMultiSelect';
+import { useFormState } from '../../hooks/useFormState';
 
 interface NewPlayerDialogProps {
   isOpen: boolean;
@@ -12,7 +13,7 @@ interface NewPlayerDialogProps {
 }
 
 export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogProps) {
-  const [formData, setFormData] = useState({
+  const { values: formData, handleChange, reset } = useFormState({
     playerName: '',
     characterName: '',
     level: 1,
@@ -25,6 +26,12 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
     immunities: '',
     vulnerabilities: '',
   });
+
+  useEffect(() => {
+    if (!isOpen) {
+      reset();
+    }
+  }, [isOpen, reset]);
 
   const isFormValid = formData.playerName.trim() !== '' && 
                       formData.characterName.trim() !== '' && 
@@ -98,7 +105,7 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                       type="text"
                       required
                       value={formData.playerName}
-                      onChange={e => setFormData({ ...formData, playerName: e.target.value })}
+                      onChange={e => handleChange('playerName', e.target.value)}
                       placeholder="e.g. Matt"
                       className="w-full bg-white border border-[#e5e1d8] rounded-xl px-4 py-3 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all"
                     />
@@ -112,7 +119,7 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                       type="text"
                       required
                       value={formData.characterName}
-                      onChange={e => setFormData({ ...formData, characterName: e.target.value })}
+                      onChange={e => handleChange('characterName', e.target.value)}
                       placeholder="e.g. Caleb"
                       className="w-full bg-white border border-[#e5e1d8] rounded-xl px-4 py-3 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all font-serif italic"
                     />
@@ -134,7 +141,7 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                         required
                         value={formData.level}
                         onFocus={(e) => e.target.select()}
-                        onChange={e => setFormData({ ...formData, level: parseInt(e.target.value) || 0 })}
+                        onChange={e => handleChange('level', parseInt(e.target.value) || 0)}
                         className="w-full bg-white border border-[#e5e1d8] rounded-xl pl-10 pr-4 py-3 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all"
                       />
                     </div>
@@ -152,7 +159,7 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                         required
                         value={formData.ac}
                         onFocus={(e) => e.target.select()}
-                        onChange={e => setFormData({ ...formData, ac: parseInt(e.target.value) || 0 })}
+                        onChange={e => handleChange('ac', parseInt(e.target.value) || 0)}
                         className="w-full bg-white border border-[#e5e1d8] rounded-xl pl-10 pr-4 py-3 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all"
                       />
                     </div>
@@ -170,7 +177,7 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                         required
                         value={formData.maxHp}
                         onFocus={(e) => e.target.select()}
-                        onChange={e => setFormData({ ...formData, maxHp: parseInt(e.target.value) || 0 })}
+                        onChange={e => handleChange('maxHp', parseInt(e.target.value) || 0)}
                         className="w-full bg-white border border-[#e5e1d8] rounded-xl pl-10 pr-4 py-3 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all font-bold"
                       />
                     </div>
@@ -187,7 +194,7 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                         min="0"
                         value={formData.passivePerception}
                         onFocus={(e) => e.target.select()}
-                        onChange={e => setFormData({ ...formData, passivePerception: parseInt(e.target.value) || 0 })}
+                        onChange={e => handleChange('passivePerception', parseInt(e.target.value) || 0)}
                         className="w-full bg-white border border-[#e5e1d8] rounded-xl pl-10 pr-4 py-3 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all"
                       />
                     </div>
@@ -203,7 +210,7 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                   <select
                     id="new-character-status"
                     value={formData.statusId}
-                    onChange={e => setFormData({ ...formData, statusId: parseInt(e.target.value) })}
+                    onChange={e => handleChange('statusId', parseInt(e.target.value))}
                     className="w-full bg-white border border-[#e5e1d8] rounded-xl px-4 py-3 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all appearance-none cursor-pointer"
                   >
                     <option value={1}>Active</option>
@@ -214,7 +221,7 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                 <IrvMultiSelect
                   label="Resistances"
                   value={formData.resistances}
-                  onChange={v => setFormData({ ...formData, resistances: v })}
+                  onChange={v => handleChange('resistances', v)}
                   placeholder="e.g. fire, cold"
                 />
               </div>
@@ -223,13 +230,13 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                 <IrvMultiSelect
                   label="Immunities"
                   value={formData.immunities}
-                  onChange={v => setFormData({ ...formData, immunities: v })}
+                  onChange={v => handleChange('immunities', v)}
                   placeholder="e.g. poison, charmed"
                 />
                 <IrvMultiSelect
                   label="Vulnerabilities"
                   value={formData.vulnerabilities}
-                  onChange={v => setFormData({ ...formData, vulnerabilities: v })}
+                  onChange={v => handleChange('vulnerabilities', v)}
                   placeholder="e.g. thunder"
                 />
               </div>
@@ -241,7 +248,7 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                 <textarea
                   id="new-character-notes"
                   value={formData.notes}
-                  onChange={e => setFormData({ ...formData, notes: e.target.value })}
+                  onChange={e => handleChange('notes', e.target.value)}
                   placeholder="Character backstory, special items, etc."
                   rows={3}
                   className="w-full bg-white border border-[#e5e1d8] rounded-xl px-4 py-3 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all resize-none"

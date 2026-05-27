@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import { X, Sword, MapPin, Trophy, Save } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Encounter, DifficultyLevel } from '../../types';
 import { cn } from '../../lib/utils';
+import { useFormState } from '../../hooks/useFormState';
 
 interface NewEncounterDialogProps {
   isOpen: boolean;
@@ -12,11 +13,17 @@ interface NewEncounterDialogProps {
 }
 
 export function NewEncounterDialog({ isOpen, onClose, onConfirm, difficulties }: NewEncounterDialogProps) {
-  const [formData, setFormData] = useState({
+  const { values: formData, handleChange, reset } = useFormState({
     name: '',
     location: '',
     difficultyId: 1, // Default Easy
   });
+
+  useEffect(() => {
+    if (!isOpen) {
+      reset();
+    }
+  }, [isOpen, reset]);
 
   const isFormValid = formData.name.trim() !== '';
 
@@ -68,7 +75,7 @@ export function NewEncounterDialog({ isOpen, onClose, onConfirm, difficulties }:
                     type="text"
                     required
                     value={formData.name}
-                    onChange={e => setFormData({ ...formData, name: e.target.value })}
+                    onChange={e => handleChange('name', e.target.value)}
                     placeholder="e.g. Goblin Ambush"
                     className="w-full bg-white border border-[#e5e1d8] rounded-xl px-4 py-3 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all font-serif"
                   />
@@ -84,7 +91,7 @@ export function NewEncounterDialog({ isOpen, onClose, onConfirm, difficulties }:
                       id="new-encounter-location"
                       type="text"
                       value={formData.location}
-                      onChange={e => setFormData({ ...formData, location: e.target.value })}
+                      onChange={e => handleChange('location', e.target.value)}
                       placeholder="e.g. Whispering Woods"
                       className="w-full bg-white border border-[#e5e1d8] rounded-xl pl-10 pr-4 py-3 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all"
                     />
@@ -100,7 +107,7 @@ export function NewEncounterDialog({ isOpen, onClose, onConfirm, difficulties }:
                     <select
                       id="new-encounter-difficulty"
                       value={formData.difficultyId}
-                      onChange={e => setFormData({ ...formData, difficultyId: parseInt(e.target.value) })}
+                      onChange={e => handleChange('difficultyId', parseInt(e.target.value))}
                       className="w-full bg-white border border-[#e5e1d8] rounded-xl pl-10 pr-4 py-3 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all appearance-none cursor-pointer font-bold"
                     >
                       {difficulties.map(d => (

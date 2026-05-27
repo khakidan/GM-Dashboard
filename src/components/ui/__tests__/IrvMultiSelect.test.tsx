@@ -25,7 +25,7 @@ describe('IrvMultiSelect', () => {
     expect(screen.queryByText('cold')).toBeNull();
   });
 
-  it('clicking × on a pill removes it and calls onChange with the updated string', () => {
+  it('clicking × on a pill removes it and calls onChange with the updated string', async () => {
     const onChange = vi.fn();
     render(
       <IrvMultiSelect
@@ -40,7 +40,9 @@ describe('IrvMultiSelect', () => {
     // Remove 'fire' (first pill)
     fireEvent.click(removeButtons[0]);
 
-    expect(onChange).toHaveBeenCalledWith('poison');
+    await waitFor(() => {
+      expect(onChange).toHaveBeenCalledWith('poison');
+    });
   });
 
   it('typing in the search input filters the dropdown options', () => {
@@ -62,7 +64,7 @@ describe('IrvMultiSelect', () => {
     expect(screen.queryByText('acid')).toBeNull();
   });
 
-  it('clicking a dropdown option adds it to the selection and calls onChange', () => {
+  it('clicking a dropdown option adds it to the selection and calls onChange', async () => {
     const onChange = vi.fn();
     render(
       <IrvMultiSelect
@@ -80,7 +82,9 @@ describe('IrvMultiSelect', () => {
     const option = screen.getByText('cold');
     fireEvent.click(option);
 
-    expect(onChange).toHaveBeenCalledWith('fire, cold');
+    await waitFor(() => {
+      expect(onChange).toHaveBeenCalledWith('fire, cold');
+    });
   });
 
   it('already-selected options do not appear in the dropdown', () => {
@@ -127,7 +131,7 @@ describe('IrvMultiSelect', () => {
     }, { timeout: 1000 });
   });
 
-  it('onChange is called with a properly formatted comma-separated string', () => {
+  it('onChange is called with a properly formatted comma-separated string', async () => {
     const onChange = vi.fn();
     render(
       <IrvMultiSelect
@@ -143,6 +147,8 @@ describe('IrvMultiSelect', () => {
     fireEvent.change(input, { target: { value: 'acid' } });
     
     fireEvent.click(screen.getByText('acid'));
-    expect(onChange).toHaveBeenCalledWith('fire, acid');
+    await waitFor(() => {
+      expect(onChange).toHaveBeenCalledWith('fire, acid');
+    });
   });
 });

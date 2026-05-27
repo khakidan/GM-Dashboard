@@ -1,45 +1,36 @@
 // src/components/GMDashboard.tsx
 
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
 import { useAppState } from '../hooks/useAppState';
-import { Swords, Eye, Users, Map, RefreshCw, PanelLeftClose, PanelLeft, Menu, AlertCircle, Info, LogIn, BookOpen, Skull } from 'lucide-react';
+import {
+  Swords,
+  Users,
+  Map,
+  RefreshCw,
+  PanelLeftClose,
+  PanelLeft,
+  Menu,
+  Skull,
+  Settings,
+  X,
+} from 'lucide-react';
 import { cn } from '../lib/utils';
 import { toast } from 'sonner';
 import { PartyTab } from './PartyTab';
 import { NpcLibraryTab } from './NpcLibraryTab';
 import { EncountersTab } from './EncountersTab';
 import { ActiveEncounterTab } from './ActiveEncounterTab';
-import {
-  initGoogleAuth,
-  fetchSheetData,
-  initializeDatabaseSchema,
-  getSpreadsheetId,
-  setSpreadsheetId,
-  hasToken,
-  signInWithRedirect,
-  setManualRefreshToken, // ✅ replaces setManualToken
-  clearTokens,
-} from '../services/sheetsService';
-import { Character, Encounter, Combatant, NPC, EncounterCombatant } from '../types';
-import { Settings, X, Save } from 'lucide-react';
-import {
-  CharacterRowSchema,
-  NpcRowSchema,
-  EncounterRowSchema,
-  EncounterCombatantRowSchema,
-  StatusRowSchema,
-  DifficultyRowSchema,
-} from '../lib/sheetSchemas';
+import { hasToken } from '../services/googleAuth';
+import { useGoogleAuth } from '../hooks/useGoogleAuth';
+import { useSheetSync } from '../hooks/useSheetSync';
+import { SyncingOverlay } from './SyncingOverlay';
+import { SettingsModal } from './SettingsModal';
 
 type Tab = 'party' | 'encounters' | 'npc-library' | 'combat';
 
 export function GMDashboard() {
-  const { state, updateState } = useAppState();
+  const { state } = useAppState();
   const [activeTab, setActiveTab] = useState<Tab>('party');
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [syncError, setSyncError] = useState<string | null>(null);
-  const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
     const stored = localStorage.getItem('gm_sidebar_open');
     return stored !== null ? stored === 'true' : false;
@@ -52,370 +43,37 @@ export function GMDashboard() {
       return next;
     });
   };
+
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [tempSpreadsheetId, setTempSpreadsheetId] = useState(getSpreadsheetId());
-  const [manualToken, setManualTokenState] = useState('');
-  const [showAdvancedAuth, setShowAdvancedAuth] = useState(false);
-  const [syncLogs, setSyncLogs] = useState<string[]>([]);
-  const [isGoogleConnected, setIsGoogleConnected] = useState(false);
 
-  const addLog = (msg: string) => {
-    console.log(msg);
-    setSyncLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${msg}`]);
-  };
+  const {
+    handleSyncWithSheets,
+    startEncounter,
+    clearEncounter,
+    isSyncing,
+    setIsSyncing,
+    syncError,
+    setSyncError,
+    syncLogs,
+    lastSyncTime,
+    addLog,
+  } = useSheetSync({
+    setIsGoogleConnected: (val) => setIsGoogleConnected(val),
+    onActiveTabChange: (tab) => setActiveTab(tab),
+  });
 
-  useEffect(() => {
-    let mounted = true;
-    initGoogleAuth()
-      .then(() => {
-        if (mounted) {
-          setIsGoogleConnected(hasToken());
-          if (hasToken()) {
-            addLog('Checking connection to Google Sheets...');
-            handleSyncWithSheets(false).catch(() => {
-              addLog("Background sync skipped. Click 'Pull from Sheets' when ready.");
-            });
-          } else {
-            addLog("Welcome! Click 'Connect & Sync' to link your Google account.");
-          }
-        }
-      })
-      .catch(() => {
-        addLog('Authentication module could not be initialized.');
-      });
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  const handleSyncWithSheets = async (isManual = true) => {
-    const sid = getSpreadsheetId();
-    if (isManual) {
-      setSyncLogs([]);
-      setIsSyncing(true);
-    }
-
-    addLog(`Sync process started for: ${sid}`);
-    setSyncError(null);
-
-    try {
-      addLog('Step 1: Validating authentication...');
-      await initializeDatabaseSchema();
-      addLog('Authentication valid. Schema verified.');
-
-      // 1. Fetch Statuses
-      addLog('Step 2: Fetching status definitions...');
-      const statusRes = await fetchSheetData('Status!A2:B');
-      const statuses = (statusRes.values || []).reduce((acc: any, row: any[], i: number) => {
-        const parsed = StatusRowSchema.safeParse(row);
-        if (!parsed.success) {
-          console.warn(`[GMDashboard] Validation failed for Status row ${i + 2}:`, parsed.error);
-          return acc;
-        }
-        acc[parsed.data[0]] = parsed.data[1];
-        return acc;
-      }, {});
-      addLog(`Status types loaded: ${Object.keys(statuses).length}`);
-
-      // 2. Fetch Difficulties
-      addLog('Step 3: Fetching difficulty levels...');
-      const diffRes = await fetchSheetData('Difficulty_Level!A2:B');
-      const difficulties = (diffRes.values || []).reduce((acc: any, row: any[], i: number) => {
-        const parsed = DifficultyRowSchema.safeParse(row);
-        if (!parsed.success) {
-          console.warn(`[GMDashboard] Validation failed for Difficulty_Level row ${i + 2}:`, parsed.error);
-          return acc;
-        }
-        acc[parsed.data[0]] = parsed.data[1];
-        return acc;
-      }, {});
-      addLog(`Difficulty settings loaded: ${Object.keys(difficulties).length}`);
-
-      // 3. Fetch NPCs
-      addLog('Step 4: Loading NPC library...');
-      const npcRes = await fetchSheetData('NPCs!A2:K');
-      const parsedNPCs: NPC[] = [];
-      (npcRes.values || []).forEach((row: any[], i: number) => {
-        const parsed = NpcRowSchema.safeParse(row);
-        if (!parsed.success) {
-          console.warn(`[GMDashboard] Validation failed for NPCs row ${i + 2}:`, parsed.error);
-          return;
-        }
-        const [id, name, ac, maxHp, tempHp, currentHp, conditions, notes, resistances, immunities, vulnerabilities] = parsed.data;
-        parsedNPCs.push({
-          id,
-          name,
-          ac,
-          maxHp,
-          tempHp,
-          currentHp,
-          conditions,
-          notes,
-          resistances: resistances || '',
-          immunities: immunities || '',
-          vulnerabilities: vulnerabilities || '',
-        });
-      });
-      addLog(`NPC entries loaded: ${parsedNPCs.length}`);
-
-      // 4. Fetch Characters
-      addLog('Step 5: Fetching character roster...');
-      const charactersResponse = await fetchSheetData('Characters!A2:O');
-      const characterRows = charactersResponse.values || [];
-      addLog(`Character rows found: ${characterRows.length}`);
-
-      // 5. Fetch Encounters
-      addLog('Step 6: Loading encounter log...');
-      const encountersResponse = await fetchSheetData('Encounters!A2:E');
-      const encounterRows = encountersResponse.values || [];
-      addLog(`Encounters found: ${encounterRows.length}`);
-
-      const parsedEncounters: Encounter[] = [];
-      encounterRows.forEach((row: any[], i: number) => {
-        const parsed = EncounterRowSchema.safeParse(row);
-        if (!parsed.success) {
-          console.warn(`[GMDashboard] Validation failed for Encounters row ${i + 2}:`, parsed.error);
-          return;
-        }
-        const [id, name, location, difficultyId, npcDefinitions] = parsed.data;
-        parsedEncounters.push({
-          id,
-          name,
-          location,
-          difficultyId,
-          difficultyName: difficulties[difficultyId.toString()] || 'Unknown',
-          npcDefinitions,
-          status: 'planned',
-          sheetRowIndex: i + 1,
-        });
-      });
-
-      // 6. Fetch Encounter Combatants
-      addLog('Step 7: Synching active combatants...');
-      let parsedEncounterCombatants: EncounterCombatant[] = [];
-      try {
-        const ecResponse = await fetchSheetData('Encounter_Combatants!A2:G');
-        const ecRows = ecResponse.values || [];
-        ecRows.forEach((row: any[], i: number) => {
-          const parsed = EncounterCombatantRowSchema.safeParse(row);
-          if (!parsed.success) {
-            console.warn(`[GMDashboard] Validation failed for Encounter_Combatants row ${i + 2}:`, parsed.error);
-            return;
-          }
-          const [id, encounterId, playerId, npcId, quantity, initiative, conditionTimers] = parsed.data;
-          parsedEncounterCombatants.push({
-            id,
-            encounterId,
-            playerId,
-            npcId,
-            quantity,
-            initiative: initiative || 0,
-            conditionTimers: conditionTimers || '',
-            sheetRowIndex: i + 1,
-          });
-        });
-        addLog(`Combatant links loaded: ${parsedEncounterCombatants.length}`);
-      } catch (err) {
-        addLog('Relational combatant data skipped.');
-      }
-
-      updateState(prev => {
-        const parsedCharacters: Character[] = [];
-        characterRows.forEach((row: any[], i: number) => {
-          const parsed = CharacterRowSchema.safeParse(row);
-          if (!parsed.success) {
-            console.warn(`[GMDashboard] Validation failed for Characters row ${i + 2}:`, parsed.error);
-            return;
-          }
-          const [id, playerName, characterName, ac, maxHp, tempHp, currentHp, conditions, passivePerception, level, statusId, notes, resistances, immunities, vulnerabilities] = parsed.data;
-          parsedCharacters.push({
-            id,
-            playerName,
-            characterName,
-            ac,
-            maxHp,
-            tempHp,
-            currentHp,
-            conditions,
-            passivePerception,
-            level,
-            statusId,
-            statusName: statuses[statusId.toString()] || 'Unknown',
-            notes,
-            isActive: statusId === 1,
-            sheetRowIndex: i + 2,
-            resistances: resistances || '',
-            immunities: immunities || '',
-            vulnerabilities: vulnerabilities || '',
-          });
-        });
-
-        return {
-          ...prev,
-          characters: parsedCharacters.length > 0 ? parsedCharacters : prev.characters,
-          encounters: parsedEncounters.length > 0 ? parsedEncounters : prev.encounters,
-          npcs: parsedNPCs.length > 0 ? parsedNPCs : prev.npcs,
-          encounterCombatants: parsedEncounterCombatants.length > 0 ? parsedEncounterCombatants : prev.encounterCombatants,
-          statuses,
-          difficulties,
-        };
-      });
-
-      setLastSyncTime(new Date());
-      setIsGoogleConnected(true);
-      addLog('Sync successful. Campaign data is now local.');
-
-    } catch (error: any) {
-      console.error('[GMDashboard] Sync failed:', error);
-
-      if (error.message === 'UNAUTHENTICATED') {
-        addLog('ERROR: Login Session Expired.');
-        setIsGoogleConnected(false);
-        setSyncError('Your login session has expired. Please sign in with Google again.');
-      } else {
-        addLog(`ERROR: ${error.message}`);
-        setSyncError(error.message || 'Connection failed. Please check your internet and spreadsheet ID.');
-      }
-
-      if (isManual) setIsSyncing(true);
-    } finally {
-      if (!isManual) setIsSyncing(false);
-      if (isManual && !syncError) {
-        setTimeout(() => setIsSyncing(false), 800);
-      }
-    }
-  };
-
-  const startEncounter = async (id: string) => {
-    const encounter = state.encounters.find(e => e.id === id);
-    if (!encounter) return;
-
-    let combatants: Combatant[] = [];
-    const linkedCombatants = state.encounterCombatants.filter(ec => ec.encounterId === id);
-
-    if (linkedCombatants.length > 0) {
-      linkedCombatants.forEach(ec => {
-        let parsedTimers: Record<string, number> = {};
-        if (ec.conditionTimers) {
-          try {
-            parsedTimers = JSON.parse(ec.conditionTimers);
-          } catch (e) {
-            console.warn('Failed to parse conditionTimers JSON:', ec.conditionTimers, e);
-          }
-        }
-
-        if (ec.playerId) {
-          const c = state.characters.find(char => char.id === ec.playerId);
-          if (c) {
-            combatants.push({
-              id: `combat-pc-${c.id}`,
-              encounterCombatantId: ec.id,
-              characterId: c.id,
-              name: c.characterName,
-              type: 'pc',
-              initiative: ec.initiative || 0,
-              ac: c.ac,
-              maxHp: c.maxHp,
-              currentHp: c.currentHp,
-              tempHp: c.tempHp,
-              conditions: c.conditions,
-              notes: c.notes,
-              passivePerception: c.passivePerception,
-              sheetColHp: 'G',
-              sheetColTempHp: 'F',
-              sheetColCondition: 'H',
-              hpSheetName: 'Characters',
-              hpSheetRowIndex: c.sheetRowIndex,
-              resistances: c.resistances || '',
-              immunities: c.immunities || '',
-              vulnerabilities: c.vulnerabilities || '',
-              conditionTimers: parsedTimers,
-            });
-          }
-        } else if (ec.npcId) {
-          const npcTemplate = state.npcs.find(n => n.id === ec.npcId);
-          if (npcTemplate) {
-            for (let i = 0; i < ec.quantity; i++) {
-              combatants.push({
-                id: `combat-npc-${npcTemplate.id}-${i}-${Date.now()}`,
-                encounterCombatantId: ec.id,
-                name: `${npcTemplate.name}${ec.quantity > 1 ? ` ${i + 1}` : ''}`,
-                type: 'npc',
-                initiative: ec.initiative || 0,
-                ac: npcTemplate.ac,
-                maxHp: npcTemplate.maxHp,
-                currentHp: npcTemplate.currentHp,
-                tempHp: npcTemplate.tempHp,
-                conditions: npcTemplate.conditions,
-                notes: npcTemplate.notes,
-                passivePerception: 10,
-                resistances: npcTemplate.resistances,
-                immunities: npcTemplate.immunities,
-                vulnerabilities: npcTemplate.vulnerabilities,
-                conditionTimers: parsedTimers,
-              });
-            }
-          }
-        }
-      });
-    } else {
-      // Fallback: add all active characters
-      const activePcs = state.characters.filter(c => c.isActive);
-      activePcs.forEach(c => {
-        combatants.push({
-          id: `combat-pc-${c.id}`,
-          characterId: c.id,
-          name: c.characterName,
-          type: 'pc',
-          initiative: 0,
-          ac: c.ac,
-          maxHp: c.maxHp,
-          currentHp: c.currentHp,
-          tempHp: c.tempHp,
-          conditions: c.conditions,
-          notes: c.notes,
-          passivePerception: c.passivePerception,
-          sheetColHp: 'G',
-          sheetColTempHp: 'F',
-          sheetColCondition: 'H',
-          hpSheetName: 'Characters',
-          hpSheetRowIndex: c.sheetRowIndex,
-          resistances: c.resistances || '',
-          immunities: c.immunities || '',
-          vulnerabilities: c.vulnerabilities || '',
-          conditionTimers: {},
-        });
-      });
-    }
-
-    updateState(prev => ({
-      ...prev,
-      combatState: {
-        activeEncounterId: encounter.id,
-        combatants,
-        activeTurnId: null,
-        round: 1,
-      },
-    }));
-
-    setActiveTab('combat');
-  };
-
-  const clearEncounter = () => {
-    updateState(prev => ({
-      ...prev,
-      combatState: {
-        ...prev.combatState,
-        activeEncounterId: null,
-      },
-    }));
-    setActiveTab('encounters');
-  };
+  const {
+    isGoogleConnected,
+    setIsGoogleConnected,
+    handleSignIn,
+    handleSignOut,
+  } = useGoogleAuth({
+    onLog: addLog,
+    onAuthSuccess: () => handleSyncWithSheets(false),
+  });
 
   return (
     <div className="w-full h-[100dvh] bg-[#fdfaf5] flex overflow-hidden font-serif select-none relative">
-
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
         <div
@@ -641,287 +299,28 @@ export function GMDashboard() {
       </main>
 
       {/* Syncing Overlay */}
-      {isSyncing && (
-        <div className="fixed inset-0 bg-[#2c2c26]/80 backdrop-blur-md z-[200] flex flex-col items-center justify-center p-6 text-white text-center">
-          <div className="bg-[#fdfaf5] w-full max-w-xl rounded-2xl shadow-2xl p-8 flex flex-col gap-6 border border-[#e5e1d8] text-left">
-            <div className="flex flex-col items-center text-center gap-4">
-              <RefreshCw className="w-12 h-12 text-[#c5b358] animate-spin" />
-              <div>
-                <h3 className="text-xl font-bold text-[#2c2c26] font-serif uppercase tracking-wider">Synchronizing Data</h3>
-                <p className="text-sm text-[#5a5a40] font-sans mt-1">Fetching campaign information from Google Sheets...</p>
-              </div>
-            </div>
-
-            <div className="bg-[#2c2c26] rounded-xl p-5 font-mono text-xs text-[#e5e1d8]/80 h-56 overflow-y-auto flex flex-col gap-1.5 border border-black/20">
-              {syncLogs.length === 0 && <span className="opacity-40 animate-pulse">Initializing connection...</span>}
-              {syncLogs.map((log, i) => (
-                <div key={i} className="border-l-2 border-[#c5b358]/30 pl-2 leading-relaxed">
-                  {log}
-                </div>
-              ))}
-              {syncError && (
-                <div className="mt-4 p-5 bg-red-900/40 border border-red-500/50 rounded-xl shadow-inner">
-                  <div className="flex items-start gap-3 mb-4">
-                    <AlertCircle className="w-5 h-5 text-red-200 shrink-0" />
-                    <div>
-                      <p className="text-red-100 font-sans font-bold text-sm">Action Required</p>
-                      <p className="text-red-200/80 font-sans text-xs mt-1 leading-relaxed">
-                        {syncError.includes('UNAUTHENTICATED')
-                          ? 'Your session has expired. To maintain background sync, we need you to sign in again using the persistent flow.'
-                          : "We couldn't connect to Google. This often happens if the spreadsheet ID is wrong or your session is stale."}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-2">
-                    <button
-                      onClick={() => {
-                        setSyncError(null);
-                        addLog('Initiating Persistent Auth via Redirect...');
-                        signInWithRedirect();
-                      }}
-                      className="bg-[#c5b358] hover:bg-[#b09f4d] text-white px-4 py-3 rounded-xl font-bold font-sans uppercase tracking-widest text-xs flex items-center justify-center gap-2 shadow-lg"
-                    >
-                      <LogIn className="w-4 h-4" />
-                      Reconnect with Google
-                    </button>
-
-                    <button
-                      onClick={() => setIsSyncing(false)}
-                      className="text-white/40 hover:text-white/60 text-[10px] uppercase tracking-tighter font-bold py-2"
-                    >
-                      Dismiss and continue offline
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="text-xs uppercase tracking-widest text-[#5a5a40] font-bold opacity-60">
-                {isGoogleConnected ? 'Connected to Google Account' : 'Accessing Google Services...'}
-              </div>
-              <button
-                onClick={() => setIsSyncing(false)}
-                className="text-xs uppercase tracking-widest text-red-500 font-bold hover:underline"
-              >
-                Cancel Sync
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <SyncingOverlay
+        isSyncing={isSyncing}
+        syncLogs={syncLogs}
+        syncError={syncError}
+        isGoogleConnected={isGoogleConnected}
+        handleSignIn={handleSignIn}
+        setSyncError={setSyncError}
+        setIsSyncing={setIsSyncing}
+        addLog={addLog}
+      />
 
       {/* Settings Modal */}
-      {isSettingsOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-[#fdfaf5] w-full max-w-lg rounded-2xl shadow-2xl border border-[#e5e1d8] overflow-hidden flex flex-col">
-            <div className="bg-[#2c2c26] p-6 text-[#e5e1d8] flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Settings className="w-6 h-6 text-[#c5b358]" />
-                <h2 className="text-xl font-bold font-serif uppercase tracking-wider">App Settings</h2>
-              </div>
-              <button
-                onClick={() => {
-                  setTempSpreadsheetId(getSpreadsheetId());
-                  setIsSettingsOpen(false);
-                }}
-                className="p-2 hover:bg-white/10 rounded-full transition-colors"
-                title="Close"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="p-8 space-y-6">
-              <div className="bg-[#f5f5f0] border-2 border-[#e5e1d8] rounded-2xl p-5 mb-4">
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <h3 className="text-xs font-bold uppercase tracking-widest text-[#2c2c26] mb-1">Google Connection</h3>
-                    <p className="text-xs text-[#5a5a40]">
-                      {isGoogleConnected
-                        ? 'Currently connected to Google Services.'
-                        : 'Sign in to sync your campaign data with Google Sheets.'}
-                    </p>
-                  </div>
-                  <div className="flex flex-col gap-2 shrink-0">
-                    {!isGoogleConnected ? (
-                      <div className="flex flex-col gap-2">
-                        <button
-                          onClick={async () => {
-                            try {
-                              console.log('[Auth] Initiating Redirect Flow...');
-                              signInWithRedirect();
-                            } catch (err: any) {
-                              console.error('[Auth] Redirect Error:', err);
-                              alert(`Failed to start login: ${err.message}`);
-                            }
-                          }}
-                          className="bg-[#c5b358] hover:bg-[#b09f4d] text-white px-6 py-3 rounded-full text-xs font-bold uppercase tracking-widest shadow-md transition-all flex items-center justify-center gap-2"
-                        >
-                          <LogIn className="w-4 h-4" />
-                          Sign In with Google
-                        </button>
-                        <p className="text-[10px] text-[#5a5a40]/60 text-center px-4 leading-tight">
-                          Authorization required for Sheets sync. Redirect flow is most reliable.
-                        </p>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => {
-                          clearTokens();
-                          setIsGoogleConnected(false);
-                          addLog('Signed out of Google Account.');
-                        }}
-                        className="bg-red-50 hover:bg-red-100 text-red-600 px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all"
-                      >
-                        Sign Out
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {!isGoogleConnected && (
-                  <div className="mt-4 pt-4 border-t border-[#e5e1d8]">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-xs text-[#5a5a40] font-medium">Advanced Setup:</p>
-                      <button
-                        onClick={() => setShowAdvancedAuth(!showAdvancedAuth)}
-                        className="text-xs font-bold text-[#c5b358] hover:underline uppercase"
-                      >
-                        {showAdvancedAuth ? 'Hide Manual' : 'Configure Manual Token'}
-                      </button>
-                    </div>
-
-                    {showAdvancedAuth && (
-                      <div className="space-y-3 bg-white/30 p-4 rounded-xl border border-dashed border-[#c5b358]/50">
-                        <div className="space-y-1">
-                          <p className="text-[10px] text-[#5a5a40] uppercase font-bold opacity-70">Manual Configuration</p>
-                          <p className="text-xs text-[#5a5a40] leading-tight mb-2">
-                            If the redirect flow fails, paste a refresh token below.
-                          </p>
-                        </div>
-
-                        <div className="space-y-2 pt-2">
-                          <div className="flex gap-2">
-                            <input
-                              type="password"
-                              value={manualToken}
-                              onChange={e => setManualTokenState(e.target.value)}
-                              placeholder="paste_token_here..."
-                              className="flex-1 bg-white border border-[#e5e1d8] rounded px-3 py-2 text-sm font-mono"
-                            />
-                            <button
-                              onClick={() => {
-                                if (manualToken) {
-                                  try {
-                                    setManualRefreshToken(manualToken); // ✅ replaces setManualToken
-                                    setIsGoogleConnected(true);
-                                    alert('Manual token applied!');
-                                    setManualTokenState('');
-                                    setShowAdvancedAuth(false);
-                                  } catch (err: any) {
-                                    alert('Error: ' + err.message);
-                                  }
-                                }
-                              }}
-                              className="bg-[#c5b358] text-white px-4 py-2 rounded text-xs font-bold uppercase transition-all active:scale-95 shadow-sm"
-                            >
-                              Apply
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {isGoogleConnected && (
-                <div className="bg-[#f5f5f0] border-2 border-[#e5e1d8] rounded-2xl p-5 mb-4">
-                  <div className="flex items-center justify-between gap-4">
-                    <div>
-                      <h3 className="text-xs font-bold uppercase tracking-widest text-[#2c2c26] mb-1">Database Maintenance</h3>
-                      <p className="text-[10px] text-[#5a5a40]">
-                        Runs a background job to scrub empty rows and clean up orphaned relational database IDs.
-                      </p>
-                    </div>
-                    <div className="flex flex-col gap-2 shrink-0">
-                      <button
-                        onClick={async () => {
-                          const conf = confirm('Run Sync & Sanitize? This will remove empty rows from your sheets.');
-                          if (!conf) return;
-                          try {
-                            const { syncAndSanitizeDatabase } = await import('../services/dbOperations');
-                            addLog('Starting Sync & Sanitize...');
-                            const deletedCount = await syncAndSanitizeDatabase();
-                            addLog(`Sanitize complete. Removed ${deletedCount} empty rows.`);
-                            alert(`Sanitize complete. Removed ${deletedCount} empty rows.`);
-                            toast.promise(handleSyncWithSheets(false), {
-                              loading: 'Syncing with Google Sheets...',
-                              success: 'Sync complete',
-                              error: 'Sync failed — changes saved locally',
-                            });
-                          } catch (err: any) {
-                            alert('Sanitize failed: ' + err.message);
-                          }
-                        }}
-                        className="bg-[#5a5a40] hover:bg-[#3f3f37] text-white px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all"
-                      >
-                        Sync & Sanitize
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div>
-                <label className="block text-xs uppercase tracking-widest font-bold text-[#5a5a40] mb-2 px-1">
-                  Google Spreadsheet ID
-                </label>
-                <div className="relative group">
-                  <input
-                    type="text"
-                    value={tempSpreadsheetId}
-                    onChange={e => setTempSpreadsheetId(e.target.value)}
-                    placeholder="Enter Spreadsheet ID"
-                    className="w-full bg-[#f5f5f0] border-2 border-[#e5e1d8] rounded-xl px-5 py-4 font-sans text-base outline-none focus:border-[#c5b358] transition-all"
-                  />
-                  <div className="mt-2 text-xs text-[#5a5a40]/60 italic px-1">
-                    This ID determines which Google Sheet the app syncs with.
-                    Changes require a manual "Pull from Sheets" to take effect.
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-4 flex gap-3">
-                <button
-                  onClick={() => {
-                    setSpreadsheetId(tempSpreadsheetId);
-                    setIsSettingsOpen(false);
-                    toast.promise(handleSyncWithSheets(false), {
-                      loading: 'Syncing with Google Sheets...',
-                      success: 'Sync complete',
-                      error: 'Sync failed — changes saved locally',
-                    });
-                  }}
-                  className="flex-1 bg-[#5a5a40] hover:bg-[#3f3f37] text-white py-3 rounded-xl font-bold font-sans uppercase tracking-widest text-xs flex items-center justify-center gap-2 transition-all shadow-md active:scale-95"
-                >
-                  <Save className="w-4 h-4" />
-                  Save & Sync Now
-                </button>
-                <button
-                  id="settings-cancel-btn"
-                  onClick={() => setIsSettingsOpen(false)}
-                  className="flex-1 bg-[#e5e1d8] hover:bg-[#d4cfc1] text-[#2c2c26] py-3 rounded-xl font-bold font-sans uppercase tracking-widest text-xs transition-all"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <SettingsModal
+        isSettingsOpen={isSettingsOpen}
+        setIsSettingsOpen={setIsSettingsOpen}
+        isGoogleConnected={isGoogleConnected}
+        handleSignIn={handleSignIn}
+        handleSignOut={handleSignOut}
+        setIsGoogleConnected={setIsGoogleConnected}
+        handleSyncWithSheets={handleSyncWithSheets}
+        addLog={addLog}
+      />
     </div>
   );
 }

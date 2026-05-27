@@ -56,8 +56,10 @@ export function useEncounters({ onSelectEncounter, onSyncRequested }: UseEncount
       
       const errorObj = err as Record<string, unknown> | null;
       if (errorObj?.message === "UNAUTHENTICATED" || errorObj?.error === "UNAUTHENTICATED") {
-        alert("Your session has expired. Please sign in again.");
-        window.location.reload();
+        toast.error('Session expired — please sign in again.', {
+          description: 'Your Google session timed out. Use the Connect & Sync button to reconnect.',
+          duration: 8000,
+        });
       } else {
         setGlobalError("Unable to create a new encounter at this time. Please try again.");
       }
@@ -77,6 +79,8 @@ export function useEncounters({ onSelectEncounter, onSyncRequested }: UseEncount
       encounterCombatants: prev.encounterCombatants.filter(ec => ec.encounterId !== enc.id)
     }));
 
+    toast.success(`${enc.name || 'Encounter'} deleted.`);
+
     try {
       await deleteEncounterFully(enc.id);
       onSyncRequested().catch(console.error);
@@ -86,8 +90,10 @@ export function useEncounters({ onSelectEncounter, onSyncRequested }: UseEncount
       
       const errorObj = err as Record<string, unknown> | null;
       if (errorObj?.message === "UNAUTHENTICATED" || errorObj?.error === "UNAUTHENTICATED") {
-        alert("Your session has expired. Please sign in again.");
-        window.location.reload();
+        toast.error('Session expired — please sign in again.', {
+          description: 'Your Google session timed out. Use the Connect & Sync button to reconnect.',
+          duration: 8000,
+        });
       } else {
         setGlobalError(`Failed to delete "${enc.name || 'Encounter'}". It might be heavily linked to combatants.`);
       }

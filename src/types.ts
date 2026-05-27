@@ -89,7 +89,7 @@ export interface EncounterCombatant {
   quantity: number;
   sheetRowIndex?: number;
   initiative?: number;
-  conditionTimers?: string;
+  conditionTimers?: string | Record<string, number>;
 }
 
 export interface DifficultyLevel {

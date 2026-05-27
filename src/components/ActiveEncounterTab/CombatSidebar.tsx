@@ -139,7 +139,7 @@ export function CombatSidebar({
                 </div>
 
                 <div>
-                  <label htmlFor="preset-select" className="block text-[9px] text-[#5a5a40] uppercase tracking-wider font-bold mb-1 ml-1">Select {presetType.toUpperCase()}</label>
+                  <label htmlFor="preset-select" className="block text-[10px] text-[#5a5a40] uppercase tracking-wider font-bold mb-1 ml-1">Select {presetType.toUpperCase()}</label>
                   <select
                     id="preset-select"
                     value={selectedPreset}
@@ -159,7 +159,7 @@ export function CombatSidebar({
 
                 {presetType === 'npc' && (
                   <div>
-                    <label htmlFor="preset-quantity" className="block text-[9px] text-[#5a5a40] uppercase tracking-wider font-bold mb-1 ml-1">Quantity</label>
+                    <label htmlFor="preset-quantity" className="block text-[10px] text-[#5a5a40] uppercase tracking-wider font-bold mb-1 ml-1">Quantity</label>
                     <input
                       id="preset-quantity"
                       type="number"
@@ -189,7 +189,7 @@ export function CombatSidebar({
               </div>
               <form onSubmit={handleAddNpc} className="space-y-3 font-sans">
                 <div>
-                  <label className="block text-[9px] text-[#5a5a40] uppercase tracking-wider font-bold mb-1 ml-1">Name</label>
+                  <label className="block text-[10px] text-[#5a5a40] uppercase tracking-wider font-bold mb-1 ml-1">Name</label>
                   <input
                     type="text"
                     value={npcName}
@@ -201,7 +201,7 @@ export function CombatSidebar({
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label htmlFor="npc-hp" className="block text-[9px] text-[#5a5a40] uppercase tracking-wider font-bold mb-1 ml-1">HP</label>
+                    <label htmlFor="npc-hp" className="block text-[10px] text-[#5a5a40] uppercase tracking-wider font-bold mb-1 ml-1">HP</label>
                     <input
                       id="npc-hp"
                       type="number"
@@ -213,7 +213,7 @@ export function CombatSidebar({
                     />
                   </div>
                   <div>
-                    <label htmlFor="npc-ac" className="block text-[9px] text-[#5a5a40] uppercase tracking-wider font-bold mb-1 ml-1">AC</label>
+                    <label htmlFor="npc-ac" className="block text-[10px] text-[#5a5a40] uppercase tracking-wider font-bold mb-1 ml-1">AC</label>
                     <input
                       id="npc-ac"
                       type="number"
@@ -225,7 +225,7 @@ export function CombatSidebar({
                   </div>
                 </div>
                 <div>
-                  <label className="block text-[9px] text-[#5a5a40] uppercase tracking-wider font-bold mb-1 ml-1">Characteristics</label>
+                  <label className="block text-[10px] text-[#5a5a40] uppercase tracking-wider font-bold mb-1 ml-1">Characteristics</label>
                   <input
                     type="text"
                     value={npcNotes}
