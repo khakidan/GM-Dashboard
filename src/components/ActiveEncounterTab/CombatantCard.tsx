@@ -102,7 +102,7 @@ const InitiativeInput = ({
       onBlur={handleBlur}
       onKeyDown={handleKeyDown}
       disabled={disabled}
-      className="w-14 h-8 bg-[#faf9f6]/50 border border-[#e5e1d8] rounded text-center font-bold text-[#c5b358] outline-none text-xs focus:border-[#c5b358] focus:bg-white disabled:opacity-50"
+      className="w-14 h-8 bg-[#faf9f6]/50 border border-[#e5e1d8] rounded text-center font-bold text-[#c5b358] outline-none text-sm focus:border-[#c5b358] focus:bg-white disabled:opacity-50"
     />
   );
 };
@@ -137,7 +137,7 @@ const ReadOnlyIrvDisplay = ({ label, items, theme }: { label: string, items: str
 
   return (
     <div>
-      <span className="block text-[10px] font-bold uppercase tracking-widest text-[#5a5a40] mb-1.5">{label}</span>
+      <span className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40] mb-1.5">{label}</span>
       {arr.length === 0 ? (
         <span className="text-xl text-[#5a5a40] opacity-30">—</span>
       ) : (
@@ -146,7 +146,7 @@ const ReadOnlyIrvDisplay = ({ label, items, theme }: { label: string, items: str
             <span
               key={chip}
               className={cn(
-                'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold font-sans capitalize border',
+                'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-sm font-bold font-sans capitalize border',
                 chipClass
               )}
             >
@@ -190,7 +190,7 @@ export function CombatantCard({
       )}
     >
       {isActive && !isSelectable && (
-        <div className="absolute -top-3 left-6 bg-[#c5b358] text-[#2c2c26] text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full shadow-sm z-20 flex items-center gap-1">
+        <div className="absolute -top-3 left-6 bg-[#c5b358] text-[#2c2c26] text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full shadow-sm z-20 flex items-center gap-1">
           <Zap className="w-3 h-3 fill-current" /> Active
         </div>
       )}
@@ -220,7 +220,7 @@ export function CombatantCard({
             className="flex flex-col items-center shrink-0"
             onClick={e => e.stopPropagation()}
           >
-            <span className="text-[9px] font-bold uppercase text-[#5a5a40] opacity-60 leading-none mb-1">Init</span>
+            <span className="text-[10px] font-bold uppercase text-[#5a5a40] opacity-60 leading-none mb-1">Init</span>
             <InitiativeInput
               value={c.initiative}
               onSave={val => onUpdateCombatant({ initiative: val })}
@@ -233,13 +233,13 @@ export function CombatantCard({
             </h3>
             {c.currentHp < c.maxHp && c.currentHp > 0 && (
               <span className={cn(
-                "text-[10px] font-bold px-2 py-0.5 rounded-full border border-current bg-white/50 shrink-0",
+                "text-xs font-bold px-2 py-0.5 rounded-full border border-current bg-white/50 shrink-0",
                 getHealthStatus(c.currentHp, c.maxHp).color
               )}>
                 {getHealthStatus(c.currentHp, c.maxHp).label}
               </span>
             )}
-            <span className="text-xs font-bold text-[#b0a04f] whitespace-nowrap">(AC {c.ac})</span>
+            <span className="text-sm font-bold text-[#b0a04f] whitespace-nowrap">(AC {c.ac})</span>
             {c.conditions && c.conditions.split(',').filter(Boolean).length > 0 && (
               <div className="flex -space-x-1">
                 {c.conditions.split(',').map((cond, i) => (
@@ -280,7 +280,7 @@ export function CombatantCard({
                     }
                   }}
                   className={cn(
-                    'w-12 h-8 bg-[#faf9f6]/50 border border-[#e5e1d8] rounded px-1 text-center outline-none focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] font-sans text-sm font-bold disabled:opacity-50',
+                    'w-12 h-8 bg-[#faf9f6]/50 border border-[#e5e1d8] rounded px-1 text-center outline-none focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] font-sans text-base font-bold disabled:opacity-50',
                     isActive && 'bg-white border-[#c5b358]/50'
                   )}
                 />
@@ -289,7 +289,7 @@ export function CombatantCard({
                   value={selectedDamageType || ''}
                   onChange={e => setSelectedDamageType((e.target.value as DamageType) || null)}
                   disabled={isSyncing}
-                  className="w-24 h-8 bg-[#faf9f6] border border-[#e5e1d8] rounded px-1 text-[10px] font-bold text-[#5a5a40] outline-none cursor-pointer focus:border-[#c5b358] appearance-auto"
+                  className="w-24 h-8 bg-[#faf9f6] border border-[#e5e1d8] rounded px-1 text-xs font-bold text-[#5a5a40] outline-none cursor-pointer focus:border-[#c5b358] appearance-auto"
                 >
                   <option value="">Damage Type</option>
                   <option value="acid">acid</option>
@@ -315,13 +315,13 @@ export function CombatantCard({
                     setSelectedDamageType(null);
                   }}
                   disabled={isSyncing}
-                  className="px-2 h-8 leading-none bg-red-50 text-red-700 hover:bg-red-100 border border-red-100 rounded-md text-[10px] font-bold uppercase disabled:opacity-50"
+                  className="px-2 h-8 leading-none bg-red-50 text-red-700 hover:bg-red-100 border border-red-100 rounded-md text-xs font-bold uppercase disabled:opacity-50"
                   title="Damage"
                 >
                   DMG
                 </button>
               </div>
-              <span> | </span>
+              <div className="border-l border-[#f5f5f0]">&nbsp;</div>
               {/* Heal Row */}
               <div className="flex items-center gap-1">
                 <input
@@ -337,14 +337,14 @@ export function CombatantCard({
                     }
                   }}
                   className={cn(
-                    'w-12 h-8 bg-[#faf9f6]/50 border border-[#e5e1d8] rounded px-1 text-center outline-none focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] font-sans text-sm font-bold disabled:opacity-50',
+                    'w-12 h-8 bg-[#faf9f6]/50 border border-[#e5e1d8] rounded px-1 text-center outline-none focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] font-sans text-base font-bold disabled:opacity-50',
                     isActive && 'bg-white border-[#c5b358]/50'
                   )}
                 />
                 <button
                   onClick={() => onHealthSubmit(false, null)}
                   disabled={isSyncing}
-                  className="px-2 h-8 leading-none bg-green-50 text-green-700 hover:bg-green-100 border border-green-100 rounded-md text-[10px] font-bold uppercase disabled:opacity-50"
+                  className="px-2 h-8 leading-none bg-green-50 text-green-700 hover:bg-green-100 border border-green-100 rounded-md text-xs font-bold uppercase disabled:opacity-50"
                   title="Heal"
                 >
                   HEAL
@@ -378,7 +378,7 @@ export function CombatantCard({
           >
             <div className="px-6 pb-6 pt-2 border-t border-[#f5f5f0] space-y-5">
               {c.notes && (
-                <p className="text-xs text-[#5a5a40] opacity-60 italic">{c.notes}</p>
+                <p className="text-sm text-[#5a5a40] opacity-60 italic">{c.notes}</p>
               )}
 
               <div id={`combatant-stat-grid-${c.id}`} className="flex gap-4">
@@ -391,7 +391,7 @@ export function CombatantCard({
                 {/* Right column: HP stats */}
                 <div className="w-[40%] flex flex-col gap-3">
                   <div className="bg-[#faf9f6] p-3 rounded-xl border border-[#e5e1d8] text-center flex-1 flex flex-col justify-center">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-[#5a5a40] block mb-1">Temp HP</span>
+                    <span className="text-xs font-bold uppercase tracking-widest text-[#5a5a40] block mb-1">Temp HP</span>
                     <input
                       type="number"
                       value={c.tempHp || ''}
@@ -402,14 +402,14 @@ export function CombatantCard({
                     />
                   </div>
                   <div className="bg-[#faf9f6] p-3 rounded-xl border border-[#e5e1d8] text-center flex-1 flex flex-col justify-center">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-[#5a5a40] block mb-1">Max HP</span>
+                    <span className="text-xs font-bold uppercase tracking-widest text-[#5a5a40] block mb-1">Max HP</span>
                     <span className="font-bold text-base text-[#5a5a40]">{c.maxHp}</span>
                   </div>
                 </div>
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-widest text-[#5a5a40] mb-2">Conditions</label>
+                <label className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40] mb-2">Conditions</label>
                 <ConditionChips
                   value={c.conditions || ''}
                   onChange={val => onUpdateCombatant({ conditions: val })}
@@ -444,7 +444,7 @@ export function CombatantCard({
                   {Object.entries(c.conditionTimers).map(([condName, expiresAt]) => (
                     <span
                       key={condName}
-                      className="inline-flex items-center gap-2 bg-[#faf9f6]/80 border border-[#e5e1d8] hover:border-[#c5b358] text-[#5a5a40] text-[10px] font-bold px-3 py-1 rounded-full transition-colors"
+                      className="inline-flex items-center gap-2 bg-[#faf9f6]/80 border border-[#e5e1d8] hover:border-[#c5b358] text-[#5a5a40] text-xs font-bold px-3 py-1 rounded-full transition-colors"
                     >
                       <span>{condName} ends round {expiresAt}</span>
                       <button
@@ -466,10 +466,10 @@ export function CombatantCard({
               )}
 
               <div className="flex justify-between items-center pt-4 border-t border-[#f5f5f0]">
-                <span className="text-[10px] text-[#5a5a40] opacity-40 font-mono tracking-tighter">{c.id.split('-').pop()}</span>
+                <span className="text-xs text-[#5a5a40] opacity-40 font-mono tracking-tighter">{c.id.split('-').pop()}</span>
                 <button
                   onClick={onRemoveCombatant}
-                  className="flex items-center gap-2 px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-red-600 hover:bg-red-50 rounded-full transition-all border border-transparent hover:border-red-100"
+                  className="flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-widest text-red-600 hover:bg-red-50 rounded-full transition-all border border-transparent hover:border-red-100"
                 >
                   <Trash2 className="w-4 h-4" /> Remove Combatant
                 </button>

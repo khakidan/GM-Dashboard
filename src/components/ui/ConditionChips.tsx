@@ -84,6 +84,10 @@ export function ConditionChips({
     let debounceTimer: ReturnType<typeof setTimeout>;
     const handleScroll = (e: Event) => {
       // Close on scroll to prevent detached dropdowns
+      const portalEl = document.getElementById('condition-chips-dropdown');
+      if (portalEl && (e.target === portalEl || portalEl.contains(e.target as Node))) {
+        return;
+      }
       setOpen(false);
     };
     const handleResize = () => {
@@ -213,7 +217,12 @@ export function ConditionChips({
           !disabled && 'focus-within:border-[#c5b358] focus-within:bg-white',
           disabled  && 'opacity-50 cursor-not-allowed'
         )}
-        onClick={() => !disabled && inputRef.current?.focus()}
+        onClick={() => {
+          if (!disabled) {
+            setOpen(true);
+            inputRef.current?.focus();
+          }
+        }}
       >
         {chips.map(chip => (
           <span
