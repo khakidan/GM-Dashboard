@@ -12,6 +12,9 @@ async function startServer() {
     'VITE_GOOGLE_CLIENT_SECRET',
   ] as const;
 
+  console.log(`[Diagnostic] VITE_GOOGLE_CLIENT_ID is ${process.env.VITE_GOOGLE_CLIENT_ID ? 'SET' : 'NOT SET'}`);
+  console.log(`[Diagnostic] VITE_GOOGLE_CLIENT_SECRET is ${process.env.VITE_GOOGLE_CLIENT_SECRET ? 'SET' : 'NOT SET'}`);
+
   const missing = REQUIRED_ENV.filter(key => !process.env[key]);
   if (missing.length > 0) {
     console.warn('⚠️  [Server] Missing environment variables:');
