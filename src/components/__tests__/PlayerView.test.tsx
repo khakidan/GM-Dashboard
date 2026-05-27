@@ -70,11 +70,8 @@ describe('PlayerView Component', () => {
     });
 
     render(<PlayerView />);
-    // Check for the first word of the name
-    expect(screen.getByText('Lidda')).toBeDefined();
-    expect(screen.getByText('Orkish')).toBeDefined();
-    // It shouldn't render the trailing words
-    expect(screen.queryByText('Lidda Halfling')).toBeNull();
+    expect(screen.getByText('Lidda Halfling')).toBeDefined();
+    expect(screen.getByText('Orkish Marauder')).toBeDefined();
   });
 
   // Test 3: The health status label (Healthy, Injured, Bloodied, Defeated) is shown correctly for each combatant based on their HP ratio, using the getHealthStatus function from combatLogic.ts

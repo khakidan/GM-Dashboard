@@ -7,7 +7,8 @@ export function useHealthChange(
   syncingIds: Set<string>,
   updateCombatant: (id: string, updates: Partial<Combatant>) => void
 ) {
-  const [healthInputs, setHealthInputs] = useState<Record<string, string>>({});
+  const [damageInputs, setDamageInputs] = useState<Record<string, string>>({});
+  const [healInputs, setHealInputs] = useState<Record<string, string>>({});
 
   const handleHealthChange = (
     id: string,
@@ -17,8 +18,11 @@ export function useHealthChange(
     amountOverride?: number
   ) => {
     if (syncingIds.has(id)) return;
-    const val = amountOverride !== undefined ? amountOverride : parseInt(healthInputs[id]);
-    if (!isNaN(val)) {
+    
+    const inputState = isDamage ? damageInputs : healInputs;
+    const val = amountOverride !== undefined ? amountOverride : parseInt(inputState[id]);
+    
+    if (!isNaN(val) && val > 0) {
       let finalDamageAmount = val;
       if (isDamage && damageType) {
         const { finalDamage, modifier } = computeDamageWithIrv(
@@ -48,12 +52,19 @@ export function useHealthChange(
       );
       updateCombatant(id, { currentHp: newCurrentHp, tempHp: newTempHp });
     }
-    setHealthInputs(prev => ({ ...prev, [id]: '' }));
+    
+    if (isDamage) {
+      setDamageInputs(prev => ({ ...prev, [id]: '' }));
+    } else {
+      setHealInputs(prev => ({ ...prev, [id]: '' }));
+    }
   };
 
   return {
-    healthInputs,
-    setHealthInputs,
+    damageInputs,
+    setDamageInputs,
+    healInputs,
+    setHealInputs,
     handleHealthChange
   };
 }

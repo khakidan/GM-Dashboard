@@ -34,8 +34,10 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
   } = useCombatSync();
 
   const {
-    healthInputs,
-    setHealthInputs,
+    damageInputs,
+    setDamageInputs,
+    healInputs,
+    setHealInputs,
     handleHealthChange
   } = useHealthChange(syncingIds, updateCombatant);
 
@@ -431,9 +433,11 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
                     isSyncing={syncingIds.has(c.id)}
                     isSelectable={isMultiTargetMode}
                     isSelected={selectedCombatantIds.has(c.id)}
-                    healthInput={healthInputs[c.id] || ''}
+                    damageInput={damageInputs[c.id] || ''}
+                    healInput={healInputs[c.id] || ''}
                     currentRound={state.combatState.round}
-                    onHealthInputChange={(val) => setHealthInputs(prev => ({ ...prev, [c.id]: val }))}
+                    onDamageInputChange={(val) => setDamageInputs(prev => ({ ...prev, [c.id]: val }))}
+                    onHealInputChange={(val) => setHealInputs(prev => ({ ...prev, [c.id]: val }))}
                     onHealthSubmit={(isDamage, damageType) => handleHealthChange(c.id, c, isDamage, damageType)}
                     onToggleExpand={() => toggleExpand(c.id)}
                     onToggleSelect={toggleCombatantSelection}

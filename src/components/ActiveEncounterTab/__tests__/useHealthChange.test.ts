@@ -25,7 +25,7 @@ describe('useHealthChange', () => {
     const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
 
     act(() => {
-      result.current.setHealthInputs({ c1: '10' });
+      result.current.setDamageInputs({ c1: '10' });
     });
 
     act(() => {
@@ -42,7 +42,7 @@ describe('useHealthChange', () => {
     const woundedCombatant = { ...baseCombatant, currentHp: 10, tempHp: 0 };
 
     act(() => {
-      result.current.setHealthInputs({ c1: '15' });
+      result.current.setHealInputs({ c1: '15' });
     });
 
     act(() => {
@@ -58,7 +58,7 @@ describe('useHealthChange', () => {
     const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
 
     act(() => {
-      result.current.setHealthInputs({ c1: '3' });
+      result.current.setDamageInputs({ c1: '3' });
     });
 
     act(() => {
@@ -74,15 +74,15 @@ describe('useHealthChange', () => {
     const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
 
     act(() => {
-      result.current.setHealthInputs({ c1: '5', c2: '10' });
+      result.current.setDamageInputs({ c1: '5', c2: '10' });
     });
 
     act(() => {
       result.current.handleHealthChange('c1', baseCombatant, true);
     });
 
-    expect(result.current.healthInputs['c1']).toBe('');
-    expect(result.current.healthInputs['c2']).toBe('10');
+    expect(result.current.damageInputs['c1']).toBe('');
+    expect(result.current.damageInputs['c2']).toBe('10');
   });
 
   it('handleHealthChange is a no-op when the input value is empty', () => {
@@ -90,7 +90,7 @@ describe('useHealthChange', () => {
     const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
 
     act(() => {
-      result.current.setHealthInputs({ c1: '' });
+      result.current.setDamageInputs({ c1: '' });
     });
 
     act(() => {
@@ -105,7 +105,7 @@ describe('useHealthChange', () => {
     const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
 
     act(() => {
-      result.current.setHealthInputs({ c1: 'abc' });
+      result.current.setDamageInputs({ c1: 'abc' });
     });
 
     act(() => {

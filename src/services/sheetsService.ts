@@ -133,9 +133,6 @@ export async function signInWithRedirect() {
     `&scope=${encodeURIComponent(scope)}` +
     `&prompt=consent select_account`; // Force consent to ensure we get a fresh refresh token
 
-  console.log(`[Sheets] signInWithRedirect authUrl: ${authUrl}`);
-  console.log(`[Sheets] signInWithRedirect redirect_uri parameter: ${redirectUri}`);
-
   // Open in a new tab so the OAuth flow is not inside an iframe
   window.open(authUrl, '_blank', 'noopener');
 }

@@ -1,6 +1,7 @@
 // src/components/ui/ConditionChips.tsx
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { cn } from '../../lib/utils';
 import {
   CONDITION_OPTIONS,
@@ -16,6 +17,8 @@ interface ConditionChipsProps {
   immunities?: string;                // checked before adding official conditions
   disabled?: boolean;
   className?: string;
+  onAddWithTimer?: (label: string, rounds: number) => void;
+  currentRound?: number;
 }
 
 type ChipCategory = 'condition' | 'effect' | 'custom';
@@ -39,11 +42,18 @@ export function ConditionChips({
   immunities = '',
   disabled = false,
   className,
+  onAddWithTimer,
+  currentRound,
 }: ConditionChipsProps) {
   const [query, setQuery]   = useState('');
   const [open, setOpen]     = useState(false);
   const wrapperRef          = useRef<HTMLDivElement>(null);
   const inputRef            = useRef<HTMLInputElement>(null);
+  
+  const [pendingCondition, setPendingCondition] = useState<string | null>(null);
+  const [timerRounds, setTimerRounds] = useState<string>('');
+  
+  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
 
   const chips = value
     ? value.split(',').map(s => s.trim()).filter(Boolean)
@@ -51,10 +61,51 @@ export function ConditionChips({
 
   const chipsLower = chips.map(c => c.toLowerCase());
 
+  const updatePosition = () => {
+    if (wrapperRef.current && open) {
+      const rect = wrapperRef.current.getBoundingClientRect();
+      setDropdownStyle({
+        position: 'fixed',
+        top: rect.bottom + 4,
+        left: rect.left,
+        width: rect.width,
+        zIndex: 9999,
+      });
+    }
+  };
+
+  useLayoutEffect(() => {
+    updatePosition();
+  }, [open, query]);
+
+  useEffect(() => {
+    if (!open) return;
+    
+    let debounceTimer: ReturnType<typeof setTimeout>;
+    const handleScroll = (e: Event) => {
+      // Close on scroll to prevent detached dropdowns
+      setOpen(false);
+    };
+    const handleResize = () => {
+      updatePosition();
+    };
+
+    window.addEventListener('scroll', handleScroll, true);
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll, true);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [open]);
+
   // Close dropdown when clicking outside
   useEffect(() => {
     function onOutside(e: MouseEvent) {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+        // Also need to check if the click was inside the portal dropdown
+        const portalEl = document.getElementById('condition-chips-dropdown');
+        if (portalEl && portalEl.contains(e.target as Node)) return;
         setOpen(false);
       }
     }
@@ -83,6 +134,12 @@ export function ConditionChips({
     return keys.some(k => checkIrvMatch(k, immunities));
   }
 
+  function commitChip(label: string) {
+    onChange([...chips, label].join(', '));
+    setQuery('');
+    setOpen(false);
+  }
+
   function addChip(label: string) {
     const trimmed = label.trim();
     if (!trimmed) return;
@@ -98,8 +155,32 @@ export function ConditionChips({
       setQuery(''); setOpen(false); return;
     }
 
-    onChange([...chips, trimmed].join(', '));
-    setQuery(''); setOpen(false);
+    if (onAddWithTimer) {
+      setPendingCondition(trimmed);
+      setTimerRounds('');
+      setQuery('');
+      setOpen(false);
+    } else {
+      commitChip(trimmed);
+    }
+  }
+
+  function confirmPendingTimer() {
+    if (!pendingCondition) return;
+    const rounds = parseInt(timerRounds);
+    if (!isNaN(rounds) && rounds > 0 && onAddWithTimer) {
+      onAddWithTimer(pendingCondition, rounds);
+    } else {
+      commitChip(pendingCondition);
+    }
+    setPendingCondition(null);
+  }
+
+  function skipPendingTimer() {
+    if (pendingCondition) {
+      commitChip(pendingCondition);
+    }
+    setPendingCondition(null);
   }
 
   function removeChip(chip: string) {
@@ -173,9 +254,12 @@ export function ConditionChips({
       </div>
 
       {/* Dropdown */}
-      {open && !disabled && (filtered.length > 0 || showCustomEntry) && (
-        <div className="absolute z-50 mt-1 w-full bg-white border border-[#e5e1d8]
-                        rounded-xl shadow-lg overflow-hidden max-h-64 overflow-y-auto">
+      {open && !disabled && (filtered.length > 0 || showCustomEntry) && typeof document !== 'undefined' && createPortal(
+        <div 
+          id="condition-chips-dropdown"
+          className="bg-white border border-[#e5e1d8] rounded-xl shadow-lg overflow-hidden max-h-64 overflow-y-auto"
+          style={dropdownStyle}
+        >
 
           {conditionResults.length > 0 && (
             <>
@@ -238,6 +322,43 @@ export function ConditionChips({
               </button>
             </>
           )}
+        </div>,
+        document.body
+      )}
+
+      {/* Inline duration prompt */}
+      {pendingCondition && (
+        <div className="mt-2 p-2 bg-[#faf9f6] border border-[#e5e1d8] rounded-xl flex items-center gap-2">
+          <span className="text-xs font-bold text-[#5a5a40]">Duration for {pendingCondition}:</span>
+          <input
+            type="number"
+            autoFocus
+            min="1"
+            placeholder="rounds"
+            value={timerRounds}
+            onChange={e => setTimerRounds(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter') confirmPendingTimer();
+              if (e.key === 'Escape') skipPendingTimer();
+            }}
+            className="w-20 bg-white border border-[#e5e1d8] rounded text-center px-2 py-1 text-xs outline-none focus:border-[#c5b358]"
+          />
+          <span className="text-[10px] text-[#5a5a40]/60">(optional)</span>
+          <div className="flex-1" />
+          <button
+            type="button"
+            onClick={confirmPendingTimer}
+            className="px-2 py-1 text-[10px] font-bold uppercase bg-[#c5b358] text-white rounded hover:bg-[#b09e4b]"
+          >
+            Add
+          </button>
+          <button
+            type="button"
+            onClick={skipPendingTimer}
+            className="px-2 py-1 text-[10px] font-bold uppercase text-[#5a5a40] hover:bg-[#e5e1d8] rounded"
+          >
+            Skip
+          </button>
         </div>
       )}
 
