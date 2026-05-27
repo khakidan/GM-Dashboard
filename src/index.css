@@ -144,7 +144,7 @@
 
 /* Content Text Overrides */
 [data-theme='sleek-modern'] .text-\[\#2c2c26\] {
-  color: #0d1117 !important;
+  color: #0f172a !important;
 }
 
 [data-theme='sleek-modern'] .text-\[\#5a5a40\] {
@@ -156,7 +156,29 @@
 }
 
 [data-theme='sleek-modern'] .text-\[\#e5e1d8\] {
-  color: #94a3b8 !important; /* slate-400 placeholder and structural names spacer */
+  color: #64748b !important; /* slate-500 secondary details */
+}
+
+/* Left Sidebar typography: ensure all left sidebar text and buttons have beautiful high-contrast dark typography like headers */
+[data-theme='sleek-modern'] .bg-\[\#2c2c26\] span,
+[data-theme='sleek-modern'] .bg-\[\#2c2c26\] button,
+[data-theme='sleek-modern'] .bg-\[\#2c2c26\] h1,
+[data-theme='sleek-modern'] .bg-\[\#2c2c26\] h2,
+[data-theme='sleek-modern'] .bg-\[\#2c2c26\] h3 {
+  color: #0f172a !important;
+  font-weight: 600 !important;
+  text-shadow: none !important;
+  opacity: 1 !important;
+}
+
+[data-theme='sleek-modern'] .bg-\[\#2c2c26\] svg {
+  color: #334155 !important; /* Sharp gray/slate icons inside the navigation column */
+  opacity: 1 !important;
+}
+
+/* Keep current action tab marker in light sidebar colored premium blue */
+[data-theme='sleek-modern'] .bg-\[\#2c2c26\] .bg-\[\#c5b358\] {
+  background-color: #2563eb !important;
 }
 
 /* Structural border overrides (Figma / Linear / Notion style hairline grey lines) */
@@ -165,7 +187,7 @@
 }
 
 [data-theme='sleek-modern'] .border-\[\#1a1a14\] {
-  border-color: #2563eb !important;
+  border-color: #e2e8f0 !important;
 }
 
 [data-theme='sleek-modern'] .border-\[\#c5b358\] {
@@ -215,7 +237,18 @@
   transition: all 0.15s ease !important;
 }
 
-[data-theme='sleek-modern'] button:hover,
+/* Ensure that any button using a blue background has white text */
+[data-theme='sleek-modern'] button.bg-blue-500,
+[data-theme='sleek-modern'] button.bg-blue-600,
+[data-theme='sleek-modern'] button.bg-\[\#5a5a40\],
+[data-theme='sleek-modern'] button.bg-\[\#c5b358\],
+[data-theme='sleek-modern'] button[className*="bg-blue"]:not(#condition-chips-dropdown button),
+[data-theme='sleek-modern'] button[class*="bg-blue"]:not(#condition-chips-dropdown button) {
+  color: #ffffff !important;
+}
+
+/* General button hovers: Active elements get modern high-depth blue hover backgrounds with clean white typography */
+[data-theme='sleek-modern'] button:not(#condition-chips-dropdown button):hover,
 [data-theme='sleek-modern'] [role='button']:hover {
   background-color: #1d4ed8 !important; /* High-quality hover depth blue */
   color: #ffffff !important;
@@ -223,18 +256,63 @@
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12) !important;
 }
 
+/* Ensure dropdown buttons and group headers inside #condition-chips-dropdown have their correct matching colours under sleek-modern */
+[data-theme='sleek-modern'] #condition-chips-dropdown div.text-red-600 {
+  color: #dc2626 !important;
+  background-color: #fef2f2 !important;
+}
+[data-theme='sleek-modern'] #condition-chips-dropdown button.text-red-700 {
+  color: #b91c1c !important;
+}
+[data-theme='sleek-modern'] #condition-chips-dropdown button.text-red-700:hover {
+  background-color: #fef2f2 !important;
+  color: #991b1b !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+[data-theme='sleek-modern'] #condition-chips-dropdown div.text-blue-600 {
+  color: #2563eb !important;
+  background-color: #f0f7ff !important;
+}
+[data-theme='sleek-modern'] #condition-chips-dropdown button.text-blue-700 {
+  color: #1d4ed8 !important;
+}
+[data-theme='sleek-modern'] #condition-chips-dropdown button.text-blue-700:hover {
+  background-color: #f0f7ff !important;
+  color: #1e40af !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+[data-theme='sleek-modern'] #condition-chips-dropdown div.text-\[\#5a5a40\] {
+  color: #475569 !important;
+  background-color: #f1f5f9 !important;
+}
+[data-theme='sleek-modern'] #condition-chips-dropdown button.text-\[\#5a5a40\] {
+  color: #475569 !important;
+}
+[data-theme='sleek-modern'] #condition-chips-dropdown button.text-\[\#5a5a40\]:hover {
+  background-color: #f1f5f9 !important;
+  color: #334155 !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
 /* Secondary ghost-style icon buttons should hover slate-100 instead of solid blue */
 [data-theme='sleek-modern'] button.text-stone-400:hover,
 [data-theme='sleek-modern'] button.opacity-70:hover,
 [data-theme='sleek-modern'] #sidebar-menu button:hover,
-[data-theme='sleek-modern'] #user-profile-btn:hover {
+[data-theme='sleek-modern'] #user-profile-btn:hover,
+[data-theme='sleek-modern'] .bg-\[\#2c2c26\] button:hover {
   background-color: #e2e8f0 !important;
   color: #0f172a !important;
   transform: none !important;
   box-shadow: none !important;
 }
 
-/* Keep current action tab in light-sidebar perfectly readable and highlighted */
+/* Keep current action tab in light-sidebar perfectly readable and highlighted with high contrast dark text */
+[data-theme='sleek-modern'] .bg-\[\#2c2c26\] button.bg-\[\#3f3f37\],
 [data-theme='sleek-modern'] #sidebar-menu .bg-\[\#3f3f37\] {
   background-color: #e2e8f0 !important;
   color: #0f172a !important;
