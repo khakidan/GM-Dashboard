@@ -2,6 +2,7 @@ import React from 'react';
 import { Character } from '../../types';
 import { Shield, Eye, Heart, Loader2, X, ChevronDown } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { getHealthStatus } from '../../lib/combatLogic';
 import { motion, AnimatePresence } from 'motion/react';
 import { DebouncedInput } from '../ui/DebouncedInput';
 import { DebouncedTextarea } from '../ui/DebouncedTextarea';
@@ -27,6 +28,11 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({
   onDelete,
   onLevelUpClick
 }) => {
+  const healthStatus = getHealthStatus(
+    character.currentHp || 0, 
+    character.maxHp || 1
+  );
+
   return (
     <div className={cn(
       "bg-white rounded-2xl border overflow-hidden flex flex-col relative group transition-all",
@@ -95,6 +101,16 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({
                     {character.conditions}
                   </div>
                 )}
+                <div className={cn(
+                  "hidden sm:flex items-center px-2 py-0.5 rounded-full font-sans text-xs font-bold uppercase tracking-wider border",
+                  healthStatus.color,
+                  healthStatus.label === 'Healthy' ? 'bg-green-50 border-green-200' :
+                  healthStatus.label === 'Injured' ? 'bg-yellow-50 border-yellow-200' :
+                  healthStatus.label === 'Bloodied' ? 'bg-red-50 border-red-200' :
+                  'bg-gray-50 border-gray-200'
+                )}>
+                  {healthStatus.label}
+                </div>
                 <div className="flex items-center gap-1.5 text-[15px] font-bold text-[#5a5a40] opacity-60">
                   <Eye className="w-4 h-4" />
                   {character.passivePerception}
