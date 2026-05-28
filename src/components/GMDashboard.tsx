@@ -1,7 +1,8 @@
 // src/components/GMDashboard.tsx
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAppState } from '../hooks/useAppState';
+import { getQueueSize } from '../services/writeQueue';
 import {
   Swords,
   Users,
@@ -20,6 +21,7 @@ import { PartyTab } from './PartyTab';
 import { NpcLibraryTab } from './NpcLibraryTab';
 import { EncountersTab } from './EncountersTab';
 import { ActiveEncounterTab } from './ActiveEncounterTab';
+import { ErrorBoundary } from './ErrorBoundary';
 import { hasToken } from '../services/googleAuth';
 import { useGoogleAuth } from '../hooks/useGoogleAuth';
 import { useSheetSync } from '../hooks/useSheetSync';
@@ -28,13 +30,56 @@ import { SettingsPage } from './SettingsPage';
 
 type Tab = 'party' | 'encounters' | 'npc-library' | 'combat' | 'settings';
 
+const LAST_TAB_KEY = 'gm_last_active_tab';
+
 export function GMDashboard() {
   const { state } = useAppState();
-  const [activeTab, setActiveTab] = useState<Tab>('party');
+  const [activeTab, setActiveTab] = useState<Tab>(() => {
+    const stored = localStorage.getItem(LAST_TAB_KEY);
+    return (stored as Tab) || 'party';
+  });
+
+  useEffect(() => {
+    if (activeTab === 'combat' && !state.combatState.activeEncounterId) {
+      setActiveTab('encounters');
+      localStorage.setItem(LAST_TAB_KEY, 'encounters');
+    }
+  }, [activeTab, state.combatState.activeEncounterId]);
+
+  const handleTabChange = useCallback((tab: Tab) => {
+    localStorage.setItem(LAST_TAB_KEY, tab);
+    setActiveTab(tab);
+  }, []);
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
     const stored = localStorage.getItem('gm_sidebar_open');
     return stored !== null ? stored === 'true' : false;
   });
+
+  const [isOnline, setIsOnline] = useState(() => typeof window !== 'undefined' ? window.navigator.onLine : true);
+  const [queuedWrites, setQueuedWrites] = useState(0);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  useEffect(() => {
+    setQueuedWrites(getQueueSize());
+
+    const interval = setInterval(() => {
+      setQueuedWrites(getQueueSize());
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const setSidebarOpen = (value: boolean | ((prev: boolean) => boolean)) => {
     setIsSidebarOpen(prev => {
@@ -57,7 +102,7 @@ export function GMDashboard() {
     addLog,
   } = useSheetSync({
     setIsGoogleConnected: (val) => setIsGoogleConnected(val),
-    onActiveTabChange: (tab) => setActiveTab(tab),
+    onActiveTabChange: handleTabChange,
   });
 
   const {
@@ -120,7 +165,7 @@ export function GMDashboard() {
         <nav className="flex-1 px-4 space-y-2 overflow-y-auto">
           <button
             onClick={() => {
-              setActiveTab('party');
+              handleTabChange('party');
               if (window.innerWidth < 1024) setSidebarOpen(false);
             }}
             className={cn(
@@ -138,7 +183,7 @@ export function GMDashboard() {
           <button
             id="nav-npc-library"
             onClick={() => {
-              setActiveTab('npc-library');
+              handleTabChange('npc-library');
               if (window.innerWidth < 1024) setSidebarOpen(false);
             }}
             className={cn(
@@ -155,7 +200,7 @@ export function GMDashboard() {
 
           <button
             onClick={() => {
-              setActiveTab('encounters');
+              handleTabChange('encounters');
               if (window.innerWidth < 1024) setSidebarOpen(false);
             }}
             className={cn(
@@ -173,7 +218,7 @@ export function GMDashboard() {
           <button
             onClick={() => {
               if (state.combatState.activeEncounterId) {
-                setActiveTab('combat');
+                handleTabChange('combat');
                 if (window.innerWidth < 1024) setSidebarOpen(false);
               }
             }}
@@ -193,7 +238,7 @@ export function GMDashboard() {
           <button
             id="app-settings-btn"
             onClick={() => {
-              setActiveTab('settings');
+              handleTabChange('settings');
               if (window.innerWidth < 1024) setSidebarOpen(false);
             }}
             className={cn(
@@ -211,7 +256,7 @@ export function GMDashboard() {
 
         <div className="p-4 border-t border-[#3f3f37]">
           {isSidebarOpen ? (
-            <div className="flex flex-col gap-3 p-3 bg-[#1a1a14] rounded-lg">
+            <div className="flex flex-col gap-3 p-3 rounded-lg">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-full bg-[#5a5a40] flex items-center justify-center text-sm font-bold font-sans text-white shrink-0">G</div>
                 <div className="overflow-hidden">
@@ -256,6 +301,31 @@ export function GMDashboard() {
               </button>
             </div>
           )}
+
+          {/* Offline/Syncing Queue Indicator */}
+          {(!isOnline || queuedWrites > 0) && (
+            <div className={cn(
+              "mt-3 text-[11px] font-sans tracking-wider flex items-center bg-[#1a1a14]/60 p-2.5 rounded-lg border",
+              isOnline ? "border-green-500/20 text-green-300" : "border-amber-500/20 text-amber-300",
+              isSidebarOpen ? "gap-2.5 px-3" : "justify-center p-2"
+            )}
+            title={!isOnline ? `Offline — ${queuedWrites} writes queued` : `Syncing ${queuedWrites} writes...`}
+            >
+              {isOnline ? (
+                <span className="relative flex h-2 w-2 shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                </span>
+              ) : (
+                <span className="h-2 w-2 rounded-full bg-amber-500 shrink-0"></span>
+              )}
+              {isSidebarOpen && (
+                <span className="font-bold uppercase tracking-wider truncate leading-none">
+                  {!isOnline ? `Offline — ${queuedWrites} writes queued` : `Syncing ${queuedWrites} writes...`}
+                </span>
+              )}
+            </div>
+          )}
         </div>
       </aside>
 
@@ -277,31 +347,41 @@ export function GMDashboard() {
         <section className="flex-1 p-4 lg:p-8">
           <div className="max-w-7xl mx-auto">
             {activeTab === 'combat' && state.combatState.activeEncounterId ? (
-              <ActiveEncounterTab onBack={clearEncounter} />
+              <ErrorBoundary>
+                <ActiveEncounterTab onBack={clearEncounter} />
+              </ErrorBoundary>
             ) : activeTab === 'party' ? (
-              <PartyTab />
+              <ErrorBoundary>
+                <PartyTab />
+              </ErrorBoundary>
             ) : activeTab === 'npc-library' ? (
-              <NpcLibraryTab />
+              <ErrorBoundary>
+                <NpcLibraryTab />
+              </ErrorBoundary>
             ) : activeTab === 'settings' ? (
-              <SettingsPage
-                isGoogleConnected={isGoogleConnected}
-                handleSignIn={handleSignIn}
-                handleSignOut={handleSignOut}
-                setIsGoogleConnected={setIsGoogleConnected}
-                handleSyncWithSheets={handleSyncWithSheets}
-                addLog={addLog}
-              />
+              <ErrorBoundary>
+                <SettingsPage
+                  isGoogleConnected={isGoogleConnected}
+                  handleSignIn={handleSignIn}
+                  handleSignOut={handleSignOut}
+                  setIsGoogleConnected={setIsGoogleConnected}
+                  handleSyncWithSheets={handleSyncWithSheets}
+                  addLog={addLog}
+                />
+              </ErrorBoundary>
             ) : (
-              <EncountersTab
-                onSelectEncounter={startEncounter}
-                onSyncRequested={async () => {
-                  toast.promise(handleSyncWithSheets(false), {
-                    loading: 'Syncing with Google Sheets...',
-                    success: 'Sync complete',
-                    error: 'Sync failed — changes saved locally',
-                  });
-                }}
-              />
+              <ErrorBoundary>
+                <EncountersTab
+                  onSelectEncounter={startEncounter}
+                  onSyncRequested={async () => {
+                    toast.promise(handleSyncWithSheets(false), {
+                      loading: 'Syncing with Google Sheets...',
+                      success: 'Sync complete',
+                      error: 'Sync failed — changes saved locally',
+                    });
+                  }}
+                />
+              </ErrorBoundary>
             )}
           </div>
         </section>

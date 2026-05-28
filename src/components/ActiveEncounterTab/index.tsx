@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppState, getSnapshot } from '../../hooks/useAppState';
 import { toast } from 'sonner';
 import { getExpiredConditions } from '../../lib/combatLogic';
 import { Skull, AlertCircle } from 'lucide-react';
 import { cn } from '../../lib/utils';
-import { Combatant } from '../../types';
+import { Combatant, DamageType } from '../../types';
 import { addNpcDB, addEncounterCombatantDB, updateInitiativeDB } from '../../services/dbOperations';
+import { CONCENTRATION_EFFECTS } from '../../lib/irvOptions';
 
 import { CombatHeader } from './CombatHeader';
 import { CombatantCard } from './CombatantCard';
@@ -20,6 +21,40 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
 
   const [isToolsModalOpen, setIsToolsModalOpen] = useState(false);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+
+  // Keyboard Shortcuts
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Check for modifier keys or if target is an input
+      if (
+        ['INPUT', 'TEXTAREA', 'SELECT'].includes((event.target as HTMLElement).tagName) ||
+        event.ctrlKey ||
+        event.metaKey ||
+        event.altKey
+      ) {
+        return;
+      }
+
+      switch (event.key.toLowerCase()) {
+        case 'n':
+          nextTurn();
+          break;
+        case 'r':
+          rollInitForNPCs();
+          break;
+        case 't':
+          setIsToolsModalOpen(prev => !prev);
+          break;
+        default:
+          break;
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [state]); // Re-attach listener if combat state changes (nextTurn/rollInitForNPCs rely on state)
 
   // Multi-target Selection State
   const [isMultiTargetMode, setIsMultiTargetMode] = useState(false);
@@ -68,7 +103,7 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
     });
   };
 
-  const handleApplyMultiDamage = (amount: number, type: any) => {
+  const handleApplyMultiDamage = (amount: number, type: DamageType) => {
     const selectedList = state.combatState.combatants.filter(c => selectedCombatantIds.has(c.id));
     if (selectedList.length === 0) return;
 
@@ -129,11 +164,6 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
             conditions: c.conditions,
             notes: c.notes,
             passivePerception: c.passivePerception,
-            sheetColHp: 'G',
-            sheetColTempHp: 'F',
-            sheetColCondition: 'H',
-            hpSheetName: 'Characters',
-            hpSheetRowIndex: c.sheetRowIndex,
           });
         }
       } else {
@@ -342,7 +372,12 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
     // Check for expired conditions
     const expired = getExpiredConditions(combatants, nextRound);
     expired.forEach(({ combatantId, combatantName, conditionName }) => {
-      toast(`${conditionName} on ${combatantName} has ended`, {
+      const isConcentration = CONCENTRATION_EFFECTS.has(conditionName.toLowerCase());
+      const message = isConcentration
+        ? `${conditionName} concentration on ${combatantName} has ended`
+        : `${conditionName} on ${combatantName} has ended`;
+
+      toast(message, {
         action: {
           label: "Remove",
           onClick: () => {
@@ -351,17 +386,27 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
             if (!target) return;
 
             const conditionsStr = target.conditions || '';
-            const nextConditions = conditionsStr
+            const nextConditionsList = conditionsStr
               .split(',')
               .map(s => s.trim())
-              .filter(s => s.toLowerCase() !== conditionName.toLowerCase() && s !== '')
-              .join(', ');
+              .filter(s => s.toLowerCase() !== conditionName.toLowerCase() && s !== '');
+              
+            // Concentration auto-remove logic
+            const conEffectsArray = Array.from(CONCENTRATION_EFFECTS);
+            const remainingConEffects = nextConditionsList.filter(s => 
+              conEffectsArray.includes(s.toLowerCase())
+            );
+            
+            let finalConditionsList = nextConditionsList;
+            if (remainingConEffects.length === 0) {
+              finalConditionsList = nextConditionsList.filter(s => s.toLowerCase() !== 'concentrating');
+            }
 
             const nextTimers = { ...(target.conditionTimers || {}) };
             delete nextTimers[conditionName];
 
             updateCombatant(combatantId, {
-              conditions: nextConditions,
+              conditions: finalConditionsList.join(', '),
               conditionTimers: nextTimers,
             });
           },

@@ -55,7 +55,6 @@ export const getSpreadsheetId = () => currentSpreadsheetId;
 export const setSpreadsheetId = (id: string) => {
   currentSpreadsheetId = id;
   localStorage.setItem('GM_DATA_SPREADSHEET_ID', id);
-  console.log(`[Sheets] Spreadsheet ID updated to: ${id}`);
 };
 
 async function googleFetch(url: string, options: RequestInit = {}): Promise<Response> {
@@ -85,7 +84,6 @@ async function googleFetch(url: string, options: RequestInit = {}): Promise<Resp
         console.warn('[Sheets] Google API returned 401 (Unauthorized). Attempting token refresh...');
         const newToken = await refreshAccessToken();
         if (newToken) {
-          console.log('[Sheets] Refresh successful. Retrying original request...');
           token = newToken;
           response = await fetch(url, {
             ...options,

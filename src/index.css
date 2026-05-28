@@ -110,6 +110,16 @@
   background-color: #fafbfd !important;
 }
 
+[data-theme='sleek-modern'] .bg-\[\#fdfaf5\]\/50,
+[data-theme='sleek-modern'] select,
+[data-theme='sleek-modern'] input,
+[data-theme='sleek-modern'] textarea,
+[data-theme='sleek-modern'] select option,
+[data-theme='sleek-modern'] select optgroup {
+  /* background-color: #ffffff !important; */
+  color: #0f172a !important;
+}
+
 [data-theme='sleek-modern'] .bg-white {
   background-color: #ffffff !important;
 }
@@ -125,6 +135,12 @@
 [data-theme='sleek-modern'] .bg-\[\#2c2c26\] {
   background-color: #f8fafc !important; /* Elegant light-sidebar like Notion/Linear */
   border-right: 1px solid #e2e8f0 !important;
+}
+
+[data-theme='sleek-modern'] #multiSelectSideBar .bg-\[\#2c2c26\] {
+    background-color: color-mix(in oklab,var(--color-white) 10%,transparent) !important;
+    color: rgba(255, 255, 255, 0.3) !important;
+    border-right-color: color-mix(in oklab,var(--color-white) 10%,transparent) !important;
 }
 
 [data-theme='sleek-modern'] .bg-\[\#3f3f37\] {
@@ -230,6 +246,10 @@
   text-shadow: none !important;
 }
 
+[data-theme='sleek-modern'] .font-serif .marigold-text {
+  color: oklch(0.828 0.189 84.43) !important;
+}
+
 /* Smooth micro-interactive buttons & hover enhancements (Notion / Slack lift style) */
 [data-theme='sleek-modern'] button,
 [data-theme='sleek-modern'] [role='button'] {
@@ -248,12 +268,23 @@
 }
 
 /* General button hovers: Active elements get modern high-depth blue hover backgrounds with clean white typography */
-[data-theme='sleek-modern'] button:not(#condition-chips-dropdown button):hover,
-[data-theme='sleek-modern'] [role='button']:hover {
+[data-theme='sleek-modern'] button:not(#condition-chips-dropdown button):not(.text-stone-400):not(.opacity-70):not(#sidebar-menu button):not(#user-profile-btn):not(.bg-\[\#2c2c26\] button):hover,
+[data-theme='sleek-modern'] [role='button']:not(#condition-chips-dropdown button):not(.text-stone-400):not(.opacity-70):not(#sidebar-menu button):not(#user-profile-btn):not(.bg-\[\#2c2c26\] button):hover {
   background-color: #1d4ed8 !important; /* High-quality hover depth blue */
   color: #ffffff !important;
   transform: translateY(-0.5px);
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12) !important;
+}
+
+[data-theme='sleek-modern'] button:not(#condition-chips-dropdown button):not(.text-stone-400):not(.opacity-70):not(#sidebar-menu button):not(#user-profile-btn):not(.bg-\[\#2c2c26\] button):hover *,
+[data-theme='sleek-modern'] [role='button']:not(#condition-chips-dropdown button):not(.text-stone-400):not(.opacity-70):not(#sidebar-menu button):not(#user-profile-btn):not(.bg-\[\#2c2c26\] button):hover * {
+  color: #ffffff !important;
+}
+
+[data-theme='sleek-modern'] button:not(#condition-chips-dropdown button):not(.text-stone-400):not(.opacity-70):not(#sidebar-menu button):not(#user-profile-btn):not(.bg-\[\#2c2c26\] button):hover svg,
+[data-theme='sleek-modern'] [role='button']:not(#condition-chips-dropdown button):not(.text-stone-400):not(.opacity-70):not(#sidebar-menu button):not(#user-profile-btn):not(.bg-\[\#2c2c26\] button):hover svg {
+  color: #ffffff !important;
+  stroke: currentColor !important;
 }
 
 /* Ensure dropdown buttons and group headers inside #condition-chips-dropdown have their correct matching colours under sleek-modern */

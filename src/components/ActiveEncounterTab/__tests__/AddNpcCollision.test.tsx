@@ -53,7 +53,7 @@ describe('ActiveEncounterTab ID Uniqueness', () => {
     );
     
     // Open the sidebar
-    const toolsBtn = screen.getByRole('button', { name: 'Tools' });
+    const toolsBtn = screen.getByRole('button', { name: /Tools/i });
     fireEvent.click(toolsBtn);
 
     // Select NPC preset
@@ -90,7 +90,7 @@ describe('ActiveEncounterTab ID Uniqueness', () => {
     );
     
     // Open the sidebar
-    const toolsBtn = screen.getByRole('button', { name: 'Tools' });
+    const toolsBtn = screen.getByRole('button', { name: /Tools/i });
     fireEvent.click(toolsBtn);
 
     // Fill in Quick NPC form

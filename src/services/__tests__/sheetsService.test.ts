@@ -73,19 +73,15 @@ describe('Notifier Pattern', () => {
     vi.unstubAllGlobals();
   });
 
-  it('setSheetNotifier replaces the active notifier', () => {
+  it('correctly sets, retrieves and resets the active sheet notifier', () => {
     setSheetNotifier(silentNotifier);
     expect(getSheetNotifier()).toBe(silentNotifier);
-  });
 
-  it('getSheetNotifier returns the currently active notifier', () => {
     setSheetNotifier(customNotifier);
     expect(getSheetNotifier()).toBe(customNotifier);
-  });
 
-  it('After setting silentNotifier, getSheetNotifier returns silentNotifier', () => {
-    setSheetNotifier(silentNotifier);
-    expect(getSheetNotifier()).toBe(silentNotifier);
+    setSheetNotifier(toast);
+    expect(getSheetNotifier()).toBe(toast);
   });
 
   it('After setting a custom notifier object, its loading method is called when a sheet write begins', async () => {
@@ -119,10 +115,5 @@ describe('Notifier Pattern', () => {
 
     await expect(updateSheetData('A1', [[1]])).rejects.toThrow('UNAUTHENTICATED');
     expect(customNotifier.dismiss).toHaveBeenCalledWith('toast-id');
-  });
-
-  it('Resetting to the default sonner toast restores normal behaviour', () => {
-    setSheetNotifier(toast);
-    expect(getSheetNotifier()).toBe(toast);
   });
 });

@@ -54,7 +54,7 @@ describe('EncounterCard', () => {
     location: 'Forest Path',
     difficultyId: 2,
     difficultyName: 'Medium',
-    status: 'planned',
+    status: 'planned' as const,
     npcDefinitions: '',
   };
 

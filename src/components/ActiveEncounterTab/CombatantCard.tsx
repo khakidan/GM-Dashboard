@@ -24,6 +24,7 @@ const AnimatedHpDisplay = ({
   const [animateState, setAnimateState] = useState<'idle' | 'heal' | 'damage'>('idle');
 
   useEffect(() => {
+    let animationTimeout: NodeJS.Timeout;
     if (value > prevHp) {
       setAnimateState('heal');
     } else if (value < prevHp) {
@@ -32,9 +33,9 @@ const AnimatedHpDisplay = ({
 
     setPrevHp(value);
 
-    const t = setTimeout(() => setAnimateState('idle'), 500);
-    return () => clearTimeout(t);
-  }, [value]);
+    animationTimeout = setTimeout(() => setAnimateState('idle'), 500);
+    return () => clearTimeout(animationTimeout);
+  }, [value, prevHp]);
 
   return (
     <motion.div
@@ -215,7 +216,7 @@ export function CombatantCard({
           }
         }}
       >
-        <div className={cn("flex-1 min-w-0 flex items-center gap-3", isSelectable && "pl-8")}>
+        <div className={cn("flex-1 min-w-0 flex items-center justify-between gap-3", isSelectable && "pl-8")}>
           <div 
             className="flex flex-col items-center shrink-0"
             onClick={e => e.stopPropagation()}
@@ -231,6 +232,11 @@ export function CombatantCard({
             <h3 className={cn('text-lg font-bold font-serif truncate', c.type === 'npc' ? 'text-red-800' : 'text-[#2c2c26]')}>
               {c.name}
             </h3>
+            {c.conditions?.toLowerCase().includes('concentrating') && (
+              <span className="ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded border bg-purple-100 text-purple-700 border-purple-200">
+                CON
+              </span>
+            )}
             {c.currentHp < c.maxHp && c.currentHp > 0 && (
               <span className={cn(
                 "text-xs font-bold px-2 py-0.5 rounded-full border border-current bg-white/50 shrink-0",
@@ -262,8 +268,9 @@ export function CombatantCard({
                 className="p-0"
               />
             </div>
-
-            <div className="flex flex-wrap items-center gap-2 ml-2" id={`hp-controls-${c.id}`}>
+          </div>
+          <div className="min-w-0 flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 ml-auto" id={`hp-controls-${c.id}`}>
               {/* Damage Row */}
               <div className="flex items-center gap-1">
                 <input

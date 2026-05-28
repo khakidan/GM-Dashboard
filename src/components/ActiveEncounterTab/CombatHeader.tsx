@@ -65,7 +65,7 @@ export function CombatHeader({
             onClick={onOpenTools}
             className="flex items-center gap-2 px-3 py-1.5 text-xs font-sans font-bold uppercase bg-white border border-[#e5e1d8] hover:bg-[#f5f5f0] text-[#5a5a40] rounded-full transition-colors mr-2"
           >
-            Tools
+            Tools <span className="text-[9px] bg-stone-100 px-1 py-0.5 rounded border border-stone-200">T</span>
           </button>
           <Link
             to="/player-view"
@@ -79,7 +79,7 @@ export function CombatHeader({
             className="flex items-center gap-2 px-3 py-1.5 text-xs font-sans font-bold uppercase bg-white border border-[#e5e1d8] hover:bg-[#f5f5f0] text-[#5a5a40] rounded-full transition-colors"
             title="Roll 1d20 for all NPCs"
           >
-            Roll NPC Init
+            Roll NPC Init <span className="text-[9px] bg-stone-100 px-1 py-0.5 rounded border border-stone-200">R</span>
           </button>
           <button
             onClick={onResetCombat}
@@ -91,7 +91,7 @@ export function CombatHeader({
             onClick={onNextTurn}
             className="flex items-center gap-2 px-4 py-2 text-xs font-sans font-bold uppercase bg-[#c5b358] hover:bg-[#b0a04f] text-[#2c2c26] rounded-full transition-colors ml-2 shadow-sm"
           >
-            Next Turn
+            Next Turn <span className="text-[9px] bg-amber-600/20 px-1 py-0.5 rounded border border-amber-600/30">N</span>
           </button>
         </div>
       </div>

@@ -74,7 +74,9 @@ export async function flushQueue(): Promise<void> {
     persistFailedWrites(data);
     console.error('[WriteQueue] Failed to flush queue:', err);
     toast.error('Failed to sync some changes', { id: tId });
-    // Note: Do not throw according to instructions
+    // Do not re-throw — failed writes are persisted to 
+    // localStorage and retried automatically on reconnect.
+    // Throwing here would interrupt the GM's session.
   }
 }
 

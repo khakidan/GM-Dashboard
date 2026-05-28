@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Combatant, DamageType } from '../../../types';
 import { applyHealthChange, computeDamageWithIrv } from '../../../lib/combatLogic';
 import { toast } from 'sonner';
+import { CONCENTRATION_EFFECTS } from '../../../lib/irvOptions';
 
 export function useHealthChange(
   syncingIds: Set<string>,
@@ -9,6 +10,27 @@ export function useHealthChange(
 ) {
   const [damageInputs, setDamageInputs] = useState<Record<string, string>>({});
   const [healInputs, setHealInputs] = useState<Record<string, string>>({});
+
+  const removeConcentration = (id: string, currentConditions: string, currentTimers: Record<string, number> = {}) => {
+    const conEffectsArray = Array.from(CONCENTRATION_EFFECTS);
+    const updatedConditions = currentConditions.split(',')
+      .map(s => s.trim())
+      .filter(s => s.toLowerCase() !== 'concentrating' && !conEffectsArray.includes(s.toLowerCase()))
+      .join(', ');
+
+    const updatedTimers = { ...currentTimers };
+    Object.keys(updatedTimers).forEach(key => {
+      const lowerKey = key.toLowerCase();
+      if (lowerKey === 'concentrating' || conEffectsArray.includes(lowerKey)) {
+        delete updatedTimers[key];
+      }
+    });
+
+    updateCombatant(id, {
+      conditions: updatedConditions,
+      conditionTimers: updatedTimers
+    });
+  };
 
   const handleHealthChange = (
     id: string,
@@ -51,6 +73,17 @@ export function useHealthChange(
         isDamage
       );
       updateCombatant(id, { currentHp: newCurrentHp, tempHp: newTempHp });
+      
+      if (isDamage && finalDamageAmount > 0 && c.conditions?.toLowerCase().includes('concentrating')) {
+        toast('Concentration check required', {
+          description: `${c.name} took ${finalDamageAmount} damage. CON save DC: ${Math.max(10, Math.floor(finalDamageAmount / 2))}`,
+          duration: 10000,
+          action: {
+            label: 'Failed — End Concentration',
+            onClick: () => removeConcentration(id, c.conditions || '', c.conditionTimers || {}),
+          },
+        });
+      }
     }
     
     if (isDamage) {

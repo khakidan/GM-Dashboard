@@ -97,7 +97,7 @@ export function useCombatSync() {
         }),
         encounterCombatants: prev.encounterCombatants.map(item => {
           if (targetCombatant.encounterCombatantId === item.id && updates.conditionTimers !== undefined) {
-            return { ...item, conditionTimers: JSON.stringify(updates.conditionTimers) };
+            return { ...item, conditionTimers: updates.conditionTimers };
           }
           return item;
         }),

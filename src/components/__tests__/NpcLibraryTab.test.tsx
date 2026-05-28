@@ -26,14 +26,17 @@ describe('NpcLibraryTab', () => {
   it('renders "No NPCs loaded" message correctly when state contains no npcs', () => {
     vi.mocked(useAppState).mockReturnValue({
       state: {
+        campaignName: 'Test Campaign',
         characters: [],
         encounters: [],
         npcs: [],
         encounterCombatants: [],
+        difficulties: {},
+        statuses: {},
         combatState: {
           activeEncounterId: null,
           combatants: [],
-          turnIndex: 0,
+          activeTurnId: null,
           round: 1,
         },
       },
@@ -78,14 +81,17 @@ describe('NpcLibraryTab', () => {
 
     vi.mocked(useAppState).mockReturnValue({
       state: {
+        campaignName: 'Test Campaign',
         characters: [],
         encounters: [],
         npcs: mockNpcs,
         encounterCombatants: [],
+        difficulties: {},
+        statuses: {},
         combatState: {
           activeEncounterId: null,
           combatants: [],
-          turnIndex: 0,
+          activeTurnId: null,
           round: 1,
         },
       },

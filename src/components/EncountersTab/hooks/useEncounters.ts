@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAppState } from '../../../hooks/useAppState';
 import { Encounter } from '../../../types';
-import { deleteEncounterFully } from '../../../services/dbOperations';
+import { addEncounterDB, deleteEncounterFully } from '../../../services/dbOperations';
 import { toast } from 'sonner';
 
 interface UseEncountersProps {
@@ -40,7 +40,6 @@ export function useEncounters({ onSelectEncounter, onSyncRequested }: UseEncount
     }));
 
     try {
-      const { addEncounterDB } = await import('../../../services/dbOperations');
       const realEnc = await addEncounterDB(data.name, data.location, data.difficultyId, 0);
 
       updateState(prev => ({

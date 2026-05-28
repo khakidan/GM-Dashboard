@@ -33,6 +33,13 @@ export const EFFECT_OPTIONS: string[] = [
   'divine smite (used)', 'sneak attack (used)',
 ];
 
+export const CONCENTRATION_EFFECTS = new Set<string>([
+  'hasted', 'blessed', 'baned', 'hexed',
+  "hunter's mark", 'shield of faith', 'spirit guardians',
+  'blurred', 'polymorphed', 'fly', 'stoneskin',
+  'concentrating',
+]);
+
 export const IRV_OPTIONS: string[] = [
   ...DAMAGE_TYPE_OPTIONS,
   ...CONDITION_OPTIONS,

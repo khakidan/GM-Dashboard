@@ -11,6 +11,7 @@ import {
   checkIrvMatch,
   computeDamageWithIrv,
   getExpiredConditions,
+  computeConcentrationDC,
 } from '../combatLogic';
 import type { Combatant } from '../../types';
 
@@ -430,5 +431,20 @@ describe('getExpiredConditions', () => {
     ];
     const result = getExpiredConditions(combatants, 5);
     expect(result).toEqual([]);
+  });
+});
+
+describe('computeConcentrationDC', () => {
+  it('is at least 10', () => {
+    expect(computeConcentrationDC(5)).toBe(10);
+  });
+  it('is correct when damage is 20 or more', () => {
+    expect(computeConcentrationDC(28)).toBe(14);
+  });
+  it('is 10 when damage < 20', () => {
+    expect(computeConcentrationDC(19)).toBe(10);
+  });
+  it('is 10 when damage is 20 exactly', () => {
+    expect(computeConcentrationDC(20)).toBe(10);
   });
 });

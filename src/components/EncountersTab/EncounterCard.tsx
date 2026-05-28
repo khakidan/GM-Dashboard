@@ -187,8 +187,8 @@ export const EncounterCard: React.FC<EncounterCardProps> = ({
         </div>
 
         {errorStatus && (
-          <div className="absolute top-0 right-0 p-1">
-            <AlertCircle className="w-4 h-4 text-red-500" title={errorStatus} />
+          <div className="absolute top-0 right-0 p-1" title={errorStatus}>
+            <AlertCircle className="w-4 h-4 text-red-500" />
           </div>
         )}
       </div>

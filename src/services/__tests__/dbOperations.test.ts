@@ -150,11 +150,6 @@ describe('getNextId logic', () => {
   });
 });
 
-// ─── addCharacterDB row shape ─────────────────────────────────────────────────
-
-// Tests the column order of the row array written to the Characters sheet.
-// If anyone reorders the columns in addCharacterDB, these tests will catch it.
-
 // ─── addCharacterDB logic ─────────────────────────────────────────────────
 // Tests the column order of the row array written to the Characters sheet.
 

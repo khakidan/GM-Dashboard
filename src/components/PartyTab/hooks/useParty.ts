@@ -198,12 +198,12 @@ export function useParty() {
     if (typeof sanitizedUpdates.playerName === 'string') sanitizedUpdates.playerName = sanitizedUpdates.playerName.trim();
     
     // Fallbacks for numbers
-    if (sanitizedUpdates.ac !== undefined) sanitizedUpdates.ac = Math.max(0, parseInt(sanitizedUpdates.ac as any) || 0);
-    if (sanitizedUpdates.maxHp !== undefined) sanitizedUpdates.maxHp = Math.max(1, parseInt(sanitizedUpdates.maxHp as any) || 1);
-    if (sanitizedUpdates.currentHp !== undefined) sanitizedUpdates.currentHp = Math.max(0, parseInt(sanitizedUpdates.currentHp as any) || 0);
-    if (sanitizedUpdates.tempHp !== undefined) sanitizedUpdates.tempHp = Math.max(0, parseInt(sanitizedUpdates.tempHp as any) || 0);
-    if (sanitizedUpdates.level !== undefined) sanitizedUpdates.level = Math.max(1, parseInt(sanitizedUpdates.level as any) || 1);
-    if (sanitizedUpdates.passivePerception !== undefined) sanitizedUpdates.passivePerception = Math.max(0, parseInt(sanitizedUpdates.passivePerception as any) || 0);
+    if (sanitizedUpdates.ac !== undefined) sanitizedUpdates.ac = Math.max(0, Number(sanitizedUpdates.ac) || 0);
+    if (sanitizedUpdates.maxHp !== undefined) sanitizedUpdates.maxHp = Math.max(1, Number(sanitizedUpdates.maxHp) || 1);
+    if (sanitizedUpdates.currentHp !== undefined) sanitizedUpdates.currentHp = Math.max(0, Number(sanitizedUpdates.currentHp) || 0);
+    if (sanitizedUpdates.tempHp !== undefined) sanitizedUpdates.tempHp = Math.max(0, Number(sanitizedUpdates.tempHp) || 0);
+    if (sanitizedUpdates.level !== undefined) sanitizedUpdates.level = Math.max(1, Number(sanitizedUpdates.level) || 1);
+    if (sanitizedUpdates.passivePerception !== undefined) sanitizedUpdates.passivePerception = Math.max(0, Number(sanitizedUpdates.passivePerception) || 0);
 
     // 1. Update local state immediately (Optimistic Update)
     updateState(prev => ({

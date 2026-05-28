@@ -41,7 +41,7 @@ export const MultiTargetActionBar: React.FC<MultiTargetActionBarProps> = ({
             <Zap className="w-5 h-5 fill-current" />
           </div>
           <div>
-            <span className="text-2xl font-bold font-serif tracking-tight pr-1">{selectedCount}</span>
+            <span className="text-2xl font-bold font-serif tracking-tight pr-1 marigold-text">{selectedCount}</span>
             <span className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-50">Targets</span>
           </div>
         </div>
@@ -64,7 +64,7 @@ export const MultiTargetActionBar: React.FC<MultiTargetActionBarProps> = ({
             </div>
             <span className="text-[10px] font-bold uppercase tracking-widest opacity-70">Damage</span>
           </div>
-          <div className="flex gap-2">
+          <div id="multiSelectSideBar" className="flex gap-2">
             <input
               type="number"
               value={damageAmount}

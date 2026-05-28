@@ -60,14 +60,6 @@ export interface Combatant {
   initiative: number;
   notes?: string;
   characterId?: string; // Link back to PC if applicable
-  sheetName?: string;
-  sheetRowIndex?: number;
-  sheetColInit?: string;
-  sheetColHp?: string;
-  sheetColTempHp?: string;
-  sheetColCondition?: string;
-  hpSheetName?: string;
-  hpSheetRowIndex?: number;
   resistances?: string;
   immunities?: string;
   vulnerabilities?: string;
@@ -89,7 +81,7 @@ export interface EncounterCombatant {
   quantity: number;
   sheetRowIndex?: number;
   initiative?: number;
-  conditionTimers?: string | Record<string, number>;
+  conditionTimers?: Record<string, number>;
 }
 
 export interface DifficultyLevel {

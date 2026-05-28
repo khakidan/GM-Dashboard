@@ -7,6 +7,7 @@ import {
   CONDITION_OPTIONS,
   EFFECT_OPTIONS,
   CONDITION_IMMUNITY_MAP,
+  CONCENTRATION_EFFECTS,
 } from '../../lib/irvOptions';
 import { checkIrvMatch } from '../../lib/combatLogic';
 import { toast } from 'sonner';
@@ -164,9 +165,35 @@ export function ConditionChips({
   }
 
   function commitChip(label: string) {
-    debouncedOnChange([...chips, label].join(', '));
+    const trimmed = label.trim();
+    let nextChips = [...chips, trimmed];
+    
+    const CON_LABEL = 'concentrating';
+    if (CONCENTRATION_EFFECTS.has(trimmed.toLowerCase().trim()) && trimmed.toLowerCase().trim() !== CON_LABEL && !chips.map(c=>c.toLowerCase().trim()).includes(CON_LABEL)) {
+      nextChips.push(CON_LABEL);
+    }
+    
+    debouncedOnChange(nextChips.join(', '));
     setQuery('');
     setOpen(false);
+  }
+
+  function removeChip(chip: string) {
+    const trimmed = chip.trim();
+    let nextChips = chips.filter(c => c !== chip);
+    
+    const CON_LABEL = 'concentrating';
+    if (CONCENTRATION_EFFECTS.has(trimmed.toLowerCase().trim()) || trimmed.toLowerCase().trim() === CON_LABEL) {
+      const remainingConEffects = nextChips.filter(c => 
+        CONCENTRATION_EFFECTS.has(c.toLowerCase().trim()) && 
+        c.toLowerCase().trim() !== CON_LABEL
+      );
+      if (remainingConEffects.length === 0) {
+        nextChips = nextChips.filter(c => c.toLowerCase().trim() !== CON_LABEL);
+      }
+    }
+
+    debouncedOnChange(nextChips.join(', '));
   }
 
   function addChip(label: string) {
@@ -210,10 +237,6 @@ export function ConditionChips({
       commitChip(pendingCondition);
     }
     setPendingCondition(null);
-  }
-
-  function removeChip(chip: string) {
-    debouncedOnChange(chips.filter(c => c !== chip).join(', '));
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {

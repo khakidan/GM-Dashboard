@@ -68,8 +68,6 @@ export async function signInWithRedirect() {
   const redirectUri = window.location.origin;
   const scope = 'https://www.googleapis.com/auth/spreadsheets';
 
-  console.log(`[Sheets] signInWithRedirect: Starting OAuth redirect flow...`);
-
   // Clear any stale tokens before starting a fresh flow
   clearTokens();
 
@@ -99,8 +97,6 @@ export async function signInWithToken() {
   const redirectUri = window.location.origin;
   const scope = 'https://www.googleapis.com/auth/spreadsheets';
 
-  console.log(`[Sheets] signInWithToken: Starting Implicit flow...`);
-
   clearTokens();
 
   const authUrl =
@@ -124,7 +120,6 @@ function refreshLocalTokens() {
 }
 
 export function clearTokens() {
-  console.log('[Sheets] Clearing all authentication tokens from storage.');
   localStorage.removeItem('GM_GOOGLE_ACCESS_TOKEN');
   localStorage.removeItem('GM_GOOGLE_REFRESH_TOKEN');
   accessToken = null;
@@ -139,13 +134,11 @@ export function hasToken() {
 export function setManualAccessToken(token: string) {
   localStorage.setItem('GM_GOOGLE_ACCESS_TOKEN', token);
   accessToken = token;
-  console.log('[Sheets] Manual Access Token successfully set.');
 }
 
 export function setManualRefreshToken(token: string) {
   localStorage.setItem('GM_GOOGLE_REFRESH_TOKEN', token);
   refreshToken = token;
-  console.log('[Sheets] Manual Refresh Token successfully set and saved.');
 }
 
 export async function checkAndCaptureToken() {
@@ -159,7 +152,6 @@ export async function checkAndCaptureToken() {
   const hashToken = hashParams.get('access_token');
 
   if (hashToken) {
-    console.log('[Sheets] checkAndCaptureToken: Found access_token in hash (Implicit Flow).');
     localStorage.setItem('GM_GOOGLE_ACCESS_TOKEN', hashToken);
     accessToken = hashToken;
     // Clean up hash
@@ -168,8 +160,6 @@ export async function checkAndCaptureToken() {
   }
 
   if (code) {
-    console.log(`[Sheets] checkAndCaptureToken: Authorization code received: ${code.substring(0, 5)}...`);
-    console.log('[Sheets] Exchanging code for tokens via backend API...');
     try {
       const redirectUri = window.location.origin;
       const res = await fetch('/api/auth/google-token', {
@@ -187,18 +177,15 @@ export async function checkAndCaptureToken() {
       }
 
       const data = await res.json();
-      console.log('✅ [Sheets] Token exchange SUCCESS.');
 
       if (data.access_token) {
         localStorage.setItem('GM_GOOGLE_ACCESS_TOKEN', data.access_token);
         accessToken = data.access_token;
-        console.log('[Sheets] Access token saved.');
       }
 
       if (data.refresh_token) {
         localStorage.setItem('GM_GOOGLE_REFRESH_TOKEN', data.refresh_token);
         refreshToken = data.refresh_token;
-        console.log('[Sheets] Refresh token received and saved. Persistent sync enabled.');
       } else {
         console.warn(
           '⚠️ [Sheets] NO REFRESH TOKEN RECEIVED. This usually happens if you have already authorized this app. Persistent background sync will FAIL when the access token expires in 1 hour.'
@@ -226,7 +213,6 @@ export async function refreshAccessToken(): Promise<string | null> {
     return null;
   }
 
-  console.log('[Sheets] refreshAccessToken: Attempting background token refresh via backend...');
   try {
     const res = await fetch('/api/auth/google-token', {
       method: 'POST',
@@ -249,7 +235,6 @@ export async function refreshAccessToken(): Promise<string | null> {
 
     const data = await res.json();
     if (data.access_token) {
-      console.log('[Sheets] Background refresh SUCCESS. New access token acquired.');
       localStorage.setItem('GM_GOOGLE_ACCESS_TOKEN', data.access_token);
       accessToken = data.access_token;
       return accessToken;
@@ -261,7 +246,6 @@ export async function refreshAccessToken(): Promise<string | null> {
 }
 
 export async function initGoogleAuth(): Promise<void> {
-  console.log('[Sheets] initGoogleAuth: Initializing Google Identity Services...');
   refreshLocalTokens();
 
   await checkAndCaptureToken();
@@ -312,13 +296,11 @@ export async function requestAccessToken(): Promise<string> {
 
   // 1. Check if we have an access token
   if (accessToken) {
-    console.log('[Sheets] requestAccessToken: Using existing cached access token.');
     return accessToken;
   }
 
   // 2. Try refreshing
   if (refreshToken) {
-    console.log('[Sheets] requestAccessToken: Attempting silent refresh using refresh token...');
     const refreshed = await refreshAccessToken();
     if (refreshed) {
       return refreshed;
@@ -326,7 +308,6 @@ export async function requestAccessToken(): Promise<string> {
   }
 
   // 3. Fallback: Trigger login
-  console.log('[Sheets] requestAccessToken: No valid token available. Triggering fresh authentication...');
 
   // If we're in a background context, we can't show a popup.
   // We throw UNAUTHENTICATED and let the UI handle it.

@@ -198,3 +198,7 @@ export function getExpiredConditions(
   }
   return expired;
 }
+
+export function computeConcentrationDC(damage: number): number {
+  return Math.max(10, Math.floor(damage / 2));
+}

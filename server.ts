@@ -6,11 +6,12 @@ import morgan from "morgan";
 import healthRouter from './src/server/routes/health';
 import authRouter from './src/server/routes/auth';
 
+const REQUIRED_ENV = [
+  'VITE_GOOGLE_CLIENT_ID',
+  'VITE_GOOGLE_CLIENT_SECRET',
+] as const;
+
 async function startServer() {
-  const REQUIRED_ENV = [
-    'VITE_GOOGLE_CLIENT_ID',
-    'VITE_GOOGLE_CLIENT_SECRET',
-  ] as const;
 
   const missing = REQUIRED_ENV.filter(key => !process.env[key]);
   if (missing.length > 0) {

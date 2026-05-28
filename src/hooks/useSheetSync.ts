@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { z } from 'zod';
-import { useAppState } from './useAppState';
+import { useAppState, getSnapshot } from './useAppState';
 import {
   fetchSheetData,
   initializeDatabaseSchema,
@@ -37,11 +37,11 @@ export function useSheetSync({ setIsGoogleConnected, onActiveTabChange }: UseShe
   const [syncLogs, setSyncLogs] = useState<string[]>([]);
 
   const addLog = (msg: string) => {
-    console.log(msg);
     setSyncLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${msg}`]);
   };
 
   const handleSyncWithSheets = async (isManual = true) => {
+    let hadError = false;
     const sid = getSpreadsheetId();
     if (isManual) {
       setSyncLogs([]);
@@ -189,6 +189,7 @@ export function useSheetSync({ setIsGoogleConnected, onActiveTabChange }: UseShe
       addLog('Sync successful. Campaign data is now local.');
 
     } catch (err: unknown) {
+      hadError = true;
       console.error('[GMDashboard] Sync failed:', err);
       const message = err instanceof Error ? err.message : 'An unknown error occurred';
 
@@ -200,38 +201,28 @@ export function useSheetSync({ setIsGoogleConnected, onActiveTabChange }: UseShe
         addLog(`ERROR: ${message}`);
         setSyncError(message);
       }
-
-      if (isManual) setSyncError(message);
     } finally {
       if (!isManual) setIsSyncing(false);
-      if (isManual && !syncError) {
+      if (isManual && !hadError) {
         setTimeout(() => setIsSyncing(false), 800);
       }
     }
   };
 
   const startEncounter = async (id: string) => {
-    const encounter = state.encounters.find(e => e.id === id);
+    const currentState = getSnapshot();
+    const encounter = currentState.encounters.find(e => e.id === id);
     if (!encounter) return;
 
     const combatants: Combatant[] = [];
-    const linkedCombatants = state.encounterCombatants.filter(ec => ec.encounterId === id);
+    const linkedCombatants = currentState.encounterCombatants.filter(ec => ec.encounterId === id);
 
     if (linkedCombatants.length > 0) {
       linkedCombatants.forEach(ec => {
-        let parsedTimers: Record<string, number> = {};
-        if (ec.conditionTimers) {
-          try {
-            parsedTimers = typeof ec.conditionTimers === 'string'
-              ? JSON.parse(ec.conditionTimers)
-              : ec.conditionTimers;
-          } catch (e) {
-            console.warn('Failed to parse conditionTimers JSON:', ec.conditionTimers, e);
-          }
-        }
+        const parsedTimers: Record<string, number> = ec.conditionTimers || {};
 
         if (ec.playerId) {
-          const c = state.characters.find(char => char.id === ec.playerId);
+          const c = currentState.characters.find(char => char.id === ec.playerId);
           if (c) {
             combatants.push({
               id: `combat-pc-${c.id}`,
@@ -247,11 +238,6 @@ export function useSheetSync({ setIsGoogleConnected, onActiveTabChange }: UseShe
               conditions: c.conditions,
               notes: c.notes,
               passivePerception: c.passivePerception,
-              sheetColHp: 'G',
-              sheetColTempHp: 'F',
-              sheetColCondition: 'H',
-              hpSheetName: 'Characters',
-              hpSheetRowIndex: c.sheetRowIndex,
               resistances: c.resistances || '',
               immunities: c.immunities || '',
               vulnerabilities: c.vulnerabilities || '',
@@ -259,7 +245,7 @@ export function useSheetSync({ setIsGoogleConnected, onActiveTabChange }: UseShe
             });
           }
         } else if (ec.npcId) {
-          const npcTemplate = state.npcs.find(n => n.id === ec.npcId);
+          const npcTemplate = currentState.npcs.find(n => n.id === ec.npcId);
           if (npcTemplate) {
             for (let i = 0; i < ec.quantity; i++) {
               combatants.push({
@@ -286,7 +272,7 @@ export function useSheetSync({ setIsGoogleConnected, onActiveTabChange }: UseShe
       });
     } else {
       // Fallback: add all active characters
-      const activePcs = state.characters.filter(c => c.isActive);
+      const activePcs = currentState.characters.filter(c => c.isActive);
       activePcs.forEach(c => {
         combatants.push({
           id: `combat-pc-${c.id}`,
@@ -301,11 +287,6 @@ export function useSheetSync({ setIsGoogleConnected, onActiveTabChange }: UseShe
           conditions: c.conditions,
           notes: c.notes,
           passivePerception: c.passivePerception,
-          sheetColHp: 'G',
-          sheetColTempHp: 'F',
-          sheetColCondition: 'H',
-          hpSheetName: 'Characters',
-          hpSheetRowIndex: c.sheetRowIndex,
           resistances: c.resistances || '',
           immunities: c.immunities || '',
           vulnerabilities: c.vulnerabilities || '',
