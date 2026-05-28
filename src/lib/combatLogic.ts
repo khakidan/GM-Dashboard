@@ -80,12 +80,13 @@ export function isNewRound(currentIndex: number, nextIndex: number): boolean {
 // ─── Health status label (used in PlayerView) ─────────────────────────────────
 
 export interface HealthStatus {
-  label: 'Defeated' | 'Healthy' | 'Injured' | 'Bloodied';
+  label: 'Full' | 'Defeated' | 'Healthy' | 'Injured' | 'Bloodied';
   /** Tailwind color class */
   color: string;
 }
 
 export function getHealthStatus(current: number, max: number): HealthStatus {
+  if (current >= max) return { label: 'Full', color: 'text-emerald-600' };
   if (current <= 0) return { label: 'Defeated', color: 'text-red-700 opacity-60' };
   const ratio = current / max;
   if (ratio >= 0.9) return { label: 'Healthy',  color: 'text-green-600' };

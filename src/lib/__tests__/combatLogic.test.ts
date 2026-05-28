@@ -147,8 +147,15 @@ describe('getHealthStatus', () => {
     expect(getHealthStatus(-5, 30).label).toBe('Defeated');
   });
 
-  it('returns Healthy at full HP', () => {
-    expect(getHealthStatus(30, 30).label).toBe('Healthy');
+  it('returns Full with text-emerald-600 when currentHp equals maxHp exactly', () => {
+    const status = getHealthStatus(30, 30);
+    expect(status.label).toBe('Full');
+    expect(status.color).toBe('text-emerald-600');
+  });
+
+  it('returns Healthy (not Full) when currentHp is one below maxHp', () => {
+    const status = getHealthStatus(29, 30);
+    expect(status.label).toBe('Healthy');
   });
 
   it('returns Healthy at exactly 90% HP', () => {

@@ -76,7 +76,7 @@ export function PlayerView() {
                       "flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#f5f5f0]",
                       health.color
                     )}>
-                      {isDead ? <Skull className="w-3.5 h-3.5" /> : (health.label === 'Healthy' ? <Heart className="w-3.5 h-3.5" /> : <ShieldAlert className="w-3.5 h-3.5" />)}
+                      {isDead ? <Skull className="w-3.5 h-3.5" /> : (['Full', 'Healthy'].includes(health.label) ? <Heart className="w-3.5 h-3.5" /> : <ShieldAlert className="w-3.5 h-3.5" />)}
                       <span className="hidden sm:inline">{health.label}</span>
                     </div>
                   </div>

@@ -104,10 +104,11 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({
                 <div className={cn(
                   "hidden sm:flex items-center px-2 py-0.5 rounded-full font-sans text-xs font-bold uppercase tracking-wider border",
                   healthStatus.color,
+                  healthStatus.label === 'Full' ? 'bg-emerald-50 border-emerald-200' :
                   healthStatus.label === 'Healthy' ? 'bg-green-50 border-green-200' :
                   healthStatus.label === 'Injured' ? 'bg-yellow-50 border-yellow-200' :
                   healthStatus.label === 'Bloodied' ? 'bg-red-50 border-red-200' :
-                  'bg-gray-50 border-gray-200'
+                  'bg-gray-100 border-gray-200'
                 )}>
                   {healthStatus.label}
                 </div>

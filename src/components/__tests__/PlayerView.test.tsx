@@ -77,9 +77,10 @@ describe('PlayerView Component', () => {
   // Test 3: The health status label (Healthy, Injured, Bloodied, Defeated) is shown correctly for each combatant based on their HP ratio, using the getHealthStatus function from combatLogic.ts
   // Test 4: A combatant with currentHp of 0 shows the Defeated status
   // Test 5: A combatant with currentHp equal to maxHp shows the Healthy status
-  it('displays the correct health status label (Healthy, Injured, Bloodied, Defeated) using getHealthStatus from combatLogic.ts', () => {
+  it('displays the correct health status label (Full, Healthy, Injured, Bloodied, Defeated) using getHealthStatus from combatLogic.ts', () => {
     const combatants: Combatant[] = [
-      { id: 'c1', name: 'Althea', type: 'pc', ac: 15, maxHp: 20, currentHp: 20, initiative: 20, passivePerception: 12 }, // Healthy (20/20 = 1.0)
+      { id: 'c1', name: 'Althea', type: 'pc', ac: 15, maxHp: 20, currentHp: 20, initiative: 20, passivePerception: 12 }, // Full (20/20 = 1.0)
+      { id: 'c1_2', name: 'Alt', type: 'pc', ac: 15, maxHp: 20, currentHp: 19, initiative: 18, passivePerception: 12 }, // Healthy (19/20)
       { id: 'c2', name: 'Bergar', type: 'pc', ac: 15, maxHp: 20, currentHp: 15, initiative: 15, passivePerception: 12 }, // Injured (15/20 = 0.75)
       { id: 'c3', name: 'Clarissa', type: 'pc', ac: 15, maxHp: 20, currentHp: 8, initiative: 10, passivePerception: 12 },  // Bloodied (8/20 = 0.4)
       { id: 'c4', name: 'Doran', type: 'pc', ac: 15, maxHp: 20, currentHp: 0, initiative: 5, passivePerception: 12 },   // Defeated (0/20 = 0.0)
@@ -107,13 +108,15 @@ describe('PlayerView Component', () => {
     render(<PlayerView />);
 
     // Validate each expected status text on screen
+    expect(screen.getByText('Full')).toBeDefined();
     expect(screen.getByText('Healthy')).toBeDefined();
     expect(screen.getByText('Injured')).toBeDefined();
     expect(screen.getByText('Bloodied')).toBeDefined();
     expect(screen.getByText('Defeated')).toBeDefined();
 
     // Verify calling getHealthStatus from combatLogic matches the output
-    expect(getHealthStatus(20, 20).label).toBe('Healthy');
+    expect(getHealthStatus(20, 20).label).toBe('Full');
+    expect(getHealthStatus(19, 20).label).toBe('Healthy');
     expect(getHealthStatus(15, 20).label).toBe('Injured');
     expect(getHealthStatus(8, 20).label).toBe('Bloodied');
     expect(getHealthStatus(0, 20).label).toBe('Defeated');
