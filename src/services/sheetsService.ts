@@ -68,7 +68,7 @@ async function googleFetch(url: string, options: RequestInit = {}): Promise<Resp
 
   const MAX_RETRIES = 3;
   let attempt = 0;
-  let lastError: any = null;
+  let lastError: unknown = null;
 
   while (attempt <= MAX_RETRIES) {
     try {
@@ -269,10 +269,17 @@ async function _batchUpdateSpreadsheet(requests: BatchRequest[]) {
   return await response.json();
 }
 
+export interface SheetMetadataEntry {
+  properties: {
+    title: string;
+    sheetId: number;
+  };
+}
+
 export async function initializeDatabaseSchema() {
   try {
     const metadata = await fetchSpreadsheetMetadata();
-    const existingSheets = metadata.sheets.map((s: any) => s.properties.title);
+    const existingSheets = metadata.sheets.map((s: SheetMetadataEntry) => s.properties.title);
 
     const requiredSheets = [
       {

@@ -1,6 +1,6 @@
 // src/services/dbOperations.ts
 
-import { getSpreadsheetId, fetchSheetData, updateSheetData, batchUpdateSpreadsheet, appendSheetData, fetchSpreadsheetMetadata, SheetGrid, BatchRequest } from './sheetsService';
+import { getSpreadsheetId, fetchSheetData, updateSheetData, batchUpdateSpreadsheet, appendSheetData, fetchSpreadsheetMetadata, SheetGrid, BatchRequest, SheetMetadataEntry } from './sheetsService';
 import { queueWrite } from './writeQueue';
 import { Character, Encounter, NPC, EncounterCombatant } from '../types';
 
@@ -55,7 +55,7 @@ async function findRowIndexById(
 async function getSheetIds(): Promise<Record<string, number>> {
   const metadata = await fetchSpreadsheetMetadata();
   const res: Record<string, number> = {};
-  metadata.sheets.forEach((s: any) => {
+  metadata.sheets.forEach((s: SheetMetadataEntry) => {
     res[s.properties.title] = s.properties.sheetId;
   });
   return res;
