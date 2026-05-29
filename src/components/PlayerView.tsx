@@ -1,7 +1,7 @@
 import { useAppState } from '../hooks/useAppState';
 import { cn } from '../lib/utils';
 import { Skull, Heart, ShieldAlert, Shield, Swords } from 'lucide-react';
-import { getHealthStatus } from '../lib/combatLogic';
+import { getHealthStatus, effectiveAc } from '../lib/combatLogic';
 
 export function PlayerView() {
   const { state: appState } = useAppState();
@@ -58,12 +58,33 @@ export function PlayerView() {
                     <div className="flex items-center gap-3 min-w-0">
                       {isActive && <div className="w-2 h-2 rounded-full bg-[#c5b358] shrink-0"></div>}
                       <div className="min-w-0">
-                        <div className={cn(
-                          "font-bold text-base md:text-lg truncate transition-colors",
-                          isActive ? "text-[#c5b358]" : "text-[#2c2c26]",
-                          isDead && "line-through text-[#5a5a40]"
-                        )}>
-                          {c.name}
+                        <div className="flex items-center gap-2 flex-wrap min-w-0">
+                          <span className={cn(
+                            "font-bold text-base md:text-lg truncate transition-colors",
+                            isActive ? "text-[#c5b358]" : "text-[#2c2c26]",
+                            isDead && "line-through text-[#5a5a40]"
+                          )}>
+                            {c.name}
+                          </span>
+                          {!isDead && (
+                            <span className={cn(
+                              "text-xs font-bold px-2 py-0.5 rounded-full border whitespace-nowrap",
+                              (c.tempAcModifier || 0) !== 0
+                                ? "text-amber-600 border-amber-200 bg-amber-50"
+                                : "text-[#5a5a40] border-[#e5e1d8] bg-[#f5f5f0]"
+                            )}>
+                              {(() => {
+                                const baseAc = c.ac;
+                                const acMod = c.tempAcModifier || 0;
+                                const effAc = effectiveAc(baseAc, acMod);
+                                if (acMod === 0) {
+                                  return `AC ${baseAc}`;
+                                }
+                                const sign = acMod > 0 ? '+' : '';
+                                return `AC ${effAc} (${sign}${acMod})`;
+                              })()}
+                            </span>
+                          )}
                         </div>
                         {c.conditions && (
                             <div className="text-xs text-red-600 font-bold italic mt-1 truncate max-w-[150px]" title={c.conditions}>{c.conditions}</div>

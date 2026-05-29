@@ -278,5 +278,61 @@ describe('useCombatSync', () => {
     expect(updateCharacterDB).toHaveBeenCalled();
     expect(updateNpcInstanceConditionsDB).not.toHaveBeenCalledWith('ec-pc', 'blessed');
   });
+
+  it('updates tempAcModifier based on hasted and slowed conditions', async () => {
+    act(() => {
+      const prev = getSnapshot();
+      setGlobalState({
+        ...prev,
+        characters: [
+          ...prev.characters,
+          { id: 'char-test2', characterName: 'Hero2', maxHp: 50, currentHp: 50, isActive: true } as any,
+        ],
+        encounterCombatants: [
+          { id: 'ec-pc2', encounterId: 'enc-1', playerId: 'char-test2', quantity: 1 } as any,
+        ],
+        combatState: {
+          ...prev.combatState,
+          combatants: [
+            { id: 'c-pc2', characterId: 'char-test2', encounterCombatantId: 'ec-pc2', type: 'pc', ac: 15, maxHp: 50, currentHp: 50, tempAcModifier: 0 } as any
+          ]
+        }
+      });
+    });
+
+    const { result } = renderHook(() => useCombatSync());
+
+    // 1. Applying 'hasted' sets tempAcModifier to 2
+    await act(async () => {
+      await result.current.updateCombatant('c-pc2', { conditions: 'hasted' });
+    });
+    let state = getSnapshot();
+    let c = state.combatState.combatants.find((item) => item.id === 'c-pc2');
+    expect(c?.tempAcModifier).toBe(2);
+
+    // 2. Applying both 'hasted' and 'slowed' simultaneously results in 0
+    await act(async () => {
+      await result.current.updateCombatant('c-pc2', { conditions: 'hasted, slowed' });
+    });
+    state = getSnapshot();
+    c = state.combatState.combatants.find((item) => item.id === 'c-pc2');
+    expect(c?.tempAcModifier).toBe(0);
+
+    // 3. Applying 'slowed' sets tempAcModifier to -2
+    await act(async () => {
+      await result.current.updateCombatant('c-pc2', { conditions: 'slowed' });
+    });
+    state = getSnapshot();
+    c = state.combatState.combatants.find((item) => item.id === 'c-pc2');
+    expect(c?.tempAcModifier).toBe(-2);
+
+    // 4. Removing conditions resets tempAcModifier to 0
+    await act(async () => {
+      await result.current.updateCombatant('c-pc2', { conditions: '' });
+    });
+    state = getSnapshot();
+    c = state.combatState.combatants.find((item) => item.id === 'c-pc2');
+    expect(c?.tempAcModifier).toBe(0);
+  });
 });
 

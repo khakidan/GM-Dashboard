@@ -8,6 +8,7 @@ import { DebouncedInput } from '../ui/DebouncedInput';
 import { DebouncedTextarea } from '../ui/DebouncedTextarea';
 import { IrvMultiSelect } from '../ui/IrvMultiSelect';
 import { ConditionChips } from '../ui/ConditionChips';
+import { toast } from 'sonner';
 
 export interface CharacterCardProps {
   character: Character; 
@@ -250,6 +251,9 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({
                   value={character.conditions || ''}
                   onChange={(v) => onUpdate({ conditions: v as string })}
                   immunities={character.immunities || ''}
+                  onConcentrationEffectAdded={() => {
+                    toast('Remember to apply Concentrating to the spellcaster.');
+                  }}
                 />
               </div>
 

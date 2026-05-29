@@ -97,8 +97,16 @@ export function useCombatSync() {
 
       const condList = Array.from(newConditionSet);
       const newAcMod = condList.reduce((sum, cond) => {
-        return sum + (CONDITION_MECHANICS[cond]?.tempAcModifier ?? 0);
+        const mod = CONDITION_MECHANICS[cond]?.tempAcModifier ?? 0;
+        if (cond === 'hasted') {
+          console.log(`[CombatSync DIAGNOSTIC] Condition 'hasted' found on combatant: tempAcModifier is ${mod}`);
+        } else if (cond === 'slowed') {
+          console.log(`[CombatSync DIAGNOSTIC] Condition 'slowed' found on combatant: tempAcModifier is ${mod}`);
+        }
+        return sum + mod;
       }, 0);
+      
+      console.log(`[CombatSync DIAGNOSTIC] Computed total tempAcModifier value for conditions: [${condList.join(', ')}] -> ${newAcMod}`);
       
       if (newAcMod !== (currentCombatant.tempAcModifier || 0)) {
         updates = { ...updates, tempAcModifier: newAcMod };

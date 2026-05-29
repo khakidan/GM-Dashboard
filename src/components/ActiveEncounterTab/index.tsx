@@ -15,6 +15,7 @@ import { CombatSidebar } from './CombatSidebar';
 import { MultiTargetActionBar } from './MultiTargetActionBar';
 import { useCombatSync } from './hooks/useCombatSync';
 import { useHealthChange } from './hooks/useHealthChange';
+import { CasterAttributionDialog } from './CasterAttributionDialog';
 
 export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
   const { state, updateState } = useAppState();
@@ -22,6 +23,10 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
 
   const [isToolsModalOpen, setIsToolsModalOpen] = useState(false);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const [concentrationPrompt, setConcentrationPrompt] = useState<{
+    effectName: string;
+    targetName: string;
+  } | null>(null);
 
   // Keyboard Shortcuts
   useEffect(() => {
@@ -76,6 +81,72 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
     setHealInputs,
     handleHealthChange
   } = useHealthChange(syncingIds, updateCombatant);
+
+  const handleConcentrationPrompt = (effectName: string, targetName: string) => {
+    toast('Concentration required', {
+      description: `${effectName} requires concentration. Select the caster to apply the Concentrating condition — or dismiss if already applied.`,
+      duration: 10000,
+      action: {
+        label: 'Select caster',
+        onClick: () => {
+          setConcentrationPrompt({
+            effectName,
+            targetName,
+          });
+        }
+      }
+    });
+  };
+
+  const handleSelectCaster = (casterId: string) => {
+    if (!concentrationPrompt) return;
+    const { effectName } = concentrationPrompt;
+
+    const currentState = getSnapshot();
+    const caster = currentState.combatState.combatants.find(c => c.id === casterId);
+    if (!caster) return;
+
+    const lowerConditions = (caster.conditions || '').toLowerCase();
+    const isCasterConcentrating = lowerConditions.split(',').map(s => s.trim().toLowerCase()).includes('concentrating');
+
+    const executeCasterUpdate = () => {
+      const conEffectsArray = Array.from(CONCENTRATION_EFFECTS);
+      const currentCasterConds = (caster.conditions || '').split(',').map(s => s.trim()).filter(Boolean);
+      
+      const nextCasterConds = currentCasterConds.filter(cName => {
+        const lowerC = cName.toLowerCase();
+        return lowerC !== 'concentrating' && !conEffectsArray.includes(lowerC);
+      });
+      
+      nextCasterConds.push('concentrating');
+      
+      const nextTimers = { ...(caster.conditionTimers || {}) };
+      Object.keys(nextTimers).forEach(key => {
+        const lowerKey = key.toLowerCase();
+        if (lowerKey === 'concentrating' || conEffectsArray.includes(lowerKey)) {
+          delete nextTimers[key];
+        }
+      });
+
+      updateCombatant(casterId, {
+        conditions: nextCasterConds.join(', '),
+        conditionTimers: nextTimers,
+      });
+
+      setConcentrationPrompt(null);
+    };
+
+    if (isCasterConcentrating) {
+      const confirmProceed = window.confirm(
+        `${caster.name} is already concentrating on another effect. Applying a new concentration spell will end the previous one. Proceed?`
+      );
+      if (confirmProceed) {
+        executeCasterUpdate();
+      }
+    } else {
+      executeCasterUpdate();
+    }
+  };
 
   const toggleExpand = (id: string) => {
     setExpandedIds(prev => {
@@ -642,6 +713,7 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
                     onToggleSelect={toggleCombatantSelection}
                     onUpdateCombatant={(updates) => updateCombatant(c.id, updates)}
                     onRemoveCombatant={() => removeCombatant(c.id)}
+                    onConcentrationPrompt={handleConcentrationPrompt}
                   />
                 ))
               )}
@@ -668,6 +740,15 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
         characters={state.characters}
         onAddPreset={handleAddPreset}
         onAddNpc={handleAddNpc}
+      />
+
+      <CasterAttributionDialog
+        isOpen={!!concentrationPrompt}
+        effectName={concentrationPrompt?.effectName || ''}
+        targetName={concentrationPrompt?.targetName || ''}
+        combatants={state.combatState.combatants}
+        onSelect={handleSelectCaster}
+        onDismiss={() => setConcentrationPrompt(null)}
       />
     </div>
   );

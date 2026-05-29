@@ -128,6 +128,7 @@ export interface CombatantCardProps {
   onToggleSelect?: (id: string) => void;
   onUpdateCombatant: (updates: Partial<Combatant>) => void;
   onRemoveCombatant: () => void | Promise<void>;
+  onConcentrationPrompt?: (effectName: string, targetName: string) => void;
 }
 
 const ReadOnlyIrvDisplay = ({ label, items, theme }: { label: string, items: string, theme: 'resistances' | 'immunities' | 'vulnerabilities' }) => {
@@ -178,7 +179,8 @@ export function CombatantCard({
   onToggleExpand,
   onToggleSelect,
   onUpdateCombatant,
-  onRemoveCombatant
+  onRemoveCombatant,
+  onConcentrationPrompt
 }: CombatantCardProps) {
   const maxHpCeiling = effectiveMaxHp(c.maxHp, c.tempHpMax);
   const [selectedDamageType, setSelectedDamageType] = useState<DamageType | null>(null);
@@ -652,7 +654,7 @@ export function CombatantCard({
                     if (isExhaustion) {
                       Object.keys(newTimers).forEach(key => {
                         if (/^exhaustion \d$/i.test(key)) {
-                          delete newTimers[key];
+                           delete newTimers[key];
                         }
                       });
                     }
@@ -664,6 +666,11 @@ export function CombatantCard({
                     });
                   }}
                   currentRound={currentRound}
+                  onConcentrationEffectAdded={(effectName) => {
+                    if (onConcentrationPrompt) {
+                      onConcentrationPrompt(effectName, c.name);
+                    }
+                  }}
                 />
               </div>
 

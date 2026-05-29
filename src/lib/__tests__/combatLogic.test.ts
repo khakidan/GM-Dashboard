@@ -20,6 +20,7 @@ import {
   getExpiredConditions,
   computeConcentrationDC,
   effectiveMaxHp,
+  effectiveAc,
 } from '../combatLogic';
 import type { Combatant } from '../../types';
 
@@ -517,5 +518,25 @@ describe('applyHealthChange with tempHpMax', () => {
     const activeMax = effectiveMaxHp(30, 15);
     const result = applyHealthChange(12, 0, activeMax, 10, false);
     expect(result.newCurrentHp).toBe(15);
+  });
+});
+
+// ─── effectiveAc ───────────────────────────────────────────────────────────────
+
+describe('effectiveAc', () => {
+  it('effectiveAc(16, -2) returns 14', () => {
+    expect(effectiveAc(16, -2)).toBe(14);
+  });
+
+  it('effectiveAc(16, 2) returns 18', () => {
+    expect(effectiveAc(16, 2)).toBe(18);
+  });
+
+  it('effectiveAc(16, 0) returns 16', () => {
+    expect(effectiveAc(16, 0)).toBe(16);
+  });
+
+  it('effectiveAc(16, undefined) returns 16', () => {
+    expect(effectiveAc(16, undefined)).toBe(16);
   });
 });

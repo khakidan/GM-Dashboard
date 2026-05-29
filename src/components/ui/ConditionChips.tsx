@@ -21,6 +21,7 @@ interface ConditionChipsProps {
   className?: string;
   onAddWithTimer?: (label: string, rounds: number) => void;
   currentRound?: number;
+  onConcentrationEffectAdded?: (effectName: string) => void;
 }
 
 type ChipCategory = 'condition' | 'effect' | 'custom';
@@ -46,6 +47,7 @@ export function ConditionChips({
   className,
   onAddWithTimer,
   currentRound,
+  onConcentrationEffectAdded,
 }: ConditionChipsProps) {
   const [query, setQuery]   = useState('');
   const [open, setOpen]     = useState(false);
@@ -176,9 +178,9 @@ export function ConditionChips({
     
     nextChips.push(trimmed);
     
-    const CON_LABEL = 'concentrating';
-    if (CONCENTRATION_EFFECTS.has(trimmed.toLowerCase().trim()) && trimmed.toLowerCase().trim() !== CON_LABEL && !chips.map(c=>c.toLowerCase().trim()).includes(CON_LABEL)) {
-      nextChips.push(CON_LABEL);
+    const isConEffect = CONCENTRATION_EFFECTS.has(trimmed.toLowerCase().trim()) && trimmed.toLowerCase().trim() !== 'concentrating';
+    if (isConEffect && onConcentrationEffectAdded) {
+      onConcentrationEffectAdded(trimmed);
     }
     
     debouncedOnChange(nextChips.join(', '));
@@ -251,6 +253,10 @@ export function ConditionChips({
     if (!pendingCondition) return;
     const rounds = parseInt(timerRounds);
     if (!isNaN(rounds) && rounds > 0 && onAddWithTimer) {
+      const isConEffect = CONCENTRATION_EFFECTS.has(pendingCondition.toLowerCase().trim()) && pendingCondition.toLowerCase().trim() !== 'concentrating';
+      if (isConEffect && onConcentrationEffectAdded) {
+        onConcentrationEffectAdded(pendingCondition);
+      }
       onAddWithTimer(pendingCondition, rounds);
     } else {
       commitChip(pendingCondition);

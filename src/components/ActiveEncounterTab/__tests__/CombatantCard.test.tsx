@@ -5,7 +5,7 @@
 // ────────────────────────────────────────────────────
 
 import React from 'react';
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { CombatantCard } from '../CombatantCard';
 import type { Combatant } from '../../../types';
@@ -190,6 +190,31 @@ describe('CombatantCard', () => {
       
       render(<CombatantCard {...defaultProps} c={{...defaultCombatant, conditions: 'poisoned'}} />);
       expect(screen.queryByTitle('Active effects')).toBeNull();
+    });
+  });
+
+  describe('Concentration Effects', () => {
+    it('calls onConcentrationPrompt when a concentration effect is added', async () => {
+      const onConcentrationPrompt = vi.fn();
+      render(
+        <CombatantCard
+          {...defaultProps}
+          isExpanded={true}
+          onConcentrationPrompt={onConcentrationPrompt}
+          c={{ ...defaultCombatant, conditions: '' }}
+        />
+      );
+
+      const input = screen.getByPlaceholderText('Add condition or effect...');
+      fireEvent.change(input, { target: { value: 'hasted' } });
+      fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' });
+
+      const skipBtn = await screen.findByRole('button', { name: 'Skip' });
+      fireEvent.click(skipBtn);
+
+      await waitFor(() => {
+        expect(onConcentrationPrompt).toHaveBeenCalledWith('hasted', 'Goblin');
+      });
     });
   });
 });
