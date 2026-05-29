@@ -50,6 +50,8 @@ describe('sheetAdapters', () => {
         'poison',                 // [14] vulnerabilities
         0,                        // [15] tempHpMax
         0,                        // [16] tempAc
+        0,                        // [17] deathSavesFails
+        0,                        // [18] deathSavesSuccesses
       ];
 
       const character = mapCharacterRowToCharacter(data, 2, mockStatuses);
@@ -75,6 +77,8 @@ describe('sheetAdapters', () => {
         vulnerabilities: 'poison',
         tempHpMax: 0,
         tempAc: 0,
+        deathSavesFails: 0,
+        deathSavesSuccesses: 0,
       });
     });
 

@@ -67,6 +67,36 @@ export function PlayerView() {
                       {c.conditions && (
                           <div className="text-xs text-red-600 font-bold italic mt-1 truncate max-w-[150px]" title={c.conditions}>{c.conditions}</div>
                       )}
+                      {c.type === 'pc' && c.conditions?.toLowerCase().includes('unconscious') && (c.deathSavesSuccesses || 0) < 3 && !c.isStable && (
+                        <div className="flex flex-col gap-0.5 mt-2 bg-rose-50/70 border border-rose-100 rounded-lg px-2 py-1 text-[11px] max-w-[160px]">
+                          <div className="flex items-center gap-1.5 font-mono">
+                            <span className="text-[#5a5a40] font-bold uppercase text-[9px] w-12">Fails:</span>
+                            <div className="flex gap-0.5">
+                              {[1, 2, 3].map(slot => {
+                                const isFailed = (c.deathSavesFails || 0) >= slot;
+                                return (
+                                  <span key={slot} className={cn("text-xs leading-none", isFailed ? "text-red-500" : "text-gray-300")}>
+                                    {isFailed ? "●" : "○"}
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1.5 font-mono">
+                            <span className="text-[#5a5a40] font-bold uppercase text-[9px] w-12">Successs:</span>
+                            <div className="flex gap-0.5">
+                              {[1, 2, 3].map(slot => {
+                                const isSuccess = (c.deathSavesSuccesses || 0) >= slot;
+                                return (
+                                  <span key={slot} className={cn("text-xs leading-none", isSuccess ? "text-green-500" : "text-gray-300")}>
+                                    {isSuccess ? "♥" : "○"}
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </td>

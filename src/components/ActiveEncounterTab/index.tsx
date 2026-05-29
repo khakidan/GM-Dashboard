@@ -474,26 +474,44 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
       if (isPcUnconscious && !newlyActiveCombatant.isStable && (newlyActiveCombatant.deathSavesSuccesses || 0) < 3) {
         const fails = newlyActiveCombatant.deathSavesFails || 0;
         const successes = newlyActiveCombatant.deathSavesSuccesses || 0;
+        const toastId = `death-save-${newlyActiveCombatant.id}`;
 
-        toast(`${newlyActiveCombatant.name} is unconscious — Death Saving Throw`, {
-          description: `Fails: ${fails}/3  Successes: ${successes}/3. Roll a D20. On 10 or higher: success. On 1: two failures.`,
-          duration: 15000,
-          action: {
-            label: 'Success',
-            onClick: () => recordDeathSave(newlyActiveCombatant.id, 'success')
-          },
-        });
-
-        setTimeout(() => {
-          toast(`${newlyActiveCombatant.name} — Record Death Save Failure`, {
-            description: `Click below to record a failed roll for ${newlyActiveCombatant.name}.`,
+        toast(
+          <div className="flex flex-col gap-1.5" id={`ds-prompt-${newlyActiveCombatant.id}`}>
+            <div className="font-semibold text-sm text-neutral-900">
+              {newlyActiveCombatant.name} is unconscious — Death Saving Throw
+            </div>
+            <div className="text-xs text-neutral-500">
+              Fails: {fails}/3  Successes: {successes}/3. Roll a D20. On 10 or higher: success. On 1: two failures.
+            </div>
+            <div className="flex gap-2 mt-1">
+              <button
+                id={`ds-success-${newlyActiveCombatant.id}`}
+                onClick={() => {
+                  recordDeathSave(newlyActiveCombatant.id, 'success');
+                  toast.dismiss(toastId);
+                }}
+                className="px-2.5 py-1 bg-green-600 text-white rounded text-xs font-semibold hover:bg-green-700 cursor-pointer pointer-events-auto"
+              >
+                Success
+              </button>
+              <button
+                id={`ds-fail-${newlyActiveCombatant.id}`}
+                onClick={() => {
+                  recordDeathSave(newlyActiveCombatant.id, 'fail');
+                  toast.dismiss(toastId);
+                }}
+                className="px-2.5 py-1 bg-red-600 text-white rounded text-xs font-semibold hover:bg-red-700 cursor-pointer pointer-events-auto"
+              >
+                Failure
+              </button>
+            </div>
+          </div>,
+          {
             duration: 15000,
-            action: {
-              label: 'Failure',
-              onClick: () => recordDeathSave(newlyActiveCombatant.id, 'fail')
-            },
-          });
-        }, 150);
+            id: toastId,
+          }
+        );
       } else if (activeConditionsList.length > 0) {
         const summary = buildConditionSummary(activeConditionsList);
         if (summary.lines.length > 0) {
