@@ -54,50 +54,53 @@ export function PlayerView() {
                   </div>
                 </td>
                 <td className="p-4 px-5">
-                  <div className="flex items-center gap-3">
-                    {isActive && <div className="w-2 h-2 rounded-full bg-[#c5b358] shrink-0"></div>}
-                    <div className="min-w-0">
-                      <div className={cn(
-                        "font-bold text-base md:text-lg truncate transition-colors",
-                        isActive ? "text-[#c5b358]" : "text-[#2c2c26]",
-                        isDead && "line-through text-[#5a5a40]"
-                      )}>
-                        {c.name}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 min-w-0">
+                    <div className="flex items-center gap-3 min-w-0">
+                      {isActive && <div className="w-2 h-2 rounded-full bg-[#c5b358] shrink-0"></div>}
+                      <div className="min-w-0">
+                        <div className={cn(
+                          "font-bold text-base md:text-lg truncate transition-colors",
+                          isActive ? "text-[#c5b358]" : "text-[#2c2c26]",
+                          isDead && "line-through text-[#5a5a40]"
+                        )}>
+                          {c.name}
+                        </div>
+                        {c.conditions && (
+                            <div className="text-xs text-red-600 font-bold italic mt-1 truncate max-w-[150px]" title={c.conditions}>{c.conditions}</div>
+                        )}
                       </div>
-                      {c.conditions && (
-                          <div className="text-xs text-red-600 font-bold italic mt-1 truncate max-w-[150px]" title={c.conditions}>{c.conditions}</div>
-                      )}
-                      {c.type === 'pc' && c.conditions?.toLowerCase().includes('unconscious') && (c.deathSavesSuccesses || 0) < 3 && !c.isStable && (
-                        <div className="flex flex-col gap-0.5 mt-2 bg-rose-50/70 border border-rose-100 rounded-lg px-2 py-1 text-[11px] max-w-[160px]">
-                          <div className="flex items-center gap-1.5 font-mono">
-                            <span className="text-[#5a5a40] font-bold uppercase text-[9px] w-12">Fails:</span>
-                            <div className="flex gap-0.5">
-                              {[1, 2, 3].map(slot => {
-                                const isFailed = (c.deathSavesFails || 0) >= slot;
-                                return (
-                                  <span key={slot} className={cn("text-xs leading-none", isFailed ? "text-red-500" : "text-gray-300")}>
-                                    {isFailed ? "●" : "○"}
-                                  </span>
-                                );
-                              })}
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-1.5 font-mono">
-                            <span className="text-[#5a5a40] font-bold uppercase text-[9px] w-12">Successs:</span>
-                            <div className="flex gap-0.5">
-                              {[1, 2, 3].map(slot => {
-                                const isSuccess = (c.deathSavesSuccesses || 0) >= slot;
-                                return (
-                                  <span key={slot} className={cn("text-xs leading-none", isSuccess ? "text-green-500" : "text-gray-300")}>
-                                    {isSuccess ? "♥" : "○"}
-                                  </span>
-                                );
-                              })}
-                            </div>
+                    </div>
+                    {c.type === 'pc' && c.conditions?.toLowerCase().includes('unconscious') && (c.deathSavesSuccesses || 0) < 3 && !c.isStable && (
+                      <div className="flex flex-row items-center gap-3.5 bg-rose-100 border-2 border-rose-200 rounded-lg px-3.5 py-1.5 shrink-0 shadow-sm">
+                        <div className="flex items-center gap-1.5 font-mono">
+                          <span className="text-red-800 font-extrabold uppercase text-[11px] tracking-wider w-11">Fails:</span>
+                          <div className="flex gap-1">
+                            {[1, 2, 3].map(slot => {
+                              const isFailed = (c.deathSavesFails || 0) >= slot;
+                              return (
+                                <span key={slot} className={cn("text-base font-bold leading-none select-none", isFailed ? "text-red-600" : "text-rose-300")}>
+                                  {isFailed ? "●" : "○"}
+                                </span>
+                              );
+                            })}
                           </div>
                         </div>
-                      )}
-                    </div>
+                        <div className="w-0.5 h-4 bg-rose-300" />
+                        <div className="flex items-center gap-1.5 font-mono">
+                          <span className="text-emerald-800 font-extrabold uppercase text-[11px] tracking-wider w-18">Successes:</span>
+                          <div className="flex gap-1">
+                            {[1, 2, 3].map(slot => {
+                              const isSuccess = (c.deathSavesSuccesses || 0) >= slot;
+                              return (
+                                <span key={slot} className={cn("text-base font-bold leading-none select-none", isSuccess ? "text-emerald-600" : "text-rose-300")}>
+                                  {isSuccess ? "♥" : "○"}
+                                </span>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </td>
                 <td className="p-3 font-bold text-xs uppercase tracking-wider">
