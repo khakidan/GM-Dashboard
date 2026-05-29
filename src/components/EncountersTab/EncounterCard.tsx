@@ -6,6 +6,7 @@ import { cn } from '../../lib/utils';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'motion/react';
 import { DebouncedInput } from '../ui/DebouncedInput';
+import { updateEncounterDB } from '../../services/dbOperations';
 
 export interface EncounterCardProps {
   enc: Encounter;
@@ -66,7 +67,6 @@ export const EncounterCard: React.FC<EncounterCardProps> = ({
     }));
 
     try {
-      const { updateEncounterDB } = await import('../../services/dbOperations');
       await updateEncounterDB(enc.id, trimmedName, trimmedLocation, activeDifficultyId);
       onSyncRequested().catch(console.error);
     } catch (err: unknown) {

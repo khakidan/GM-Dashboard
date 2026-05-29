@@ -172,10 +172,11 @@ export async function addCharacterDB(character: Partial<Character>) {
       sanitizeString(character.immunities || ''),
       sanitizeString(character.vulnerabilities || ''),
       castInt(character.tempHpMax, 0),
+      castInt(character.tempAc, 0),
     ];
 
-    await appendSheetData('Characters!A:P', [rowData]);
-    return { ...character, id: finalId, tempHpMax: character.tempHpMax ?? 0 };
+    await appendSheetData('Characters!A:Q', [rowData]);
+    return { ...character, id: finalId, tempHpMax: character.tempHpMax ?? 0, tempAc: character.tempAc ?? 0 };
   } catch (err) {
     console.error('[DB] addCharacterDB failed:', err);
     throw err;
@@ -209,11 +210,12 @@ export async function updateCharacterDB(
       sanitizeString(character.immunities ?? fullState.immunities ?? ''),
       sanitizeString(character.vulnerabilities ?? fullState.vulnerabilities ?? ''),
       castInt(character.tempHpMax ?? fullState.tempHpMax, 0),
+      castInt(character.tempAc ?? fullState.tempAc, 0),
     ];
 
     const a1Row = charRowIdx + 1;
     // ✅ queueWrite replaces updateSheetData to prevent API quotas inside combat loops
-    queueWrite(`Characters!A${a1Row}:P${a1Row}`, [rowData]);
+    queueWrite(`Characters!A${a1Row}:Q${a1Row}`, [rowData]);
   } catch (err) {
     console.error('[DB] updateCharacterDB failed:', err);
     throw err;
@@ -472,6 +474,45 @@ export async function updateNpcInstanceHpDB(
     ]);
   } catch (err) {
     console.error('[DB] updateNpcInstanceHpDB failed:', err);
+    throw err;
+  }
+}
+
+export async function updateNpcInstanceConditionsDB(
+  ecId: string,
+  conditions: string
+): Promise<void> {
+  try {
+    const rowIdx = await findRowIndexById('Encounter_Combatants', ecId);
+    if (rowIdx === null) {
+      throw new Error(`Encounter Combatant ${ecId} not found`);
+    }
+    const a1Row = rowIdx + 1;
+    await updateSheetData(`Encounter_Combatants!J${a1Row}`, [
+      [conditions],
+    ]);
+  } catch (err) {
+    console.error('[DB] updateNpcInstanceConditionsDB failed:', err);
+    throw err;
+  }
+}
+
+export async function updateNpcInstanceAcModDB(
+  ecId: string,
+  acMod: number
+): Promise<void> {
+  try {
+    const rowIdx = await findRowIndexById('Encounter_Combatants', ecId);
+    if (rowIdx === null) {
+      throw new Error(`Encounter Combatant ${ecId} not found`);
+    }
+
+    const a1Row = rowIdx + 1;
+    await updateSheetData(`Encounter_Combatants!K${a1Row}`, [
+      [acMod.toString()],
+    ]);
+  } catch (err) {
+    console.error('[DB] updateNpcInstanceAcModDB failed:', err);
     throw err;
   }
 }

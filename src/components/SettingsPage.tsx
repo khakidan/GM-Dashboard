@@ -11,6 +11,7 @@ import {
 import {
   setManualRefreshToken,
 } from '../services/googleAuth';
+import { syncAndSanitizeDatabase } from '../services/dbOperations';
 
 interface SettingsPageProps {
   isGoogleConnected: boolean;
@@ -174,7 +175,6 @@ export function SettingsPage({
                         const conf = confirm('Run Sync & Sanitize? This will clean up empty rows and sync entities.');
                         if (!conf) return;
                         try {
-                          const { syncAndSanitizeDatabase } = await import('../services/dbOperations');
                           addLog('Starting Sync & Sanitize...');
                           const deletedCount = await syncAndSanitizeDatabase();
                           addLog(`Sanitize complete. Cleaned up ${deletedCount} rows.`);

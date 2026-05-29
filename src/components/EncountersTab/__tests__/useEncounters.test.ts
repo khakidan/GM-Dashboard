@@ -8,7 +8,7 @@ import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useEncounters } from '../hooks/useEncounters';
 import { useAppState } from '../../../hooks/useAppState';
-import { deleteEncounterFully } from '../../../services/dbOperations';
+import { deleteEncounterFully, addEncounterDB } from '../../../services/dbOperations';
 import { toast } from 'sonner';
 
 vi.mock('sonner', () => ({
@@ -63,7 +63,6 @@ describe('useEncounters', () => {
         updateState: updateStateSpy,
       });
 
-      const { addEncounterDB } = await import('../../../services/dbOperations');
       const mockRealEncounter = { id: 'real-enc-99', name: 'Goblin Ambush', location: 'Woods', difficultyId: 2, status: 'planned', difficultyName: 'Medium' };
       vi.mocked(addEncounterDB).mockResolvedValue(mockRealEncounter as any);
 
@@ -115,8 +114,6 @@ describe('useEncounters', () => {
         updateState: updateStateSpy,
       });
 
-      const { addEncounterDB } = await import('../../../services/dbOperations');
-
       const mockOnSelectEncounter = vi.fn();
       const mockOnSyncRequested = vi.fn().mockResolvedValue(undefined);
 
@@ -158,7 +155,6 @@ describe('useEncounters', () => {
         updateState: updateStateSpy,
       });
 
-      const { deleteEncounterFully } = await import('../../../services/dbOperations');
       vi.mocked(deleteEncounterFully).mockResolvedValue(undefined as any);
 
       const mockOnSelectEncounter = vi.fn();
@@ -200,7 +196,6 @@ describe('useEncounters', () => {
         updateState: updateStateSpy,
       });
 
-      const { deleteEncounterFully } = await import('../../../services/dbOperations');
       vi.mocked(deleteEncounterFully).mockRejectedValue(new Error('Cascade deletion failed'));
 
       const mockOnSelectEncounter = vi.fn();

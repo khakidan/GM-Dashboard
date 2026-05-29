@@ -22,7 +22,7 @@ describe('sheetSchemas', () => {
       const result = CharacterRowSchema.safeParse(row);
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data).toEqual(['char-1', 'Alice', 'Thor', 15, 20, 5, 25, 'Blinded', 14, 3, 1, 'Notes', '', '', '', 0]);
+        expect(result.data).toEqual(['char-1', 'Alice', 'Thor', 15, 20, 5, 25, 'Blinded', 14, 3, 1, 'Notes', '', '', '', 0, 0]);
       }
     });
 
@@ -48,6 +48,7 @@ describe('sheetSchemas', () => {
          '', // immunities
          '', // vulnerabilities
          0, // tempHpMax
+         0, // tempAc
         ]);
       }
     });
@@ -166,7 +167,7 @@ describe('sheetSchemas', () => {
       const result = EncounterCombatantRowSchema.safeParse(row);
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data).toEqual(['ec-1', 'enc-1', 'char-1', null, 1, 15, '', -1, 0]);
+        expect(result.data).toEqual(['ec-1', 'enc-1', 'char-1', null, 1, 15, '', -1, 0, '', 0]);
       }
     });
 
@@ -233,6 +234,24 @@ describe('sheetSchemas', () => {
       if (result.success) {
         expect(result.data[7]).toBe(50);
         expect(result.data[8]).toBe(5);
+      }
+    });
+
+    it('EncounterCombatantRowSchema parses npcCurrentConditions at index 9 as a string', () => {
+      const row = ['ec-1', 'enc-1', null, 'npc-1', 1, 15, '', 50, 5, 'blinded, poisoned'];
+      const result = EncounterCombatantRowSchema.safeParse(row);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data[9]).toBe('blinded, poisoned');
+      }
+    });
+
+    it('EncounterCombatantRowSchema defaults npcCurrentConditions to empty string when absent', () => {
+      const row = ['ec-1', 'enc-1', null, 'npc-1', 1, 15, '', 50, 5];
+      const result = EncounterCombatantRowSchema.safeParse(row);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data[9]).toBe('');
       }
     });
   });

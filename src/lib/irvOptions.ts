@@ -25,7 +25,7 @@ export const EFFECT_OPTIONS: string[] = [
   'raging', 'wild shaped', 'action surge (used)',
   'second wind (used)', 'bardic inspiration (given)',
   // Concentration spells
-  'concentrating', 'hasted', 'blessed', 'baned',
+  'concentrating', 'hasted', 'slowed', 'blessed', 'baned',
   'hexed', "hunter's mark", 'shield of faith',
   'spirit guardians', 'spiritual weapon', 'blurred',
   'polymorphed', 'fly', 'stoneskin', 'firewall',
@@ -36,7 +36,7 @@ export const EFFECT_OPTIONS: string[] = [
 ];
 
 export const CONCENTRATION_EFFECTS = new Set<string>([
-  'hasted', 'blessed', 'baned', 'hexed',
+  'hasted', 'slowed', 'blessed', 'baned', 'hexed',
   "hunter's mark", 'shield of faith', 'spirit guardians',
   'blurred', 'polymorphed', 'fly', 'stoneskin',
   'concentrating',

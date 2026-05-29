@@ -9,6 +9,13 @@ export function effectiveMaxHp(
   return (tempHpMax && tempHpMax > 0) ? tempHpMax : maxHp;
 }
 
+export function effectiveAc(
+  baseAc: number,
+  tempAcModifier?: number
+): number {
+  return baseAc + (tempAcModifier ?? 0);
+}
+
 // ─── Health change ────────────────────────────────────────────────────────────
 
 export interface HealthChangeResult {
@@ -119,6 +126,22 @@ export function rollNpcInitiatives(
 }
 
 // ─── IRV (Immunity, Resistance, Vulnerability) Math ────────────────────────────
+
+export function getEffectiveResistances(
+  combatant: Pick<Combatant, 'resistances' | 'conditions'>
+): string {
+  const base = combatant.resistances || '';
+  const conditions = (combatant.conditions || '').toLowerCase();
+
+  if (conditions.includes('raging')) {
+    const rageResistances = 'bludgeoning, piercing, slashing';
+    return base 
+      ? `${base}, ${rageResistances}` 
+      : rageResistances;
+  }
+
+  return base;
+}
 
 export function checkIrvMatch(damageType: string, irvString: string | null | undefined): boolean {
   if (!irvString || !damageType) return false;

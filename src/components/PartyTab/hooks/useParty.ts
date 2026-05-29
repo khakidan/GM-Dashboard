@@ -49,7 +49,10 @@ export function useParty() {
         ...prev,
         characters: updatedCharacters,
         combatState: {
-          ...(prev.combatState || {}),
+          activeEncounterId: prev.combatState?.activeEncounterId ?? null,
+          activeTurnId: prev.combatState?.activeTurnId ?? null,
+          round: prev.combatState?.round ?? 1,
+          ...prev.combatState,
           combatants: updatedCombatants,
         }
       };
@@ -183,7 +186,7 @@ export function useParty() {
       });
 
       // Mirror the changes into any active PC combatants
-      const updatedCombatants = prev.combatState.combatants.map(
+      const updatedCombatants = (prev.combatState?.combatants || []).map(
         combatant => {
           if (combatant.type !== 'pc' || !combatant.characterId) {
             return combatant;
@@ -208,6 +211,9 @@ export function useParty() {
         ...prev,
         characters: updatedCharacters,
         combatState: {
+          activeEncounterId: prev.combatState?.activeEncounterId ?? null,
+          activeTurnId: prev.combatState?.activeTurnId ?? null,
+          round: prev.combatState?.round ?? 1,
           ...prev.combatState,
           combatants: updatedCombatants,
         },
@@ -371,7 +377,10 @@ export function useParty() {
         ...prev,
         characters: updatedCharacters,
         combatState: {
-          ...(prev.combatState || {}),
+          activeEncounterId: prev.combatState?.activeEncounterId ?? null,
+          activeTurnId: prev.combatState?.activeTurnId ?? null,
+          round: prev.combatState?.round ?? 1,
+          ...prev.combatState,
           combatants: updatedCombatants,
         }
       };

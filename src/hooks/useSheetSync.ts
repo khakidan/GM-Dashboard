@@ -116,7 +116,7 @@ export function useSheetSync({ setIsGoogleConnected, onActiveTabChange }: UseShe
 
       // 4. Fetch Characters
       addLog('Step 5: Fetching character roster...');
-      const charactersResponse = await fetchSheetData('Characters!A2:P');
+      const charactersResponse = await fetchSheetData('Characters!A2:Q');
       const characterRows = charactersResponse.values || [];
       addLog(`Character rows found: ${characterRows.length}`);
 
@@ -142,7 +142,7 @@ export function useSheetSync({ setIsGoogleConnected, onActiveTabChange }: UseShe
       addLog('Step 7: Synching active combatants...');
       let parsedEncounterCombatants: EncounterCombatant[] = [];
       try {
-        const ecResponse = await fetchSheetData('Encounter_Combatants!A2:I');
+        const ecResponse = await fetchSheetData('Encounter_Combatants!A2:K');
         const ecRows = ecResponse.values || [];
         parsedEncounterCombatants = (ecRows || [])
           .map((row, i) => {
@@ -243,6 +243,7 @@ export function useSheetSync({ setIsGoogleConnected, onActiveTabChange }: UseShe
               vulnerabilities: c.vulnerabilities || '',
               conditionTimers: parsedTimers,
               tempHpMax: c.tempHpMax,
+              tempAcModifier: c.tempAc || 0,
             });
           }
         } else if (ec.npcId) {
@@ -261,13 +262,14 @@ export function useSheetSync({ setIsGoogleConnected, onActiveTabChange }: UseShe
                   ? ec.npcCurrentHp 
                   : npcTemplate.maxHp,
                 tempHp: ec.npcTempHp ?? 0,
-                conditions: npcTemplate.conditions,
+                conditions: ec.npcCurrentConditions?.trim() ? ec.npcCurrentConditions : (npcTemplate.conditions || ''),
                 notes: npcTemplate.notes,
                 passivePerception: 10,
                 resistances: npcTemplate.resistances,
                 immunities: npcTemplate.immunities,
                 vulnerabilities: npcTemplate.vulnerabilities,
                 conditionTimers: parsedTimers,
+                tempAcModifier: ec.npcTempAcMod || 0,
               });
             }
           }
@@ -295,6 +297,7 @@ export function useSheetSync({ setIsGoogleConnected, onActiveTabChange }: UseShe
           vulnerabilities: c.vulnerabilities || '',
           conditionTimers: {},
           tempHpMax: c.tempHpMax,
+          tempAcModifier: c.tempAc || 0,
         });
       });
     }

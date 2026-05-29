@@ -190,7 +190,7 @@ describe('addCharacterDB logic', () => {
     });
 
     expect(result.id).toBe('pc-1');
-    expect(sheetsService.appendSheetData).toHaveBeenCalledWith('Characters!A:P', [[
+    expect(sheetsService.appendSheetData).toHaveBeenCalledWith('Characters!A:Q', [[
       'pc-1',
       'Alice',      // trimmed playerName
       'Thorn',      // characterName
@@ -207,6 +207,7 @@ describe('addCharacterDB logic', () => {
       '',           // immunities default
       '',           // vulnerabilities default
       10,           // tempHpMax
+      0,            // tempAc
     ]]);
   });
 
@@ -554,13 +555,13 @@ describe('updateCharacterDB', () => {
     vi.clearAllMocks();
   });
 
-  it('correctly writes tempHpMax to the sheet with range A:P', async () => {
+  it('correctly writes tempHpMax to the sheet with range A:Q', async () => {
     // Mock fetchSheetData for finding the character row (Row 3 for "pc-2", as index 2 + 1 A1 offset)
     vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({
       values: [
-        ['Player_ID', 'Player_Name', 'Character_Name', 'AC', 'Max_HP', 'Temp_HP', 'Current_HP', 'Current_Condition', 'Passive_Perception', 'Current_Level', 'Status', 'Notes', 'Resistances', 'Immunities', 'Vulnerabilities', 'Temp_HP_Max'],
-        ['pc-1', 'Alice', 'Thorn', '16', '40', '5', '35', 'Poisoned', '14', '5', '1', 'Notes', '', '', '', '0'],
-        ['pc-2', 'Bob', 'Grunk', '14', '50', '0', '50', '', '10', '4', '1', 'Notes', '', '', '', '0'],
+        ['Player_ID', 'Player_Name', 'Character_Name', 'AC', 'Max_HP', 'Temp_HP', 'Current_HP', 'Current_Condition', 'Passive_Perception', 'Current_Level', 'Status', 'Notes', 'Resistances', 'Immunities', 'Vulnerabilities', 'Temp_HP_Max', 'Temp_AC'],
+        ['pc-1', 'Alice', 'Thorn', '16', '40', '5', '35', 'Poisoned', '14', '5', '1', 'Notes', '', '', '', '0', '0'],
+        ['pc-2', 'Bob', 'Grunk', '14', '50', '0', '50', '', '10', '4', '1', 'Notes', '', '', '', '0', '0'],
       ] as SheetGrid,
     });
 
@@ -595,7 +596,7 @@ describe('updateCharacterDB', () => {
       characterFullState
     );
 
-    expect(queueWrite).toHaveBeenCalledWith('Characters!A4:P4', [[
+    expect(queueWrite).toHaveBeenCalledWith('Characters!A4:Q4', [[
       'pc-2',
       'Bob',
       'Grunk',
@@ -612,6 +613,7 @@ describe('updateCharacterDB', () => {
       '',
       '',
       25,
+      0,
     ]]);
   });
 
@@ -710,5 +712,41 @@ describe('updateNpcInstanceHpDB', () => {
     });
 
     await expect(updateNpcInstanceHpDB('ec-999', 15, 5)).rejects.toThrow('Encounter Combatant ec-999 not found');
+  });
+});
+
+// ─── updateNpcInstanceConditionsDB ────────────────────────────────────────────
+
+describe('updateNpcInstanceConditionsDB', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('updateNpcInstanceConditionsDB writes the conditions string to column J of the correct EC row', async () => {
+    vi.mocked(sheetsService.fetchSheetData).mockResolvedValue({
+      values: [
+        ['EC_ID', '...', '...', '...'], // row 1 (header)
+        ['ec-111', '...', '...', '...'], // row 2
+        ['ec-222', '...', '...', '...'], // row 3
+        ['ec-333', '...', '...', '...'], // row 4
+      ] as SheetGrid
+    });
+
+    const { updateNpcInstanceConditionsDB } = await import('../dbOperations');
+    await updateNpcInstanceConditionsDB('ec-333', 'blinded, poisoned');
+
+    expect(sheetsService.updateSheetData).toHaveBeenCalledWith(
+      'Encounter_Combatants!J5',
+      [['blinded, poisoned']]
+    );
+  });
+
+  it('updateNpcInstanceConditionsDB throws when ecId is not found', async () => {
+    vi.mocked(sheetsService.fetchSheetData).mockResolvedValue({
+      values: [] as SheetGrid
+    });
+
+    const { updateNpcInstanceConditionsDB } = await import('../dbOperations');
+    await expect(updateNpcInstanceConditionsDB('ec-999', 'blinded')).rejects.toThrow('Encounter Combatant ec-999 not found');
   });
 });

@@ -49,6 +49,7 @@ describe('sheetAdapters', () => {
         'cold',                   // [13] immunities
         'poison',                 // [14] vulnerabilities
         0,                        // [15] tempHpMax
+        0,                        // [16] tempAc
       ];
 
       const character = mapCharacterRowToCharacter(data, 2, mockStatuses);
@@ -73,6 +74,7 @@ describe('sheetAdapters', () => {
         immunities: 'cold',
         vulnerabilities: 'poison',
         tempHpMax: 0,
+        tempAc: 0,
       });
     });
 

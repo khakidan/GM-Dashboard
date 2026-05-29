@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Trash2, Eye, Zap, Lock, Ban, TrendingDown, Target, AlertTriangle, ShieldOff } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { Combatant, DamageType } from '../../types';
-import { getHealthStatus, effectiveMaxHp } from '../../lib/combatLogic';
+import { getHealthStatus, effectiveMaxHp, effectiveAc } from '../../lib/combatLogic';
 import { CONDITION_MECHANICS, buildConditionSummary } from '../../lib/conditionDefinitions';
 import { CONDITION_OPTIONS, EFFECT_OPTIONS } from '../../lib/irvOptions';
 import { IrvMultiSelect } from '../ui/IrvMultiSelect';
@@ -270,7 +270,16 @@ export function CombatantCard({
                 {getHealthStatus(c.currentHp, maxHpCeiling).label}
               </span>
             )}
-            <span className="text-sm font-bold text-[#b0a04f] whitespace-nowrap">(AC {c.ac})</span>
+            {(() => {
+              const baseAc = c.ac;
+              const acMod = c.tempAcModifier || 0;
+              const effAc = effectiveAc(baseAc, acMod);
+              if (acMod === 0) {
+                return <span className="text-sm font-bold text-[#b0a04f] whitespace-nowrap">(AC {baseAc})</span>;
+              }
+              const sign = acMod > 0 ? '+' : '';
+              return <span className="text-sm font-bold text-amber-600 whitespace-nowrap">(AC {effAc} ({sign}{acMod}))</span>;
+            })()}
             {hasMechanicalBadges && (
               <div className="flex flex-wrap items-center gap-1">
                 {isSpeedZero && <span className="bg-slate-100 text-slate-600 border border-slate-200 px-1.5 py-[2px] rounded-full font-sans text-[9px] font-bold uppercase tracking-wide">SPD 0</span>}

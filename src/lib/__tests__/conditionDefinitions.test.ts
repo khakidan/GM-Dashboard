@@ -15,6 +15,16 @@ describe('conditionDefinitions', () => {
     }
   });
 
+  it('CONDITION_MECHANICS["slowed"] has speedHalved: true, tempAcModifier: -2, removedByLongRest: true', () => {
+    expect(CONDITION_MECHANICS.slowed.speedHalved).toBe(true);
+    expect(CONDITION_MECHANICS.slowed.tempAcModifier).toBe(-2);
+    expect(CONDITION_MECHANICS.slowed.removedByLongRest).toBe(true);
+  });
+
+  it('CONDITION_MECHANICS["hasted"] has tempAcModifier: 2', () => {
+    expect(CONDITION_MECHANICS.hasted.tempAcModifier).toBe(2);
+  });
+
   it('paralyzed has critVulnerableInMelee: true', () => {
     expect(CONDITION_MECHANICS.paralyzed.critVulnerableInMelee).toBe(true);
   });

@@ -84,6 +84,43 @@ describe('useCombatSync', () => {
     expect(state.combatState.activeTurnId).toBeNull();
   });
 
+  it('removeCombatant called for one NPC combatant keeps other combatants from the same template', async () => {
+    // Setup multiple combatants sharing the same npcId (but distinct encounterCombatantIds and combatant IDs)
+    act(() => {
+      const prev = getSnapshot();
+      setGlobalState({
+        ...prev,
+        encounterCombatants: [
+          { id: 'ec-1', encounterId: 'enc-1', npcId: 'goblin-template', quantity: 1, npcCurrentHp: 30, npcTempHp: 0 } as any,
+          { id: 'ec-2', encounterId: 'enc-1', npcId: 'goblin-template', quantity: 1, npcCurrentHp: 30, npcTempHp: 0 } as any,
+        ],
+        combatState: {
+          ...prev.combatState,
+          combatants: [
+            { id: 'c-1', encounterCombatantId: 'ec-1', name: 'Goblin 1', type: 'npc', ac: 15, maxHp: 30, currentHp: 30 } as any,
+            { id: 'c-2', encounterCombatantId: 'ec-2', name: 'Goblin 2', type: 'npc', ac: 15, maxHp: 30, currentHp: 30 } as any,
+          ]
+        }
+      });
+    });
+
+    const { result } = renderHook(() => useCombatSync());
+
+    await act(async () => {
+      await result.current.removeCombatant('c-1');
+    });
+
+    const state = getSnapshot();
+    
+    // Only the target combatant is removed from combatants array
+    expect(state.combatState.combatants).toHaveLength(1);
+    expect(state.combatState.combatants[0].id).toBe('c-2');
+
+    // Only the target encounterCombatant row is removed
+    expect(state.encounterCombatants).toHaveLength(1);
+    expect(state.encounterCombatants[0].id).toBe('ec-2');
+  });
+
   it('updateCombatant cleans up conditionTimers for removed conditions', () => {
     const { result } = renderHook(() => useCombatSync());
     
@@ -180,6 +217,66 @@ describe('useCombatSync', () => {
     // Assert that the global NPC template remains completely untouched
     const templateNPC = finalState.npcs.find(n => n.id === 'npc-abc');
     expect(templateNPC?.currentHp).toBe(30); // Unaltered template!
+  });
+
+  it('updateCombatant changes conditions on an NPC combatant, calls updateNpcInstanceConditionsDB and bypasses updateNpcDB', async () => {
+    act(() => {
+      const prev = getSnapshot();
+      setGlobalState({
+        ...prev,
+        encounterCombatants: [
+          { id: 'ec-test', encounterId: 'enc-1', npcId: 'npc-1', quantity: 1, npcCurrentHp: 30, npcTempHp: 0 } as any,
+        ],
+        combatState: {
+          ...prev.combatState,
+          combatants: [
+            { id: 'c-test', encounterCombatantId: 'ec-test', name: 'Gob', type: 'npc', ac: 15, maxHp: 30, currentHp: 30 } as any
+          ]
+        }
+      });
+    });
+
+    const { updateNpcInstanceConditionsDB, updateNpcDB } = await import('../../../services/dbOperations');
+    const { result } = renderHook(() => useCombatSync());
+
+    await act(async () => {
+      await result.current.updateCombatant('c-test', { conditions: 'stunned' });
+    });
+
+    expect(updateNpcInstanceConditionsDB).toHaveBeenCalledWith('ec-test', 'stunned');
+    expect(updateNpcDB).not.toHaveBeenCalled();
+  });
+
+  it('updateCombatant changes conditions on a PC combatant, calls updateCharacterDB and not updateNpcInstanceConditionsDB', async () => {
+    act(() => {
+      const prev = getSnapshot();
+      setGlobalState({
+        ...prev,
+        characters: [
+          ...prev.characters,
+          { id: 'char-test', characterName: 'Hero', maxHp: 50, currentHp: 50, isActive: true } as any,
+        ],
+        encounterCombatants: [
+          { id: 'ec-pc', encounterId: 'enc-1', playerId: 'char-test', quantity: 1 } as any,
+        ],
+        combatState: {
+          ...prev.combatState,
+          combatants: [
+            { id: 'c-pc', characterId: 'char-test', encounterCombatantId: 'ec-pc', type: 'pc', ac: 15, maxHp: 50, currentHp: 50 } as any
+          ]
+        }
+      });
+    });
+
+    const { updateCharacterDB, updateNpcInstanceConditionsDB } = await import('../../../services/dbOperations');
+    const { result } = renderHook(() => useCombatSync());
+
+    await act(async () => {
+      await result.current.updateCombatant('c-pc', { conditions: 'blessed' });
+    });
+
+    expect(updateCharacterDB).toHaveBeenCalled();
+    expect(updateNpcInstanceConditionsDB).not.toHaveBeenCalledWith('ec-pc', 'blessed');
   });
 });
 

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Combatant, DamageType } from '../../../types';
-import { applyHealthChange, computeDamageWithIrv, effectiveMaxHp } from '../../../lib/combatLogic';
+import { applyHealthChange, computeDamageWithIrv, effectiveMaxHp, getEffectiveResistances } from '../../../lib/combatLogic';
 import { toast } from 'sonner';
 import { CONCENTRATION_EFFECTS } from '../../../lib/irvOptions';
 
@@ -50,7 +50,7 @@ export function useHealthChange(
         const { finalDamage, modifier } = computeDamageWithIrv(
           val,
           damageType,
-          c.resistances,
+          getEffectiveResistances(c),
           c.immunities,
           c.vulnerabilities
         );
@@ -59,7 +59,14 @@ export function useHealthChange(
         if (modifier === 'immune') {
           toast(`${c.name} is immune to ${damageType} — no damage applied`);
         } else if (modifier === 'resistant') {
-          toast(`${c.name} is resistant to ${damageType} — damage halved to ${finalDamage}`);
+          const raging = (c.conditions || '').toLowerCase().includes('raging');
+          const isPhys = ['bludgeoning', 'piercing', 'slashing'].includes((damageType || '').toLowerCase());
+          
+          if (raging && isPhys) {
+            toast(`${c.name} is raging — ${damageType} damage resisted, halved to ${finalDamage}`);
+          } else {
+            toast(`${c.name} is resistant to ${damageType} — damage halved to ${finalDamage}`);
+          }
         } else if (modifier === 'vulnerable') {
           toast(`${c.name} is vulnerable to ${damageType} — damage doubled to ${finalDamage}`);
         }

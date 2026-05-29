@@ -105,7 +105,6 @@ export function useNpcLibrary() {
             ...c,
             ...(updates.ac !== undefined ? { ac: updates.ac } : {}),
             ...(updates.maxHp !== undefined ? { maxHp: updates.maxHp, currentHp: updates.maxHp } : {}),
-            ...(updates.conditions !== undefined ? { conditions: updates.conditions } : {}),
             ...(updates.notes !== undefined ? { notes: updates.notes } : {}),
             ...(updates.resistances !== undefined ? { resistances: updates.resistances } : {}),
             ...(updates.immunities !== undefined ? { immunities: updates.immunities } : {}),

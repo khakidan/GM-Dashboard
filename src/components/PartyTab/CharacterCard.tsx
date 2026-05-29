@@ -2,7 +2,7 @@ import React from 'react';
 import { Character } from '../../types';
 import { Shield, Eye, Heart, Loader2, X, ChevronDown } from 'lucide-react';
 import { cn } from '../../lib/utils';
-import { getHealthStatus, effectiveMaxHp } from '../../lib/combatLogic';
+import { getHealthStatus, effectiveMaxHp, effectiveAc } from '../../lib/combatLogic';
 import { motion, AnimatePresence } from 'motion/react';
 import { DebouncedInput } from '../ui/DebouncedInput';
 import { DebouncedTextarea } from '../ui/DebouncedTextarea';
@@ -123,7 +123,13 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({
                 </div>
                 <div className="flex items-center gap-1.5 text-[15px] font-bold text-[#5a5a40]">
                   <Shield className="w-4 h-4 opacity-50" />
-                  {character.ac}
+                  {(() => {
+                    const eff = effectiveAc(character.ac, character.tempAc);
+                    const mod = character.tempAc || 0;
+                    if (mod === 0) return <span>{character.ac}</span>;
+                    const sign = mod > 0 ? '+' : '';
+                    return <span className="text-amber-600">{eff} ({sign}{mod})</span>;
+                  })()}
                 </div>
               </div>
             )}

@@ -203,6 +203,43 @@ describe('useSheetSync', () => {
     expect(uniqueIds).toHaveLength(3);
   });
 
+  it('startEncounter uses npcCurrentConditions from the EC row if available, falling back to NPC template conditions', async () => {
+    let updateStateCalledWith: any;
+    vi.mocked(useAppState).mockReturnValue({
+      state: {} as any,
+      updateState: (args: any) => {
+        updateStateCalledWith = typeof args === 'function' ? args({ combatState: {} }) : args;
+      } 
+    } as any);
+
+    vi.mocked(getSnapshot).mockReturnValue({
+      encounters: [{ id: 'enc-1', name: 'Goblin Patrol' }],
+      npcs: [
+        { id: 'npc-1', name: 'Goblin', conditions: 'prone' },
+        { id: 'npc-2', name: 'Hobgoblin', conditions: 'invisible' }
+      ],
+      encounterCombatants: [
+        { id: 'ec-1', encounterId: 'enc-1', npcId: 'npc-1', quantity: 1, npcCurrentConditions: 'stunned' },
+        { id: 'ec-2', encounterId: 'enc-1', npcId: 'npc-2', quantity: 1, npcCurrentConditions: '' }
+      ],
+      characters: [],
+    } as any);
+
+    const { result } = renderHook(() => useSheetSync({ setIsGoogleConnected: vi.fn() }));
+    await act(async () => {
+      await result.current.startEncounter('enc-1');
+    });
+
+    const combatants = updateStateCalledWith.combatState.combatants;
+    expect(combatants).toHaveLength(2);
+    
+    // Goblin has per-instance conditions overwritten
+    expect(combatants[0].conditions).toBe('stunned');
+    
+    // Hobgoblin falls back to template's condition because EC row is empty
+    expect(combatants[1].conditions).toBe('invisible');
+  });
+
   it('startEncounter falls back to all active characters when no linkedCombatants are found', async () => {
     const mockActivePC = { id: 'char-1', characterName: 'Maeve', isActive: true, ac: 15, maxHp: 50, currentHp: 50 };
     const mockInactivePC = { id: 'char-2', characterName: 'Ylva', isActive: false, ac: 12, maxHp: 40, currentHp: 40 };

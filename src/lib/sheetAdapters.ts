@@ -34,6 +34,7 @@ export function mapCharacterRowToCharacter(
     immunities,
     vulnerabilities,
     tempHpMax,
+    tempAc,
   ] = data;
 
   return {
@@ -56,6 +57,7 @@ export function mapCharacterRowToCharacter(
     immunities: immunities || '',
     vulnerabilities: vulnerabilities || '',
     tempHpMax: tempHpMax ?? 0,
+    tempAc: tempAc ?? 0,
   };
 }
 
@@ -115,7 +117,7 @@ export function mapEncounterCombatantRowToEC(
   data: ECRowData,
   rowIndex: number
 ): EncounterCombatant {
-  const [id, encounterId, playerId, npcId, quantity, initiative, conditionTimers, npcCurrentHp, npcTempHp] = data;
+  const [id, encounterId, playerId, npcId, quantity, initiative, conditionTimers, npcCurrentHp, npcTempHp, npcCurrentConditions, npcTempAcMod] = data;
 
   let parsedTimers: Record<string, number> = {};
   if (conditionTimers) {
@@ -137,5 +139,7 @@ export function mapEncounterCombatantRowToEC(
     sheetRowIndex: rowIndex,
     npcCurrentHp: npcCurrentHp !== undefined ? npcCurrentHp : -1,
     npcTempHp: npcTempHp !== undefined ? npcTempHp : 0,
+    npcCurrentConditions,
+    npcTempAcMod: npcTempAcMod ?? 0,
   };
 }

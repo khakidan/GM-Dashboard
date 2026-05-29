@@ -12,6 +12,7 @@ export interface ConditionMechanics {
   autoFailDex: boolean;
   turnStartNote?: string;
   removedByLongRest: boolean;
+  tempAcModifier: number;
 }
 
 export function buildConditionSummary(
@@ -29,6 +30,7 @@ export function buildConditionSummary(
   autoFailDex: boolean;
   finalOutgoing: 'advantage' | 'disadvantage' | 'normal' | null;
   finalIncoming: 'advantage' | 'disadvantage' | 'normal' | null;
+  totalAcModifier: number;
   sources: Record<string, string[]>;
 } {
   const result = {
@@ -44,6 +46,7 @@ export function buildConditionSummary(
     autoFailDex: false,
     finalOutgoing: null as 'advantage' | 'disadvantage' | 'normal' | null,
     finalIncoming: null as 'advantage' | 'disadvantage' | 'normal' | null,
+    totalAcModifier: 0,
     sources: {
       speedLocked: [] as string[],
       speedHalved: [] as string[],
@@ -112,6 +115,9 @@ export function buildConditionSummary(
       result.autoFailDex = true;
       result.sources.autoFailDex.push(condition);
     }
+    if (mechanics.tempAcModifier) {
+      result.totalAcModifier += mechanics.tempAcModifier;
+    }
   }
 
   const outAdvSources = result.sources.outgoingAdvantage;
@@ -140,9 +146,26 @@ export function buildConditionSummary(
 
   if (result.speedLocked) {
     result.lines.push(`Movement: LOCKED (${result.sources.speedLocked.join(', ')})`);
+  } else if (result.speedHalved) {
+    if (matchedConditions.includes('slowed') && matchedConditions.length === 1) {
+      // Overridden below by specific slowed text if slowed is solitary
+    } else {
+      result.lines.push(`Speed halved (${result.sources.speedHalved.join(', ')})`);
+    }
   }
+
   if (result.actionsBlocked) {
     result.lines.push(`Actions: BLOCKED (${result.sources.actionsBlocked.join(', ')})`);
+  }
+
+  if (matchedConditions.includes('slowed') && matchedConditions.length === 1) {
+    // Specifically matching the requested exact string when only 'slowed' is present
+    result.lines = ['Speed halved. -2 AC and DEX saves. Limited to action OR bonus action per turn. Maximum one attack per turn.'];
+  } else {
+    if (result.totalAcModifier !== 0) {
+      const sign = result.totalAcModifier > 0 ? '+' : '';
+      result.lines.push(`${sign}${result.totalAcModifier} AC`);
+    }
   }
 
   if (finalOutgoing === 'advantage') {
@@ -182,7 +205,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: true, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
-    removedByLongRest: false
+    removedByLongRest: false,
+    tempAcModifier: 0
   },
   charmed: {
     speedZero: false, speedHalved: false, hpMaxHalved: false,
@@ -191,7 +215,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
-    removedByLongRest: false
+    removedByLongRest: false,
+    tempAcModifier: 0
   },
   deafened: {
     speedZero: false, speedHalved: false, hpMaxHalved: false,
@@ -200,7 +225,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
-    removedByLongRest: false
+    removedByLongRest: false,
+    tempAcModifier: 0
   },
   frightened: {
     speedZero: false, speedHalved: false, hpMaxHalved: false,
@@ -209,7 +235,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
-    removedByLongRest: false
+    removedByLongRest: false,
+    tempAcModifier: 0
   },
   grappled: {
     speedZero: true, speedHalved: false, hpMaxHalved: false,
@@ -218,7 +245,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
-    removedByLongRest: false
+    removedByLongRest: false,
+    tempAcModifier: 0
   },
   incapacitated: {
     speedZero: false, speedHalved: false, hpMaxHalved: false,
@@ -227,7 +255,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
-    removedByLongRest: false
+    removedByLongRest: false,
+    tempAcModifier: 0
   },
   invisible: {
     speedZero: false, speedHalved: false, hpMaxHalved: false,
@@ -236,7 +265,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: true,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
-    removedByLongRest: false
+    removedByLongRest: false,
+    tempAcModifier: 0
   },
   paralyzed: {
     speedZero: true, speedHalved: false, hpMaxHalved: false,
@@ -245,7 +275,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: true, incomingDisadvantage: false,
     critVulnerableInMelee: true,
     autoFailStr: true, autoFailDex: true,
-    removedByLongRest: false
+    removedByLongRest: false,
+    tempAcModifier: 0
   },
   petrified: {
     speedZero: true, speedHalved: false, hpMaxHalved: false,
@@ -254,7 +285,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: true, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: true, autoFailDex: true,
-    removedByLongRest: false
+    removedByLongRest: false,
+    tempAcModifier: 0
   },
   poisoned: {
     speedZero: false, speedHalved: false, hpMaxHalved: false,
@@ -263,7 +295,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
-    removedByLongRest: false
+    removedByLongRest: false,
+    tempAcModifier: 0
   },
   prone: {
     speedZero: false, speedHalved: false, hpMaxHalved: false,
@@ -272,7 +305,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: true, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
-    removedByLongRest: false
+    removedByLongRest: false,
+    tempAcModifier: 0
   },
   restrained: {
     speedZero: true, speedHalved: false, hpMaxHalved: false,
@@ -281,7 +315,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: true, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: true,
-    removedByLongRest: false
+    removedByLongRest: false,
+    tempAcModifier: 0
   },
   stunned: {
     speedZero: true, speedHalved: false, hpMaxHalved: false,
@@ -290,7 +325,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: true, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: true, autoFailDex: true,
-    removedByLongRest: false
+    removedByLongRest: false,
+    tempAcModifier: 0
   },
   unconscious: {
     speedZero: true, speedHalved: false, hpMaxHalved: false,
@@ -299,7 +335,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: true, incomingDisadvantage: false,
     critVulnerableInMelee: true,
     autoFailStr: true, autoFailDex: true,
-    removedByLongRest: false
+    removedByLongRest: false,
+    tempAcModifier: 0
   },
   dodging: {
     speedZero: false, speedHalved: false, hpMaxHalved: false,
@@ -308,7 +345,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: true,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
-    removedByLongRest: true
+    removedByLongRest: true,
+    tempAcModifier: 0
   },
   hasted: {
     speedZero: false, speedHalved: false, hpMaxHalved: false,
@@ -317,7 +355,18 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
-    removedByLongRest: true
+    removedByLongRest: true,
+    tempAcModifier: 2
+  },
+  slowed: {
+    speedZero: false, speedHalved: true, hpMaxHalved: false,
+    incapacitates: false,
+    outgoingAdvantage: false, outgoingDisadvantage: false,
+    incomingAdvantage: false, incomingDisadvantage: false,
+    critVulnerableInMelee: false,
+    autoFailStr: false, autoFailDex: false,
+    removedByLongRest: true,
+    tempAcModifier: -2
   },
   concentrating: {
     speedZero: false, speedHalved: false, hpMaxHalved: false,
@@ -326,7 +375,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
-    removedByLongRest: true
+    removedByLongRest: true,
+    tempAcModifier: 0
   },
   raging: {
     speedZero: false, speedHalved: false, hpMaxHalved: false,
@@ -335,7 +385,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
-    removedByLongRest: true
+    removedByLongRest: true,
+    tempAcModifier: 0
   },
   'exhaustion 1': {
     speedZero: false, speedHalved: false, hpMaxHalved: false,
@@ -344,7 +395,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
-    removedByLongRest: false
+    removedByLongRest: false,
+    tempAcModifier: 0
   },
   'exhaustion 2': {
     speedZero: false, speedHalved: true, hpMaxHalved: false,
@@ -353,7 +405,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
-    removedByLongRest: false
+    removedByLongRest: false,
+    tempAcModifier: 0
   },
   'exhaustion 3': {
     speedZero: false, speedHalved: true, hpMaxHalved: false,
@@ -362,7 +415,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: true,
-    removedByLongRest: false
+    removedByLongRest: false,
+    tempAcModifier: 0
   },
   'exhaustion 4': {
     speedZero: false, speedHalved: true, hpMaxHalved: true,
@@ -371,7 +425,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: true,
-    removedByLongRest: false
+    removedByLongRest: false,
+    tempAcModifier: 0
   },
   'exhaustion 5': {
     speedZero: true, speedHalved: false, hpMaxHalved: true,
@@ -380,7 +435,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: true,
-    removedByLongRest: false
+    removedByLongRest: false,
+    tempAcModifier: 0
   },
   'exhaustion 6': {
     speedZero: true, speedHalved: false, hpMaxHalved: true,
@@ -389,7 +445,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: true, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: true, autoFailDex: true,
-    removedByLongRest: false
+    removedByLongRest: false,
+    tempAcModifier: 0
   },
   blessed: {
     speedZero: false, speedHalved: false, hpMaxHalved: false,
@@ -398,7 +455,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
-    removedByLongRest: true
+    removedByLongRest: true,
+    tempAcModifier: 0
   },
   baned: {
     speedZero: false, speedHalved: false, hpMaxHalved: false,
@@ -407,7 +465,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
-    removedByLongRest: true
+    removedByLongRest: true,
+    tempAcModifier: 0
   },
   hexed: {
     speedZero: false, speedHalved: false, hpMaxHalved: false,
@@ -416,7 +475,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
-    removedByLongRest: true
+    removedByLongRest: true,
+    tempAcModifier: 0
   },
   "hunter's mark": {
     speedZero: false, speedHalved: false, hpMaxHalved: false,
@@ -425,7 +485,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
-    removedByLongRest: true
+    removedByLongRest: true,
+    tempAcModifier: 0
   },
   'shield of faith': {
     speedZero: false, speedHalved: false, hpMaxHalved: false,
@@ -434,7 +495,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
-    removedByLongRest: true
+    removedByLongRest: true,
+    tempAcModifier: 0
   },
   'spirit guardians': {
     speedZero: false, speedHalved: false, hpMaxHalved: false,
@@ -443,7 +505,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
-    removedByLongRest: true
+    removedByLongRest: true,
+    tempAcModifier: 0
   },
   'spiritual weapon': {
     speedZero: false, speedHalved: false, hpMaxHalved: false,
@@ -452,7 +515,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
-    removedByLongRest: true
+    removedByLongRest: true,
+    tempAcModifier: 0
   },
   blurred: {
     speedZero: false, speedHalved: false, hpMaxHalved: false,
@@ -461,7 +525,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
-    removedByLongRest: true
+    removedByLongRest: true,
+    tempAcModifier: 0
   },
   polymorphed: {
     speedZero: false, speedHalved: false, hpMaxHalved: false,
@@ -470,7 +535,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
-    removedByLongRest: true
+    removedByLongRest: true,
+    tempAcModifier: 0
   },
   fly: {
     speedZero: false, speedHalved: false, hpMaxHalved: false,
@@ -479,7 +545,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
-    removedByLongRest: true
+    removedByLongRest: true,
+    tempAcModifier: 0
   },
   stoneskin: {
     speedZero: false, speedHalved: false, hpMaxHalved: false,
@@ -488,7 +555,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
-    removedByLongRest: true
+    removedByLongRest: true,
+    tempAcModifier: 0
   },
   'fire shield': {
     speedZero: false, speedHalved: false, hpMaxHalved: false,
@@ -497,7 +565,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
-    removedByLongRest: true
+    removedByLongRest: true,
+    tempAcModifier: 0
   },
   'mirror image': {
     speedZero: false, speedHalved: false, hpMaxHalved: false,
@@ -506,7 +575,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
-    removedByLongRest: true
+    removedByLongRest: true,
+    tempAcModifier: 0
   },
   enlarged: {
     speedZero: false, speedHalved: false, hpMaxHalved: false,
@@ -515,7 +585,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
-    removedByLongRest: true
+    removedByLongRest: true,
+    tempAcModifier: 0
   },
   reduced: {
     speedZero: false, speedHalved: false, hpMaxHalved: false,
@@ -524,7 +595,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
-    removedByLongRest: true
+    removedByLongRest: true,
+    tempAcModifier: 0
   },
   'mage armor': {
     speedZero: false, speedHalved: false, hpMaxHalved: false,
@@ -533,7 +605,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
-    removedByLongRest: true
+    removedByLongRest: true,
+    tempAcModifier: 0
   },
   'wild shaped': {
     speedZero: false, speedHalved: false, hpMaxHalved: false,
@@ -542,7 +615,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
-    removedByLongRest: true
+    removedByLongRest: true,
+    tempAcModifier: 0
   },
   'action surge (used)': {
     speedZero: false, speedHalved: false, hpMaxHalved: false,
@@ -551,7 +625,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
-    removedByLongRest: true
+    removedByLongRest: true,
+    tempAcModifier: 0
   },
   'second wind (used)': {
     speedZero: false, speedHalved: false, hpMaxHalved: false,
@@ -560,7 +635,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
-    removedByLongRest: true
+    removedByLongRest: true,
+    tempAcModifier: 0
   },
   'bardic inspiration (given)': {
     speedZero: false, speedHalved: false, hpMaxHalved: false,
@@ -569,7 +645,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
-    removedByLongRest: true
+    removedByLongRest: true,
+    tempAcModifier: 0
   },
   'divine smite (used)': {
     speedZero: false, speedHalved: false, hpMaxHalved: false,
@@ -578,7 +655,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
-    removedByLongRest: true
+    removedByLongRest: true,
+    tempAcModifier: 0
   },
   'sneak attack (used)': {
     speedZero: false, speedHalved: false, hpMaxHalved: false,
@@ -587,7 +665,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
-    removedByLongRest: true
+    removedByLongRest: true,
+    tempAcModifier: 0
   },
   guided: {
     speedZero: false, speedHalved: false, hpMaxHalved: false,
@@ -596,7 +675,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
-    removedByLongRest: true
+    removedByLongRest: true,
+    tempAcModifier: 0
   }
 };
 

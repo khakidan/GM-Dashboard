@@ -8,7 +8,7 @@ import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useParty } from '../hooks/useParty';
 import { useAppState, getSnapshot } from '../../../hooks/useAppState';
-import { deleteCharacterFully } from '../../../services/dbOperations';
+import { deleteCharacterFully, addCharacterDB, updateCharacterDB } from '../../../services/dbOperations';
 import { toast } from 'sonner';
 
 vi.mock('sonner', () => ({
@@ -146,7 +146,6 @@ describe('useParty', () => {
         updateState: updateStateSpy,
       });
 
-      const { addCharacterDB } = await import('../../../services/dbOperations');
       vi.mocked(addCharacterDB).mockResolvedValue(mockSavedChar as any);
 
       const { result } = renderHook(() => useParty());
@@ -205,7 +204,6 @@ describe('useParty', () => {
         updateState: updateStateSpy,
       });
 
-      const { addCharacterDB } = await import('../../../services/dbOperations');
       vi.mocked(addCharacterDB).mockRejectedValue(new Error('DB Error'));
 
       const { result } = renderHook(() => useParty());
@@ -229,7 +227,6 @@ describe('useParty', () => {
       });
       vi.mocked(getSnapshot).mockReturnValue({ characters: [mockChar] } as any);
 
-      const { updateCharacterDB } = await import('../../../services/dbOperations');
       vi.mocked(updateCharacterDB).mockResolvedValue(undefined as any);
 
       const { result } = renderHook(() => useParty());
@@ -256,7 +253,6 @@ describe('useParty', () => {
       });
       vi.mocked(getSnapshot).mockReturnValue({ characters: [mockChar] } as any);
 
-      const { updateCharacterDB } = await import('../../../services/dbOperations');
       vi.mocked(updateCharacterDB).mockResolvedValue(undefined as any);
 
       const { result } = renderHook(() => useParty());
@@ -280,7 +276,6 @@ describe('useParty', () => {
       });
       vi.mocked(getSnapshot).mockReturnValue(mockInitialState as any);
 
-      const { updateCharacterDB } = await import('../../../services/dbOperations');
       vi.mocked(updateCharacterDB).mockRejectedValue(new Error('Sync failed'));
 
       const { result } = renderHook(() => useParty());
@@ -311,7 +306,6 @@ describe('useParty', () => {
       });
       vi.mocked(getSnapshot).mockReturnValue(mockState as any);
 
-      const { updateCharacterDB } = await import('../../../services/dbOperations');
       vi.mocked(updateCharacterDB).mockResolvedValue(undefined as any);
 
       const { result } = renderHook(() => useParty());
@@ -358,7 +352,6 @@ describe('useParty', () => {
       });
       vi.mocked(getSnapshot).mockReturnValue(mockState as any);
 
-      const { addCharacterDB, updateCharacterDB } = await import('../../../services/dbOperations');
       vi.mocked(updateCharacterDB).mockResolvedValue(undefined as any);
 
       const { result } = renderHook(() => useParty());
@@ -398,7 +391,6 @@ describe('useParty', () => {
       });
       vi.mocked(getSnapshot).mockReturnValue(mockState as any);
 
-      const { updateCharacterDB } = await import('../../../services/dbOperations');
       vi.mocked(updateCharacterDB).mockResolvedValue(undefined as any);
 
       const { result } = renderHook(() => useParty());

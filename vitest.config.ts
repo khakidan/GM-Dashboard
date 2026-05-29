@@ -15,6 +15,11 @@ export default defineConfig({
   test: {
     // jsdom gives us window, localStorage, etc. in tests
     environment: 'jsdom',
+    pool: 'forks',
+    forks: {
+      maxForks: 2,
+      minForks: 1,
+    },
     exclude: ['**/e2e/**', '**/node_modules/**', '**/dist/**'],
 
     // Coverage via v8 — fast, no Babel required

@@ -104,10 +104,10 @@ describe('useNpcLibrary', () => {
     expect(toast.success).toHaveBeenCalledWith('New NPC added to NPC Library');
   });
 
-  it('updates target NPC, invokes updateNpcFullDB, and propagates ac, maxHp and conditions to corresponding combatants', async () => {
+  it('updates target NPC, invokes updateNpcFullDB, and propagates ac, maxHp BUT NOT conditions to corresponding combatants', async () => {
     const mockNpc = { id: 'npc-1', name: 'Goblin', ac: 10, maxHp: 10 };
     const mockEC = { id: 'ec-1', npcId: 'npc-1', npcCurrentHp: 10, npcTempHp: 0 };
-    const mockCombatant = { id: 'comb-1', type: 'npc', encounterCombatantId: 'ec-1', name: 'Goblin 1', ac: 10, maxHp: 10, currentHp: 10 };
+    const mockCombatant = { id: 'comb-1', type: 'npc', encounterCombatantId: 'ec-1', name: 'Goblin 1', ac: 10, maxHp: 10, currentHp: 10, conditions: 'prone' };
     const mockState = {
       npcs: [mockNpc],
       encounterCombatants: [mockEC],
@@ -136,15 +136,16 @@ describe('useNpcLibrary', () => {
     // Assert that the NPC list template was updated
     expect(nextState.npcs[0].ac).toBe(12);
     expect(nextState.npcs[0].maxHp).toBe(15);
+    expect(nextState.npcs[0].conditions).toBe('Blind');
 
     // Assert that EncounterCombatant entry was updated with the new maxHp because npcs.maxHp changed
     expect(nextState.encounterCombatants[0].npcCurrentHp).toBe(15);
 
-    // Assert that the combatant was updated with static parameters
+    // Assert that the combatant was updated with static parameters but NOT conditions
     expect(nextState.combatState.combatants[0].ac).toBe(12);
     expect(nextState.combatState.combatants[0].maxHp).toBe(15);
     expect(nextState.combatState.combatants[0].currentHp).toBe(15);
-    expect(nextState.combatState.combatants[0].conditions).toBe('Blind');
+    expect(nextState.combatState.combatants[0].conditions).toBe('prone'); // unchanged (from mock)
 
     expect(updateNpcFullDB).toHaveBeenCalled();
   });

@@ -15,6 +15,7 @@ import {
   rollD20,
   rollNpcInitiatives,
   checkIrvMatch,
+  getEffectiveResistances,
   computeDamageWithIrv,
   getExpiredConditions,
   computeConcentrationDC,
@@ -250,6 +251,25 @@ describe('rollNpcInitiatives', () => {
     const result = rollNpcInitiatives([pc, npc1, npc2], rng);
     const initiatives = result.map(c => c.initiative);
     expect(initiatives).toEqual([...initiatives].sort((a, b) => b - a));
+  });
+});
+
+// ─── getEffectiveResistances ──────────────────────────────────────────────────
+
+describe('getEffectiveResistances', () => {
+  it('returns base resistances when not raging', () => {
+    expect(getEffectiveResistances({ resistances: 'fire', conditions: 'poisoned' })).toBe('fire');
+    expect(getEffectiveResistances({ resistances: undefined, conditions: 'prone' })).toBe('');
+  });
+
+  it('appends bludgeoning, piercing, slashing when combatant has raging in conditions', () => {
+    expect(getEffectiveResistances({ resistances: undefined, conditions: 'raging, prone' }))
+      .toBe('bludgeoning, piercing, slashing');
+  });
+
+  it('merges correctly when combatant already has other resistances', () => {
+    expect(getEffectiveResistances({ resistances: 'fire, cold', conditions: 'raging' }))
+      .toBe('fire, cold, bludgeoning, piercing, slashing');
   });
 });
 

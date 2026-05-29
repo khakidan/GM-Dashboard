@@ -20,6 +20,7 @@ export interface Character {
   immunities?: string;
   vulnerabilities?: string;
   tempHpMax?: number;
+  tempAc?: number;
 }
 
 export interface NPC {
@@ -66,6 +67,7 @@ export interface Combatant {
   vulnerabilities?: string;
   conditionTimers?: Record<string, number>;
   tempHpMax?: number;
+  tempAcModifier?: number;
 }
 
 export interface CombatState {
@@ -86,6 +88,8 @@ export interface EncounterCombatant {
   conditionTimers?: Record<string, number>;
   npcCurrentHp?: number;
   npcTempHp?: number;
+  npcCurrentConditions?: string;
+  npcTempAcMod?: number;
 }
 
 export interface DifficultyLevel {

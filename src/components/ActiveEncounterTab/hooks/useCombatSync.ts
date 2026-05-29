@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useAppState, getSnapshot } from '../../../hooks/useAppState';
 import { updateSheetData } from '../../../services/sheetsService';
-import { updateCharacterDB, updateNpcDB, deleteEncounterCombatantDB, updateEncounterCombatantQuantityDB, updateInitiativeDB, updateConditionTimersDB, updateNpcInstanceHpDB } from '../../../services/dbOperations';
+import { updateCharacterDB, updateNpcDB, deleteEncounterCombatantDB, updateEncounterCombatantQuantityDB, updateInitiativeDB, updateConditionTimersDB, updateNpcInstanceHpDB, updateNpcInstanceConditionsDB, updateNpcInstanceAcModDB } from '../../../services/dbOperations';
 import { Combatant } from '../../../types';
 import { toast } from 'sonner';
-import { buildConditionSummary } from '../../../lib/conditionDefinitions';
+import { buildConditionSummary, CONDITION_MECHANICS } from '../../../lib/conditionDefinitions';
 
 export function useCombatSync() {
   const { state, updateState } = useAppState();
@@ -26,8 +26,10 @@ export function useCombatSync() {
 
   const removeCombatant = async (id: string) => {
     const latestSnapshot = getSnapshot();
-    const combatant = latestSnapshot.combatState.combatants.find(c => c.id === id);
+    const targetCombatant = latestSnapshot.combatState.combatants.find(c => c.id === id);
     const previousState = latestSnapshot;
+
+    if (!targetCombatant) return;
 
     updateState(prev => ({
       ...prev,
@@ -38,9 +40,9 @@ export function useCombatSync() {
       },
     }));
 
-    if (combatant?.encounterCombatantId) {
+    if (targetCombatant.encounterCombatantId) {
       try {
-        const ec = state.encounterCombatants.find(e => e.id === combatant.encounterCombatantId);
+        const ec = state.encounterCombatants.find(e => e.id === targetCombatant.encounterCombatantId);
         if (ec) {
           if (ec.quantity > 1) {
             const newQty = ec.quantity - 1;
@@ -55,7 +57,9 @@ export function useCombatSync() {
             await deleteEncounterCombatantDB(ec.id);
             updateState(prev => ({
               ...prev,
-              encounterCombatants: prev.encounterCombatants.filter(item => item.id !== ec.id),
+              encounterCombatants: prev.encounterCombatants.filter(
+                ecItem => ecItem.id !== targetCombatant.encounterCombatantId
+              ),
             }));
           }
         }
@@ -91,8 +95,16 @@ export function useCombatSync() {
         }
       }
 
+      const condList = Array.from(newConditionSet);
+      const newAcMod = condList.reduce((sum, cond) => {
+        return sum + (CONDITION_MECHANICS[cond]?.tempAcModifier ?? 0);
+      }, 0);
+      
+      if (newAcMod !== (currentCombatant.tempAcModifier || 0)) {
+        updates = { ...updates, tempAcModifier: newAcMod };
+      }
+
       if (currentCombatant.type === 'pc') {
-        const condList = Array.from(newConditionSet);
         const conditionSummary = buildConditionSummary(condList);
         
         const expectsHpMaxHalved = conditionSummary.hpMaxHalved;
@@ -138,6 +150,7 @@ export function useCombatSync() {
               ...(updates.tempHp !== undefined ? { tempHp: updates.tempHp } : {}),
               ...(updates.conditions !== undefined ? { conditions: updates.conditions } : {}),
               ...(updates.tempHpMax !== undefined ? { tempHpMax: updates.tempHpMax } : {}),
+              ...(updates.tempAcModifier !== undefined ? { tempAc: updates.tempAcModifier } : {}),
             };
           }
           return c;
@@ -149,6 +162,8 @@ export function useCombatSync() {
               ...(updates.conditionTimers !== undefined ? { conditionTimers: updates.conditionTimers } : {}),
               ...(updates.currentHp !== undefined && targetCombatant.type === 'npc' ? { npcCurrentHp: updates.currentHp } : {}),
               ...(updates.tempHp !== undefined && targetCombatant.type === 'npc' ? { npcTempHp: updates.tempHp } : {}),
+              ...(updates.conditions !== undefined && targetCombatant.type === 'npc' ? { npcCurrentConditions: updates.conditions } : {}),
+              ...(updates.tempAcModifier !== undefined && targetCombatant.type === 'npc' ? { npcTempAcMod: updates.tempAcModifier } : {}),
             };
           }
           return item;
@@ -193,6 +208,7 @@ export function useCombatSync() {
               tempHp: targetCombatant.tempHp,
               conditions: targetCombatant.conditions,
               tempHpMax: targetCombatant.tempHpMax,
+              tempAc: targetCombatant.tempAcModifier,
             },
             char
           );
@@ -203,6 +219,18 @@ export function useCombatSync() {
             targetCombatant.encounterCombatantId,
             targetCombatant.currentHp,
             targetCombatant.tempHp || 0
+          );
+        }
+        if (targetCombatant.encounterCombatantId && updates.conditions !== undefined) {
+          await updateNpcInstanceConditionsDB(
+            targetCombatant.encounterCombatantId,
+            updates.conditions
+          );
+        }
+        if (targetCombatant.encounterCombatantId && updates.tempAcModifier !== undefined) {
+          await updateNpcInstanceAcModDB(
+            targetCombatant.encounterCombatantId,
+            updates.tempAcModifier
           );
         }
       }
