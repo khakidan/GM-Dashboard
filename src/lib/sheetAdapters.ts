@@ -115,7 +115,7 @@ export function mapEncounterCombatantRowToEC(
   data: ECRowData,
   rowIndex: number
 ): EncounterCombatant {
-  const [id, encounterId, playerId, npcId, quantity, initiative, conditionTimers] = data;
+  const [id, encounterId, playerId, npcId, quantity, initiative, conditionTimers, npcCurrentHp, npcTempHp] = data;
 
   let parsedTimers: Record<string, number> = {};
   if (conditionTimers) {
@@ -135,5 +135,7 @@ export function mapEncounterCombatantRowToEC(
     initiative: initiative || 0,
     conditionTimers: parsedTimers,
     sheetRowIndex: rowIndex,
+    npcCurrentHp: npcCurrentHp !== undefined ? npcCurrentHp : -1,
+    npcTempHp: npcTempHp !== undefined ? npcTempHp : 0,
   };
 }

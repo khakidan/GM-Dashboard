@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { getExpiredConditions } from '../../lib/combatLogic';
 import { Skull, AlertCircle } from 'lucide-react';
 import { cn } from '../../lib/utils';
-import { Combatant, DamageType } from '../../types';
+import { Combatant, DamageType, EncounterCombatant } from '../../types';
 import { addNpcDB, addEncounterCombatantDB, updateInitiativeDB } from '../../services/dbOperations';
 import { CONCENTRATION_EFFECTS } from '../../lib/irvOptions';
 import { buildConditionSummary } from '../../lib/conditionDefinitions';
@@ -145,15 +145,18 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
   const handleAddPreset = async (type: 'pc' | 'npc', selectedPreset: string, presetQuantity: number) => {
     const previousState = state;
     try {
-      const nextId = `temp-ec-${Date.now()}`;
+      const actualQty = type === 'pc' ? 1 : presetQuantity;
+      const tempEcIds = Array.from({ length: actualQty }, (_, idx) => `temp-ec-${idx}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`);
 
       let newCombatants: Combatant[] = [];
+      let newEcObjects: EncounterCombatant[] = [];
+
       if (type === 'pc') {
         const c = state.characters.find(char => char.id === selectedPreset);
         if (c) {
           newCombatants.push({
             id: `combat-pc-${c.id}`,
-            encounterCombatantId: nextId,
+            encounterCombatantId: tempEcIds[0],
             characterId: c.id,
             name: c.characterName,
             type: 'pc',
@@ -166,15 +169,25 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
             notes: c.notes,
             passivePerception: c.passivePerception,
           });
+          newEcObjects.push({
+            id: tempEcIds[0],
+            encounterId: encounter?.id || '',
+            playerId: selectedPreset,
+            npcId: null,
+            quantity: 1,
+            npcCurrentHp: -1,
+            npcTempHp: 0,
+          });
         }
       } else {
         const npcTemplate = state.npcs.find(n => n.id === selectedPreset);
         if (npcTemplate) {
-          for (let i = 0; i < presetQuantity; i++) {
+          for (let i = 0; i < actualQty; i++) {
+            const combatantId = `combat-npc-${npcTemplate.id}-${i}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
             newCombatants.push({
-              id: `combat-npc-${npcTemplate.id}-${i}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-              encounterCombatantId: nextId,
-              name: `${npcTemplate.name}${presetQuantity > 1 ? ` ${i + 1}` : ''}`,
+              id: combatantId,
+              encounterCombatantId: tempEcIds[i],
+              name: `${npcTemplate.name}${actualQty > 1 ? ` ${i + 1}` : ''}`,
               type: 'npc',
               initiative: 0,
               ac: npcTemplate.ac,
@@ -184,6 +197,18 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
               conditions: npcTemplate.conditions,
               notes: npcTemplate.notes,
               passivePerception: 10,
+              resistances: npcTemplate.resistances,
+              immunities: npcTemplate.immunities,
+              vulnerabilities: npcTemplate.vulnerabilities,
+            });
+            newEcObjects.push({
+              id: tempEcIds[i],
+              encounterId: encounter?.id || '',
+              playerId: null,
+              npcId: selectedPreset,
+              quantity: 1,
+              npcCurrentHp: -1,
+              npcTempHp: 0,
             });
           }
         }
@@ -193,13 +218,7 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
         ...prev,
         encounterCombatants: [
           ...prev.encounterCombatants,
-          {
-            id: nextId,
-            encounterId: encounter?.id || '',
-            playerId: type === 'pc' ? selectedPreset : null,
-            npcId: type === 'npc' ? selectedPreset : null,
-            quantity: presetQuantity,
-          },
+          ...newEcObjects,
         ],
         combatState: {
           ...prev.combatState,
@@ -207,25 +226,44 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
         },
       }));
 
-      const ecRes = await addEncounterCombatantDB(
+      const ecResList = await addEncounterCombatantDB(
         encounter?.id || '',
         type === 'pc' ? selectedPreset : null,
         type === 'npc' ? selectedPreset : null,
         presetQuantity
       );
 
-      updateState(prev => ({
-        ...prev,
-        encounterCombatants: prev.encounterCombatants.map(ec =>
-          ec.id === nextId ? { ...ec, id: ecRes.id } : ec
-        ),
-        combatState: {
-          ...prev.combatState,
-          combatants: prev.combatState.combatants.map(c =>
-            c.encounterCombatantId === nextId ? { ...c, encounterCombatantId: ecRes.id } : c
-          ),
-        },
-      }));
+      updateState(prev => {
+        const nextCombatants = prev.combatState.combatants.map(c => {
+          const tempIdx = tempEcIds.indexOf(c.encounterCombatantId || '');
+          if (tempIdx !== -1 && ecResList[tempIdx]) {
+            return { ...c, encounterCombatantId: ecResList[tempIdx].id };
+          }
+          return c;
+        });
+
+        const nextEc = prev.encounterCombatants.map(ec => {
+          const tempIdx = tempEcIds.indexOf(ec.id);
+          if (tempIdx !== -1 && ecResList[tempIdx]) {
+            return { 
+              ...ec, 
+              id: ecResList[tempIdx].id,
+              npcCurrentHp: ecResList[tempIdx].npcCurrentHp ?? ec.npcCurrentHp,
+              npcTempHp: ecResList[tempIdx].npcTempHp ?? ec.npcTempHp
+            };
+          }
+          return ec;
+        });
+
+        return {
+          ...prev,
+          encounterCombatants: nextEc,
+          combatState: {
+            ...prev.combatState,
+            combatants: nextCombatants,
+          }
+        };
+      });
     } catch (err) {
       console.warn('Sync failed', err);
       updateState(previousState);
@@ -289,6 +327,8 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
             playerId: null,
             npcId: nextIdStr,
             quantity: 1,
+            npcCurrentHp: -1,
+            npcTempHp: 0,
           },
         ],
         combatState: {
@@ -308,7 +348,8 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
         immunities, 
         vulnerabilities
       );
-      const newEc = await addEncounterCombatantDB(encounter?.id || '', null, newNpc.id, 1);
+      const newEcArray = await addEncounterCombatantDB(encounter?.id || '', null, newNpc.id, 1);
+      const newEc = newEcArray[0];
 
       updateState(prev => ({
         ...prev,

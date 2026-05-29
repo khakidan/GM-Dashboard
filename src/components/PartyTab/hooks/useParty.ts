@@ -24,12 +24,36 @@ export function useParty() {
     setLevelUpCharacter(null);
 
     // 1. Optimistically update local state with the new values
-    updateState(prev => ({
-      ...prev,
-      characters: prev.characters.map(c => 
+    updateState(prev => {
+      const updatedCharacters = prev.characters.map(c => 
         c.id === charId ? { ...c, ...updates } : c
-      )
-    }));
+      );
+      const updatedCombatants = (prev.combatState?.combatants || []).map(c => {
+        if (c.characterId === charId) {
+          return {
+            ...c,
+            ...(updates.ac !== undefined ? { ac: updates.ac } : {}),
+            ...(updates.maxHp !== undefined ? { maxHp: updates.maxHp } : {}),
+            ...(updates.tempHpMax !== undefined ? { tempHpMax: updates.tempHpMax } : {}),
+            ...(updates.conditions !== undefined ? { conditions: updates.conditions } : {}),
+            ...(updates.currentHp !== undefined ? { currentHp: updates.currentHp } : {}),
+            ...(updates.tempHp !== undefined ? { tempHp: updates.tempHp } : {}),
+            ...(updates.characterName !== undefined ? { name: updates.characterName } : {}),
+            ...(updates.notes !== undefined ? { notes: updates.notes } : {}),
+            ...(updates.passivePerception !== undefined ? { passivePerception: updates.passivePerception } : {}),
+          };
+        }
+        return c;
+      });
+      return {
+        ...prev,
+        characters: updatedCharacters,
+        combatState: {
+          ...(prev.combatState || {}),
+          combatants: updatedCombatants,
+        }
+      };
+    });
 
     // Find the latest char info to ensure we have the right name for the toast
     const char = getSnapshot().characters.find(c => c.id === charId) || levelUpCharacter;
@@ -123,9 +147,8 @@ export function useParty() {
     
     const previousState = getSnapshot();
     // 1. Update local state optimistically
-    updateState(prev => ({
-      ...prev,
-      characters: prev.characters.map(c => {
+    updateState(prev => {
+      const updatedCharacters = prev.characters.map(c => {
         if (!c.isActive) return c;
         
         const { 
@@ -157,8 +180,39 @@ export function useParty() {
         }
 
         return { ...c, ...updates };
-      })
-    }));
+      });
+
+      // Mirror the changes into any active PC combatants
+      const updatedCombatants = prev.combatState.combatants.map(
+        combatant => {
+          if (combatant.type !== 'pc' || !combatant.characterId) {
+            return combatant;
+          }
+          const updatedChar = updatedCharacters.find(
+            c => c.id === combatant.characterId
+          );
+          if (!updatedChar) return combatant;
+
+          return {
+            ...combatant,
+            currentHp: updatedChar.currentHp,
+            tempHp: updatedChar.tempHp ?? 0,
+            maxHp: updatedChar.maxHp,
+            conditions: updatedChar.conditions || '',
+            conditionTimers: {},
+          };
+        }
+      );
+
+      return {
+        ...prev,
+        characters: updatedCharacters,
+        combatState: {
+          ...prev.combatState,
+          combatants: updatedCombatants,
+        },
+      };
+    });
 
     try {
       // It's best to rely on dbOperations update loop for safety
@@ -292,12 +346,36 @@ export function useParty() {
     if (sanitizedUpdates.passivePerception !== undefined) sanitizedUpdates.passivePerception = Math.max(0, Number(sanitizedUpdates.passivePerception) || 0);
 
     // 1. Update local state immediately (Optimistic Update)
-    updateState(prev => ({
-      ...prev,
-      characters: prev.characters.map(c => 
+    updateState(prev => {
+      const updatedCharacters = prev.characters.map(c => 
         c.id === id ? { ...c, ...sanitizedUpdates } : c
-      )
-    }));
+      );
+      const updatedCombatants = (prev.combatState?.combatants || []).map(c => {
+        if (c.characterId === id) {
+          return {
+            ...c,
+            ...(sanitizedUpdates.ac !== undefined ? { ac: sanitizedUpdates.ac } : {}),
+            ...(sanitizedUpdates.maxHp !== undefined ? { maxHp: sanitizedUpdates.maxHp } : {}),
+            ...(sanitizedUpdates.tempHpMax !== undefined ? { tempHpMax: sanitizedUpdates.tempHpMax } : {}),
+            ...(sanitizedUpdates.conditions !== undefined ? { conditions: sanitizedUpdates.conditions } : {}),
+            ...(sanitizedUpdates.currentHp !== undefined ? { currentHp: sanitizedUpdates.currentHp } : {}),
+            ...(sanitizedUpdates.tempHp !== undefined ? { tempHp: sanitizedUpdates.tempHp } : {}),
+            ...(sanitizedUpdates.characterName !== undefined ? { name: sanitizedUpdates.characterName } : {}),
+            ...(sanitizedUpdates.notes !== undefined ? { notes: sanitizedUpdates.notes } : {}),
+            ...(sanitizedUpdates.passivePerception !== undefined ? { passivePerception: sanitizedUpdates.passivePerception } : {}),
+          };
+        }
+        return c;
+      });
+      return {
+        ...prev,
+        characters: updatedCharacters,
+        combatState: {
+          ...(prev.combatState || {}),
+          combatants: updatedCombatants,
+        }
+      };
+    });
 
     // 2. Check if we need to sync to sheets (if we updated data that lives in the sheet)
     const isSheetData = Object.keys(sanitizedUpdates).some(k => 

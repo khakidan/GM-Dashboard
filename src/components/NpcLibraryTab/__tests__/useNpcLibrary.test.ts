@@ -104,22 +104,48 @@ describe('useNpcLibrary', () => {
     expect(toast.success).toHaveBeenCalledWith('New NPC added to NPC Library');
   });
 
-  it('updates target NPC and invokes updateNpcFullDB', async () => {
-    const mockNpc = { id: 'npc-1', name: 'Goblin', ac: 10, maxHp: 10, currentHp: 10, tempHp: 0 };
+  it('updates target NPC, invokes updateNpcFullDB, and propagates ac, maxHp and conditions to corresponding combatants', async () => {
+    const mockNpc = { id: 'npc-1', name: 'Goblin', ac: 10, maxHp: 10 };
+    const mockEC = { id: 'ec-1', npcId: 'npc-1', npcCurrentHp: 10, npcTempHp: 0 };
+    const mockCombatant = { id: 'comb-1', type: 'npc', encounterCombatantId: 'ec-1', name: 'Goblin 1', ac: 10, maxHp: 10, currentHp: 10 };
+    const mockState = {
+      npcs: [mockNpc],
+      encounterCombatants: [mockEC],
+      combatState: {
+        combatants: [mockCombatant]
+      }
+    };
+
     const updateSpy = vi.fn();
     vi.mocked(useAppState).mockReturnValue({
-      state: { npcs: [mockNpc] } as any,
+      state: mockState as any,
       updateState: updateSpy
     });
-    vi.mocked(getSnapshot).mockReturnValue({ npcs: [{ ...mockNpc, maxHp: 12 }] } as any);
+    vi.mocked(getSnapshot).mockReturnValue({ npcs: [{ ...mockNpc, ac: 12, maxHp: 15 }] } as any);
 
     const { result } = renderHook(() => useNpcLibrary());
 
     await act(async () => {
-      await result.current.handleUpdateNpc('npc-1', { maxHp: 12 });
+      await result.current.handleUpdateNpc('npc-1', { ac: 12, maxHp: 15, conditions: 'Blind' });
     });
 
-    expect(updateNpcFullDB).toHaveBeenCalled();
     expect(updateSpy).toHaveBeenCalled();
+    const stateUpdater = updateSpy.mock.calls[0][0];
+    const nextState = stateUpdater(mockState);
+
+    // Assert that the NPC list template was updated
+    expect(nextState.npcs[0].ac).toBe(12);
+    expect(nextState.npcs[0].maxHp).toBe(15);
+
+    // Assert that EncounterCombatant entry was updated with the new maxHp because npcs.maxHp changed
+    expect(nextState.encounterCombatants[0].npcCurrentHp).toBe(15);
+
+    // Assert that the combatant was updated with static parameters
+    expect(nextState.combatState.combatants[0].ac).toBe(12);
+    expect(nextState.combatState.combatants[0].maxHp).toBe(15);
+    expect(nextState.combatState.combatants[0].currentHp).toBe(15);
+    expect(nextState.combatState.combatants[0].conditions).toBe('Blind');
+
+    expect(updateNpcFullDB).toHaveBeenCalled();
   });
 });

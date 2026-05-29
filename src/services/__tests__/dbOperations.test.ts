@@ -20,6 +20,8 @@ import {
   updateConditionTimersDB,
   updateNpcFullDB,
   deleteNpcDB,
+  addEncounterCombatantDB,
+  updateNpcInstanceHpDB,
 } from '../dbOperations';
 import { SheetGrid, SheetRow } from '../sheetsService';
 import { queueWrite } from '../writeQueue';
@@ -617,5 +619,96 @@ describe('updateCharacterDB', () => {
     vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({ values: [] as SheetGrid });
     const fakePC = { id: 'pc-999' } as any;
     await expect(updateCharacterDB({ currentHp: 10 }, fakePC)).rejects.toThrow('Character not found');
+  });
+});
+
+// ─── addEncounterCombatantDB ──────────────────────────────────────────────────
+
+describe('addEncounterCombatantDB', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('creates individual rows when quantity > 1, called appendSheetData and returns EncounterCombatant[]', async () => {
+    // mock first id as 5
+    vi.mocked(sheetsService.fetchSheetData).mockResolvedValue({
+      values: [['Encounter_Combatants_ID'], ['1'], ['4']] as SheetGrid
+    });
+
+    const result = await addEncounterCombatantDB('enc-1', null, 'npc-5', 3);
+
+    expect(sheetsService.appendSheetData).toHaveBeenCalledTimes(3);
+    expect(result.length).toBe(3);
+    expect(result[0]).toEqual({
+      id: '5',
+      encounterId: 'enc-1',
+      playerId: null,
+      npcId: 'npc-5',
+      quantity: 1,
+      initiative: 0,
+      conditionTimers: {},
+      npcCurrentHp: -1,
+      npcTempHp: 0,
+    });
+    expect(result[1].id).toBe('6');
+    expect(result[2].id).toBe('7');
+    
+    expect(sheetsService.appendSheetData).toHaveBeenNthCalledWith(1, 'Encounter_Combatants!A:I', [[
+      '5', 'enc-1', '', 'npc-5', 1, 0, '', -1, 0
+    ]]);
+    expect(sheetsService.appendSheetData).toHaveBeenNthCalledWith(2, 'Encounter_Combatants!A:I', [[
+      '6', 'enc-1', '', 'npc-5', 1, 0, '', -1, 0
+    ]]);
+    expect(sheetsService.appendSheetData).toHaveBeenNthCalledWith(3, 'Encounter_Combatants!A:I', [[
+      '7', 'enc-1', '', 'npc-5', 1, 0, '', -1, 0
+    ]]);
+  });
+
+  it('creates single row if quantity is <= 1', async () => {
+    vi.mocked(sheetsService.fetchSheetData).mockResolvedValue({
+      values: [['Encounter_Combatants_ID'], ['2']] as SheetGrid
+    });
+
+    const result = await addEncounterCombatantDB('enc-1', 'pc-1', null, 1);
+
+    expect(result.length).toBe(1);
+    expect(result[0].id).toBe('3');
+    expect(sheetsService.appendSheetData).toHaveBeenCalledTimes(1);
+    expect(sheetsService.appendSheetData).toHaveBeenCalledWith('Encounter_Combatants!A:I', [[
+      '3', 'enc-1', 'pc-1', '', 1, 0, '', -1, 0
+    ]]);
+  });
+});
+
+// ─── updateNpcInstanceHpDB ────────────────────────────────────────────────────
+
+describe('updateNpcInstanceHpDB', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('calls updateSheetData with columns H and I of the matched Encounter_Combatants row', async () => {
+    vi.mocked(sheetsService.fetchSheetData).mockResolvedValue({
+      values: [
+        ['Encounter_Combatants_ID', 'Encounter_ID', 'Player_ID'],
+        ['ec-1', 'enc-1', 'char-1'],
+        ['ec-2', 'enc-1', 'char-2'],
+      ] as SheetGrid
+    });
+
+    await updateNpcInstanceHpDB('ec-2', 15, 5);
+
+    expect(sheetsService.updateSheetData).toHaveBeenCalledWith(
+      'Encounter_Combatants!H4:I4',
+      [['15', '5']]
+    );
+  });
+
+  it('throws error when matched Encounter Combatant is not found', async () => {
+    vi.mocked(sheetsService.fetchSheetData).mockResolvedValue({
+      values: [] as SheetGrid
+    });
+
+    await expect(updateNpcInstanceHpDB('ec-999', 15, 5)).rejects.toThrow('Encounter Combatant ec-999 not found');
   });
 });

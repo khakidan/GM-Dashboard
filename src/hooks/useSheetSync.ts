@@ -142,7 +142,7 @@ export function useSheetSync({ setIsGoogleConnected, onActiveTabChange }: UseShe
       addLog('Step 7: Synching active combatants...');
       let parsedEncounterCombatants: EncounterCombatant[] = [];
       try {
-        const ecResponse = await fetchSheetData('Encounter_Combatants!A2:G');
+        const ecResponse = await fetchSheetData('Encounter_Combatants!A2:I');
         const ecRows = ecResponse.values || [];
         parsedEncounterCombatants = (ecRows || [])
           .map((row, i) => {
@@ -257,8 +257,10 @@ export function useSheetSync({ setIsGoogleConnected, onActiveTabChange }: UseShe
                 initiative: ec.initiative || 0,
                 ac: npcTemplate.ac,
                 maxHp: npcTemplate.maxHp,
-                currentHp: npcTemplate.currentHp,
-                tempHp: npcTemplate.tempHp,
+                currentHp: ec.npcCurrentHp !== undefined && ec.npcCurrentHp >= 0 
+                  ? ec.npcCurrentHp 
+                  : npcTemplate.maxHp,
+                tempHp: ec.npcTempHp ?? 0,
                 conditions: npcTemplate.conditions,
                 notes: npcTemplate.notes,
                 passivePerception: 10,

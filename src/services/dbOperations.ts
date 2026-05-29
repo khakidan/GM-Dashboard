@@ -361,21 +361,42 @@ export async function addEncounterCombatantDB(
   playerId: string | null,
   npcId: string | null,
   quantity: number
-) {
+): Promise<EncounterCombatant[]> {
   try {
-    const nextIdVal = await getNextId('Encounter_Combatants');
-    const finalId = nextIdVal.toString();
+    const startIdVal = await getNextId('Encounter_Combatants');
+    const created: EncounterCombatant[] = [];
+    
+    // For PCs or other cases, if q <= 0, we still want to make at least 1 record
+    const count = quantity <= 0 ? 1 : quantity;
 
-    const rowData = [
-      finalId,
-      encounterId,
-      playerId || '',
-      npcId || '',
-      castInt(quantity, 1),
-    ];
+    for (let i = 0; i < count; i++) {
+      const finalId = (startIdVal + i).toString();
+      const rowData = [
+        finalId,
+        encounterId,
+        playerId || '',
+        npcId || '',
+        1,  // Quantity is always 1 when expanded per instance
+        0,  // initiative
+        '', // conditionTimers
+        -1, // npcCurrentHp
+        0,  // npcTempHp
+      ];
 
-    await appendSheetData('Encounter_Combatants!A:E', [rowData]);
-    return { id: finalId };
+      await appendSheetData('Encounter_Combatants!A:I', [rowData]);
+      created.push({
+        id: finalId,
+        encounterId,
+        playerId,
+        npcId,
+        quantity: 1,
+        initiative: 0,
+        conditionTimers: {},
+        npcCurrentHp: -1,
+        npcTempHp: 0,
+      });
+    }
+    return created;
   } catch (err) {
     console.error('[DB] addEncounterCombatantDB failed:', err);
     throw err;
@@ -431,6 +452,26 @@ export async function updateConditionTimersDB(
     await updateSheetData(`Encounter_Combatants!G${a1Row}`, [[jsonStr]]);
   } catch (err) {
     console.error('[DB] updateConditionTimersDB failed:', err);
+    throw err;
+  }
+}
+
+export async function updateNpcInstanceHpDB(
+  ecId: string,
+  currentHp: number,
+  tempHp: number
+): Promise<void> {
+  try {
+    const rowIdx = await findRowIndexById('Encounter_Combatants', ecId);
+    if (rowIdx === null) {
+      throw new Error(`Encounter Combatant ${ecId} not found`);
+    }
+    const a1Row = rowIdx + 1;
+    await updateSheetData(`Encounter_Combatants!H${a1Row}:I${a1Row}`, [
+      [currentHp.toString(), tempHp.toString()],
+    ]);
+  } catch (err) {
+    console.error('[DB] updateNpcInstanceHpDB failed:', err);
     throw err;
   }
 }

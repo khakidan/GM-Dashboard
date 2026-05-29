@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAppState, getSnapshot } from '../../../hooks/useAppState';
 import { updateSheetData } from '../../../services/sheetsService';
-import { updateCharacterDB, updateNpcDB, deleteEncounterCombatantDB, updateEncounterCombatantQuantityDB, updateInitiativeDB, updateConditionTimersDB } from '../../../services/dbOperations';
+import { updateCharacterDB, updateNpcDB, deleteEncounterCombatantDB, updateEncounterCombatantQuantityDB, updateInitiativeDB, updateConditionTimersDB, updateNpcInstanceHpDB } from '../../../services/dbOperations';
 import { Combatant } from '../../../types';
 import { toast } from 'sonner';
 import { buildConditionSummary } from '../../../lib/conditionDefinitions';
@@ -143,8 +143,13 @@ export function useCombatSync() {
           return c;
         }),
         encounterCombatants: prev.encounterCombatants.map(item => {
-          if (targetCombatant.encounterCombatantId === item.id && updates.conditionTimers !== undefined) {
-            return { ...item, conditionTimers: updates.conditionTimers };
+          if (targetCombatant.encounterCombatantId === item.id) {
+            return {
+              ...item,
+              ...(updates.conditionTimers !== undefined ? { conditionTimers: updates.conditionTimers } : {}),
+              ...(updates.currentHp !== undefined && targetCombatant.type === 'npc' ? { npcCurrentHp: updates.currentHp } : {}),
+              ...(updates.tempHp !== undefined && targetCombatant.type === 'npc' ? { npcTempHp: updates.tempHp } : {}),
+            };
           }
           return item;
         }),
@@ -193,16 +198,11 @@ export function useCombatSync() {
           );
         }
       } else if (targetCombatant.type === 'npc') {
-        const latestSnapshot = getSnapshot();
-        const ec = latestSnapshot.encounterCombatants.find(
-          e => e.id === targetCombatant.encounterCombatantId
-        );
-        if (ec && ec.npcId) {
-          await updateNpcDB(
-            ec.npcId,
+        if (targetCombatant.encounterCombatantId && (updates.currentHp !== undefined || updates.tempHp !== undefined)) {
+          await updateNpcInstanceHpDB(
+            targetCombatant.encounterCombatantId,
             targetCombatant.currentHp,
-            targetCombatant.tempHp || 0,
-            targetCombatant.conditions || ''
+            targetCombatant.tempHp || 0
           );
         }
       }

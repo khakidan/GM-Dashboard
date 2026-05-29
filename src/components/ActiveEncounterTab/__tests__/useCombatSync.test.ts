@@ -138,5 +138,48 @@ describe('useCombatSync', () => {
     expect(c1?.currentHp).toBe(10);
     expect(c1?.conditionTimers).toEqual({ 'poisoned': 1, 'prone': 2 });
   });
+
+  it('updateCombatant on NPC combatant updates only combatants and encounterCombatants and does NOT touch state.npcs', () => {
+    act(() => {
+      const prev = getSnapshot();
+      setGlobalState({
+        ...prev,
+        npcs: [
+          { id: 'npc-abc', name: 'Goblin Template', ac: 15, maxHp: 30, currentHp: 30 }
+        ] as any,
+        encounterCombatants: [
+          { id: 'ec-abc', npcId: 'npc-abc', npcCurrentHp: 30, npcTempHp: 0 }
+        ] as any,
+        combatState: {
+          ...prev.combatState,
+          combatants: [
+            { id: 'c-abc', name: 'Goblin Instance 1', type: 'npc', ac: 15, maxHp: 30, currentHp: 30, encounterCombatantId: 'ec-abc' } as any
+          ]
+        }
+      });
+    });
+
+    const { result } = renderHook(() => useCombatSync());
+
+    act(() => {
+      result.current.updateCombatant('c-abc', { currentHp: 18, tempHp: 5 });
+    });
+
+    const finalState = getSnapshot();
+
+    // Check that combatants are updated correctly
+    const updatedCombatant = finalState.combatState.combatants.find(c => c.id === 'c-abc');
+    expect(updatedCombatant?.currentHp).toBe(18);
+    expect(updatedCombatant?.tempHp).toBe(5);
+
+    // Check that encounterCombatants are updated correctly (independent NPC state)
+    const updatedEC = finalState.encounterCombatants.find(ec => ec.id === 'ec-abc');
+    expect(updatedEC?.npcCurrentHp).toBe(18);
+    expect(updatedEC?.npcTempHp).toBe(5);
+
+    // Assert that the global NPC template remains completely untouched
+    const templateNPC = finalState.npcs.find(n => n.id === 'npc-abc');
+    expect(templateNPC?.currentHp).toBe(30); // Unaltered template!
+  });
 });
 

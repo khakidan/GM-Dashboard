@@ -247,5 +247,39 @@ describe('sheetAdapters', () => {
       const ec = mapEncounterCombatantRowToEC(data, 3);
       expect(ec.conditionTimers).toEqual({});
     });
+
+    it('maps npcCurrentHp and npcTempHp correctly if present in ECRowData', () => {
+      const data: ECRowData = [
+        'ec-4',
+        'enc-1',
+        null,
+        'npc-1',
+        1,
+        15,
+        '{"Blessed":2}',
+        35,
+        10
+      ];
+
+      const ec = mapEncounterCombatantRowToEC(data, 4);
+      expect(ec.npcCurrentHp).toBe(35);
+      expect(ec.npcTempHp).toBe(10);
+    });
+
+    it('defaults npcCurrentHp to -1 and npcTempHp to 0 if absent dynamically', () => {
+      const data: ECRowData = [
+        'ec-5',
+        'enc-1',
+        null,
+        'npc-1',
+        1,
+        15,
+        '{"Blessed":2}'
+      ];
+
+      const ec = mapEncounterCombatantRowToEC(data, 5);
+      expect(ec.npcCurrentHp).toBe(-1);
+      expect(ec.npcTempHp).toBe(0);
+    });
   });
 });

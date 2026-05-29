@@ -80,10 +80,51 @@ export function useNpcLibrary() {
 
   const handleUpdateNpc = async (npcId: string, updates: Partial<NPC>) => {
     // Optimistically update local state
-    updateState(prev => ({
-      ...prev,
-      npcs: prev.npcs.map(n => n.id === npcId ? { ...n, ...updates } : n)
-    }));
+    updateState(prev => {
+      const nextNpcs = prev.npcs.map(n => n.id === npcId ? { ...n, ...updates } : n);
+
+      // Find all EC records that match this npcId
+      const matchedECIds = new Set(
+        prev.encounterCombatants
+          .filter(ec => ec.npcId === npcId)
+          .map(ec => ec.id)
+      );
+
+      // Update matching EncounterCombatants' npcCurrentHp only if template maxHp changes so limits stay correct
+      const nextEncounterCombatants = prev.encounterCombatants.map(ec => {
+        if (ec.npcId === npcId && updates.maxHp !== undefined) {
+          return { ...ec, npcCurrentHp: updates.maxHp };
+        }
+        return ec;
+      });
+
+      // Propagate template changes (ac, maxHp, conditions, notes, resistances, etc.) to active NPC combatants
+      const nextCombatants = prev.combatState.combatants.map(c => {
+        if (c.encounterCombatantId && matchedECIds.has(c.encounterCombatantId)) {
+          return {
+            ...c,
+            ...(updates.ac !== undefined ? { ac: updates.ac } : {}),
+            ...(updates.maxHp !== undefined ? { maxHp: updates.maxHp, currentHp: updates.maxHp } : {}),
+            ...(updates.conditions !== undefined ? { conditions: updates.conditions } : {}),
+            ...(updates.notes !== undefined ? { notes: updates.notes } : {}),
+            ...(updates.resistances !== undefined ? { resistances: updates.resistances } : {}),
+            ...(updates.immunities !== undefined ? { immunities: updates.immunities } : {}),
+            ...(updates.vulnerabilities !== undefined ? { vulnerabilities: updates.vulnerabilities } : {}),
+          };
+        }
+        return c;
+      });
+
+      return {
+        ...prev,
+        npcs: nextNpcs,
+        encounterCombatants: nextEncounterCombatants,
+        combatState: {
+          ...prev.combatState,
+          combatants: nextCombatants,
+        }
+      };
+    });
 
     setSyncingId(npcId);
 

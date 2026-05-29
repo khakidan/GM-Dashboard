@@ -166,7 +166,7 @@ describe('sheetSchemas', () => {
       const result = EncounterCombatantRowSchema.safeParse(row);
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data).toEqual(['ec-1', 'enc-1', 'char-1', null, 1, 15, '']);
+        expect(result.data).toEqual(['ec-1', 'enc-1', 'char-1', null, 1, 15, '', -1, 0]);
       }
     });
 
@@ -203,6 +203,36 @@ describe('sheetSchemas', () => {
       expect(resultWithoutTimers.success).toBe(true);
       if (resultWithoutTimers.success) {
         expect(resultWithoutTimers.data[6]).toBe('');
+      }
+    });
+
+    it('parses npcCurrentHp at index 7 and npcTempHp at index 8 when they are present', () => {
+      const row = ['ec-1', 'enc-1', null, 'npc-1', 1, 15, '{"Hasted":7}', 45, 10];
+      const result = EncounterCombatantRowSchema.safeParse(row);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data[7]).toBe(45);
+        expect(result.data[8]).toBe(10);
+      }
+    });
+
+    it('defaults npcCurrentHp to -1 and npcTempHp to 0 when they are absent', () => {
+      const row = ['ec-1', 'enc-1', null, 'npc-1', 1, 15, '{"Hasted":7}'];
+      const result = EncounterCombatantRowSchema.safeParse(row);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data[7]).toBe(-1);
+        expect(result.data[8]).toBe(0);
+      }
+    });
+
+    it('coerces numeric strings to numbers for columns H & I', () => {
+      const row = ['ec-1', 'enc-1', null, 'npc-1', 1, 15, '{"Hasted":7}', '50', '5'];
+      const result = EncounterCombatantRowSchema.safeParse(row);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data[7]).toBe(50);
+        expect(result.data[8]).toBe(5);
       }
     });
   });

@@ -84,6 +84,8 @@ export interface EncounterCombatant {
   sheetRowIndex?: number;
   initiative?: number;
   conditionTimers?: Record<string, number>;
+  npcCurrentHp?: number;
+  npcTempHp?: number;
 }
 
 export interface DifficultyLevel {
