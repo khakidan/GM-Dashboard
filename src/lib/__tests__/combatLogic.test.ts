@@ -271,6 +271,11 @@ describe('getEffectiveResistances', () => {
     expect(getEffectiveResistances({ resistances: 'fire, cold', conditions: 'raging' }))
       .toBe('fire, cold, bludgeoning, piercing, slashing');
   });
+
+  it('does not duplicate entries when raging and combatant already has physical resistances', () => {
+    expect(getEffectiveResistances({ resistances: 'cold, bludgeoning, piercing', conditions: 'raging' }))
+      .toBe('cold, bludgeoning, piercing, slashing');
+  });
 });
 
 // ─── checkIrvMatch ─────────────────────────────────────────────────────────────

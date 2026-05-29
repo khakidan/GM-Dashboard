@@ -207,4 +207,78 @@ describe('useHealthChange', () => {
       conditionTimers: { 'blinded': 5 }
     }));
   });
+
+  it('An NPC at 0 HP does NOT get unconscious applied', () => {
+    const updateSpy = vi.fn();
+    const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
+    const npcCombatant: Combatant = {
+      ...baseCombatant,
+      type: 'npc',
+      currentHp: 10,
+      conditions: '',
+    };
+    act(() => {
+      result.current.setDamageInputs({ c1: '20' });
+    });
+    act(() => {
+      result.current.handleHealthChange('c1', npcCombatant, true);
+    });
+    expect(updateSpy).toHaveBeenCalledWith('c1', {
+      currentHp: 0,
+      tempHp: 0,
+    });
+  });
+
+  it('Healing an unconscious PC removes unconscious and resets death saves to 0', () => {
+    const updateSpy = vi.fn();
+    const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
+    const unconsciousPC: Combatant = {
+      ...baseCombatant,
+      type: 'pc',
+      currentHp: 0,
+      tempHp: 0,
+      conditions: 'Unconscious, Blessed',
+      deathSavesFails: 2,
+      deathSavesSuccesses: 1,
+    };
+    act(() => {
+      result.current.setHealInputs({ c1: '10' });
+    });
+    act(() => {
+      result.current.handleHealthChange('c1', unconsciousPC, false);
+    });
+    expect(updateSpy).toHaveBeenCalledWith('c1', {
+      currentHp: 10,
+      tempHp: 0,
+      conditions: 'Blessed',
+      deathSavesFails: 0,
+      deathSavesSuccesses: 0,
+      isStable: false,
+    });
+  });
+
+  it('Critical hit on unconscious PC adds 2 failures not 1', () => {
+    const updateSpy = vi.fn();
+    const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
+    const unconsciousPC: Combatant = {
+      ...baseCombatant,
+      type: 'pc',
+      currentHp: 0,
+      tempHp: 0,
+      conditions: 'Unconscious',
+      deathSavesFails: 0,
+      deathSavesSuccesses: 0,
+    };
+    act(() => {
+      result.current.setDamageInputs({ c1: '5' });
+    });
+    act(() => {
+      // isCritical = true is passed
+      result.current.handleHealthChange('c1', unconsciousPC, true, null, undefined, true);
+    });
+    expect(updateSpy).toHaveBeenCalledWith('c1', {
+      deathSavesFails: 2,
+      isStable: false,
+    });
+  });
 });

@@ -134,10 +134,10 @@ export function getEffectiveResistances(
   const conditions = (combatant.conditions || '').toLowerCase();
 
   if (conditions.includes('raging')) {
-    const rageResistances = 'bludgeoning, piercing, slashing';
-    return base 
-      ? `${base}, ${rageResistances}` 
-      : rageResistances;
+    const baseParts = base.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+    const rageParts = ['bludgeoning', 'piercing', 'slashing'];
+    const combined = Array.from(new Set([...baseParts, ...rageParts]));
+    return combined.join(', ');
   }
 
   return base;
