@@ -1,3 +1,9 @@
+// ─── PROTECTED TEST FILE ───────────────────────────
+// Do not delete, rename, or remove test cases from 
+// this file without an explicit instruction to do so.
+// Removing tests to make a count pass is not acceptable.
+// ────────────────────────────────────────────────────
+
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import request from 'supertest';
 import express from 'express';

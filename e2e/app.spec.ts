@@ -1,3 +1,9 @@
+// ─── PROTECTED TEST FILE ───────────────────────────
+// Do not delete, rename, or remove test cases from 
+// this file without an explicit instruction to do so.
+// Removing tests to make a count pass is not acceptable.
+// ────────────────────────────────────────────────────
+
 // ─── PROTECTED FILE — DO NOT DELETE OR MODIFY without explicit instruction ───
 // These are end-to-end tests run with Playwright. They are not imported by
 // production code by design. Removing this file breaks the E2E test suite.

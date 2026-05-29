@@ -3,6 +3,8 @@ import { useAppState, getSnapshot } from '../../../hooks/useAppState';
 import { Character } from '../../../types';
 import { addCharacterDB, updateCharacterDB, deleteCharacterFully } from '../../../services/dbOperations';
 import { toast } from 'sonner';
+import { effectiveMaxHp } from '../../../lib/combatLogic';
+import { applyLongRestToConditions } from '../../../lib/conditionDefinitions';
 
 export function useParty() {
   const { state, updateState } = useAppState();
@@ -123,21 +125,105 @@ export function useParty() {
     // 1. Update local state optimistically
     updateState(prev => ({
       ...prev,
-      characters: prev.characters.map(c => 
-        c.isActive ? { ...c, currentHp: c.maxHp, tempHp: 0 } : c
-      )
+      characters: prev.characters.map(c => {
+        if (!c.isActive) return c;
+        
+        const { 
+          remaining, 
+          removed, 
+          exhaustionReduced,
+          newExhaustionLevel
+        } = applyLongRestToConditions(c.conditions || '');
+
+        const updates: Partial<Character> = {
+          currentHp: effectiveMaxHp(c.maxHp, c.tempHpMax),
+          tempHp: 0,
+        };
+
+        if (remaining !== c.conditions) {
+          updates.conditions = remaining;
+        }
+
+        const hadHpHalvingExhaustion = [4, 5, 6].some(
+          n => (c.conditions || '').toLowerCase()
+            .includes(`exhaustion ${n}`)
+        );
+        const stillHasHpHalvingExhaustion = newExhaustionLevel 
+          !== null && newExhaustionLevel >= 4;
+
+        if (hadHpHalvingExhaustion && !stillHasHpHalvingExhaustion) {
+          updates.tempHpMax = 0;
+          updates.currentHp = c.maxHp;
+        }
+
+        return { ...c, ...updates };
+      })
     }));
 
     try {
       // It's best to rely on dbOperations update loop for safety
       // Use getSnapshot() to ensure we aren't using stale 'state' from the hook closure
-      const activePCs = getSnapshot().characters.filter(c => c.isActive);
+      const preRestActivePCs = previousState.characters.filter(c => c.isActive);
       
-      const updatePromises = activePCs.map(char => {
-        return updateCharacterDB({ currentHp: char.maxHp, tempHp: 0 }, char);
+      let anyExhaustionReduced = false;
+      const removedEffects: string[] = [];
+
+      const updatePromises = preRestActivePCs.map(char => {
+        const { 
+          remaining, 
+          removed, 
+          exhaustionReduced,
+          newExhaustionLevel
+        } = applyLongRestToConditions(char.conditions || '');
+
+        if (exhaustionReduced) {
+          anyExhaustionReduced = true;
+        }
+        if (removed.length > 0) {
+          removedEffects.push(...removed);
+        }
+
+        const updates: Partial<Character> = {
+          currentHp: effectiveMaxHp(char.maxHp, char.tempHpMax),
+          tempHp: 0,
+        };
+
+        if (remaining !== char.conditions) {
+          updates.conditions = remaining;
+        }
+
+        const hadHpHalvingExhaustion = [4, 5, 6].some(
+          n => (char.conditions || '').toLowerCase()
+            .includes(`exhaustion ${n}`)
+        );
+        const stillHasHpHalvingExhaustion = newExhaustionLevel 
+          !== null && newExhaustionLevel >= 4;
+
+        if (hadHpHalvingExhaustion && !stillHasHpHalvingExhaustion) {
+          updates.tempHpMax = 0;
+          updates.currentHp = char.maxHp;
+        }
+
+        return updateCharacterDB(updates, char);
       });
 
       await Promise.all(updatePromises);
+
+      const lines: string[] = [];
+      if (anyExhaustionReduced) {
+        lines.push('Exhaustion reduced by 1 for affected characters.');
+      }
+      if (removedEffects.length > 0) {
+        lines.push(`Effects cleared: ${[...new Set(removedEffects)].join(', ')}.`);
+      }
+
+      toast.success('Long rest complete', {
+        description: lines.length > 0 
+          ? lines.join(' ') 
+          : 'All HP restored. No conditions were changed.',
+        duration: 8000,
+      });
+
     } catch (err: unknown) {
       console.error("Long rest failed", err);
       // 2. Rollback

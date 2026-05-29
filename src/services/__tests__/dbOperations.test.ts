@@ -1,5 +1,11 @@
 // src/services/__tests__/dbOperations.test.ts
 
+// ─── PROTECTED TEST FILE ───────────────────────────
+// Do not delete, rename, or remove test cases from 
+// this file without an explicit instruction to do so.
+// Removing tests to make a count pass is not acceptable.
+// ────────────────────────────────────────────────────
+
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as sheetsService from '../sheetsService';
 import {
@@ -16,6 +22,7 @@ import {
   deleteNpcDB,
 } from '../dbOperations';
 import { SheetGrid, SheetRow } from '../sheetsService';
+import { queueWrite } from '../writeQueue';
 
 vi.mock('../sheetsService', () => ({
   fetchSheetData: vi.fn(),
@@ -23,6 +30,10 @@ vi.mock('../sheetsService', () => ({
   appendSheetData: vi.fn(),
   batchUpdateSpreadsheet: vi.fn(),
   fetchSpreadsheetMetadata: vi.fn(),
+}));
+
+vi.mock('../writeQueue', () => ({
+  queueWrite: vi.fn(),
 }));
 
 // ─── castInt ──────────────────────────────────────────────────────────────────
@@ -158,7 +169,7 @@ describe('addCharacterDB logic', () => {
     vi.clearAllMocks();
   });
 
-  it('builds a 12-column row matching the Characters sheet schema and appends it', async () => {
+  it('builds a 16-column row matching the Characters sheet schema and appends it', async () => {
     vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({ values: [] as SheetGrid }); // For getNextId
 
     const result = await addCharacterDB({
@@ -173,10 +184,11 @@ describe('addCharacterDB logic', () => {
       level: 5,
       statusId: 1,
       notes: 'Has darkvision',
+      tempHpMax: 10,
     });
 
     expect(result.id).toBe('pc-1');
-    expect(sheetsService.appendSheetData).toHaveBeenCalledWith('Characters!A:O', [[
+    expect(sheetsService.appendSheetData).toHaveBeenCalledWith('Characters!A:P', [[
       'pc-1',
       'Alice',      // trimmed playerName
       'Thorn',      // characterName
@@ -192,6 +204,7 @@ describe('addCharacterDB logic', () => {
       '',           // resistances default
       '',           // immunities default
       '',           // vulnerabilities default
+      10,           // tempHpMax
     ]]);
   });
 
@@ -529,5 +542,80 @@ describe('deleteNpcDB', () => {
   it('throws error when NPC ID is not found', async () => {
     vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({ values: [] as SheetGrid });
     await expect(deleteNpcDB('999')).rejects.toThrow('NPC 999 not found');
+  });
+});
+
+// ─── updateCharacterDB ────────────────────────────────────────────────────────
+
+describe('updateCharacterDB', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('correctly writes tempHpMax to the sheet with range A:P', async () => {
+    // Mock fetchSheetData for finding the character row (Row 3 for "pc-2", as index 2 + 1 A1 offset)
+    vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({
+      values: [
+        ['Player_ID', 'Player_Name', 'Character_Name', 'AC', 'Max_HP', 'Temp_HP', 'Current_HP', 'Current_Condition', 'Passive_Perception', 'Current_Level', 'Status', 'Notes', 'Resistances', 'Immunities', 'Vulnerabilities', 'Temp_HP_Max'],
+        ['pc-1', 'Alice', 'Thorn', '16', '40', '5', '35', 'Poisoned', '14', '5', '1', 'Notes', '', '', '', '0'],
+        ['pc-2', 'Bob', 'Grunk', '14', '50', '0', '50', '', '10', '4', '1', 'Notes', '', '', '', '0'],
+      ] as SheetGrid,
+    });
+
+    const characterFullState = {
+      id: 'pc-2',
+      playerName: 'Bob',
+      characterName: 'Grunk',
+      ac: 14,
+      maxHp: 50,
+      tempHp: 0,
+      currentHp: 50,
+      conditions: '',
+      passivePerception: 10,
+      level: 4,
+      statusId: 1,
+      statusName: 'Active',
+      notes: 'Notes',
+      isActive: true,
+    };
+
+    await updateCharacterDB(
+      {
+        playerName: 'Bob',
+        characterName: 'Grunk',
+        ac: 14,
+        maxHp: 50,
+        tempHp: 0,
+        currentHp: 40,
+        conditions: 'Exhaustion Level 4',
+        tempHpMax: 25,
+      },
+      characterFullState
+    );
+
+    expect(queueWrite).toHaveBeenCalledWith('Characters!A4:P4', [[
+      'pc-2',
+      'Bob',
+      'Grunk',
+      14,
+      50,
+      0,
+      40,
+      'Exhaustion Level 4',
+      10,
+      4,
+      1,
+      'Notes',
+      '',
+      '',
+      '',
+      25,
+    ]]);
+  });
+
+  it('throws error when character is not found in the sheet', async () => {
+    vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({ values: [] as SheetGrid });
+    const fakePC = { id: 'pc-999' } as any;
+    await expect(updateCharacterDB({ currentHp: 10 }, fakePC)).rejects.toThrow('Character not found');
   });
 });

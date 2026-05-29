@@ -1,3 +1,9 @@
+// ─── PROTECTED TEST FILE ───────────────────────────
+// Do not delete, rename, or remove test cases from 
+// this file without an explicit instruction to do so.
+// Removing tests to make a count pass is not acceptable.
+// ────────────────────────────────────────────────────
+
 import { expect, describe, it } from 'vitest';
 import {
   mapCharacterRowToCharacter,
@@ -42,6 +48,7 @@ describe('sheetAdapters', () => {
         'fire',                   // [12] resistances
         'cold',                   // [13] immunities
         'poison',                 // [14] vulnerabilities
+        0,                        // [15] tempHpMax
       ];
 
       const character = mapCharacterRowToCharacter(data, 2, mockStatuses);
@@ -65,6 +72,7 @@ describe('sheetAdapters', () => {
         resistances: 'fire',
         immunities: 'cold',
         vulnerabilities: 'poison',
+        tempHpMax: 0,
       });
     });
 
@@ -85,6 +93,7 @@ describe('sheetAdapters', () => {
         '',
         '',
         '',
+        0,
       ];
 
       const character = mapCharacterRowToCharacter(data, 3, mockStatuses);
@@ -108,6 +117,7 @@ describe('sheetAdapters', () => {
         '',
         '',
         '',
+        0,
       ];
 
       const characterUnknown = mapCharacterRowToCharacter(dataUnknown, 4, mockStatuses);

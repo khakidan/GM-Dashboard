@@ -2,6 +2,13 @@
 
 import { Combatant, DamageType } from '../types';
 
+export function effectiveMaxHp(
+  maxHp: number, 
+  tempHpMax?: number
+): number {
+  return (tempHpMax && tempHpMax > 0) ? tempHpMax : maxHp;
+}
+
 // ─── Health change ────────────────────────────────────────────────────────────
 
 export interface HealthChangeResult {

@@ -1,5 +1,11 @@
 // src/hooks/__tests__/useAppState.test.ts
 
+// ─── PROTECTED TEST FILE ───────────────────────────
+// Do not delete, rename, or remove test cases from 
+// this file without an explicit instruction to do so.
+// Removing tests to make a count pass is not acceptable.
+// ────────────────────────────────────────────────────
+
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import type { AppState, CombatState } from '../../types';

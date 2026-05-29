@@ -1,5 +1,11 @@
 // src/lib/__tests__/combatLogic.test.ts
 
+// ─── PROTECTED TEST FILE ───────────────────────────
+// Do not delete, rename, or remove test cases from 
+// this file without an explicit instruction to do so.
+// Removing tests to make a count pass is not acceptable.
+// ────────────────────────────────────────────────────
+
 import { describe, it, expect } from 'vitest';
 import {
   applyHealthChange,
@@ -12,6 +18,7 @@ import {
   computeDamageWithIrv,
   getExpiredConditions,
   computeConcentrationDC,
+  effectiveMaxHp,
 } from '../combatLogic';
 import type { Combatant } from '../../types';
 
@@ -453,5 +460,37 @@ describe('computeConcentrationDC', () => {
   });
   it('is 10 when damage is 20 exactly', () => {
     expect(computeConcentrationDC(20)).toBe(10);
+  });
+});
+
+// ─── effectiveMaxHp ────────────────────────────────────────────────────────────
+
+describe('effectiveMaxHp', () => {
+  it('returns maxHp when tempHpMax is undefined', () => {
+    expect(effectiveMaxHp(30, undefined)).toBe(30);
+  });
+
+  it('returns maxHp when tempHpMax is 0', () => {
+    expect(effectiveMaxHp(30, 0)).toBe(30);
+  });
+
+  it('returns tempHpMax when tempHpMax is greater than 0', () => {
+    expect(effectiveMaxHp(30, 15)).toBe(15);
+  });
+});
+
+// ─── applyHealthChange with tempHpMax ──────────────────────────────────────────
+
+describe('applyHealthChange with tempHpMax', () => {
+  it('caps healing to maxHp when tempHpMax is inactive/0', () => {
+    const activeMax = effectiveMaxHp(30, 0);
+    const result = applyHealthChange(25, 0, activeMax, 10, false);
+    expect(result.newCurrentHp).toBe(30);
+  });
+
+  it('caps healing to tempHpMax when tempHpMax is active', () => {
+    const activeMax = effectiveMaxHp(30, 15);
+    const result = applyHealthChange(12, 0, activeMax, 10, false);
+    expect(result.newCurrentHp).toBe(15);
   });
 });

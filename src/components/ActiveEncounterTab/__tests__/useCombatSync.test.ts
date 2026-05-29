@@ -1,3 +1,9 @@
+// ─── PROTECTED TEST FILE ───────────────────────────
+// Do not delete, rename, or remove test cases from 
+// this file without an explicit instruction to do so.
+// Removing tests to make a count pass is not acceptable.
+// ────────────────────────────────────────────────────
+
 import { renderHook, act, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useCombatSync } from '../hooks/useCombatSync';
@@ -77,4 +83,60 @@ describe('useCombatSync', () => {
     expect(state.combatState.combatants).toHaveLength(1);
     expect(state.combatState.activeTurnId).toBeNull();
   });
+
+  it('updateCombatant cleans up conditionTimers for removed conditions', () => {
+    const { result } = renderHook(() => useCombatSync());
+    
+    // First setup the combatant with conditions and timers
+    act(() => {
+      result.current.updateCombatant('c1', { 
+        conditions: 'poisoned,prone', 
+        conditionTimers: { 'poisoned': 1, 'prone': 2 } 
+      });
+    });
+
+    let state = getSnapshot();
+    let c1 = state.combatState.combatants.find((c) => c.id === 'c1');
+    expect(c1?.conditionTimers).toEqual({ 'poisoned': 1, 'prone': 2 });
+
+    // Now update without 'poisoned'
+    act(() => {
+      result.current.updateCombatant('c1', { 
+        conditions: 'prone' 
+      });
+    });
+
+    state = getSnapshot();
+    c1 = state.combatState.combatants.find((c) => c.id === 'c1');
+    expect(c1?.conditionTimers).toEqual({ 'prone': 2 });
+  });
+
+  it('updateCombatant preserves existing timers when conditions string is unchanged', () => {
+    const { result } = renderHook(() => useCombatSync());
+    
+    act(() => {
+      result.current.updateCombatant('c1', { 
+        conditions: 'poisoned,prone', 
+        conditionTimers: { 'poisoned': 1, 'prone': 2 } 
+      });
+    });
+
+    let state = getSnapshot();
+    let c1 = state.combatState.combatants.find((c) => c.id === 'c1');
+    expect(c1?.conditionTimers).toEqual({ 'poisoned': 1, 'prone': 2 });
+
+    // Ensure they are preserved when just changing other state
+    act(() => {
+      result.current.updateCombatant('c1', { 
+        currentHp: 10,
+        conditions: 'poisoned,prone', 
+      });
+    });
+
+    state = getSnapshot();
+    c1 = state.combatState.combatants.find((c) => c.id === 'c1');
+    expect(c1?.currentHp).toBe(10);
+    expect(c1?.conditionTimers).toEqual({ 'poisoned': 1, 'prone': 2 });
+  });
 });
+

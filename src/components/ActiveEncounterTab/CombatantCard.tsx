@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Trash2, Eye, Zap } from 'lucide-react';
+import { Trash2, Eye, Zap, Lock, Ban, TrendingDown, Target, AlertTriangle, ShieldOff } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { Combatant, DamageType } from '../../types';
-import { getHealthStatus } from '../../lib/combatLogic';
+import { getHealthStatus, effectiveMaxHp } from '../../lib/combatLogic';
+import { CONDITION_MECHANICS, buildConditionSummary } from '../../lib/conditionDefinitions';
+import { CONDITION_OPTIONS, EFFECT_OPTIONS } from '../../lib/irvOptions';
 import { IrvMultiSelect } from '../ui/IrvMultiSelect';
 import { ConditionChips } from '../ui/ConditionChips';
 
@@ -178,7 +180,30 @@ export function CombatantCard({
   onUpdateCombatant,
   onRemoveCombatant
 }: CombatantCardProps) {
+  const maxHpCeiling = effectiveMaxHp(c.maxHp, c.tempHpMax);
   const [selectedDamageType, setSelectedDamageType] = useState<DamageType | null>(null);
+
+  const conditionList = (c.conditions || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+  const mechanicalSummary = buildConditionSummary(conditionList);
+
+  const isSpeedZero = mechanicalSummary.speedLocked;
+  const isIncapacitated = mechanicalSummary.actionsBlocked;
+  const isCritVulnerable = mechanicalSummary.critVulnerable;
+  const hasMechanicalBadges =
+    isSpeedZero ||
+    isIncapacitated ||
+    mechanicalSummary.finalOutgoing !== null ||
+    mechanicalSummary.finalIncoming !== null ||
+    isCritVulnerable ||
+    mechanicalSummary.speedHalved ||
+    mechanicalSummary.hpMaxHalved;
+
+  const conditionOptionsLower = CONDITION_OPTIONS.map(o => o.toLowerCase());
+  const effectOptionsLower = EFFECT_OPTIONS.map(o => o.toLowerCase());
+
+  const hasActiveConditions = conditionList.some(chip => conditionOptionsLower.includes(chip));
+  const hasActiveEffects = conditionList.some(chip => effectOptionsLower.includes(chip));
+
   return (
     <motion.div
       layout
@@ -191,7 +216,7 @@ export function CombatantCard({
       )}
     >
       {isActive && !isSelectable && (
-        <div className="absolute -top-3 left-6 bg-[#c5b358] text-[#2c2c26] text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full shadow-sm z-20 flex items-center gap-1">
+        <div className="absolute -top-3 left-6 bg-[#c5b358] text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full shadow-sm z-20 flex items-center gap-1">
           <Zap className="w-3 h-3 fill-current" /> Active
         </div>
       )}
@@ -228,7 +253,7 @@ export function CombatantCard({
               disabled={isSyncing}
             />
           </div>
-          <div className="min-w-0 flex items-center gap-2">
+          <div className="min-w-0 flex flex-wrap items-center gap-2">
             <h3 className={cn('text-lg font-bold font-serif truncate', c.type === 'npc' ? 'text-red-800' : 'text-[#2c2c26]')}>
               {c.name}
             </h3>
@@ -237,20 +262,32 @@ export function CombatantCard({
                 CON
               </span>
             )}
-            {c.currentHp < c.maxHp && c.currentHp > 0 && (
+            {c.currentHp < maxHpCeiling && c.currentHp > 0 && (
               <span className={cn(
                 "text-xs font-bold px-2 py-0.5 rounded-full border border-current bg-white/50 shrink-0",
-                getHealthStatus(c.currentHp, c.maxHp).color
+                getHealthStatus(c.currentHp, maxHpCeiling).color
               )}>
-                {getHealthStatus(c.currentHp, c.maxHp).label}
+                {getHealthStatus(c.currentHp, maxHpCeiling).label}
               </span>
             )}
             <span className="text-sm font-bold text-[#b0a04f] whitespace-nowrap">(AC {c.ac})</span>
-            {c.conditions && c.conditions.split(',').filter(Boolean).length > 0 && (
-              <div className="flex -space-x-1">
-                {c.conditions.split(',').map((cond, i) => (
-                  <div key={i} className="w-2.5 h-2.5 rounded-full bg-red-500 border border-white shadow-sm" title={cond.trim()} />
-                ))}
+            {hasMechanicalBadges && (
+              <div className="flex flex-wrap items-center gap-1">
+                {isSpeedZero && <span className="bg-slate-100 text-slate-600 border border-slate-200 px-1.5 py-[2px] rounded-full font-sans text-[9px] font-bold uppercase tracking-wide">SPD 0</span>}
+                {mechanicalSummary.speedHalved && !isSpeedZero && <span className="bg-slate-100 text-slate-600 border border-slate-200 px-1.5 py-[2px] rounded-full font-sans text-[9px] font-bold uppercase tracking-wide">SPD ½</span>}
+                {mechanicalSummary.hpMaxHalved && <span className="bg-pink-100 text-pink-700 border border-pink-200 px-1.5 py-[2px] rounded-full font-sans text-[9px] font-bold uppercase tracking-wide">HP ½</span>}
+                {isIncapacitated && <span className="bg-orange-100 text-orange-700 border border-orange-200 px-1.5 py-[2px] rounded-full font-sans text-[9px] font-bold uppercase tracking-wide">NO ACT</span>}
+                {mechanicalSummary.finalOutgoing === 'disadvantage' && <span className="bg-yellow-100 text-yellow-700 border border-yellow-200 px-1.5 py-[2px] rounded-full font-sans text-[9px] font-bold uppercase tracking-wide">DISADV</span>}
+                {mechanicalSummary.finalOutgoing === 'advantage' && <span className="bg-green-100 text-green-700 border border-green-200 px-1.5 py-[2px] rounded-full font-sans text-[9px] font-bold uppercase tracking-wide">ADVAN</span>}
+                {mechanicalSummary.finalOutgoing === 'normal' && <span className="bg-gray-100 text-gray-500 border border-gray-200 px-1.5 py-[2px] rounded-full font-sans text-[9px] font-bold uppercase tracking-wide">CANCELLED</span>}
+                {mechanicalSummary.finalIncoming === 'advantage' && <span className="bg-purple-100 text-purple-700 border border-purple-200 px-1.5 py-[2px] rounded-full font-sans text-[9px] font-bold uppercase tracking-wide">VULN</span>}
+                {isCritVulnerable && <span className="bg-red-100 text-red-700 border border-red-200 px-1.5 py-[2px] rounded-full font-sans text-[9px] font-bold uppercase tracking-wide">AUTO CRIT</span>}
+              </div>
+            )}
+            {(hasActiveConditions || hasActiveEffects) && (
+              <div className="flex gap-1 items-center">
+                {hasActiveConditions && <div className="w-2 h-2 rounded-full bg-red-500" title="Active conditions" />}
+                {hasActiveEffects && <div className="w-2 h-2 rounded-full bg-blue-500" title="Active effects" />}
               </div>
             )}
           </div>
@@ -262,9 +299,9 @@ export function CombatantCard({
             <div className="flex flex-col items-center">
               <AnimatedHpDisplay
                 value={c.currentHp}
-                maxHp={c.maxHp}
+                maxHp={maxHpCeiling}
                 isActive={isActive}
-                colorClass={c.currentHp <= c.maxHp / 2 ? (c.currentHp <= 0 ? 'text-red-700' : 'text-[#c5b358]') : 'text-[#2c2c26]'}
+                colorClass={c.currentHp <= maxHpCeiling / 2 ? (c.currentHp <= 0 ? 'text-red-700' : 'text-[#c5b358]') : 'text-[#2c2c26]'}
                 className="p-0"
               />
             </div>
@@ -410,10 +447,131 @@ export function CombatantCard({
                   </div>
                   <div className="bg-[#faf9f6] p-3 rounded-xl border border-[#e5e1d8] text-center flex-1 flex flex-col justify-center">
                     <span className="text-xs font-bold uppercase tracking-widest text-[#5a5a40] block mb-1">Max HP</span>
-                    <span className="font-bold text-base text-[#5a5a40]">{c.maxHp}</span>
+                    {c.tempHpMax && c.tempHpMax > 0 ? (
+                      <span 
+                        className="font-bold text-base text-amber-600 cursor-help" 
+                        title={`Temp max (original: ${c.maxHp})`}
+                      >
+                        {c.tempHpMax}
+                      </span>
+                    ) : (
+                      <span className="font-bold text-base text-[#5a5a40]">{c.maxHp}</span>
+                    )}
                   </div>
                 </div>
               </div>
+
+              {(mechanicalSummary.lines.length > 0 || mechanicalSummary.speedHalved || mechanicalSummary.hpMaxHalved) && (
+                <div className="bg-[#faf9f6]/30 p-4 rounded-xl border border-[#e5e1d8]">
+                  <label className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40] mb-3">Combat Mechanics</label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4">
+                    {mechanicalSummary.speedLocked && (
+                      <div className="flex items-start gap-2">
+                        <Lock className="w-4 h-4 mt-0.5 text-slate-700 shrink-0" />
+                        <div className="min-w-0 font-sans text-sm font-bold text-slate-700">
+                          Speed: Locked <span className="font-normal opacity-60 text-xs ml-1">({mechanicalSummary.sources.speedLocked.join(', ')})</span>
+                        </div>
+                      </div>
+                    )}
+                    {mechanicalSummary.speedHalved && !isSpeedZero && (
+                      <div className="flex items-start gap-2">
+                        <Lock className="w-4 h-4 mt-0.5 text-slate-600 shrink-0" />
+                        <div className="min-w-0 font-sans text-sm font-bold text-slate-600">
+                          Speed: Halved <span className="font-normal opacity-60 text-xs ml-1">({mechanicalSummary.sources.speedHalved.join(', ')})</span>
+                        </div>
+                      </div>
+                    )}
+                    {mechanicalSummary.hpMaxHalved && (
+                      <div className="flex items-start gap-2">
+                        <AlertTriangle className="w-4 h-4 mt-0.5 text-pink-700 shrink-0" />
+                        <div className="min-w-0 font-sans text-sm font-bold text-pink-700">
+                          Max HP: Halved <span className="font-normal opacity-60 text-xs ml-1">({mechanicalSummary.sources.hpMaxHalved.join(', ')})</span>
+                        </div>
+                      </div>
+                    )}
+                    {mechanicalSummary.actionsBlocked && (
+                      <div className="flex items-start gap-2">
+                        <Ban className="w-4 h-4 mt-0.5 text-orange-700 shrink-0" />
+                        <div className="min-w-0 font-sans text-sm font-bold text-orange-700">
+                          Actions: Blocked <span className="font-normal opacity-60 text-xs ml-1">({mechanicalSummary.sources.actionsBlocked.join(', ')})</span>
+                        </div>
+                      </div>
+                    )}
+                    {mechanicalSummary.finalOutgoing === 'disadvantage' && (
+                      <div className="flex items-start gap-2">
+                        <TrendingDown className="w-4 h-4 mt-0.5 text-yellow-700 shrink-0" />
+                        <div className="min-w-0 font-sans text-sm font-bold text-yellow-700">
+                          Attacks: Disadvantage <span className="font-normal opacity-60 text-xs ml-1">({mechanicalSummary.sources.outgoingDisadvantage.join(', ')})</span>
+                        </div>
+                      </div>
+                    )}
+                    {mechanicalSummary.finalOutgoing === 'advantage' && (
+                      <div className="flex items-start gap-2">
+                        <Zap className="w-4 h-4 mt-0.5 text-green-700 shrink-0" />
+                        <div className="min-w-0 font-sans text-sm font-bold text-green-700">
+                          Attacks: Advantage <span className="font-normal opacity-60 text-xs ml-1">({mechanicalSummary.sources.outgoingAdvantage.join(', ')})</span>
+                        </div>
+                      </div>
+                    )}
+                    {mechanicalSummary.finalOutgoing === 'normal' && (
+                      <div className="flex items-start gap-2">
+                        <TrendingDown className="w-4 h-4 mt-0.5 text-gray-500 shrink-0" />
+                        <div className="min-w-0 font-sans text-sm font-bold text-gray-500">
+                          Attacks: Normal (Cancelled) <span className="font-normal opacity-60 text-xs ml-1">({mechanicalSummary.sources.outgoingAdvantage.join(', ')} vs {mechanicalSummary.sources.outgoingDisadvantage.join(', ')})</span>
+                        </div>
+                      </div>
+                    )}
+                    {mechanicalSummary.finalIncoming === 'advantage' && (
+                      <div className="flex items-start gap-2">
+                        <Target className="w-4 h-4 mt-0.5 text-purple-700 shrink-0" />
+                        <div className="min-w-0 font-sans text-sm font-bold text-purple-700">
+                          Incoming: Advantage <span className="font-normal opacity-60 text-xs ml-1">({mechanicalSummary.sources.incomingAdvantage.join(', ')})</span>
+                        </div>
+                      </div>
+                    )}
+                    {mechanicalSummary.finalIncoming === 'disadvantage' && (
+                      <div className="flex items-start gap-2">
+                        <Target className="w-4 h-4 mt-0.5 text-blue-700 shrink-0" />
+                        <div className="min-w-0 font-sans text-sm font-bold text-blue-700">
+                          Incoming: Disadvantage <span className="font-normal opacity-60 text-xs ml-1">({mechanicalSummary.sources.incomingDisadvantage.join(', ')})</span>
+                        </div>
+                      </div>
+                    )}
+                    {mechanicalSummary.finalIncoming === 'normal' && (
+                      <div className="flex items-start gap-2">
+                        <Target className="w-4 h-4 mt-0.5 text-gray-500 shrink-0" />
+                        <div className="min-w-0 font-sans text-sm font-bold text-gray-500">
+                          Incoming: Normal (Cancelled) <span className="font-normal opacity-60 text-xs ml-1">({mechanicalSummary.sources.incomingAdvantage.join(', ')} vs {mechanicalSummary.sources.incomingDisadvantage.join(', ')})</span>
+                        </div>
+                      </div>
+                    )}
+                    {mechanicalSummary.critVulnerable && (
+                      <div className="flex items-start gap-2">
+                        <AlertTriangle className="w-4 h-4 mt-0.5 text-red-700 shrink-0" />
+                        <div className="min-w-0 font-sans text-sm font-bold text-red-700">
+                          Melee hits: Auto-crit <span className="font-normal opacity-60 text-xs ml-1">({mechanicalSummary.sources.critVulnerable.join(', ')})</span>
+                        </div>
+                      </div>
+                    )}
+                    {mechanicalSummary.autoFailStr && (
+                      <div className="flex items-start gap-2">
+                        <ShieldOff className="w-4 h-4 mt-0.5 text-red-600 shrink-0" />
+                        <div className="min-w-0 font-sans text-sm font-bold text-red-600">
+                          STR saves: Auto-fail <span className="font-normal opacity-60 text-xs ml-1">({mechanicalSummary.sources.autoFailStr.join(', ')})</span>
+                        </div>
+                      </div>
+                    )}
+                    {mechanicalSummary.autoFailDex && (
+                      <div className="flex items-start gap-2">
+                        <ShieldOff className="w-4 h-4 mt-0.5 text-red-600 shrink-0" />
+                        <div className="min-w-0 font-sans text-sm font-bold text-red-600">
+                          DEX saves: Auto-fail <span className="font-normal opacity-60 text-xs ml-1">({mechanicalSummary.sources.autoFailDex.join(', ')})</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               <div>
                 <label className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40] mb-2">Conditions</label>
@@ -425,15 +583,29 @@ export function CombatantCard({
                   onAddWithTimer={(condName, rounds) => {
                     const expiresAtRound = currentRound + rounds;
                     const currentConditions = c.conditions || '';
-                    const currentCondList = currentConditions.split(',').map(s => s.trim().toLowerCase());
+                    let currentCondList = currentConditions.split(',').map(s => s.trim()).filter(Boolean);
+
+                    const isExhaustion = /^exhaustion \d$/i.test(condName);
+                    if (isExhaustion) {
+                      currentCondList = currentCondList.filter(x => !/^exhaustion \d$/i.test(x.trim()));
+                    }
+
+                    const currentCondListLower = currentCondList.map(s => s.toLowerCase());
                     let newConditions = currentConditions;
-                    if (!currentCondList.includes(condName.toLowerCase())) {
-                      newConditions = currentConditions
-                        ? `${currentConditions}, ${condName}`
-                        : condName;
+                    if (!currentCondListLower.includes(condName.toLowerCase())) {
+                      newConditions = [...currentCondList, condName].join(', ');
+                    } else {
+                      newConditions = currentCondList.join(', ');
                     }
 
                     const newTimers = { ...(c.conditionTimers || {}) };
+                    if (isExhaustion) {
+                      Object.keys(newTimers).forEach(key => {
+                        if (/^exhaustion \d$/i.test(key)) {
+                          delete newTimers[key];
+                        }
+                      });
+                    }
                     newTimers[condName] = expiresAtRound;
 
                     onUpdateCombatant({

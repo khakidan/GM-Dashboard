@@ -4,6 +4,7 @@ import { updateSheetData } from '../../../services/sheetsService';
 import { updateCharacterDB, updateNpcDB, deleteEncounterCombatantDB, updateEncounterCombatantQuantityDB, updateInitiativeDB, updateConditionTimersDB } from '../../../services/dbOperations';
 import { Combatant } from '../../../types';
 import { toast } from 'sonner';
+import { buildConditionSummary } from '../../../lib/conditionDefinitions';
 
 export function useCombatSync() {
   const { state, updateState } = useAppState();
@@ -71,6 +72,51 @@ export function useCombatSync() {
 
     const currentCombatant = previousState.combatState.combatants.find(c => c.id === id);
     if (!currentCombatant) return;
+
+    if (updates.conditions !== undefined) {
+      const newConditionSet = new Set(
+        (updates.conditions || '').split(',')
+          .map(s => s.trim().toLowerCase())
+          .filter(Boolean)
+      );
+
+      if (currentCombatant.conditionTimers) {
+        const cleanedTimers = Object.fromEntries(
+          Object.entries(currentCombatant.conditionTimers)
+            .filter(([key]) => newConditionSet.has(key.toLowerCase()))
+        );
+
+        if (Object.keys(cleanedTimers).length !== Object.keys(currentCombatant.conditionTimers).length) {
+          updates = { ...updates, conditionTimers: cleanedTimers };
+        }
+      }
+
+      if (currentCombatant.type === 'pc') {
+        const condList = Array.from(newConditionSet);
+        const conditionSummary = buildConditionSummary(condList);
+        
+        const expectsHpMaxHalved = conditionSummary.hpMaxHalved;
+        const currentHpMaxHalved = currentCombatant.tempHpMax && currentCombatant.tempHpMax > 0;
+        
+        if (expectsHpMaxHalved && !currentHpMaxHalved) {
+          const newTempHpMax = Math.floor(currentCombatant.maxHp / 2);
+          updates = { ...updates, tempHpMax: newTempHpMax };
+          
+          const currentHpVal = updates.currentHp !== undefined ? updates.currentHp : currentCombatant.currentHp;
+          if (currentHpVal > newTempHpMax) {
+            updates.currentHp = newTempHpMax;
+          }
+          
+          toast.warning(`${currentCombatant.name}'s Max HP is halved from exhaustion!`, {
+            description: `Effective Max HP is now ${newTempHpMax}`,
+          });
+        } else if (!expectsHpMaxHalved && currentHpMaxHalved) {
+          updates = { ...updates, tempHpMax: 0 };
+          toast.success(`${currentCombatant.name}'s Max HP restriction is lifted.`);
+        }
+      }
+    }
+
     const targetCombatant = { ...currentCombatant, ...updates };
 
     updateState(prev => {
@@ -91,6 +137,7 @@ export function useCombatSync() {
               ...(updates.currentHp !== undefined ? { currentHp: updates.currentHp } : {}),
               ...(updates.tempHp !== undefined ? { tempHp: updates.tempHp } : {}),
               ...(updates.conditions !== undefined ? { conditions: updates.conditions } : {}),
+              ...(updates.tempHpMax !== undefined ? { tempHpMax: updates.tempHpMax } : {}),
             };
           }
           return c;
@@ -140,6 +187,7 @@ export function useCombatSync() {
               currentHp: targetCombatant.currentHp,
               tempHp: targetCombatant.tempHp,
               conditions: targetCombatant.conditions,
+              tempHpMax: targetCombatant.tempHpMax,
             },
             char
           );

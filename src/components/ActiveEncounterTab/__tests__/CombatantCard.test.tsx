@@ -1,3 +1,9 @@
+// ─── PROTECTED TEST FILE ───────────────────────────
+// Do not delete, rename, or remove test cases from 
+// this file without an explicit instruction to do so.
+// Removing tests to make a count pass is not acceptable.
+// ────────────────────────────────────────────────────
+
 import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
@@ -96,5 +102,94 @@ describe('CombatantCard', () => {
     const input = screen.getAllByPlaceholderText('0')[0]; // damage input is first
     fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' });
     expect(onHealthSubmit).toHaveBeenCalledWith(true, null);
+  });
+
+  describe('Mechanical Badges', () => {
+    it('SPD 0 badge renders when combatant has grappled condition', () => {
+      render(<CombatantCard {...defaultProps} c={{...defaultCombatant, conditions: 'grappled'}} />);
+      expect(screen.getByText('SPD 0')).toBeDefined();
+    });
+
+    it('NO ACT badge renders when combatant has stunned condition', () => {
+      render(<CombatantCard {...defaultProps} c={{...defaultCombatant, conditions: 'stunned'}} />);
+      expect(screen.getByText('NO ACT')).toBeDefined();
+    });
+
+    it('DISADV badge renders when combatant has poisoned condition', () => {
+      render(<CombatantCard {...defaultProps} c={{...defaultCombatant, conditions: 'poisoned'}} />);
+      expect(screen.getByText('DISADV')).toBeDefined();
+    });
+
+    it('VULN badge renders when combatant has restrained condition', () => {
+      render(<CombatantCard {...defaultProps} c={{...defaultCombatant, conditions: 'restrained'}} />);
+      expect(screen.getByText('VULN')).toBeDefined();
+    });
+
+    it('AUTO CRIT badge renders when combatant has paralyzed condition', () => {
+      render(<CombatantCard {...defaultProps} c={{...defaultCombatant, conditions: 'paralyzed'}} />);
+      expect(screen.getByText('AUTO CRIT')).toBeDefined();
+    });
+
+    it('No badges render when combatant has no conditions', () => {
+      render(<CombatantCard {...defaultProps} c={{...defaultCombatant, conditions: ''}} />);
+      expect(screen.queryByText('SPD 0')).toBeNull();
+      expect(screen.queryByText('NO ACT')).toBeNull();
+      expect(screen.queryByText('DISADV')).toBeNull();
+      expect(screen.queryByText('VULN')).toBeNull();
+      expect(screen.queryByText('AUTO CRIT')).toBeNull();
+    });
+  });
+
+  describe('Combat Mechanics Panel', () => {
+    it('Combat Mechanics panel renders when combatant has paralyzed condition', () => {
+      render(<CombatantCard {...defaultProps} isExpanded={true} c={{...defaultCombatant, conditions: 'paralyzed'}} />);
+      expect(screen.getByText('Combat Mechanics')).toBeDefined();
+      expect(screen.getByText('Speed: Locked')).toBeDefined();
+    });
+
+    it('Panel does not render when conditions string is empty', () => {
+      render(<CombatantCard {...defaultProps} isExpanded={true} c={{...defaultCombatant, conditions: ''}} />);
+      expect(screen.queryByText('Combat Mechanics')).toBeNull();
+    });
+
+    it('Auto-crit row appears when combatant has unconscious condition', () => {
+      render(<CombatantCard {...defaultProps} isExpanded={true} c={{...defaultCombatant, conditions: 'unconscious'}} />);
+      expect(screen.getByText(/Melee hits: Auto-crit/i)).toBeDefined();
+    });
+  });
+
+  describe('Indicator Dots', () => {
+    it('Red dot renders when combatant has an official condition', () => {
+      render(<CombatantCard {...defaultProps} c={{...defaultCombatant, conditions: 'poisoned'}} />);
+      expect(screen.getByTitle('Active conditions')).toBeDefined();
+      expect(screen.queryByTitle('Active effects')).toBeNull();
+    });
+
+    it('Blue dot renders when combatant has an effect', () => {
+      render(<CombatantCard {...defaultProps} c={{...defaultCombatant, conditions: 'hasted'}} />);
+      expect(screen.getByTitle('Active effects')).toBeDefined();
+      expect(screen.queryByTitle('Active conditions')).toBeNull();
+    });
+
+    it('Both dots render when combatant has both a condition and an effect', () => {
+      render(<CombatantCard {...defaultProps} c={{...defaultCombatant, conditions: 'poisoned, hasted'}} />);
+      expect(screen.getByTitle('Active conditions')).toBeDefined();
+      expect(screen.getByTitle('Active effects')).toBeDefined();
+    });
+
+    it('Neither dot renders when conditions string is empty', () => {
+      render(<CombatantCard {...defaultProps} c={{...defaultCombatant, conditions: ''}} />);
+      expect(screen.queryByTitle('Active conditions')).toBeNull();
+      expect(screen.queryByTitle('Active effects')).toBeNull();
+    });
+    
+    it('Red dot does not render when combatant has only an effect (and vice versa)', () => {
+      const { unmount } = render(<CombatantCard {...defaultProps} c={{...defaultCombatant, conditions: 'hasted'}} />);
+      expect(screen.queryByTitle('Active conditions')).toBeNull();
+      unmount();
+      
+      render(<CombatantCard {...defaultProps} c={{...defaultCombatant, conditions: 'poisoned'}} />);
+      expect(screen.queryByTitle('Active effects')).toBeNull();
+    });
   });
 });

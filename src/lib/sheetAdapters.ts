@@ -33,6 +33,7 @@ export function mapCharacterRowToCharacter(
     resistances,
     immunities,
     vulnerabilities,
+    tempHpMax,
   ] = data;
 
   return {
@@ -54,6 +55,7 @@ export function mapCharacterRowToCharacter(
     resistances: resistances || '',
     immunities: immunities || '',
     vulnerabilities: vulnerabilities || '',
+    tempHpMax: tempHpMax ?? 0,
   };
 }
 

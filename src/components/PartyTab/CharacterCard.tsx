@@ -2,7 +2,7 @@ import React from 'react';
 import { Character } from '../../types';
 import { Shield, Eye, Heart, Loader2, X, ChevronDown } from 'lucide-react';
 import { cn } from '../../lib/utils';
-import { getHealthStatus } from '../../lib/combatLogic';
+import { getHealthStatus, effectiveMaxHp } from '../../lib/combatLogic';
 import { motion, AnimatePresence } from 'motion/react';
 import { DebouncedInput } from '../ui/DebouncedInput';
 import { DebouncedTextarea } from '../ui/DebouncedTextarea';
@@ -28,9 +28,10 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({
   onDelete,
   onLevelUpClick
 }) => {
+  const maxHpCeiling = effectiveMaxHp(character.maxHp || 1, character.tempHpMax);
   const healthStatus = getHealthStatus(
     character.currentHp || 0, 
-    character.maxHp || 1
+    maxHpCeiling
   );
 
   return (
@@ -182,7 +183,11 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({
                     value={character.maxHp || ''}
                     onFocus={(e) => (e.target as HTMLInputElement).select()}
                     onChange={(v) => onUpdate({ maxHp: parseInt(v as string) || 1 })}
-                    className="text-lg font-bold text-[#2c2c26] w-full text-center bg-transparent border border-transparent outline-none focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] rounded transition-all disabled:opacity-50"
+                    className={cn(
+                      "text-lg font-bold w-full text-center bg-transparent border border-transparent outline-none focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] rounded transition-all disabled:opacity-50",
+                      character.tempHpMax && character.tempHpMax > 0 ? "text-amber-600 cursor-help" : "text-[#2c2c26]"
+                    )}
+                    title={character.tempHpMax && character.tempHpMax > 0 ? `Temp max (original: ${character.maxHp})` : undefined}
                     disabled={isSyncing}
                   />
                 </div>

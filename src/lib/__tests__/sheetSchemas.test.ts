@@ -1,3 +1,9 @@
+// ─── PROTECTED TEST FILE ───────────────────────────
+// Do not delete, rename, or remove test cases from 
+// this file without an explicit instruction to do so.
+// Removing tests to make a count pass is not acceptable.
+// ────────────────────────────────────────────────────
+
 import { expect, describe, it, assertType } from 'vitest';
 import {
   CharacterRowSchema,
@@ -16,7 +22,7 @@ describe('sheetSchemas', () => {
       const result = CharacterRowSchema.safeParse(row);
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data).toEqual(['char-1', 'Alice', 'Thor', 15, 20, 5, 25, 'Blinded', 14, 3, 1, 'Notes', '', '', '']);
+        expect(result.data).toEqual(['char-1', 'Alice', 'Thor', 15, 20, 5, 25, 'Blinded', 14, 3, 1, 'Notes', '', '', '', 0]);
       }
     });
 
@@ -41,6 +47,7 @@ describe('sheetSchemas', () => {
          '', // resistances
          '', // immunities
          '', // vulnerabilities
+         0, // tempHpMax
         ]);
       }
     });

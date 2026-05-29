@@ -9,7 +9,9 @@ export const DAMAGE_TYPE_OPTIONS: string[] = [
 ];
 
 export const CONDITION_OPTIONS: string[] = [
-  'blinded', 'charmed', 'deafened', 'exhaustion',
+  'blinded', 'charmed', 'deafened',
+  'exhaustion 1', 'exhaustion 2', 'exhaustion 3',
+  'exhaustion 4', 'exhaustion 5', 'exhaustion 6',
   'frightened', 'grappled', 'incapacitated', 'invisible',
   'paralyzed', 'petrified', 'poisoned', 'prone',
   'restrained', 'stunned', 'unconscious',
@@ -52,6 +54,12 @@ export const CONDITION_IMMUNITY_MAP: Record<string, string[]> = {
   'charmed':       ['charmed'],
   'deafened':      ['deafened'],
   'exhaustion':    ['exhaustion'],
+  'exhaustion 1':  ['exhaustion'],
+  'exhaustion 2':  ['exhaustion'],
+  'exhaustion 3':  ['exhaustion'],
+  'exhaustion 4':  ['exhaustion'],
+  'exhaustion 5':  ['exhaustion'],
+  'exhaustion 6':  ['exhaustion'],
   'frightened':    ['frightened'],
   'grappled':      ['grappled'],
   'incapacitated': ['incapacitated'],

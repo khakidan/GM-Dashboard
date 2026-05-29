@@ -116,7 +116,7 @@ export function useSheetSync({ setIsGoogleConnected, onActiveTabChange }: UseShe
 
       // 4. Fetch Characters
       addLog('Step 5: Fetching character roster...');
-      const charactersResponse = await fetchSheetData('Characters!A2:O');
+      const charactersResponse = await fetchSheetData('Characters!A2:P');
       const characterRows = charactersResponse.values || [];
       addLog(`Character rows found: ${characterRows.length}`);
 
@@ -242,6 +242,7 @@ export function useSheetSync({ setIsGoogleConnected, onActiveTabChange }: UseShe
               immunities: c.immunities || '',
               vulnerabilities: c.vulnerabilities || '',
               conditionTimers: parsedTimers,
+              tempHpMax: c.tempHpMax,
             });
           }
         } else if (ec.npcId) {
@@ -291,6 +292,7 @@ export function useSheetSync({ setIsGoogleConnected, onActiveTabChange }: UseShe
           immunities: c.immunities || '',
           vulnerabilities: c.vulnerabilities || '',
           conditionTimers: {},
+          tempHpMax: c.tempHpMax,
         });
       });
     }

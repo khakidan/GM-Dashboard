@@ -10,6 +10,7 @@ import {
   CONCENTRATION_EFFECTS,
 } from '../../lib/irvOptions';
 import { checkIrvMatch } from '../../lib/combatLogic';
+import { CONDITION_MECHANICS, buildConditionSummary } from '../../lib/conditionDefinitions';
 import { toast } from 'sonner';
 
 interface ConditionChipsProps {
@@ -166,7 +167,14 @@ export function ConditionChips({
 
   function commitChip(label: string) {
     const trimmed = label.trim();
-    let nextChips = [...chips, trimmed];
+    let nextChips = [...chips];
+    
+    const isExhaustion = /^exhaustion \d$/i.test(trimmed);
+    if (isExhaustion) {
+      nextChips = nextChips.filter(c => !/^exhaustion \d$/i.test(c.trim()));
+    }
+    
+    nextChips.push(trimmed);
     
     const CON_LABEL = 'concentrating';
     if (CONCENTRATION_EFFECTS.has(trimmed.toLowerCase().trim()) && trimmed.toLowerCase().trim() !== CON_LABEL && !chips.map(c=>c.toLowerCase().trim()).includes(CON_LABEL)) {
@@ -211,6 +219,14 @@ export function ConditionChips({
       setQuery(''); setOpen(false); return;
     }
 
+    const lower = trimmed.toLowerCase();
+    if (lower === 'exhaustion 6') {
+      toast.warning('Exhaustion 6 — Death', {
+        description: 'This creature has died. Remove from combat or mark as Defeated.',
+        duration: 12000,
+      });
+    }
+
     if (onAddWithTimer) {
       setPendingCondition(trimmed);
       setTimerRounds('');
@@ -218,6 +234,16 @@ export function ConditionChips({
       setOpen(false);
     } else {
       commitChip(trimmed);
+    }
+
+    const mechanics = CONDITION_MECHANICS[lower];
+    if (mechanics) {
+      const remainingChips = chips.filter(c => !(/^exhaustion \d$/i.test(c.trim()) && /^exhaustion \d$/i.test(trimmed)));
+      const summary = buildConditionSummary([...remainingChips, trimmed]);
+      toast(label, {
+        description: summary.lines.join(' • ') || 'No mechanical restrictions.',
+        duration: 6000,
+      });
     }
   }
 

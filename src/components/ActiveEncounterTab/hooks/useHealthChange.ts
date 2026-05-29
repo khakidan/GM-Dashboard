@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Combatant, DamageType } from '../../../types';
-import { applyHealthChange, computeDamageWithIrv } from '../../../lib/combatLogic';
+import { applyHealthChange, computeDamageWithIrv, effectiveMaxHp } from '../../../lib/combatLogic';
 import { toast } from 'sonner';
 import { CONCENTRATION_EFFECTS } from '../../../lib/irvOptions';
 
@@ -68,7 +68,7 @@ export function useHealthChange(
       const { newCurrentHp, newTempHp } = applyHealthChange(
         c.currentHp,
         c.tempHp || 0,
-        c.maxHp,
+        effectiveMaxHp(c.maxHp, c.tempHpMax),
         finalDamageAmount,
         isDamage
       );

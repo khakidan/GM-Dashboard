@@ -19,6 +19,7 @@ export interface Character {
   resistances?: string;
   immunities?: string;
   vulnerabilities?: string;
+  tempHpMax?: number;
 }
 
 export interface NPC {
@@ -64,6 +65,7 @@ export interface Combatant {
   immunities?: string;
   vulnerabilities?: string;
   conditionTimers?: Record<string, number>;
+  tempHpMax?: number;
 }
 
 export interface CombatState {

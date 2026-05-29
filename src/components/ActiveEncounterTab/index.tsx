@@ -7,6 +7,7 @@ import { cn } from '../../lib/utils';
 import { Combatant, DamageType } from '../../types';
 import { addNpcDB, addEncounterCombatantDB, updateInitiativeDB } from '../../services/dbOperations';
 import { CONCENTRATION_EFFECTS } from '../../lib/irvOptions';
+import { buildConditionSummary } from '../../lib/conditionDefinitions';
 
 import { CombatHeader } from './CombatHeader';
 import { CombatantCard } from './CombatantCard';
@@ -368,6 +369,24 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
         },
       };
     });
+
+    const newlyActiveCombatant = combatants.length > 0 ? combatants[nextIndex] : null;
+    if (newlyActiveCombatant) {
+      const activeConditionsList = newlyActiveCombatant.conditions
+        ?.split(',')
+        .map(s => s.trim())
+        .filter(Boolean) || [];
+
+      if (activeConditionsList.length > 0) {
+        const summary = buildConditionSummary(activeConditionsList);
+        if (summary.lines.length > 0) {
+          toast(`${newlyActiveCombatant.name}'s turn`, {
+            description: summary.lines.join('\n'),
+            duration: 7000,
+          });
+        }
+      }
+    }
 
     // Check for expired conditions
     const expired = getExpiredConditions(combatants, nextRound);

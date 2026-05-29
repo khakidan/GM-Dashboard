@@ -171,10 +171,11 @@ export async function addCharacterDB(character: Partial<Character>) {
       sanitizeString(character.resistances || ''),
       sanitizeString(character.immunities || ''),
       sanitizeString(character.vulnerabilities || ''),
+      castInt(character.tempHpMax, 0),
     ];
 
-    await appendSheetData('Characters!A:O', [rowData]);
-    return { ...character, id: finalId };
+    await appendSheetData('Characters!A:P', [rowData]);
+    return { ...character, id: finalId, tempHpMax: character.tempHpMax ?? 0 };
   } catch (err) {
     console.error('[DB] addCharacterDB failed:', err);
     throw err;
@@ -207,11 +208,12 @@ export async function updateCharacterDB(
       sanitizeString(character.resistances ?? fullState.resistances ?? ''),
       sanitizeString(character.immunities ?? fullState.immunities ?? ''),
       sanitizeString(character.vulnerabilities ?? fullState.vulnerabilities ?? ''),
+      castInt(character.tempHpMax ?? fullState.tempHpMax, 0),
     ];
 
     const a1Row = charRowIdx + 1;
     // ✅ queueWrite replaces updateSheetData to prevent API quotas inside combat loops
-    queueWrite(`Characters!A${a1Row}:O${a1Row}`, [rowData]);
+    queueWrite(`Characters!A${a1Row}:P${a1Row}`, [rowData]);
   } catch (err) {
     console.error('[DB] updateCharacterDB failed:', err);
     throw err;
