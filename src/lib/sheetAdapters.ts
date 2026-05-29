@@ -35,6 +35,8 @@ export function mapCharacterRowToCharacter(
     vulnerabilities,
     tempHpMax,
     tempAc,
+    deathSavesFails,
+    deathSavesSuccesses,
   ] = data;
 
   return {
@@ -58,6 +60,8 @@ export function mapCharacterRowToCharacter(
     vulnerabilities: vulnerabilities || '',
     tempHpMax: tempHpMax ?? 0,
     tempAc: tempAc ?? 0,
+    deathSavesFails: deathSavesFails ?? 0,
+    deathSavesSuccesses: deathSavesSuccesses ?? 0,
   };
 }
 

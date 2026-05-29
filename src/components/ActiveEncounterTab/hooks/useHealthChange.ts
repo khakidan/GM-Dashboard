@@ -37,7 +37,8 @@ export function useHealthChange(
     c: Combatant,
     isDamage: boolean,
     damageType?: DamageType | null,
-    amountOverride?: number
+    amountOverride?: number,
+    isCritical: boolean = false
   ) => {
     if (syncingIds.has(id)) return;
     
@@ -45,6 +46,42 @@ export function useHealthChange(
     const val = amountOverride !== undefined ? amountOverride : parseInt(inputState[id]);
     
     if (!isNaN(val) && val > 0) {
+      const isUnconscious = c.type === 'pc' && (c.conditions || '').toLowerCase().includes('unconscious');
+
+      if (isDamage && isUnconscious) {
+        // Damage on unconscious PC = failed death save
+        const failsGain = isCritical ? 2 : 1;
+        const newFails = (c.isStable ? 0 : (c.deathSavesFails || 0)) + failsGain;
+        toast(`${c.name} is unconscious and took damage — death save failed automatically`);
+
+        if (newFails >= 3) {
+          // PC has died!
+          const conditionsList = (c.conditions || '').split(',').map(s => s.trim()).filter(Boolean);
+          const updatedConditions = conditionsList.filter(cond => cond.toLowerCase() !== 'unconscious').join(', ');
+          
+          updateCombatant(id, {
+            deathSavesFails: newFails,
+            deathSavesSuccesses: 0,
+            conditions: updatedConditions,
+            statusId: 3, // Deceased
+            isStable: false
+          });
+          toast(`${c.name} has died. Update their status on the Party Roster.`);
+        } else {
+          updateCombatant(id, {
+            deathSavesFails: newFails,
+            isStable: false
+          });
+        }
+
+        if (isDamage) {
+          setDamageInputs(prev => ({ ...prev, [id]: '' }));
+        } else {
+          setHealInputs(prev => ({ ...prev, [id]: '' }));
+        }
+        return;
+      }
+
       let finalDamageAmount = val;
       if (isDamage && damageType) {
         const { finalDamage, modifier } = computeDamageWithIrv(
@@ -79,7 +116,48 @@ export function useHealthChange(
         finalDamageAmount,
         isDamage
       );
-      updateCombatant(id, { currentHp: newCurrentHp, tempHp: newTempHp });
+
+      if (!isDamage && isUnconscious) {
+        // Healing clears death saves
+        const conditionsList = (c.conditions || '').split(',').map(s => s.trim()).filter(Boolean);
+        const updatedConditions = conditionsList.filter(cond => cond.toLowerCase() !== 'unconscious').join(', ');
+        
+        updateCombatant(id, {
+          currentHp: newCurrentHp,
+          tempHp: newTempHp,
+          conditions: updatedConditions,
+          deathSavesFails: 0,
+          deathSavesSuccesses: 0,
+          isStable: false,
+        });
+        toast(`${c.name} is stabilized and regains consciousness!`);
+      } else {
+        // Normal HP change, check for 0 HP PC auto-unconscious transition
+        let updatedConditions = c.conditions || '';
+        const wasActiveAndReducedTo0 = isDamage && newCurrentHp === 0 && c.type === 'pc';
+        const doesNotHaveUnconscious = !(c.conditions || '').toLowerCase().includes('unconscious');
+
+        if (wasActiveAndReducedTo0 && doesNotHaveUnconscious) {
+          const conditionsList = (c.conditions || '').split(',').map(s => s.trim()).filter(Boolean);
+          if (!conditionsList.some(cond => cond.toLowerCase() === 'unconscious')) {
+            conditionsList.push('Unconscious');
+          }
+          updatedConditions = conditionsList.join(', ');
+          updateCombatant(id, {
+            currentHp: newCurrentHp,
+            tempHp: newTempHp,
+            conditions: updatedConditions,
+            deathSavesFails: 0,
+            deathSavesSuccesses: 0,
+            isStable: false,
+          });
+        } else {
+          updateCombatant(id, {
+            currentHp: newCurrentHp,
+            tempHp: newTempHp,
+          });
+        }
+      }
       
       if (isDamage && finalDamageAmount > 0 && c.conditions?.toLowerCase().includes('concentrating')) {
         toast('Concentration check required', {

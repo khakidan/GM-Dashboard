@@ -5,7 +5,7 @@ import { getExpiredConditions } from '../../lib/combatLogic';
 import { Skull, AlertCircle } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { Combatant, DamageType, EncounterCombatant } from '../../types';
-import { addNpcDB, addEncounterCombatantDB, updateInitiativeDB } from '../../services/dbOperations';
+import { addNpcDB, addEncounterCombatantDB, updateInitiativeDB, updateDeathSavesDB } from '../../services/dbOperations';
 import { CONCENTRATION_EFFECTS } from '../../lib/irvOptions';
 import { buildConditionSummary } from '../../lib/conditionDefinitions';
 
@@ -102,6 +102,56 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
       else next.add(id);
       return next;
     });
+  };
+
+  const recordDeathSave = async (combatantId: string, result: 'success' | 'fail') => {
+    const currentState = getSnapshot();
+    const combatant = currentState.combatState.combatants.find(c => c.id === combatantId);
+    if (!combatant || combatant.type !== 'pc' || !combatant.characterId) return;
+
+    let fails = combatant.deathSavesFails || 0;
+    let successes = combatant.deathSavesSuccesses || 0;
+
+    if (result === 'success') {
+      successes += 1;
+    } else {
+      fails += 1;
+    }
+
+    try {
+      await updateDeathSavesDB(combatant.characterId, fails, successes);
+
+      if (fails >= 3) {
+        const conditionsList = (combatant.conditions || '').split(',').map(s => s.trim()).filter(Boolean);
+        const updatedConditions = conditionsList.filter(cond => cond.toLowerCase() !== 'unconscious').join(', ');
+        
+        updateCombatant(combatantId, {
+          deathSavesFails: fails,
+          deathSavesSuccesses: successes,
+          conditions: updatedConditions,
+          statusId: 3, // Deceased
+          isStable: false
+        });
+        toast(`${combatant.name} has died. Update their status on the Party Roster.`);
+      } else if (successes >= 3) {
+        updateCombatant(combatantId, {
+          deathSavesFails: 0,
+          deathSavesSuccesses: 0,
+          isStable: true
+        });
+        toast(`${combatant.name} is stable — no further death saves required until they take damage again.`);
+      } else {
+        updateCombatant(combatantId, {
+          deathSavesFails: fails,
+          deathSavesSuccesses: successes,
+          isStable: false
+        });
+        toast(`Death save recorded for ${combatant.name}: ${result === 'success' ? 'Success' : 'Failure'}. (${successes}/3 Successes, ${fails}/3 Fails)`);
+      }
+    } catch (err) {
+      console.error('Failed to update death saves:', err);
+      toast.error(`Failed to record death save for ${combatant.name}`);
+    }
   };
 
   const handleApplyMultiDamage = (amount: number, type: DamageType) => {
@@ -418,7 +468,33 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
         .map(s => s.trim())
         .filter(Boolean) || [];
 
-      if (activeConditionsList.length > 0) {
+      const isPcUnconscious = newlyActiveCombatant.type === 'pc' && 
+        activeConditionsList.some(cond => cond.toLowerCase() === 'unconscious');
+
+      if (isPcUnconscious && !newlyActiveCombatant.isStable && (newlyActiveCombatant.deathSavesSuccesses || 0) < 3) {
+        const fails = newlyActiveCombatant.deathSavesFails || 0;
+        const successes = newlyActiveCombatant.deathSavesSuccesses || 0;
+
+        toast(`${newlyActiveCombatant.name} is unconscious — Death Saving Throw`, {
+          description: `Fails: ${fails}/3  Successes: ${successes}/3. Roll a D20. On 10 or higher: success. On 1: two failures.`,
+          duration: 15000,
+          action: {
+            label: 'Success',
+            onClick: () => recordDeathSave(newlyActiveCombatant.id, 'success')
+          },
+        });
+
+        setTimeout(() => {
+          toast(`${newlyActiveCombatant.name} — Record Death Save Failure`, {
+            description: `Click below to record a failed roll for ${newlyActiveCombatant.name}.`,
+            duration: 15000,
+            action: {
+              label: 'Failure',
+              onClick: () => recordDeathSave(newlyActiveCombatant.id, 'fail')
+            },
+          });
+        }, 150);
+      } else if (activeConditionsList.length > 0) {
         const summary = buildConditionSummary(activeConditionsList);
         if (summary.lines.length > 0) {
           toast(`${newlyActiveCombatant.name}'s turn`, {

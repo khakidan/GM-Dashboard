@@ -262,6 +262,47 @@ export function CombatantCard({
                 CON
               </span>
             )}
+            {c.type === 'pc' && c.conditions?.toLowerCase().includes('unconscious') && (c.deathSavesSuccesses || 0) < 3 && !c.isStable && (
+              <div 
+                className="flex flex-col gap-0.5 bg-rose-50/70 border border-rose-100 rounded-lg px-2.5 py-1 text-xs select-none" 
+                onClick={e => e.stopPropagation()}
+              >
+                <div className="flex items-center gap-1.5 font-mono">
+                  <span className="text-[#5a5a40] font-bold text-[10px] uppercase w-12">Fails:</span>
+                  <div className="flex gap-1" id={`death-fails-${c.id}`}>
+                    {[1, 2, 3].map(slot => {
+                      const isFailed = (c.deathSavesFails || 0) >= slot;
+                      return (
+                        <span key={slot} className="flex items-center justify-center">
+                          {isFailed ? (
+                            <span className="text-red-500 text-sm leading-none" title="Death Save Failure">●</span>
+                          ) : (
+                            <span className="text-gray-300 text-sm leading-none">○</span>
+                          )}
+                        </span>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 font-mono">
+                  <span className="text-[#5a5a40] font-bold text-[10px] uppercase w-12">Success:</span>
+                  <div className="flex gap-1" id={`death-successes-${c.id}`}>
+                    {[1, 2, 3].map(slot => {
+                      const isSuccess = (c.deathSavesSuccesses || 0) >= slot;
+                      return (
+                        <span key={slot} className="flex items-center justify-center">
+                          {isSuccess ? (
+                            <span className="text-green-500 text-sm leading-none" title="Death Save Success">♥</span>
+                          ) : (
+                            <span className="text-gray-300 text-sm leading-none">○</span>
+                          )}
+                        </span>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
             {c.currentHp < maxHpCeiling && c.currentHp > 0 && (
               <span className={cn(
                 "text-xs font-bold px-2 py-0.5 rounded-full border border-current bg-white/50 shrink-0",

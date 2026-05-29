@@ -21,6 +21,8 @@ export interface Character {
   vulnerabilities?: string;
   tempHpMax?: number;
   tempAc?: number;
+  deathSavesFails?: number;
+  deathSavesSuccesses?: number;
 }
 
 export interface NPC {
@@ -68,6 +70,10 @@ export interface Combatant {
   conditionTimers?: Record<string, number>;
   tempHpMax?: number;
   tempAcModifier?: number;
+  deathSavesFails?: number;
+  deathSavesSuccesses?: number;
+  statusId?: number;
+  isStable?: boolean;
 }
 
 export interface CombatState {

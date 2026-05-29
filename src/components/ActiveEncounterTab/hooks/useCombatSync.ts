@@ -151,6 +151,9 @@ export function useCombatSync() {
               ...(updates.conditions !== undefined ? { conditions: updates.conditions } : {}),
               ...(updates.tempHpMax !== undefined ? { tempHpMax: updates.tempHpMax } : {}),
               ...(updates.tempAcModifier !== undefined ? { tempAc: updates.tempAcModifier } : {}),
+              ...(updates.statusId !== undefined ? { statusId: updates.statusId } : {}),
+              ...(updates.deathSavesFails !== undefined ? { deathSavesFails: updates.deathSavesFails } : {}),
+              ...(updates.deathSavesSuccesses !== undefined ? { deathSavesSuccesses: updates.deathSavesSuccesses } : {}),
             };
           }
           return c;
@@ -209,6 +212,9 @@ export function useCombatSync() {
               conditions: targetCombatant.conditions,
               tempHpMax: targetCombatant.tempHpMax,
               tempAc: targetCombatant.tempAcModifier,
+              statusId: targetCombatant.statusId,
+              deathSavesFails: targetCombatant.deathSavesFails,
+              deathSavesSuccesses: targetCombatant.deathSavesSuccesses,
             },
             char
           );
