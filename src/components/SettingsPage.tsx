@@ -1,7 +1,7 @@
 // src/components/SettingsPage.tsx
 
 import { useState } from 'react';
-import { Settings, LogIn, Save, RefreshCw, Trash2 } from 'lucide-react';
+import { Settings, LogIn, Save, RefreshCw, Trash2, Skull } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTheme } from '../context/ThemeContext';
 import {
@@ -12,6 +12,7 @@ import {
   setManualRefreshToken,
 } from '../services/googleAuth';
 import { syncAndSanitizeDatabase } from '../services/dbOperations';
+import { useCombatSync } from './ActiveEncounterTab/hooks/useCombatSync';
 
 interface SettingsPageProps {
   isGoogleConnected: boolean;
@@ -34,6 +35,7 @@ export function SettingsPage({
   const [manualToken, setManualTokenState] = useState('');
   const [showAdvancedAuth, setShowAdvancedAuth] = useState(false);
   const { theme, setTheme } = useTheme();
+  const { fireDeathEvent } = useCombatSync();
 
   const handleSaveSpreadsheet = () => {
     setSpreadsheetId(tempSpreadsheetId);
@@ -289,6 +291,34 @@ export function SettingsPage({
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* GM Tools & Testing Section */}
+      <div className="bg-white p-6 rounded-2xl border border-[#e5e1d8] shadow-sm space-y-4" id="gm-tools-testing-section">
+        <div>
+          <h3 className="text-lg font-bold text-[#2c2c26] font-serif pb-1">GM Tools & Testing</h3>
+          <p className="text-xs text-[#5a5a40]">
+            Utility actions for testing presentation effects and validating active overlays.
+          </p>
+        </div>
+
+        <div>
+          <button
+            id="test-death-animation-btn"
+            type="button"
+            onClick={() => {
+              fireDeathEvent('Aldric the Brave');
+              toast('Death animation triggered', {
+                description: 'Check the Player View to see the overlay.',
+                duration: 3000,
+              });
+            }}
+            className="border border-[#e5e1d8] hover:bg-[#fcfbf9] text-[#5a5a40] px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all cursor-pointer inline-flex items-center gap-2"
+          >
+            <Skull className="w-4 h-4" />
+            Test Death Animation
+          </button>
         </div>
       </div>
     </div>

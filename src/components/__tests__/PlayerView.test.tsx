@@ -218,4 +218,127 @@ describe('PlayerView Component', () => {
     render(<PlayerView />);
     expect(screen.getByText(/Peace reigns.*for now/i)).toBeDefined();
   });
+
+  // Test 9: 6 combatants → container has max-w-7xl, no grid-cols-2 or lg:grid-cols-2
+  it('has max-w-7xl and no grid columns when 6 combatants are present', () => {
+    const combatants: Combatant[] = Array.from({ length: 6 }, (_, i) => ({
+      id: `c${i}`,
+      name: `Combatant ${i}`,
+      type: 'pc',
+      ac: 15,
+      maxHp: 20,
+      currentHp: 20,
+      initiative: 20 - i,
+      passivePerception: 12
+    }));
+
+    vi.mocked(useAppState).mockReturnValue({
+      state: {
+        campaignName: 'Test Campaign',
+        characters: [],
+        encounters: [],
+        npcs: [],
+        encounterCombatants: [],
+        difficulties: {},
+        statuses: {},
+        combatState: {
+          activeEncounterId: 'enc-123',
+          combatants,
+          activeTurnId: null,
+          round: 1,
+        },
+      },
+      updateState: vi.fn(),
+    });
+
+    const { container } = render(<PlayerView />);
+    const listContainer = container.querySelector('table')?.parentElement?.parentElement;
+    expect(listContainer).toBeDefined();
+    expect(listContainer?.className).toContain('max-w-7xl');
+    expect(listContainer?.className).not.toContain('lg:grid-cols-2');
+    expect(listContainer?.className).not.toContain('max-w-5xl');
+    expect(listContainer?.className).not.toContain('max-w-4xl');
+  });
+
+  // Test 10: 10 combatants → container has max-w-7xl, no grid-cols-2
+  it('has max-w-7xl and no grid columns when 10 combatants are present', () => {
+    const combatants: Combatant[] = Array.from({ length: 10 }, (_, i) => ({
+      id: `c${i}`,
+      name: `Combatant ${i}`,
+      type: 'pc',
+      ac: 15,
+      maxHp: 20,
+      currentHp: 20,
+      initiative: 20 - i,
+      passivePerception: 12
+    }));
+
+    vi.mocked(useAppState).mockReturnValue({
+      state: {
+        campaignName: 'Test Campaign',
+        characters: [],
+        encounters: [],
+        npcs: [],
+        encounterCombatants: [],
+        difficulties: {},
+        statuses: {},
+        combatState: {
+          activeEncounterId: 'enc-123',
+          combatants,
+          activeTurnId: null,
+          round: 1,
+        },
+      },
+      updateState: vi.fn(),
+    });
+
+    const { container } = render(<PlayerView />);
+    const listContainer = container.querySelector('table')?.parentElement?.parentElement;
+    expect(listContainer).toBeDefined();
+    expect(listContainer?.className).toContain('max-w-7xl');
+    expect(listContainer?.className).not.toContain('lg:grid-cols-2');
+    expect(listContainer?.className).not.toContain('max-w-5xl');
+    expect(listContainer?.className).not.toContain('max-w-4xl');
+  });
+
+  // Test 11: 11 combatants → container has max-w-7xl AND grid-cols-2 classes
+  it('has max-w-7xl and two-column grid classes when 11 combatants are present', () => {
+    const combatants: Combatant[] = Array.from({ length: 11 }, (_, i) => ({
+      id: `c${i}`,
+      name: `Combatant ${i}`,
+      type: 'pc',
+      ac: 15,
+      maxHp: 20,
+      currentHp: 20,
+      initiative: 20 - i,
+      passivePerception: 12
+    }));
+
+    vi.mocked(useAppState).mockReturnValue({
+      state: {
+        campaignName: 'Test Campaign',
+        characters: [],
+        encounters: [],
+        npcs: [],
+        encounterCombatants: [],
+        difficulties: {},
+        statuses: {},
+        combatState: {
+          activeEncounterId: 'enc-123',
+          combatants,
+          activeTurnId: null,
+          round: 1,
+        },
+      },
+      updateState: vi.fn(),
+    });
+
+    const { container } = render(<PlayerView />);
+    const listContainer = container.querySelector('table')?.parentElement?.parentElement;
+    expect(listContainer).toBeDefined();
+    expect(listContainer?.className).toContain('max-w-7xl');
+    expect(listContainer?.className).toContain('lg:grid-cols-2');
+    expect(listContainer?.className).not.toContain('max-w-5xl');
+    expect(listContainer?.className).not.toContain('max-w-4xl');
+  });
 });

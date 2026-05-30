@@ -81,6 +81,7 @@ export interface CombatState {
   combatants: Combatant[];
   activeTurnId: string | null;
   round: number;
+  deathEvent?: { characterName: string } | null;
 }
 
 export interface EncounterCombatant {

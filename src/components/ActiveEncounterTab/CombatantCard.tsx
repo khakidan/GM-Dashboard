@@ -5,7 +5,7 @@ import { cn } from '../../lib/utils';
 import { Combatant, DamageType } from '../../types';
 import { getHealthStatus, effectiveMaxHp, effectiveAc } from '../../lib/combatLogic';
 import { CONDITION_MECHANICS, buildConditionSummary } from '../../lib/conditionDefinitions';
-import { CONDITION_OPTIONS, EFFECT_OPTIONS } from '../../lib/irvOptions';
+import { DAMAGE_TYPE_OPTIONS, CONDITION_OPTIONS, EFFECT_OPTIONS } from '../../lib/irvOptions';
 import { IrvMultiSelect } from '../ui/IrvMultiSelect';
 import { ConditionChips } from '../ui/ConditionChips';
 
@@ -388,22 +388,11 @@ export function CombatantCard({
                   className="w-28 h-8 bg-[#faf9f6] border border-[#e5e1d8] rounded px-1 text-xs font-bold text-[#5a5a40] outline-none cursor-pointer focus:border-[#c5b358] appearance-auto"
                 >
                   <option value="">Damage Type</option>
-                  <option value="acid">acid</option>
-                  <option value="bludgeoning">bludgeoning</option>
-                  <option value="bludgeoning (nonmagical)">bludgeoning (nonmagical)</option>
-                  <option value="cold">cold</option>
-                  <option value="fire">fire</option>
-                  <option value="force">force</option>
-                  <option value="lightning">lightning</option>
-                  <option value="necrotic">necrotic</option>
-                  <option value="piercing">piercing</option>
-                  <option value="piercing (nonmagical)">piercing (nonmagical)</option>
-                  <option value="poison">poison</option>
-                  <option value="psychic">psychic</option>
-                  <option value="radiant">radiant</option>
-                  <option value="slashing">slashing</option>
-                  <option value="slashing (nonmagical)">slashing (nonmagical)</option>
-                  <option value="thunder">thunder</option>
+                  {DAMAGE_TYPE_OPTIONS.map((type) => (
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
+                  ))}
                 </select>
                 <button
                   onClick={() => {

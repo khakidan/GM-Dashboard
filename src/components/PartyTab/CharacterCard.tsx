@@ -35,6 +35,35 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({
     maxHpCeiling
   );
 
+  const [localTempAc, setLocalTempAc] = React.useState(character.tempAc ?? 0);
+  const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  React.useEffect(() => {
+    setLocalTempAc(character.tempAc ?? 0);
+  }, [character.tempAc]);
+
+  React.useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleTempAcChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = parseInt(e.target.value, 10);
+    const newValue = isNaN(val) ? 0 : val;
+    setLocalTempAc(newValue);
+
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
+    timeoutRef.current = setTimeout(() => {
+      onUpdate({ tempAc: newValue });
+    }, 600);
+  };
+
   return (
     <div className={cn(
       "bg-white rounded-2xl border overflow-hidden flex flex-col relative group transition-all",
@@ -122,15 +151,33 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({
                   <Heart className="w-4 h-4" />
                   {character.currentHp}
                 </div>
-                <div className="flex items-center gap-1.5 text-[15px] font-bold text-[#5a5a40]">
-                  <Shield className="w-4 h-4 opacity-50" />
-                  {(() => {
-                    const eff = effectiveAc(character.ac, character.tempAc);
-                    const mod = character.tempAc || 0;
-                    if (mod === 0) return <span>{character.ac}</span>;
-                    const sign = mod > 0 ? '+' : '';
-                    return <span className="text-amber-600">{eff} ({sign}{mod})</span>;
-                  })()}
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 text-[15px] font-bold text-[#5a5a40]">
+                    <Shield className="w-4 h-4 opacity-50" />
+                    {(() => {
+                      const eff = effectiveAc(character.ac, localTempAc);
+                      const mod = localTempAc;
+                      if (mod === 0) return <span data-testid="eff-ac">{character.ac}</span>;
+                      const sign = mod > 0 ? '+' : '';
+                      return <span data-testid="eff-ac" className="text-amber-600 font-bold">{eff} ({sign}{mod})</span>;
+                    })()}
+                  </div>
+                  <div className={cn(
+                    "flex items-center gap-0.5 px-1.5 py-0.5 bg-transparent border rounded text-xs font-semibold focus-within:border-[#c5b358] focus-within:ring-1 focus-within:ring-[#c5b358] transition-colors",
+                    localTempAc === 0 ? "text-gray-400 border-[#e5e1d8]" : "text-amber-600 font-bold border-amber-300 focus-within:border-amber-500"
+                  )}>
+                    {localTempAc > 0 && <span className="select-none font-bold text-xs inline-block text-amber-600">+</span>}
+                    <input
+                      id={`ac-mod-spinner-${character.id}`}
+                      data-testid="ac-mod-spinner"
+                      type="number"
+                      value={localTempAc}
+                      step="1"
+                      onChange={handleTempAcChange}
+                      disabled={isSyncing}
+                      className="w-10 text-center bg-transparent border-0 outline-none p-0 focus:ring-0 text-inherit font-bold"
+                    />
+                  </div>
                 </div>
               </div>
             )}

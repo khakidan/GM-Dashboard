@@ -1,0 +1,271 @@
+import React, { useRef, useEffect } from 'react';
+
+interface DeathOverlayProps {
+  characterName: string;
+}
+
+const STYLES = `
+  @keyframes dof-overlayFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @keyframes dof-overlayFadeOut {
+    from { opacity: 1; }
+    to   { opacity: 0; pointer-events: none; }
+  }
+  @keyframes dof-screenTilt {
+    0%   { transform: rotate(0deg) scale(1.0); }
+    100% { transform: rotate(-2.5deg) scale(1.06); }
+  }
+  @keyframes dof-redPulse {
+    0%, 100% { opacity: 0.55; }
+    50%       { opacity: 0.85; }
+  }
+  @keyframes dof-nameReveal {
+    0%   { 
+      opacity: 0; 
+      transform: translateY(18px); 
+      letter-spacing: 0.35em; 
+    }
+    100% { 
+      opacity: 1; 
+      transform: translateY(0); 
+      letter-spacing: 0.08em; 
+    }
+  }
+  @keyframes dof-taglineReveal {
+    0%   { opacity: 0; transform: scaleX(0.3); }
+    100% { opacity: 1; transform: scaleX(1); }
+  }
+  @keyframes dof-grainScroll {
+    0%   { transform: translate(0, 0); }
+    25%  { transform: translate(-2%, -3%); }
+    50%  { transform: translate(1%, 2%); }
+    75%  { transform: translate(3%, -1%); }
+    100% { transform: translate(0, 0); }
+  }
+
+  /* Specific overrides to prevent global theme stylesheet rules from overriding cinematic headings */
+  #death-overlay h1#death-overlay-character-name {
+    color: #ffffff !important;
+    font-family: Georgia, "Times New Roman", serif !important;
+    letter-spacing: 0.08em !important;
+    text-shadow: 
+      0 0 30px rgba(180, 0, 0, 0.95),
+      0 0 80px rgba(100, 0, 0, 0.6),
+      0 3px 8px rgba(0, 0, 0, 0.99) !important;
+  }
+  #death-overlay p#death-overlay-tagline {
+    color: #cc0000 !important;
+    font-family: "Helvetica Neue", Arial, sans-serif !important;
+    letter-spacing: 0.55em !important;
+    text-shadow: 0 0 16px rgba(200, 0, 0, 0.8) !important;
+  }
+`;
+
+export function DeathOverlay({ characterName }: DeathOverlayProps) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if (videoRef.current) {
+      const playPromise = videoRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          // Autoplay blocked — fine, the CSS effects still run
+        });
+      }
+    }
+  }, []);
+
+  return (
+    <div
+      id="death-overlay"
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 9999,
+        overflow: 'hidden',
+        animation: [
+          'dof-overlayFadeIn 120ms ease-out forwards',
+          'dof-overlayFadeOut 1500ms ease-in 8500ms forwards',
+        ].join(', '),
+      }}
+    >
+      <style>{STYLES}</style>
+
+      {/* === WORLD DESATURATION LAYER ===
+          backdrop-filter desaturates and darkens everything 
+          underneath — this is the core "you are dying" 
+          visual that games use */}
+      <div
+        aria-hidden
+        style={{
+          position: 'absolute',
+          inset: 0,
+          zIndex: 1,
+          backdropFilter: 'grayscale(85%) brightness(0.45) blur(1px)',
+          WebkitBackdropFilter: 'grayscale(85%) brightness(0.45) blur(1px)',
+          backgroundColor: 'rgba(6, 2, 2, 0.55)',
+        }}
+      />
+
+      {/* === SLOW SCREEN TILT ===
+          The entire visible content tilts slowly as if 
+          the character is collapsing — 10 second duration 
+          matches the overlay length */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: '-5%',
+          zIndex: 2,
+          animation: 'dof-screenTilt 10s ease-in forwards',
+          transformOrigin: 'center center',
+        }}
+      >
+
+        {/* === BLOOD VIDEO LAYER ===
+            mix-blend-mode: screen removes all black pixels 
+            from the video, leaving only the blood visible.
+            The video plays once and holds on its last frame */}
+        <video
+          ref={videoRef}
+          aria-hidden
+          muted
+          playsInline
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            mixBlendMode: 'screen',
+            zIndex: 1,
+            opacity: 0.92,
+          }}
+        >
+          <source src="/assets/death-impact.webm" type="video/webm" />
+          <source src="/assets/death-impact.mp4"  type="video/mp4" />
+        </video>
+
+        {/* === RED VIGNETTE EDGES ===
+            Pulses every 1.8s — suggests the character's 
+            heartbeat slowing */}
+        <div
+          aria-hidden
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 2,
+            background: [
+              'radial-gradient(',
+              '  ellipse at 50% 50%,',
+              '  transparent 38%,',
+              '  rgba(120, 0, 0, 0.55) 72%,',
+              '  rgba(60, 0, 0, 0.88) 100%',
+              ')',
+            ].join(''),
+            animation: 'dof-redPulse 1.8s ease-in-out 0.8s infinite',
+          }}
+        />
+
+        {/* === FILM GRAIN LAYER ===
+            SVG feTurbulence noise animated — adds the 
+            cinematic grain texture that games bake in */}
+        <div
+          aria-hidden
+          style={{
+            position: 'absolute',
+            inset: '-10%',
+            zIndex: 3,
+            opacity: 0.08,
+            pointerEvents: 'none',
+            animation: 'dof-grainScroll 0.18s steps(1) infinite',
+            backgroundImage: [
+              'url("data:image/svg+xml,%3Csvg',
+              ' viewBox=\'0 0 256 256\'',
+              ' xmlns=\'http://www.w3.org/2000/svg\'%3E',
+              '%3Cfilter id=\'n\'%3E',
+              '%3CfeTurbulence type=\'fractalNoise\'',
+              ' baseFrequency=\'0.9\'',
+              ' numOctaves=\'4\'',
+              ' stitchTiles=\'stitch\'/%3E',
+              '%3C/filter%3E',
+              '%3Crect width=\'100%25\' height=\'100%25\'',
+              ' filter=\'url(%23n)\'/%3E',
+              '%3C/svg%3E")',
+            ].join(''),
+            backgroundRepeat: 'repeat',
+            backgroundSize: '256px 256px',
+          }}
+        />
+
+        {/* === CHARACTER NAME ===
+            Fades in at 600ms. Heavy serif typography,
+            red glow — minimal, weighted, cinematic */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 4,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            pointerEvents: 'none',
+          }}
+        >
+          <div
+            style={{
+              textAlign: 'center',
+              opacity: 0,
+              animation: 'dof-nameReveal 700ms cubic-bezier(0.16,1,0.3,1) 600ms forwards',
+            }}
+          >
+            <h1
+              id="death-overlay-character-name"
+              style={{
+                margin: 0,
+                fontFamily: 'Georgia, "Times New Roman", serif',
+                fontSize: 'clamp(2.2rem, 5vw, 3.5rem)',
+                fontWeight: 'bold',
+                color: '#ffffff',
+                letterSpacing: '0.08em',
+                lineHeight: 1,
+                textShadow: [
+                  '0 0 30px rgba(180, 0, 0, 0.95)',
+                  '0 0 80px rgba(100, 0, 0, 0.6)',
+                  '0 3px 8px rgba(0, 0, 0, 0.99)',
+                ].join(', '),
+              }}
+            >
+              {characterName}
+            </h1>
+
+            <p
+              id="death-overlay-tagline"
+              style={{
+                margin: '16px 0 0 0',
+                fontFamily:
+                  '"Helvetica Neue", Arial, sans-serif',
+                fontSize: 'clamp(1rem, 2vw, 1.4rem)',
+                fontWeight: 900,
+                letterSpacing: '0.55em',
+                color: '#cc0000',
+                textTransform: 'uppercase',
+                textShadow: '0 0 16px rgba(200, 0, 0, 0.8)',
+                opacity: 0,
+                animation:
+                  'dof-taglineReveal 800ms ease-out 1100ms forwards',
+              }}
+            >
+              HAS FALLEN
+            </p>
+          </div>
+        </div>
+
+      </div>
+      {/* end screen tilt wrapper */}
+
+    </div>
+  );
+}

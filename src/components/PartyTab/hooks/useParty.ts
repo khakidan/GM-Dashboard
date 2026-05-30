@@ -345,6 +345,7 @@ export function useParty() {
     
     // Fallbacks for numbers
     if (sanitizedUpdates.ac !== undefined) sanitizedUpdates.ac = Math.max(0, Number(sanitizedUpdates.ac) || 0);
+    if (sanitizedUpdates.tempAc !== undefined) sanitizedUpdates.tempAc = Number(sanitizedUpdates.tempAc) || 0;
     if (sanitizedUpdates.maxHp !== undefined) sanitizedUpdates.maxHp = Math.max(1, Number(sanitizedUpdates.maxHp) || 1);
     if (sanitizedUpdates.currentHp !== undefined) sanitizedUpdates.currentHp = Math.max(0, Number(sanitizedUpdates.currentHp) || 0);
     if (sanitizedUpdates.tempHp !== undefined) sanitizedUpdates.tempHp = Math.max(0, Number(sanitizedUpdates.tempHp) || 0);
@@ -369,6 +370,7 @@ export function useParty() {
             ...(sanitizedUpdates.characterName !== undefined ? { name: sanitizedUpdates.characterName } : {}),
             ...(sanitizedUpdates.notes !== undefined ? { notes: sanitizedUpdates.notes } : {}),
             ...(sanitizedUpdates.passivePerception !== undefined ? { passivePerception: sanitizedUpdates.passivePerception } : {}),
+            ...(sanitizedUpdates.tempAc !== undefined ? { tempAcModifier: sanitizedUpdates.tempAc } : {}),
           };
         }
         return c;
@@ -388,7 +390,7 @@ export function useParty() {
 
     // 2. Check if we need to sync to sheets (if we updated data that lives in the sheet)
     const isSheetData = Object.keys(sanitizedUpdates).some(k => 
-      ['playerName', 'characterName', 'ac', 'maxHp', 'tempHp', 'currentHp', 'conditions', 'passivePerception', 'level', 'statusId', 'notes', 'resistances', 'immunities', 'vulnerabilities'].includes(k)
+      ['playerName', 'characterName', 'ac', 'maxHp', 'tempHp', 'currentHp', 'conditions', 'passivePerception', 'level', 'statusId', 'notes', 'resistances', 'immunities', 'vulnerabilities', 'tempAc'].includes(k)
     );
 
     if (!isSheetData) return;

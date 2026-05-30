@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useAppState, getSnapshot } from '../../../hooks/useAppState';
 import { updateSheetData } from '../../../services/sheetsService';
 import { updateCharacterDB, updateNpcDB, deleteEncounterCombatantDB, updateEncounterCombatantQuantityDB, updateInitiativeDB, updateConditionTimersDB, updateNpcInstanceHpDB, updateNpcInstanceConditionsDB, updateNpcInstanceAcModDB } from '../../../services/dbOperations';
@@ -259,12 +259,35 @@ export function useCombatSync() {
     syncDb().catch(handleSyncError);
   };
 
+  const fireDeathEvent = useCallback(
+    (characterName: string) => {
+      updateState(prev => ({
+        ...prev,
+        combatState: {
+          ...prev.combatState,
+          deathEvent: { characterName }
+        }
+      }));
+      setTimeout(() => {
+        updateState(prev => ({
+          ...prev,
+          combatState: {
+            ...prev.combatState,
+            deathEvent: null
+          }
+        }));
+      }, 10500);
+    },
+    [updateState]
+  );
+
   return {
     syncingIds,
     globalError,
     setGlobalError,
     handleError,
     removeCombatant,
-    updateCombatant
+    updateCombatant,
+    fireDeathEvent
   };
 }

@@ -27,7 +27,7 @@ export function PlayerView() {
             <th className="p-4 font-bold w-16 text-center border-r border-[#e5e1d8]">Init</th>
             <th className="p-4 font-bold px-6">Combatant</th>
             <th className="p-4 font-bold text-center">Status</th>
-            <th className="p-4 font-bold w-28 text-center">HP</th>
+            <th className="p-4 font-bold w-28 text-center min-w-[7rem]">HP</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-[#f5f5f0] font-sans text-base">
@@ -54,7 +54,7 @@ export function PlayerView() {
                   </div>
                 </td>
                 <td className="p-4 px-5">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 min-w-0">
+                  <div className="flex flex-col items-start gap-3 min-w-0">
                     <div className="flex items-center gap-3 min-w-0">
                       {isActive && <div className="w-2 h-2 rounded-full bg-[#c5b358] shrink-0"></div>}
                       <div className="min-w-0">
@@ -73,28 +73,27 @@ export function PlayerView() {
                       </div>
                     </div>
                     {c.type === 'pc' && c.conditions?.toLowerCase().includes('unconscious') && (c.deathSavesSuccesses || 0) < 3 && !c.isStable && (
-                      <div className="flex flex-row items-center gap-3.5 bg-rose-100 border-2 border-rose-200 rounded-lg px-3.5 py-1.5 shrink-0 shadow-sm">
-                        <div className="flex items-center gap-1.5 font-mono">
-                          <span className="text-red-800 font-extrabold uppercase text-[11px] tracking-wider w-11">Fails:</span>
-                          <div className="flex gap-1">
+                      <div className="flex flex-col gap-2 mt-1 select-none shrink-0">
+                        <div className="flex items-center gap-4 text-xl md:text-2xl font-bold font-sans">
+                          <span className="text-red-800 uppercase tracking-wide min-w-[120px] md:min-w-[145px]">FAILS</span>
+                          <div className="flex gap-2">
                             {[1, 2, 3].map(slot => {
                               const isFailed = (c.deathSavesFails || 0) >= slot;
                               return (
-                                <span key={slot} className={cn("text-base font-bold leading-none select-none", isFailed ? "text-red-600" : "text-rose-300")}>
+                                <span key={slot} className={cn("leading-none", isFailed ? "text-red-600" : "text-gray-300")}>
                                   {isFailed ? "●" : "○"}
                                 </span>
                               );
                             })}
                           </div>
                         </div>
-                        <div className="w-0.5 h-4 bg-rose-300" />
-                        <div className="flex items-center gap-1.5 font-mono">
-                          <span className="text-emerald-800 font-extrabold uppercase text-[11px] tracking-wider w-18">Successes:</span>
-                          <div className="flex gap-1">
+                        <div className="flex items-center gap-4 text-xl md:text-2xl font-bold font-sans">
+                          <span className="text-emerald-800 uppercase tracking-wide min-w-[120px] md:min-w-[145px]">SUCCESSES</span>
+                          <div className="flex gap-2">
                             {[1, 2, 3].map(slot => {
                               const isSuccess = (c.deathSavesSuccesses || 0) >= slot;
                               return (
-                                <span key={slot} className={cn("text-base font-bold leading-none select-none", isSuccess ? "text-emerald-600" : "text-rose-300")}>
+                                <span key={slot} className={cn("leading-none", isSuccess ? "text-emerald-600" : "text-gray-300")}>
                                   {isSuccess ? "♥" : "○"}
                                 </span>
                               );
@@ -116,9 +115,9 @@ export function PlayerView() {
                     </div>
                   </div>
                 </td>
-                <td className="p-4 text-center text-lg md:text-xl">
+                <td className="p-4 text-center text-lg md:text-xl min-w-[7rem] whitespace-nowrap">
                   {c.type === 'pc' && !isDead ? (
-                    <div className="font-sans font-bold text-[#2c2c26]">
+                    <div className="font-sans font-bold text-[#2c2c26] whitespace-nowrap">
                       {c.currentHp} <span className="text-[#5a5a40] opacity-70">/ {c.maxHp}</span>
                     </div>
                   ) : (
@@ -148,8 +147,8 @@ export function PlayerView() {
       </div>
 
       <div className={cn(
-        "w-full",
-        useTwoCols ? "max-w-7xl grid grid-cols-1 lg:grid-cols-2 gap-6" : "max-w-4xl"
+        "w-full max-w-7xl",
+        useTwoCols && "grid grid-cols-1 lg:grid-cols-2 gap-6"
       )}>
         {state.combatants.length === 0 ? (
           <div className="col-span-full bg-white border border-[#e5e1d8] rounded-2xl text-center text-[#5a5a40] italic py-24 flex flex-col items-center justify-center gap-3 shadow-sm">

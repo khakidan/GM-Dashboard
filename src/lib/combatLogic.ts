@@ -135,8 +135,18 @@ export function getEffectiveResistances(
 
   if (conditions.includes('raging')) {
     const baseParts = base.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
-    const rageParts = ['bludgeoning', 'piercing', 'slashing'];
-    const combined = Array.from(new Set([...baseParts, ...rageParts]));
+    const rageParts = ['bludgeoning (magical)', 'piercing (magical)', 'slashing (magical)'];
+    
+    const filteredBase = baseParts.filter(part => {
+      const cleanPart = part
+        .replace(/\s*\(magical\)$/, '')
+        .replace(/\s*\(nonmagical\)$/, '')
+        .replace(/\s+resistances?$/, '')
+        .trim();
+      return cleanPart !== 'bludgeoning' && cleanPart !== 'piercing' && cleanPart !== 'slashing';
+    });
+
+    const combined = Array.from(new Set([...filteredBase, ...rageParts]));
     return combined.join(', ');
   }
 
@@ -158,14 +168,13 @@ export function isDamageTypeMatch(
     ? dt.replace(/\s*\(magical\)$/, '').trim()
     : dt;
 
-  const irvIsNonmagical = irv.endsWith('(nonmagical)');
   const irvIsMagical = irv.endsWith('(magical)');
+  const irvIsNonmagical = irv.endsWith('(nonmagical)');
   
-  let cleanIrv = (irvIsNonmagical || irvIsMagical)
+  let cleanIrv = (irvIsMagical || irvIsNonmagical)
     ? irv.replace(/\s*\((non)?magical\)$/, '').trim()
     : irv;
 
-  // Strip trailing descriptive nouns like "resistance", "immunity", "vulnerability", etc.
   cleanIrv = cleanIrv
     .replace(/\s+resistances?$/, '')
     .replace(/\s+immunities$/, '')
@@ -176,24 +185,23 @@ export function isDamageTypeMatch(
 
   const irvBaseType = cleanIrv;
 
-  // Base damage types must match before any other check
+  // Base types must match before anything else
   if (baseAttackType !== irvBaseType) return false;
 
-  // Rule 1: Magical attack vs nonmagical resistance
-  // → does NOT apply (magical bypasses nonmagical)
-  if (isMagicalAttack && irvIsNonmagical) return false;
-
-  // Rule 2: Generic (nonmagical) attack vs magical resistance
-  // → DOES apply (if resistant to magical, also resistant 
-  //   to the weaker nonmagical version)
-  if (!isMagicalAttack && irvIsMagical) return true;
-
-  // All other combinations with matching base type apply:
-  //   generic attack vs nonmagical resistance → YES
-  //   generic attack vs generic resistance    → YES
-  //   magical attack vs generic resistance    → YES
-  //   magical attack vs magical resistance    → YES (exact)
-  return true;
+  if (isMagicalAttack) {
+    // Magical attacks are only resisted by 
+    // 'bludgeoning (magical)' resistance.
+    // Generic 'bludgeoning' resistance does NOT 
+    // protect against magical attacks.
+    return irvIsMagical;
+  } else {
+    // Nonmagical attacks are resisted by:
+    // - 'bludgeoning' (generic/nonmagical) resistance
+    // - 'bludgeoning (magical)' resistance (covers both)
+    // - 'bludgeoning (nonmagical)' (legacy, same as generic)
+    // All three protect against nonmagical attacks.
+    return true;
+  }
 }
 
 export function checkIrvMatch(damageType: string, irvString: string | null | undefined): boolean {

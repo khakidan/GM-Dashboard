@@ -16,6 +16,7 @@ const defaultCombatState: CombatState = {
   combatants: [],
   activeTurnId: null,
   round: 1,
+  deathEvent: null,
 };
 
 const defaultAppState: AppState = {

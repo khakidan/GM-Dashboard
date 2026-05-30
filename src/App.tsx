@@ -6,12 +6,19 @@ import { checkAndCaptureToken } from './services/googleAuth';
 import { useEffect, useState } from 'react';
 import { Toaster } from 'sonner';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
+import { useAppState } from './hooks/useAppState';
+import { DeathOverlay } from './components/DeathOverlay';
 
 function AppContent() {
   const { theme } = useTheme();
+  const { state } = useAppState();
+  const deathEvent = state.combatState.deathEvent;
 
   return (
     <div id="root-theme-wrapper" data-theme={theme} className="w-full min-h-[100dvh] flex flex-col transition-colors duration-300">
+      {deathEvent && (
+        <DeathOverlay characterName={deathEvent.characterName} />
+      )}
       <HashRouter>
         <Routes>
           <Route path="/" element={<GMDashboard />} />

@@ -263,19 +263,19 @@ describe('getEffectiveResistances', () => {
     expect(getEffectiveResistances({ resistances: undefined, conditions: 'prone' })).toBe('');
   });
 
-  it('appends bludgeoning, piercing, slashing when combatant has raging in conditions', () => {
+  it('appends bludgeoning (magical), piercing (magical), slashing (magical) when combatant has raging in conditions', () => {
     expect(getEffectiveResistances({ resistances: undefined, conditions: 'raging, prone' }))
-      .toBe('bludgeoning, piercing, slashing');
+      .toBe('bludgeoning (magical), piercing (magical), slashing (magical)');
   });
 
   it('merges correctly when combatant already has other resistances', () => {
     expect(getEffectiveResistances({ resistances: 'fire, cold', conditions: 'raging' }))
-      .toBe('fire, cold, bludgeoning, piercing, slashing');
+      .toBe('fire, cold, bludgeoning (magical), piercing (magical), slashing (magical)');
   });
 
   it('does not duplicate entries when raging and combatant already has physical resistances', () => {
     expect(getEffectiveResistances({ resistances: 'cold, bludgeoning, piercing', conditions: 'raging' }))
-      .toBe('cold, bludgeoning, piercing, slashing');
+      .toBe('cold, bludgeoning (magical), piercing (magical), slashing (magical)');
   });
 });
 
@@ -360,9 +360,9 @@ describe('computeDamageWithIrv', () => {
       expect(result).toEqual({ finalDamage: 10, modifier: 'resistant' });
     });
 
-    it('Magical attack is caught by generic resistance', () => {
+    it('Magical attack bypasses generic resistance', () => {
       const result = computeDamageWithIrv(20, 'bludgeoning (magical)', 'bludgeoning', '', '');
-      expect(result).toEqual({ finalDamage: 10, modifier: 'resistant' });
+      expect(result).toEqual({ finalDamage: 20, modifier: 'normal' });
     });
 
     it('Generic attack is caught by generic resistance', () => {
@@ -412,7 +412,7 @@ describe('computeDamageWithIrv', () => {
 
     it('Raging barbarian resists magical physical attacks', () => {
       const effRes = getEffectiveResistances({ resistances: '', conditions: 'raging' });
-      expect(effRes.toLowerCase()).toContain('bludgeoning');
+      expect(effRes.toLowerCase()).toContain('bludgeoning (magical)');
       const result = computeDamageWithIrv(20, 'bludgeoning (magical)', effRes, '', '');
       expect(result).toEqual({ finalDamage: 10, modifier: 'resistant' });
     });

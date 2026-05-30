@@ -287,6 +287,38 @@ describe('useParty', () => {
       expect(updateStateSpy).toHaveBeenCalledWith(mockInitialState);
       expect(result.current.globalError).toBe('Failed to update details for "Maeve".');
     });
+
+    it("updates character's tempAc and mirrors it to matching active combatant's tempAcModifier as 2", async () => {
+      const mockChar = { id: 'char-1', characterName: 'Maeve', ac: 15, tempAc: 0 };
+      const mockPcCombatant = { id: 'combatant-1', type: 'pc', characterId: 'char-1', name: 'Maeve', ac: 15, tempAcModifier: 0 };
+      const mockState = {
+        characters: [mockChar],
+        combatState: {
+          combatants: [mockPcCombatant]
+        }
+      };
+      const updateStateSpy = vi.fn();
+      vi.mocked(useAppState).mockReturnValue({
+        state: mockState as any,
+        updateState: updateStateSpy,
+      });
+      vi.mocked(getSnapshot).mockReturnValue(mockState as any);
+      vi.mocked(updateCharacterDB).mockResolvedValue(undefined as any);
+
+      const { result } = renderHook(() => useParty());
+      await act(async () => {
+        await result.current.handleUpdate('char-1', { tempAc: 2 });
+      });
+
+      expect(updateStateSpy).toHaveBeenCalled();
+      const stateUpdater = updateStateSpy.mock.calls[0][0];
+      const nextState = stateUpdater(mockState);
+
+      expect(nextState.characters[0].tempAc).toBe(2);
+      expect(nextState.combatState.combatants[0].tempAcModifier).toBe(2);
+
+      expect(updateCharacterDB).toHaveBeenCalledWith({ tempAc: 2 }, expect.objectContaining({ id: 'char-1' }));
+    });
   });
 
   describe('handleLongRest basic updates', () => {

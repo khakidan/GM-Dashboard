@@ -3,6 +3,7 @@ import { DamageType } from '../../types';
 import { Shield, Heart, Plus, X, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
+import { DAMAGE_TYPE_OPTIONS } from '../../lib/irvOptions';
 
 interface MultiTargetActionBarProps {
   selectedCount: number;
@@ -78,22 +79,11 @@ export const MultiTargetActionBar: React.FC<MultiTargetActionBarProps> = ({
               className="flex-1 h-9 bg-[#2c2c26] border border-white/10 rounded-xl px-3 text-[10px] font-bold outline-none cursor-pointer focus:bg-white/15 focus:border-red-500/50 appearance-none transition-all"
             >
               <option value="" className="bg-[#2c2c26]">Type</option>
-              <option value="acid" className="bg-[#2c2c26]">acid</option>
-              <option value="bludgeoning" className="bg-[#2c2c26]">bludgeoning</option>
-              <option value="bludgeoning (nonmagical)" className="bg-[#2c2c26]">bludgeoning (nonmagical)</option>
-              <option value="cold" className="bg-[#2c2c26]">cold</option>
-              <option value="fire" className="bg-[#2c2c26]">fire</option>
-              <option value="force" className="bg-[#2c2c26]">force</option>
-              <option value="lightning" className="bg-[#2c2c26]">lightning</option>
-              <option value="necrotic" className="bg-[#2c2c26]">necrotic</option>
-              <option value="piercing" className="bg-[#2c2c26]">piercing</option>
-              <option value="piercing (nonmagical)" className="bg-[#2c2c26]">piercing (nonmagical)</option>
-              <option value="poison" className="bg-[#2c2c26]">poison</option>
-              <option value="psychic" className="bg-[#2c2c26]">psychic</option>
-              <option value="radiant" className="bg-[#2c2c26]">radiant</option>
-              <option value="slashing" className="bg-[#2c2c26]">slashing</option>
-              <option value="slashing (nonmagical)" className="bg-[#2c2c26]">slashing (nonmagical)</option>
-              <option value="thunder" className="bg-[#2c2c26]">thunder</option>
+              {DAMAGE_TYPE_OPTIONS.map((type) => (
+                <option key={type} value={type} className="bg-[#2c2c26]">
+                  {type}
+                </option>
+              ))}
             </select>
           </div>
           <button

@@ -71,7 +71,8 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
     globalError,
     handleError,
     removeCombatant,
-    updateCombatant
+    updateCombatant,
+    fireDeathEvent
   } = useCombatSync();
 
   const {
@@ -203,6 +204,7 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
           statusId: 3, // Deceased
           isStable: false
         });
+        fireDeathEvent(combatant.name);
         toast(`${combatant.name} has died. Update their status on the Party Roster.`);
       } else if (successes >= 3) {
         updateCombatant(combatantId, {
