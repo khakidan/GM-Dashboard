@@ -251,8 +251,10 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({
                   value={character.conditions || ''}
                   onChange={(v) => onUpdate({ conditions: v as string })}
                   immunities={character.immunities || ''}
-                  onConcentrationEffectAdded={() => {
-                    toast('Remember to apply Concentrating to the spellcaster.');
+                  onConcentrationEffectAdded={(effectName) => {
+                    toast(`Concentration effect ${effectName} added. Be sure to mark the concentrating character manually if they are in the active encounter.`, {
+                      duration: 6000
+                    });
                   }}
                 />
               </div>

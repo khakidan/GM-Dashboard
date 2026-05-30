@@ -292,8 +292,8 @@ describe('checkIrvMatch', () => {
     expect(checkIrvMatch('cold', 'poison, cold resistance')).toBe(true);
   });
 
-  it("Returns true for 'bludgeoning (nonmagical)' against 'bludgeoning, piercing, slashing (nonmagical)'", () => {
-    expect(checkIrvMatch('bludgeoning (nonmagical)', 'bludgeoning, piercing, slashing (nonmagical)')).toBe(true);
+  it("Returns false for 'bludgeoning (magical)' against 'bludgeoning, piercing, slashing (nonmagical)'", () => {
+    expect(checkIrvMatch('bludgeoning (magical)', 'bludgeoning, piercing, slashing (nonmagical)')).toBe(false);
   });
 
   it('Returns false when damageType is not present in irvString', () => {
@@ -347,6 +347,90 @@ describe('computeDamageWithIrv', () => {
   it('Doubled damage is correct', () => {
     const result = computeDamageWithIrv(15, 'poison', '', '', 'poison');
     expect(result).toEqual({ finalDamage: 30, modifier: 'vulnerable' });
+  });
+
+  describe('computeDamageWithIrv - custom matching matrix', () => {
+    it('Magical attack bypasses nonmagical resistance', () => {
+      const result = computeDamageWithIrv(20, 'bludgeoning (magical)', 'bludgeoning (nonmagical)', '', '');
+      expect(result).toEqual({ finalDamage: 20, modifier: 'normal' });
+    });
+
+    it('Generic attack is caught by nonmagical resistance', () => {
+      const result = computeDamageWithIrv(20, 'bludgeoning', 'bludgeoning (nonmagical)', '', '');
+      expect(result).toEqual({ finalDamage: 10, modifier: 'resistant' });
+    });
+
+    it('Magical attack is caught by generic resistance', () => {
+      const result = computeDamageWithIrv(20, 'bludgeoning (magical)', 'bludgeoning', '', '');
+      expect(result).toEqual({ finalDamage: 10, modifier: 'resistant' });
+    });
+
+    it('Generic attack is caught by generic resistance', () => {
+      const result = computeDamageWithIrv(20, 'bludgeoning', 'bludgeoning', '', '');
+      expect(result).toEqual({ finalDamage: 10, modifier: 'resistant' });
+    });
+
+    it('Magical attack is caught by magical resistance', () => {
+      const result = computeDamageWithIrv(20, 'bludgeoning (magical)', 'bludgeoning (magical)', '', '');
+      expect(result).toEqual({ finalDamage: 10, modifier: 'resistant' });
+    });
+
+    it('Generic attack is caught by magical resistance', () => {
+      const result = computeDamageWithIrv(20, 'bludgeoning', 'bludgeoning (magical)', '', '');
+      expect(result).toEqual({ finalDamage: 10, modifier: 'resistant' });
+    });
+
+    it('Magical attack bypasses nonmagical immunity', () => {
+      const result = computeDamageWithIrv(20, 'piercing (magical)', '', 'piercing (nonmagical)', '');
+      expect(result).toEqual({ finalDamage: 20, modifier: 'normal' });
+    });
+
+    it('Generic attack is caught by nonmagical immunity', () => {
+      const result = computeDamageWithIrv(20, 'piercing', '', 'piercing (nonmagical)', '');
+      expect(result).toEqual({ finalDamage: 0, modifier: 'immune' });
+    });
+
+    it('Generic attack is caught by magical immunity', () => {
+      const result = computeDamageWithIrv(20, 'piercing', '', 'piercing (magical)', '');
+      expect(result).toEqual({ finalDamage: 0, modifier: 'immune' });
+    });
+
+    it('Magical attack is caught by magical vulnerability', () => {
+      const result = computeDamageWithIrv(20, 'slashing (magical)', '', '', 'slashing (magical)');
+      expect(result).toEqual({ finalDamage: 40, modifier: 'vulnerable' });
+    });
+
+    it('Generic attack is caught by magical vulnerability', () => {
+      const result = computeDamageWithIrv(20, 'slashing', '', '', 'slashing (magical)');
+      expect(result).toEqual({ finalDamage: 40, modifier: 'vulnerable' });
+    });
+
+    it('Unrelated types never match', () => {
+      const result = computeDamageWithIrv(20, 'fire', 'bludgeoning (nonmagical)', '', '');
+      expect(result).toEqual({ finalDamage: 20, modifier: 'normal' });
+    });
+
+    it('Raging barbarian resists magical physical attacks', () => {
+      const effRes = getEffectiveResistances({ resistances: '', conditions: 'raging' });
+      expect(effRes.toLowerCase()).toContain('bludgeoning');
+      const result = computeDamageWithIrv(20, 'bludgeoning (magical)', effRes, '', '');
+      expect(result).toEqual({ finalDamage: 10, modifier: 'resistant' });
+    });
+
+    it('Raging barbarian resists nonmagical physical attacks', () => {
+      const effRes = getEffectiveResistances({ resistances: '', conditions: 'raging' });
+      const result = computeDamageWithIrv(20, 'bludgeoning', effRes, '', '');
+      expect(result).toEqual({ finalDamage: 10, modifier: 'resistant' });
+    });
+
+    it('No duplicate resistances when raging with existing physical resistance', () => {
+      const effRes = getEffectiveResistances({ 
+        resistances: 'bludgeoning', 
+        conditions: 'raging' 
+      });
+      const count = (effRes.toLowerCase().match(/bludgeoning/g) || []).length;
+      expect(count).toBe(1);
+    });
   });
 });
 

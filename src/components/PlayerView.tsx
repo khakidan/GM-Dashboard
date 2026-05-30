@@ -1,7 +1,7 @@
 import { useAppState } from '../hooks/useAppState';
 import { cn } from '../lib/utils';
 import { Skull, Heart, ShieldAlert, Shield, Swords } from 'lucide-react';
-import { getHealthStatus, effectiveAc } from '../lib/combatLogic';
+import { getHealthStatus } from '../lib/combatLogic';
 
 export function PlayerView() {
   const { state: appState } = useAppState();
@@ -23,11 +23,11 @@ export function PlayerView() {
     <div className="bg-white border border-[#e5e1d8] rounded-2xl shadow-sm overflow-hidden h-fit">
       <table className="w-full text-left border-collapse">
         <thead>
-          <tr className="bg-[#f5f5f0] border-b border-[#e5e1d8] text-[#5a5a40] font-sans text-xs uppercase tracking-widest text-left">
-            <th className="p-3 font-bold w-14 text-center border-r border-[#e5e1d8]">Init</th>
-            <th className="p-3 font-bold px-4">Combatant</th>
-            <th className="p-3 font-bold text-center">Status</th>
-            <th className="p-3 font-bold w-24 text-center">HP</th>
+          <tr className="bg-[#f5f5f0] border-b border-[#e5e1d8] text-[#5a5a40] font-sans text-sm uppercase tracking-widest text-left">
+            <th className="p-4 font-bold w-16 text-center border-r border-[#e5e1d8]">Init</th>
+            <th className="p-4 font-bold px-6">Combatant</th>
+            <th className="p-4 font-bold text-center">Status</th>
+            <th className="p-4 font-bold w-28 text-center">HP</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-[#f5f5f0] font-sans text-base">
@@ -45,9 +45,9 @@ export function PlayerView() {
                   isDead && "opacity-60"
                 )}
               >
-                <td className="p-3 border-r border-[#f5f5f0]">
+                <td className="p-4 border-r border-[#f5f5f0]">
                   <div className={cn(
-                    "w-9 h-9 mx-auto rounded-full flex items-center justify-center font-bold text-base border transition-all shadow-sm",
+                    "w-11 h-11 mx-auto rounded-full flex items-center justify-center font-bold text-xl border transition-all shadow-sm",
                     isActive ? "bg-[#c5b358] border-transparent text-white scale-110" : "bg-white border-[#e5e1d8] text-[#5a5a40]"
                   )}>
                     {c.initiative}
@@ -60,34 +60,15 @@ export function PlayerView() {
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 flex-wrap min-w-0">
                           <span className={cn(
-                            "font-bold text-base md:text-lg truncate transition-colors",
+                            "font-bold text-xl md:text-2xl truncate transition-colors",
                             isActive ? "text-[#c5b358]" : "text-[#2c2c26]",
                             isDead && "line-through text-[#5a5a40]"
                           )}>
                             {c.name}
                           </span>
-                          {!isDead && (
-                            <span className={cn(
-                              "text-xs font-bold px-2 py-0.5 rounded-full border whitespace-nowrap",
-                              (c.tempAcModifier || 0) !== 0
-                                ? "text-amber-600 border-amber-200 bg-amber-50"
-                                : "text-[#5a5a40] border-[#e5e1d8] bg-[#f5f5f0]"
-                            )}>
-                              {(() => {
-                                const baseAc = c.ac;
-                                const acMod = c.tempAcModifier || 0;
-                                const effAc = effectiveAc(baseAc, acMod);
-                                if (acMod === 0) {
-                                  return `AC ${baseAc}`;
-                                }
-                                const sign = acMod > 0 ? '+' : '';
-                                return `AC ${effAc} (${sign}${acMod})`;
-                              })()}
-                            </span>
-                          )}
                         </div>
                         {c.conditions && (
-                            <div className="text-xs text-red-600 font-bold italic mt-1 truncate max-w-[150px]" title={c.conditions}>{c.conditions}</div>
+                            <div className="text-sm text-red-600 font-bold italic mt-1 truncate max-w-[200px]" title={c.conditions}>{c.conditions}</div>
                         )}
                       </div>
                     </div>
@@ -124,24 +105,24 @@ export function PlayerView() {
                     )}
                   </div>
                 </td>
-                <td className="p-3 font-bold text-xs uppercase tracking-wider">
+                <td className="p-4 font-bold text-sm uppercase tracking-wider">
                   <div className="flex justify-center">
                     <div className={cn(
-                      "flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#f5f5f0]",
+                      "flex items-center gap-2 px-4 py-2 rounded-full bg-[#f5f5f0]",
                       health.color
                     )}>
-                      {isDead ? <Skull className="w-3.5 h-3.5" /> : (['Full', 'Healthy'].includes(health.label) ? <Heart className="w-3.5 h-3.5" /> : <ShieldAlert className="w-3.5 h-3.5" />)}
+                      {isDead ? <Skull className="w-4 h-4" /> : (['Full', 'Healthy'].includes(health.label) ? <Heart className="w-4 h-4" /> : <ShieldAlert className="w-4 h-4" />)}
                       <span className="hidden sm:inline">{health.label}</span>
                     </div>
                   </div>
                 </td>
-                <td className="p-3 text-center text-sm md:text-base">
+                <td className="p-4 text-center text-lg md:text-xl">
                   {c.type === 'pc' && !isDead ? (
                     <div className="font-sans font-bold text-[#2c2c26]">
                       {c.currentHp} <span className="text-[#5a5a40] opacity-70">/ {c.maxHp}</span>
                     </div>
                   ) : (
-                     <span className="text-[#5a5a40] opacity-50 font-bold">-</span>
+                    <span className="text-[#5a5a40] opacity-50 font-bold text-base">-</span>
                   )}
                 </td>
               </tr>
@@ -159,10 +140,10 @@ export function PlayerView() {
   return (
     <div className="min-h-screen bg-[#fdfaf5] text-[#2c2c26] p-4 md:p-8 font-serif flex flex-col items-center">
       
-      <div className="w-full max-w-7xl mb-6 flex items-center justify-center">
-        <div className="flex items-center gap-3 text-[#5a5a40] bg-white border border-[#e5e1d8] px-6 py-2 rounded-full shadow-sm">
-          <Shield className="w-5 h-5 opacity-70" />
-          <span className="text-sm uppercase tracking-widest font-sans font-bold">Round {state.round}</span>
+      <div className="w-full max-w-7xl mb-8 flex items-center justify-center">
+        <div className="flex items-center gap-4 text-[#5a5a40] bg-white border border-[#e5e1d8] px-8 py-3 rounded-full shadow-sm">
+          <Shield className="w-6 h-6 opacity-70" />
+          <span className="text-base uppercase tracking-widest font-sans font-bold">Round {state.round}</span>
         </div>
       </div>
 

@@ -1,9 +1,9 @@
 // src/lib/irvOptions.ts
 
 export const DAMAGE_TYPE_OPTIONS: string[] = [
-  'bludgeoning', 'bludgeoning (nonmagical)',
-  'piercing',    'piercing (nonmagical)',
-  'slashing',    'slashing (nonmagical)',
+  'bludgeoning', 'bludgeoning (magical)',
+  'piercing',    'piercing (magical)',
+  'slashing',    'slashing (magical)',
   'acid', 'cold', 'fire', 'force', 'lightning',
   'necrotic', 'poison', 'psychic', 'radiant', 'thunder',
 ];

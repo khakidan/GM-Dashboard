@@ -143,34 +143,84 @@ export function getEffectiveResistances(
   return base;
 }
 
+export function isDamageTypeMatch(
+  damageType: string,
+  irvEntry: string
+): boolean {
+  const dt = damageType.trim().toLowerCase();
+  const irv = irvEntry.trim().toLowerCase();
+
+  // Exact match always applies
+  if (dt === irv) return true;
+
+  const isMagicalAttack = dt.endsWith('(magical)');
+  const baseAttackType = isMagicalAttack
+    ? dt.replace(/\s*\(magical\)$/, '').trim()
+    : dt;
+
+  const irvIsNonmagical = irv.endsWith('(nonmagical)');
+  const irvIsMagical = irv.endsWith('(magical)');
+  
+  let cleanIrv = (irvIsNonmagical || irvIsMagical)
+    ? irv.replace(/\s*\((non)?magical\)$/, '').trim()
+    : irv;
+
+  // Strip trailing descriptive nouns like "resistance", "immunity", "vulnerability", etc.
+  cleanIrv = cleanIrv
+    .replace(/\s+resistances?$/, '')
+    .replace(/\s+immunities$/, '')
+    .replace(/\s+immunity$/, '')
+    .replace(/\s+vulnerabilities$/, '')
+    .replace(/\s+vulnerability$/, '')
+    .trim();
+
+  const irvBaseType = cleanIrv;
+
+  // Base damage types must match before any other check
+  if (baseAttackType !== irvBaseType) return false;
+
+  // Rule 1: Magical attack vs nonmagical resistance
+  // → does NOT apply (magical bypasses nonmagical)
+  if (isMagicalAttack && irvIsNonmagical) return false;
+
+  // Rule 2: Generic (nonmagical) attack vs magical resistance
+  // → DOES apply (if resistant to magical, also resistant 
+  //   to the weaker nonmagical version)
+  if (!isMagicalAttack && irvIsMagical) return true;
+
+  // All other combinations with matching base type apply:
+  //   generic attack vs nonmagical resistance → YES
+  //   generic attack vs generic resistance    → YES
+  //   magical attack vs generic resistance    → YES
+  //   magical attack vs magical resistance    → YES (exact)
+  return true;
+}
+
 export function checkIrvMatch(damageType: string, irvString: string | null | undefined): boolean {
   if (!irvString || !damageType) return false;
 
-  // Normalise: strip hyphens so 'non-magical' and 'nonmagical' are treated
-  // identically. This gives backward compat for any older sheet data.
-  const norm = (s: string) => s.replace(/-/g, '').toLowerCase().trim();
+  const normIrv = irvString.toLowerCase().trim();
+  const suffix = normIrv.endsWith('(nonmagical)')
+    ? ' (nonmagical)'
+    : normIrv.endsWith('(magical)')
+      ? ' (magical)'
+      : '';
 
-  const target  = norm(damageType);
-  const rawNorm = norm(irvString);
-  const parts   = irvString.split(',').map(s => norm(s));
+  const parts = irvString.split(',').map(s => {
+    let part = s.trim();
+    const lowerPart = part.toLowerCase();
+    if (
+      suffix &&
+      (lowerPart === 'bludgeoning' || lowerPart === 'piercing' || lowerPart === 'slashing')
+    ) {
+      part = part + suffix;
+    }
+    return part;
+  });
 
   for (const part of parts) {
-    // Exact match after normalisation
-    if (part === target) return true;
-
-    // Part contains the full target string
-    if (part.includes(target)) return true;
-
-    // Handle compound entries where 'nonmagical' qualifies a group, e.g.
-    // "bludgeoning, piercing, slashing (nonmagical)" — after splitting we get
-    // separate 'bludgeoning' and 'slashing (nonmagical)' parts, so we check
-    // whether the base type appears in this part AND nonmagical appears
-    // anywhere in the full IRV string.
-    if (target.includes('nonmagical')) {
-      const baseType = target.replace(/\(nonmagical\)/g, '').trim();
-      if (part.includes(baseType) && rawNorm.includes('nonmagical')) {
-        return true;
-      }
+    if (isDamageTypeMatch(damageType, part)) {
+      return true;
     }
   }
 

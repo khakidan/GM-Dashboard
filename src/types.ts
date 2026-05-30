@@ -115,9 +115,9 @@ export interface AppState {
 }
 
 export type DamageType =
-  | 'acid' | 'bludgeoning' | 'bludgeoning (nonmagical)'
+  | 'acid' | 'bludgeoning' | 'bludgeoning (magical)'
   | 'cold' | 'fire' | 'force' | 'lightning' | 'necrotic'
-  | 'piercing' | 'piercing (nonmagical)' | 'poison'
-  | 'psychic' | 'radiant' | 'slashing' | 'slashing (nonmagical)'
+  | 'piercing' | 'piercing (magical)' | 'poison'
+  | 'psychic' | 'radiant' | 'slashing' | 'slashing (magical)'
   | 'thunder';
 
