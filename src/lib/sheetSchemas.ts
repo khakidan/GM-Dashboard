@@ -72,12 +72,14 @@ export const NpcRowSchema = z.preprocess(padRow(11), z.tuple([
   stringDefault(''),                   // [10] vulnerabilities
 ]));
 
-export const EncounterRowSchema = z.preprocess(padRow(5), z.tuple([
+export const EncounterRowSchema = z.preprocess(padRow(7), z.tuple([
   idSchema,                            // [0] id
   stringDefault('Unknown Encounter'),  // [1] name
   stringDefault(''),                   // [2] location
   coerceNumber(1),                     // [3] difficultyId
   stringDefault(''),                   // [4] NPC_Definitions
+  coerceNumber(0),                     // [5] currentRound
+  stringDefault(''),                   // [6] activeTurnId
 ]));
 
 export const EncounterCombatantRowSchema = z.preprocess(padRow(11), z.tuple([

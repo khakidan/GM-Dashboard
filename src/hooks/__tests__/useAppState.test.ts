@@ -26,20 +26,40 @@ describe('useAppState module', () => {
 
   it('starts with default state when storage is empty', () => {
     const state = getSnapshot();
-    expect(state.characters).toEqual(initialCharacters);
+    expect(state.characters).toEqual([]);
     expect(state.combatState.round).toBe(1);
     expect(state.combatState.activeTurnId).toBeNull();
+    expect(state.hasInitialSynced).toBe(false);
+    expect(state.combatState.combatants).toEqual([]);
+    expect(state.campaignName).toBe('GM Encounter Dashboard');
   });
 
-  it('persists the new state to storage', () => {
+  it('persists campaignName to storage but strictly excludes data arrays and writes hasInitialSynced as false', () => {
     const defaultState = getSnapshot();
-    const newState = { ...defaultState, campaignName: 'Icewind Dale' };
+    const newState = { 
+      ...defaultState, 
+      campaignName: 'Icewind Dale',
+      hasInitialSynced: true,
+      characters: [{ id: 'char-1' } as any]
+    };
     
     setGlobalState(newState);
     
     const stored = JSON.parse(localStorage.getItem(STORAGE_KEY)!);
+    
+    // campaignName IS persisted
     expect(stored.campaignName).toBe('Icewind Dale');
+    
+    // hasInitialSynced is written as false
+    expect(stored.hasInitialSynced).toBe(false);
+    
+    // characters array is NOT persisted
+    expect(stored.characters).toBeUndefined();
+    
+    // In-memory state should still track the accurate true values
     expect(getSnapshot().campaignName).toBe('Icewind Dale');
+    expect(getSnapshot().hasInitialSynced).toBe(true);
+    expect(getSnapshot().characters.length).toBe(1);
   });
 
   it('notifies all subscribed listeners', () => {

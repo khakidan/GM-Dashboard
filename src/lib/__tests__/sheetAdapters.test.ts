@@ -174,6 +174,8 @@ describe('sheetAdapters', () => {
         'Forest road',                // [2] location
         2,                            // [3] difficultyId -> Medium
         '3 Goblins',                  // [4] NPC_Definitions
+        5,                            // [5] currentRound
+        'ec-42',                      // [6] activeTurnId
       ];
 
       const encounter = mapEncounterRowToEncounter(data, 1, mockDifficulties);
@@ -187,6 +189,8 @@ describe('sheetAdapters', () => {
         npcDefinitions: '3 Goblins',
         status: 'planned',
         sheetRowIndex: 1,
+        currentRound: 5,
+        activeTurnId: 'ec-42',
       });
 
       const dataUnknown: EncounterRowData = [
@@ -195,9 +199,30 @@ describe('sheetAdapters', () => {
         'Dark cave',
         99, // Unknown diff
         'Dragon',
+        0,
+        '',
       ];
       const encounterUnknown = mapEncounterRowToEncounter(dataUnknown, 2, mockDifficulties);
       expect(encounterUnknown.difficultyName).toBe('Unknown');
+    });
+
+    it('mapEncounterRowToEncounter correctly maps index 5 to currentRound', () => {
+      const data: EncounterRowData = ['enc-1', 'Name', 'Loc', 1, '', 4, 'ec-1'];
+      const encounter = mapEncounterRowToEncounter(data, 1, mockDifficulties);
+      expect(encounter.currentRound).toBe(4);
+    });
+
+    it('mapEncounterRowToEncounter correctly maps index 6 to activeTurnId', () => {
+      const data: EncounterRowData = ['enc-1', 'Name', 'Loc', 1, '', 4, 'ec-99'];
+      const encounter = mapEncounterRowToEncounter(data, 1, mockDifficulties);
+      expect(encounter.activeTurnId).toBe('ec-99');
+    });
+
+    it('mapEncounterRowToEncounter defaults currentRound to 0 when the row is shorter than 7 columns', () => {
+      const data = ['enc-1', 'Name', 'Loc', 1, ''] as any as EncounterRowData;
+      const encounter = mapEncounterRowToEncounter(data, 1, mockDifficulties);
+      expect(encounter.currentRound).toBe(0);
+      expect(encounter.activeTurnId).toBe('');
     });
   });
 

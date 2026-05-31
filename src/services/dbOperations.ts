@@ -590,12 +590,52 @@ export async function addEncounterDB(
       sanitizeString(location),
       difficultyId,
       numberOfNpcs,
+      0,
+      '',
     ];
 
-    await appendSheetData('Encounters!A:E', [rowData]);
-    return { id: finalId, name, location, difficultyId, numberOfNpcs };
+    await appendSheetData('Encounters!A:G', [rowData]);
+    return { id: finalId, name, location, difficultyId, numberOfNpcs, currentRound: 0, activeTurnId: '' };
   } catch (err) {
     console.error('[DB] addEncounterDB failed:', err);
+    throw err;
+  }
+}
+
+export async function updateEncounterStateDB(
+  encounterId: string,
+  currentRound: number,
+  activeTurnId: string
+): Promise<void> {
+  try {
+    const rowIdx = await findRowIndexById('Encounters', encounterId);
+    if (rowIdx === null) {
+      throw new Error(`Encounter ${encounterId} not found`);
+    }
+    const a1Row = rowIdx + 1;
+    await updateSheetData(`Encounters!F${a1Row}:G${a1Row}`, [
+      [currentRound.toString(), sanitizeString(activeTurnId)],
+    ]);
+  } catch (err) {
+    console.error('[DB] updateEncounterStateDB failed:', err);
+    throw err;
+  }
+}
+
+export async function clearEncounterStateDB(
+  encounterId: string
+): Promise<void> {
+  try {
+    const rowIdx = await findRowIndexById('Encounters', encounterId);
+    if (rowIdx === null) {
+      throw new Error(`Encounter ${encounterId} not found`);
+    }
+    const a1Row = rowIdx + 1;
+    await updateSheetData(`Encounters!F${a1Row}:G${a1Row}`, [
+      ['0', ''],
+    ]);
+  } catch (err) {
+    console.error('[DB] clearEncounterStateDB failed:', err);
     throw err;
   }
 }

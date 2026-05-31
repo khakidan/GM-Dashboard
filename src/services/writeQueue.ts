@@ -35,6 +35,10 @@ function persistFailedWrites(writes: Array<{range: string, values: any[][]}>) {
   localStorage.setItem(RETRY_STORAGE_KEY, JSON.stringify(capped));
 }
 
+export function clearRetryQueue(): void {
+  localStorage.removeItem(RETRY_STORAGE_KEY);
+}
+
 function clearPersistedWrites() {
   localStorage.removeItem(RETRY_STORAGE_KEY);
 }

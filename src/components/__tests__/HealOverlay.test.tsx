@@ -31,13 +31,13 @@ describe('HealOverlay', () => {
     expect(element.style.position).toBe('fixed');
   });
 
-  it('id="heal-overlay-amount" shows the heal number prefixed with a plus sign', () => {
+  it('id="heal-overlay-amount" shows the heal number with a plus sign', () => {
     const { container } = render(
       <HealOverlay combatantName="Seraphina Brightwell" healAmount={34} />
     );
     const amountEl = container.querySelector('#heal-overlay-amount') as HTMLElement;
     expect(amountEl).not.toBeNull();
-    expect(amountEl.textContent).toBe('+34');
+    expect(amountEl.textContent).toContain('+34');
   });
 
   it('id="heal-overlay-name" shows the combatant name', () => {

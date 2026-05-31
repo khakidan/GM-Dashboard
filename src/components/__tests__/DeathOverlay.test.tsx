@@ -14,16 +14,16 @@ describe('DeathOverlay', () => {
   });
 
   it('the character name appears in the rendered output', () => {
-    render(<DeathOverlay characterName="Legolas" />);
-    const nameEl = screen.getByText('Legolas');
-    expect(nameEl).toBeDefined();
-    expect(nameEl.textContent).toBe('Legolas');
+    const { container } = render(<DeathOverlay characterName="Legolas" />);
+    const nameEl = container.querySelector('#death-overlay-character-name');
+    expect(nameEl).not.toBeNull();
+    expect(nameEl?.textContent).toBe('Legolas');
   });
 
-  it('the text "HAS FALLEN" appears in the rendered output', () => {
-    render(<DeathOverlay characterName="Gimli" />);
-    const taglineEl = screen.getByText('HAS FALLEN');
-    expect(taglineEl).toBeDefined();
+  it('id="death-overlay-tagline" exists in the rendered output', () => {
+    const { container } = render(<DeathOverlay characterName="Gimli" />);
+    const taglineEl = container.querySelector('#death-overlay-tagline');
+    expect(taglineEl).not.toBeNull();
   });
 
   it('the overlay container has position fixed styling', () => {

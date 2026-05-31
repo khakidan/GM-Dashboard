@@ -48,6 +48,8 @@ export interface Encounter {
   npcDefinitions: string; // Number_of_NPCs
   status: 'planned' | 'active' | 'completed';
   sheetRowIndex?: number; // 0-indexed row number in the sheet
+  currentRound?: number;
+  activeTurnId?: string;
 }
 
 export interface Combatant {
@@ -121,6 +123,7 @@ export interface DifficultyLevel {
 
 export interface AppState {
   campaignName: string;
+  hasInitialSynced: boolean;
   characters: Character[];
   encounters: Encounter[];
   npcs: NPC[];

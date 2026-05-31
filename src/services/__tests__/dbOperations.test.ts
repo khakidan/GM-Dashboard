@@ -754,3 +754,70 @@ describe('updateNpcInstanceConditionsDB', () => {
     await expect(updateNpcInstanceConditionsDB('ec-999', 'blinded')).rejects.toThrow('Encounter Combatant ec-999 not found');
   });
 });
+
+// ─── updateEncounterStateDB ──────────────────────────────────
+
+describe('updateEncounterStateDB', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('calls updateSheetData with the correct row range targeting columns F and G and writes currentRound and activeTurnId in the correct column order', async () => {
+    vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({
+      values: [
+        ['enc-1', 'Name 1', 'Loc 1', '1', ''],
+        ['enc-2', 'Name 2', 'Loc 2', '2', ''],
+      ] as any[] as SheetGrid,
+    });
+
+    const { updateEncounterStateDB } = await import('../dbOperations');
+    await updateEncounterStateDB('enc-2', 5, 'ec-42');
+
+    expect(sheetsService.updateSheetData).toHaveBeenCalledWith(
+      'Encounters!F3:G3',
+      [['5', 'ec-42']]
+    );
+  });
+
+  it('throws when encounterId is not found', async () => {
+    vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({
+      values: [] as SheetGrid,
+    });
+
+    const { updateEncounterStateDB } = await import('../dbOperations');
+    await expect(updateEncounterStateDB('enc-999', 5, 'ec-42')).rejects.toThrow('Encounter enc-999 not found');
+  });
+});
+
+// ─── clearEncounterStateDB ──────────────────────────────────
+
+describe('clearEncounterStateDB', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('writes 0 and empty string to the correct row', async () => {
+    vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({
+      values: [
+        ['enc-1', 'Name 1', 'Loc 1', '1', ''],
+      ] as any[] as SheetGrid,
+    });
+
+    const { clearEncounterStateDB } = await import('../dbOperations');
+    await clearEncounterStateDB('enc-1');
+
+    expect(sheetsService.updateSheetData).toHaveBeenCalledWith(
+      'Encounters!F2:G2',
+      [['0', '']]
+    );
+  });
+
+  it('throws when encounterId is not found', async () => {
+    vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({
+      values: [] as SheetGrid,
+    });
+
+    const { clearEncounterStateDB } = await import('../dbOperations');
+    await expect(clearEncounterStateDB('enc-999')).rejects.toThrow('Encounter enc-999 not found');
+  });
+});

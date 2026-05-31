@@ -26,6 +26,7 @@ const defaultCombatState: CombatState = {
 
 const defaultAppState: AppState = {
   campaignName: "GM Encounter Dashboard",
+  hasInitialSynced: false,
   characters: initialCharacters,
   encounters: initialEncounters,
   npcs: initialNPCs,
@@ -43,11 +44,11 @@ let globalState = defaultAppState;
 try {
   const stored = localStorage.getItem(STORAGE_KEY);
   if (stored) {
+    const parsed = JSON.parse(stored);
     globalState = {
       ...defaultAppState,
-      ...JSON.parse(stored),
-      // ✅ REMOVED: campaignName: "GM Encounter Dashboard"
-      // The stored value now wins, so campaign name changes persist across reloads.
+      campaignName: parsed.campaignName || defaultAppState.campaignName,
+      hasInitialSynced: false,
     };
   }
 } catch (e) {
@@ -61,7 +62,10 @@ export function getSnapshot() {
 export function setGlobalState(next: AppState) {
   globalState = next;
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(globalState));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      campaignName: globalState.campaignName,
+      hasInitialSynced: false,
+    }));
   } catch (e) {
     console.error("Failed to save state to localStorage (possibly image is too large)", e);
   }
@@ -87,7 +91,11 @@ export function useAppState() {
       const handleStorage = (e: StorageEvent) => {
         if (e.key === STORAGE_KEY && e.newValue) {
           try {
-            globalState = JSON.parse(e.newValue);
+            const parsed = JSON.parse(e.newValue);
+            globalState = {
+              ...globalState,
+              campaignName: parsed.campaignName || globalState.campaignName,
+            };
             callback();
           } catch (err) {
             console.error("Failed to parse cross-tab storage change");

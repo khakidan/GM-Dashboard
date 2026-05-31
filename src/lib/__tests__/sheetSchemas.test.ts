@@ -154,11 +154,47 @@ describe('sheetSchemas', () => {
 
   describe('EncounterRowSchema', () => {
     it('parses a fully valid row correctly', () => {
-      const row = ['enc-1', 'Ambush', 'Forest', 2, 'npc-1:3'];
+      const row = ['enc-1', 'Ambush', 'Forest', 2, 'npc-1:3', 5, 'ec-42'];
       const result = EncounterRowSchema.safeParse(row);
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data).toEqual(['enc-1', 'Ambush', 'Forest', 2, 'npc-1:3']);
+        expect(result.data).toEqual(['enc-1', 'Ambush', 'Forest', 2, 'npc-1:3', 5, 'ec-42']);
+      }
+    });
+
+    it('EncounterRowSchema parses currentRound at index 5', () => {
+      const row = ['enc-1', 'Ambush', 'Forest', 2, 'npc-1:3', 3];
+      const result = EncounterRowSchema.safeParse(row);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data[5]).toBe(3);
+      }
+    });
+
+    it('EncounterRowSchema defaults currentRound to 0 when absent', () => {
+      const row = ['enc-2', 'Ambush', 'Forest', 2, 'npc-1:3'];
+      const result = EncounterRowSchema.safeParse(row);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data[5]).toBe(0);
+      }
+    });
+
+    it('EncounterRowSchema parses activeTurnId at index 6', () => {
+      const row = ['enc-3', 'Ambush', 'Forest', 2, 'npc-1:3', 0, 'ec-99'];
+      const result = EncounterRowSchema.safeParse(row);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data[6]).toBe('ec-99');
+      }
+    });
+
+    it('EncounterRowSchema defaults activeTurnId to empty string when absent', () => {
+      const row = ['enc-4', 'Ambush', 'Forest', 2, 'npc-1:3'];
+      const result = EncounterRowSchema.safeParse(row);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data[6]).toBe('');
       }
     });
   });

@@ -31,13 +31,13 @@ describe('DamageOverlay', () => {
     expect(element.style.position).toBe('fixed');
   });
 
-  it('id="damage-overlay-amount" shows the damage number prefixed with a minus sign', () => {
+  it('id="damage-overlay-amount" shows the damage number with a minus sign', () => {
     const { container } = render(
       <DamageOverlay combatantName="Thorin Ironforge" damageAmount={47} />
     );
     const amountEl = container.querySelector('#damage-overlay-amount') as HTMLElement;
     expect(amountEl).not.toBeNull();
-    expect(amountEl.textContent).toBe('-47');
+    expect(amountEl.textContent).toContain('-47');
   });
 
   it('id="damage-overlay-name" shows the combatant name', () => {

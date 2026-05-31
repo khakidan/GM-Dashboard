@@ -5,7 +5,7 @@ import { getExpiredConditions } from '../../lib/combatLogic';
 import { Skull, AlertCircle } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { Combatant, DamageType, EncounterCombatant } from '../../types';
-import { addNpcDB, addEncounterCombatantDB, updateInitiativeDB, updateDeathSavesDB } from '../../services/dbOperations';
+import { addNpcDB, addEncounterCombatantDB, updateInitiativeDB, updateDeathSavesDB, updateEncounterStateDB } from '../../services/dbOperations';
 import { CONCENTRATION_EFFECTS } from '../../lib/irvOptions';
 import { buildConditionSummary } from '../../lib/conditionDefinitions';
 
@@ -532,6 +532,10 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
           round: nextRound,
         },
       };
+    });
+    
+    updateEncounterStateDB(state.combatState.activeEncounterId ?? '', nextRound, combatants[nextIndex].id).catch(err => {
+      console.warn("Failed to write updated turn state to sheet", err);
     });
 
     const newlyActiveCombatant = combatants.length > 0 ? combatants[nextIndex] : null;

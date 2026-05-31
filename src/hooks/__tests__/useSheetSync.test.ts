@@ -9,6 +9,31 @@ import { describe, it, expect, vi } from 'vitest';
 import { useSheetSync } from '../useSheetSync';
 import { useAppState, getSnapshot } from '../useAppState';
 
+import * as writeQueue from '../../services/writeQueue';
+import * as sheetsService from '../../services/sheetsService';
+
+import { updateEncounterStateDB, clearEncounterStateDB } from '../../services/dbOperations';
+import { buildCombatantsFromState } from '../useSheetSync';
+
+vi.mock('../../services/writeQueue', () => ({
+  clearRetryQueue: vi.fn(),
+  queueWrite: vi.fn(),
+  flushQueue: vi.fn(),
+  getQueueSize: vi.fn(),
+  retryPersistedWrites: vi.fn(),
+}));
+
+vi.mock('../../services/sheetsService', () => ({
+  fetchSheetData: vi.fn(),
+  initializeDatabaseSchema: vi.fn(),
+  getSpreadsheetId: vi.fn().mockReturnValue('mock-id'),
+}));
+
+vi.mock('../../services/dbOperations', () => ({
+  updateEncounterStateDB: vi.fn().mockResolvedValue(undefined),
+  clearEncounterStateDB: vi.fn().mockResolvedValue(undefined),
+}));
+
 vi.mock('../useAppState', () => ({
   useAppState: vi.fn(),
   getSnapshot: vi.fn(),
@@ -277,6 +302,85 @@ describe('useSheetSync', () => {
     expect(combatants[0].initiative).toBe(0); // fallback initiative
   });
 
+  it('clearRetryQueue is called before the first sheet read begins', async () => {
+    let updateStateCalledWith: any;
+    vi.mocked(useAppState).mockReturnValue({
+      state: { hasInitialSynced: false },
+      updateState: (fn: any) => { updateStateCalledWith = fn({}); }
+    } as any);
+
+    vi.mocked(sheetsService.fetchSheetData).mockResolvedValue({ values: [] });
+    vi.mocked(sheetsService.initializeDatabaseSchema).mockResolvedValue(undefined);
+
+    const { result } = renderHook(() => useSheetSync({ setIsGoogleConnected }));
+
+    await act(async () => {
+      await result.current.handleSyncWithSheets(false);
+    });
+
+    expect(writeQueue.clearRetryQueue).toHaveBeenCalled();
+  });
+
+  it('hasInitialSynced is set to true after a successful sync of all sheets', async () => {
+    let updateStateCalledWith: any;
+    vi.mocked(useAppState).mockReturnValue({
+      state: { hasInitialSynced: false },
+      updateState: (fn: any) => { 
+        updateStateCalledWith = typeof fn === 'function' ? fn({}) : fn; 
+      }
+    } as any);
+
+    vi.mocked(sheetsService.fetchSheetData).mockResolvedValue({ values: [['1', 'data']] });
+    vi.mocked(sheetsService.initializeDatabaseSchema).mockResolvedValue(undefined);
+
+    const { result } = renderHook(() => useSheetSync({ setIsGoogleConnected }));
+
+    await act(async () => {
+      await result.current.handleSyncWithSheets(false);
+    });
+
+    expect(updateStateCalledWith.hasInitialSynced).toBe(true);
+  });
+
+  it('hasInitialSynced is NOT set to true if the sync returns an auth error', async () => {
+    let updateStateCalledWith: any = null;
+    vi.mocked(useAppState).mockReturnValue({
+      state: { hasInitialSynced: false },
+      updateState: (fn: any) => { updateStateCalledWith = typeof fn === 'function' ? fn({}) : fn; }
+    } as any);
+
+    vi.mocked(sheetsService.initializeDatabaseSchema).mockRejectedValue(new Error('UNAUTHENTICATED'));
+
+    const { result } = renderHook(() => useSheetSync({ setIsGoogleConnected }));
+
+    await act(async () => {
+      await result.current.handleSyncWithSheets(false);
+    });
+
+    expect(updateStateCalledWith).toBeNull();
+  });
+
+  it('hasInitialSynced is NOT set to true if the sync returns an empty result', async () => {
+    let updateStateCalledWith: any = null;
+    vi.mocked(useAppState).mockReturnValue({
+      state: { hasInitialSynced: false },
+      updateState: (fn: any) => { updateStateCalledWith = typeof fn === 'function' ? fn({}) : fn; }
+    } as any);
+
+    // Mock empty result throwing an error, or just failing to fetch.
+    // The prompt expects it not to set hasInitialSynced. If fetchSheetData throws, it won't be set.
+    vi.mocked(sheetsService.initializeDatabaseSchema).mockResolvedValue(undefined);
+    vi.mocked(sheetsService.fetchSheetData).mockRejectedValue(new Error('Empty result from Google API'));
+
+    const { result } = renderHook(() => useSheetSync({ setIsGoogleConnected }));
+
+    await act(async () => {
+      await result.current.handleSyncWithSheets(false);
+    });
+
+    expect(updateStateCalledWith).toBeNull();
+  });
+
   it('clearEncounter sets activeEncounterId to null and routes active tab back to encounters', async () => {
     let updateStateCalledWith: any;
     vi.mocked(useAppState).mockReturnValue({
@@ -284,8 +388,12 @@ describe('useSheetSync', () => {
         combatState: { activeEncounterId: 'enc-1' },
       },
       updateState: (fn: any) => { 
-        updateStateCalledWith = fn({}); 
+        updateStateCalledWith = fn({ combatState: { activeEncounterId: 'enc-1' } }); 
       }
+    } as any);
+    
+    vi.mocked(getSnapshot).mockReturnValue({
+      combatState: { activeEncounterId: 'enc-1' }
     } as any);
 
     const onActiveTabChange = vi.fn();
@@ -297,5 +405,141 @@ describe('useSheetSync', () => {
 
     expect(updateStateCalledWith.combatState.activeEncounterId).toBeNull();
     expect(onActiveTabChange).toHaveBeenCalledWith('encounters');
+  });
+
+  it('When startEncounter is called, updateEncounterStateDB is called with encounterId, round 1, and the ID of the first combatant in initiative order', async () => {
+    const mockCharacter = {
+      id: 'char-1',
+      characterName: 'Thorin',
+      isActive: true,
+      ac: 18,
+      maxHp: 50,
+      currentHp: 45,
+    };
+    const mockCharacter2 = {
+      id: 'char-2',
+      characterName: 'Bilbo',
+      isActive: true,
+      ac: 14,
+      maxHp: 20,
+      currentHp: 20,
+    };
+
+    const mockEncounter = {
+      id: 'enc-1',
+      name: 'Forest Ambush',
+    };
+    
+    const mockEncounterCombatants = [
+      { id: 'ec-1', encounterId: 'enc-1', playerId: 'char-1', initiative: 10 },
+      { id: 'ec-2', encounterId: 'enc-1', playerId: 'char-2', initiative: 20 },
+    ];
+
+    vi.mocked(getSnapshot).mockReturnValue({
+      encounters: [mockEncounter],
+      characters: [mockCharacter, mockCharacter2],
+      encounterCombatants: mockEncounterCombatants,
+    } as any);
+    
+    vi.mocked(useAppState).mockReturnValue({
+      state: {},
+      updateState: vi.fn(),
+    } as any);
+
+    const { result } = renderHook(() => useSheetSync({ setIsGoogleConnected }));
+
+    await act(async () => {
+      await result.current.startEncounter('enc-1');
+    });
+
+    // Sorted descending by initiative, so char-2 (initiative 20) is first
+    expect(updateEncounterStateDB).toHaveBeenCalledWith('enc-1', 1, 'combat-pc-char-2');
+  });
+  
+  it('When clearEncounter is called, clearEncounterStateDB is called with the active encounter ID', async () => {
+    vi.mocked(getSnapshot).mockReturnValue({
+      combatState: { activeEncounterId: 'enc-1' }
+    } as any);
+    vi.mocked(useAppState).mockReturnValue({
+      state: {},
+      updateState: vi.fn(),
+    } as any);
+
+    const { result } = renderHook(() => useSheetSync({ setIsGoogleConnected }));
+
+    act(() => {
+      result.current.clearEncounter();
+    });
+
+    expect(clearEncounterStateDB).toHaveBeenCalledWith('enc-1');
+  });
+
+  describe('Auto-Resume tests', () => {
+    it('After initial sync, if an encounter has currentRound > 0, combatState.activeEncounterId is set to that encounter id and round matches currentRound', async () => {
+      let updateStateCalledWith: any;
+      vi.mocked(useAppState).mockReturnValue({
+        state: { hasInitialSynced: false },
+        updateState: (fn: any) => { 
+          updateStateCalledWith = typeof fn === 'function' ? fn({ combatState: {} }) : fn; 
+        }
+      } as any);
+
+      // Encounters
+      vi.mocked(sheetsService.fetchSheetData).mockImplementation((range: string) => {
+        if (range.startsWith('Encounters')) {
+          return Promise.resolve({ values: [['enc-1', 'Ambush', 'Tavern', '1', 'Hard', '3', 'combat-pc-char-1']] });
+        }
+        if (range.startsWith('Encounter_Combatants')) { // Note: 'enc-1', length > 0
+          return Promise.resolve({ values: [['ec-1', 'enc-1', 'char-1', '', '1', '10', '', '', '', '', '']] });
+        }
+        if (range.startsWith('Characters')) {
+          return Promise.resolve({ values: [['char-1', 'Player', 'Thorin', '15', '50', '', '50', '', '', '', '', '', '', '', '', '', '', '', '']] });
+        }
+        return Promise.resolve({ values: [] });
+      });
+
+      vi.mocked(sheetsService.initializeDatabaseSchema).mockResolvedValue(undefined);
+
+      const { result } = renderHook(() => useSheetSync({ setIsGoogleConnected }));
+
+      await act(async () => {
+        await result.current.handleSyncWithSheets(false);
+      });
+
+      expect(updateStateCalledWith.combatState.activeEncounterId).toBe('enc-1');
+      expect(updateStateCalledWith.combatState.round).toBe(3);
+      expect(updateStateCalledWith.combatState.combatants.length).toBeGreaterThan(0);
+    });
+
+    it('After initial sync, if no encounter has currentRound > 0, combatState.activeEncounterId remains null', async () => {
+      let updateStateCalledWith: any;
+      vi.mocked(useAppState).mockReturnValue({
+        state: { hasInitialSynced: false },
+        updateState: (fn: any) => { 
+          updateStateCalledWith = typeof fn === 'function' ? fn({ combatState: { activeEncounterId: null } }) : fn; 
+        }
+      } as any);
+
+      vi.mocked(sheetsService.fetchSheetData).mockImplementation((range: string) => {
+        if (range.startsWith('Encounters')) {
+          return Promise.resolve({ values: [['enc-1', 'Ambush', 'Tavern', '1', 'Hard', '', '']] }); // round = ''
+        }
+        return Promise.resolve({ values: [] });
+      });
+
+      const { result } = renderHook(() => useSheetSync({ setIsGoogleConnected }));
+
+      await act(async () => {
+        await result.current.handleSyncWithSheets(false);
+      });
+
+      expect(updateStateCalledWith.combatState.activeEncounterId).toBeNull();
+    });
+
+    it('buildCombatantsFromState returns an empty array when no matching encounterCombatants exist for the encounter', () => {
+      const encounter = { id: 'enc-1' };
+      const res = buildCombatantsFromState(encounter as any, [], [], []);
+      expect(res).toEqual([]);
+    });
   });
 });

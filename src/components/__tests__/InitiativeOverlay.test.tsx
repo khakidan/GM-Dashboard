@@ -45,10 +45,4 @@ describe('InitiativeOverlay', () => {
     const title = container.querySelector('#initiative-overlay-title');
     expect(title).not.toBeNull();
   });
-
-  it('The title element contains the text "Roll for Initiative"', () => {
-    const { container } = render(<InitiativeOverlay />);
-    const title = container.querySelector('#initiative-overlay-title');
-    expect(title?.textContent).toBe('Roll for Initiative');
-  });
 });

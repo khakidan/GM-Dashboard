@@ -5,7 +5,7 @@
 // ────────────────────────────────────────────────────
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { queueWrite, flushQueue, getQueueSize, retryPersistedWrites } from '../writeQueue';
+import { queueWrite, flushQueue, getQueueSize, retryPersistedWrites, clearRetryQueue } from '../writeQueue';
 import { batchUpdateValues } from '../sheetsService';
 
 vi.mock('../sheetsService', () => ({
@@ -177,5 +177,23 @@ describe('writeQueue persistence', () => {
     queueWrite('D4', [[4]]);
     await flushQueue();
     expect(localStorage.getItem('gm_failed_writes')).toBe(JSON.stringify([{ range: 'D4', values: [[4]] }]));
+  });
+
+  it('clearRetryQueue removes all retry items from localStorage', () => {
+    localStorage.setItem('gm_failed_writes', JSON.stringify([{ range: 'X1', values: [[1]] }]));
+    
+    clearRetryQueue();
+    
+    expect(localStorage.getItem('gm_failed_writes')).toBeNull();
+  });
+
+  it('clearRetryQueue does not affect writes that are currently queued in memory for the active session', () => {
+    localStorage.setItem('gm_failed_writes', JSON.stringify([{ range: 'X1', values: [[1]] }]));
+    queueWrite('Y2', [[2]]);
+    
+    clearRetryQueue();
+    
+    expect(localStorage.getItem('gm_failed_writes')).toBeNull();
+    expect(getQueueSize()).toBe(1); // 'Y2' is still queued in memory
   });
 });
