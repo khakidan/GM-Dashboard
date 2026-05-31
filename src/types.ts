@@ -96,6 +96,7 @@ export interface CombatState {
   rageEvent?: {
     characterName: string;
   } | null;
+  initiativeEvent?: boolean;
 }
 
 export interface EncounterCombatant {

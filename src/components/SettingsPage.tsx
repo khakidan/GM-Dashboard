@@ -1,7 +1,7 @@
 // src/components/SettingsPage.tsx
 
 import { useState } from 'react';
-import { Settings, LogIn, Save, RefreshCw, Trash2, Skull, Zap, Heart, Moon, Flame } from 'lucide-react';
+import { Settings, LogIn, Save, RefreshCw, Trash2, Skull, Zap, Heart, Moon, Flame, Dice6 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTheme } from '../context/ThemeContext';
 import {
@@ -13,6 +13,7 @@ import {
 } from '../services/googleAuth';
 import { syncAndSanitizeDatabase } from '../services/dbOperations';
 import { useCombatSync } from './ActiveEncounterTab/hooks/useCombatSync';
+import { useAppState } from '../hooks/useAppState';
 
 interface SettingsPageProps {
   isGoogleConnected: boolean;
@@ -36,6 +37,7 @@ export function SettingsPage({
   const [showAdvancedAuth, setShowAdvancedAuth] = useState(false);
   const { theme, setTheme } = useTheme();
   const { fireDeathEvent, fireDamageEvent, fireHealEvent, fireUnconsciousEvent, fireRageEvent } = useCombatSync();
+  const { updateState } = useAppState();
 
   const handleSaveSpreadsheet = () => {
     setSpreadsheetId(tempSpreadsheetId);
@@ -384,6 +386,36 @@ export function SettingsPage({
           >
             <Flame className="w-4 h-4" />
             Test Rage Animation
+          </button>
+
+          <button
+            id="test-initiative-animation-btn"
+            type="button"
+            onClick={() => {
+              updateState(prev => ({
+                ...prev,
+                combatState: {
+                  ...prev.combatState,
+                  initiativeEvent: true,
+                }
+              }));
+
+              setTimeout(() => {
+                updateState(prev => ({
+                  ...prev,
+                  combatState: {
+                    ...prev.combatState,
+                    initiativeEvent: false,
+                  }
+                }));
+              }, 8500);
+
+              toast('Initiative animation triggered — check the Player View.');
+            }}
+            className="border border-amber-300 bg-amber-50/50 hover:bg-amber-100 text-amber-700 font-bold px-5 py-2.5 rounded-xl text-xs uppercase tracking-widest transition-all cursor-pointer inline-flex items-center gap-2"
+          >
+            <Dice6 className="w-4 h-4" />
+            Test Initiative Animation
           </button>
         </div>
       </div>

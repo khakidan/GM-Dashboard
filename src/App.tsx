@@ -12,6 +12,7 @@ import { DamageOverlay } from './components/DamageOverlay';
 import { HealOverlay } from './components/HealOverlay';
 import { UnconsciousOverlay } from './components/UnconsciousOverlay';
 import { RageOverlay } from './components/RageOverlay';
+import { InitiativeOverlay } from './components/InitiativeOverlay';
 
 function AppContent() {
   const { theme } = useTheme();
@@ -21,6 +22,7 @@ function AppContent() {
   const healEvent = state.combatState.healEvent;
   const unconsciousEvent = state.combatState.unconsciousEvent;
   const rageEvent = state.combatState.rageEvent;
+  const initiativeEvent = state.combatState.initiativeEvent;
 
   return (
     <div id="root-theme-wrapper" data-theme={theme} className="w-full min-h-[100dvh] flex flex-col transition-colors duration-300">
@@ -48,6 +50,14 @@ function AppContent() {
         <RageOverlay
           characterName={rageEvent.characterName}
         />
+      )}
+      {initiativeEvent && 
+       !deathEvent && 
+       !unconsciousEvent && 
+       !damageEvent && 
+       !healEvent && 
+       !rageEvent && (
+        <InitiativeOverlay />
       )}
       <HashRouter>
         <Routes>

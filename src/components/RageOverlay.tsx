@@ -299,7 +299,7 @@
                   'rage-taglineIn 400ms cubic-bezier(0.34,1.4,0.64,1) 480ms forwards',
               }}
             >
-              Enters Rage
+              Would Like to Rage
             </p>
           </div>
 

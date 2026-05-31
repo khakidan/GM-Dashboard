@@ -10,9 +10,16 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import { CombatHeader } from '../CombatHeader';
 import { MemoryRouter } from 'react-router-dom';
 
+vi.mock('sonner', () => ({
+  toast: vi.fn(),
+}));
+
+import { toast } from 'sonner';
+
 describe('CombatHeader', () => {
   afterEach(() => {
     cleanup();
+    vi.clearAllMocks();
   });
   const defaultProps = {
     round: 3,
@@ -23,6 +30,8 @@ describe('CombatHeader', () => {
     onNextTurn: vi.fn(),
     onToggleMultiTargetMode: vi.fn(),
     onBack: vi.fn(),
+    onCallInitiative: vi.fn(),
+    initiativeEvent: false,
   };
 
   it('The encounter name is rendered when an encounter is provided', () => {
@@ -107,5 +116,58 @@ describe('CombatHeader', () => {
     expect(btn).toBeDefined();
     fireEvent.click(btn);
     expect(onOpenTools).toHaveBeenCalledTimes(1);
+  });
+
+  it('"Call for Initiative" button is present in the rendered output', () => {
+    render(
+      <MemoryRouter>
+        <CombatHeader
+          {...defaultProps}
+          initiativeEvent={false}
+          onCallInitiative={vi.fn()}
+        />
+      </MemoryRouter>
+    );
+    expect(screen.getByRole('button', { name: /Call for Initiative/i })).toBeDefined();
+  });
+
+  it('Clicking the button sets combatState.initiativeEvent to true and shows a confirmation toast', () => {
+    const onCallInitiative = vi.fn(() => {
+      toast('Initiative called!', {
+        description: 'Players can see the overlay on the Player View.',
+        duration: 3000,
+      });
+    });
+
+    render(
+      <MemoryRouter>
+        <CombatHeader
+          {...defaultProps}
+          initiativeEvent={false}
+          onCallInitiative={onCallInitiative}
+        />
+      </MemoryRouter>
+    );
+
+    const btn = screen.getByRole('button', { name: /Call for Initiative/i });
+    fireEvent.click(btn);
+
+    expect(onCallInitiative).toHaveBeenCalledTimes(1);
+    expect(toast).toHaveBeenCalledWith('Initiative called!', expect.any(Object));
+  });
+
+  it('The button is disabled when combatState.initiativeEvent is already true', () => {
+    render(
+      <MemoryRouter>
+        <CombatHeader
+          {...defaultProps}
+          initiativeEvent={true}
+          onCallInitiative={vi.fn()}
+        />
+      </MemoryRouter>
+    );
+
+    const btn = screen.getByRole('button', { name: /Call for Initiative/i }) as HTMLButtonElement;
+    expect(btn.disabled).toBe(true);
   });
 });

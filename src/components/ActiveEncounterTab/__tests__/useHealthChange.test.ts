@@ -424,7 +424,7 @@ describe('useHealthChange', () => {
   it('When a PC hits exactly 0 HP from damage, unconsciousEvent is set with the correct name', () => {
     mockUpdateState.mockClear();
     const updateSpy = vi.fn();
-    const pcCombatant = { ...baseCombatant, type: 'pc', maxHp: 15, currentHp: 15, tempHp: 0 };
+    const pcCombatant: Combatant = { ...baseCombatant, type: 'pc', maxHp: 15, currentHp: 15, tempHp: 0 };
     const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
 
     act(() => {
@@ -447,7 +447,7 @@ describe('useHealthChange', () => {
   it('When a PC hits 0 HP, damageEvent is NOT set (unconsciousEvent takes priority)', () => {
     mockUpdateState.mockClear();
     const updateSpy = vi.fn();
-    const pcCombatant = { ...baseCombatant, type: 'pc', maxHp: 15, currentHp: 15, tempHp: 0 };
+    const pcCombatant: Combatant = { ...baseCombatant, type: 'pc', maxHp: 15, currentHp: 15, tempHp: 0 };
     const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
 
     act(() => {
@@ -494,7 +494,7 @@ describe('useHealthChange', () => {
   it('When a PC was already unconscious and takes damage, unconsciousEvent is NOT fired again', () => {
     mockUpdateState.mockClear();
     const updateSpy = vi.fn();
-    const pcCombatant = { ...baseCombatant, type: 'pc', maxHp: 15, currentHp: 0, tempHp: 0, conditions: 'unconscious' };
+    const pcCombatant: Combatant = { ...baseCombatant, type: 'pc', maxHp: 15, currentHp: 0, tempHp: 0, conditions: 'unconscious' };
     const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
 
     act(() => {

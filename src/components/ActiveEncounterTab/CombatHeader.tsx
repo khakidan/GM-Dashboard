@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Eye, RefreshCcw, Zap } from 'lucide-react';
+import { Eye, RefreshCcw, Zap, Swords } from 'lucide-react';
 import { Encounter } from '../../types';
 import { cn } from '../../lib/utils';
 
@@ -14,6 +14,8 @@ interface CombatHeaderProps {
   onNextTurn: () => void;
   onToggleMultiTargetMode: () => void;
   onBack: () => void;
+  onCallInitiative: () => void;
+  initiativeEvent: boolean;
 }
 
 export function CombatHeader({
@@ -25,7 +27,9 @@ export function CombatHeader({
   onResetCombat,
   onNextTurn,
   onToggleMultiTargetMode,
-  onBack
+  onBack,
+  onCallInitiative,
+  initiativeEvent,
 }: CombatHeaderProps) {
   return (
     <div className="p-6 bg-[#fdfaf5] border-b border-[#e5e1d8] flex flex-col gap-4">
@@ -74,6 +78,14 @@ export function CombatHeader({
           >
             <Eye className="w-3 h-3" /> Broadcast
           </Link>
+          <button
+            onClick={onCallInitiative}
+            disabled={initiativeEvent}
+            className="flex items-center gap-2 px-3 py-1.5 text-xs font-sans font-bold uppercase bg-amber-50/50 border border-amber-500 text-amber-600 hover:bg-amber-50 disabled:opacity-50 disabled:cursor-not-allowed rounded-full transition-all mr-2 font-bold"
+            title="Trigger full-screen cinematic initiative call for all players"
+          >
+            <Swords className="w-3 h-3" /> Call for Initiative
+          </button>
           <button
             onClick={onRollNpcInit}
             className="flex items-center gap-2 px-3 py-1.5 text-xs font-sans font-bold uppercase bg-white border border-[#e5e1d8] hover:bg-[#f5f5f0] text-[#5a5a40] rounded-full transition-colors"

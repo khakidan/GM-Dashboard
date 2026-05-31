@@ -21,6 +21,7 @@ const defaultCombatState: CombatState = {
   healEvent: null,
   unconsciousEvent: null,
   rageEvent: null,
+  initiativeEvent: false,
 };
 
 const defaultAppState: AppState = {

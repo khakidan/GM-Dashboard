@@ -315,6 +315,7 @@ export function useSheetSync({ setIsGoogleConnected, onActiveTabChange }: UseShe
         round: 1,
         deathEvent: null,
         damageEvent: null,
+        initiativeEvent: false,
       },
     }));
 
@@ -329,6 +330,7 @@ export function useSheetSync({ setIsGoogleConnected, onActiveTabChange }: UseShe
         activeEncounterId: null,
         deathEvent: null,
         damageEvent: null,
+        initiativeEvent: false,
       },
     }));
     onActiveTabChange?.('encounters');

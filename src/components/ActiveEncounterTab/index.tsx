@@ -664,6 +664,31 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
     });
   };
 
+  const handleCallInitiative = () => {
+    updateState(prev => ({
+      ...prev,
+      combatState: {
+        ...prev.combatState,
+        initiativeEvent: true,
+      }
+    }));
+
+    setTimeout(() => {
+      updateState(prev => ({
+        ...prev,
+        combatState: {
+          ...prev.combatState,
+          initiativeEvent: false,
+        }
+      }));
+    }, 8500);
+
+    toast('Initiative called!', {
+      description: 'Players can see the overlay on the Player View.',
+      duration: 3000,
+    });
+  };
+
   return (
     <div className="flex flex-col gap-8 relative items-start">
       <div className={cn('space-y-6 flex flex-col transition-all duration-300 w-full')}>
@@ -685,6 +710,8 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
             onNextTurn={nextTurn}
             onToggleMultiTargetMode={toggleMultiTargetMode}
             onBack={onBack}
+            onCallInitiative={handleCallInitiative}
+            initiativeEvent={!!state.combatState.initiativeEvent}
           />
 
           <div className="flex-1 bg-white w-full p-6">
