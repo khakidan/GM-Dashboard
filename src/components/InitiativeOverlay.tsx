@@ -110,9 +110,9 @@ export function InitiativeOverlay() {
           inset: 0,
           zIndex: 1,
           backdropFilter: 
-            'brightness(0.5) saturate(0.7)',
+            'brightness(0.5) saturate(0.7) blur(1px)',
           WebkitBackdropFilter: 
-            'brightness(0.5) saturate(0.7)',
+            'brightness(0.5) saturate(0.7) blur(1px)',
           backgroundColor: 'rgba(4, 2, 12, 0.6)',
         }}
       />
@@ -153,6 +153,7 @@ export function InitiativeOverlay() {
           mixBlendMode: 'screen',
           zIndex: 3,
           opacity: 0.95,
+          transform: 'translateZ(0)',
         }}
       >
         <source 
