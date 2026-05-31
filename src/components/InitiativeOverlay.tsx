@@ -219,6 +219,7 @@ export function InitiativeOverlay() {
             color: '#ffffff',
             letterSpacing: '0.18em',
             textTransform: 'uppercase',
+            textShadow: '0 0 16px rgba(200, 0, 0, 0.8)',
             lineHeight: 1.1,
             textAlign: 'center',
             opacity: 0,
