@@ -276,7 +276,7 @@
                   'heal-nameIn 400ms ease-out 380ms forwards',
               }}
             >
-              {combatantName}
+              Added to {combatantName}
             </div>
           </div>
 

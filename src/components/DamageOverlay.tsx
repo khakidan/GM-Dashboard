@@ -258,7 +258,7 @@ export function DamageOverlay({
                 'dmg-nameIn 400ms ease-out 380ms forwards',
             }}
           >
-            {combatantName}
+            Dealt to {combatantName}
           </div>
         </div>
 
