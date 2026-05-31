@@ -82,6 +82,20 @@ export interface CombatState {
   activeTurnId: string | null;
   round: number;
   deathEvent?: { characterName: string } | null;
+  damageEvent?: {
+    combatantName: string;
+    damageAmount: number;
+  } | null;
+  healEvent?: {
+    combatantName: string;
+    healAmount: number;
+  } | null;
+  unconsciousEvent?: {
+    characterName: string;
+  } | null;
+  rageEvent?: {
+    characterName: string;
+  } | null;
 }
 
 export interface EncounterCombatant {

@@ -56,7 +56,7 @@ const STYLES = `
       0 3px 8px rgba(0, 0, 0, 0.99) !important;
   }
   #death-overlay p#death-overlay-tagline {
-    color: #cc0000 !important;
+    color: #ffffff !important;
     font-family: "Helvetica Neue", Arial, sans-serif !important;
     letter-spacing: 0.55em !important;
     text-shadow: 0 0 16px rgba(200, 0, 0, 0.8) !important;
@@ -250,7 +250,7 @@ export function DeathOverlay({ characterName }: DeathOverlayProps) {
                 fontSize: 'clamp(1rem, 2vw, 1.4rem)',
                 fontWeight: 900,
                 letterSpacing: '0.55em',
-                color: '#cc0000',
+                color: '#ffffff',
                 textTransform: 'uppercase',
                 textShadow: '0 0 16px rgba(200, 0, 0, 0.8)',
                 opacity: 0,

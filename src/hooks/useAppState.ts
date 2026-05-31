@@ -17,6 +17,10 @@ const defaultCombatState: CombatState = {
   activeTurnId: null,
   round: 1,
   deathEvent: null,
+  damageEvent: null,
+  healEvent: null,
+  unconsciousEvent: null,
+  rageEvent: null,
 };
 
 const defaultAppState: AppState = {

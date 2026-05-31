@@ -135,6 +135,40 @@ export function useCombatSync() {
           toast.success(`${currentCombatant.name}'s Max HP restriction is lifted.`);
         }
       }
+
+      const hadRaging = (currentCombatant.conditions || '')
+        .toLowerCase()
+        .split(',')
+        .map(s => s.trim())
+        .includes('raging');
+
+      const nowHasRaging = (updates.conditions || '')
+        .toLowerCase()
+        .split(',')
+        .map(s => s.trim())
+        .includes('raging');
+
+      if (!hadRaging && nowHasRaging && currentCombatant.type === 'pc') {
+        updateState(prev => ({
+          ...prev,
+          combatState: {
+            ...prev.combatState,
+            rageEvent: {
+              characterName: currentCombatant.name,
+            }
+          }
+        }));
+
+        setTimeout(() => {
+          updateState(prev => ({
+            ...prev,
+            combatState: {
+              ...prev.combatState,
+              rageEvent: null,
+            }
+          }));
+        }, 5500);
+      }
     }
 
     const targetCombatant = { ...currentCombatant, ...updates };
@@ -281,6 +315,94 @@ export function useCombatSync() {
     [updateState]
   );
 
+  const fireDamageEvent = useCallback(
+    (combatantName: string, damageAmount: number) => {
+      updateState(prev => ({
+        ...prev,
+        combatState: {
+          ...prev.combatState,
+          damageEvent: { combatantName, damageAmount }
+        }
+      }));
+      setTimeout(() => {
+        updateState(prev => ({
+          ...prev,
+          combatState: {
+            ...prev.combatState,
+            damageEvent: null
+          }
+        }));
+      }, 5500);
+    },
+    [updateState]
+  );
+
+  const fireHealEvent = useCallback(
+    (combatantName: string, healAmount: number) => {
+      updateState(prev => ({
+        ...prev,
+        combatState: {
+          ...prev.combatState,
+          healEvent: { combatantName, healAmount }
+        }
+      }));
+      setTimeout(() => {
+        updateState(prev => ({
+          ...prev,
+          combatState: {
+            ...prev.combatState,
+            healEvent: null
+          }
+        }));
+      }, 5500);
+    },
+    [updateState]
+  );
+
+  const fireUnconsciousEvent = useCallback(
+    (characterName: string) => {
+      updateState(prev => ({
+        ...prev,
+        combatState: {
+          ...prev.combatState,
+          unconsciousEvent: { characterName }
+        }
+      }));
+      setTimeout(() => {
+        updateState(prev => ({
+          ...prev,
+          combatState: {
+            ...prev.combatState,
+            unconsciousEvent: null
+          }
+        }));
+      }, 5500);
+    },
+    [updateState]
+  );
+
+  const fireRageEvent = useCallback(
+    (characterName: string) => {
+      updateState(prev => ({
+        ...prev,
+        combatState: {
+          ...prev.combatState,
+          rageEvent: { characterName }
+        }
+      }));
+      setTimeout(() => {
+        updateState(prev => ({
+          ...prev,
+          combatState: {
+            ...prev.combatState,
+            rageEvent: null
+          }
+        }));
+      }, 5500);
+    },
+    [updateState]
+  );
+
   return {
     syncingIds,
     globalError,
@@ -288,6 +410,10 @@ export function useCombatSync() {
     handleError,
     removeCombatant,
     updateCombatant,
-    fireDeathEvent
+    fireDeathEvent,
+    fireDamageEvent,
+    fireHealEvent,
+    fireUnconsciousEvent,
+    fireRageEvent
   };
 }

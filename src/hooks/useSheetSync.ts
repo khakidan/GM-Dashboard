@@ -313,6 +313,8 @@ export function useSheetSync({ setIsGoogleConnected, onActiveTabChange }: UseShe
         combatants,
         activeTurnId: null,
         round: 1,
+        deathEvent: null,
+        damageEvent: null,
       },
     }));
 
@@ -325,6 +327,8 @@ export function useSheetSync({ setIsGoogleConnected, onActiveTabChange }: UseShe
       combatState: {
         ...prev.combatState,
         activeEncounterId: null,
+        deathEvent: null,
+        damageEvent: null,
       },
     }));
     onActiveTabChange?.('encounters');

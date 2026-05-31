@@ -8,16 +8,46 @@ import { Toaster } from 'sonner';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { useAppState } from './hooks/useAppState';
 import { DeathOverlay } from './components/DeathOverlay';
+import { DamageOverlay } from './components/DamageOverlay';
+import { HealOverlay } from './components/HealOverlay';
+import { UnconsciousOverlay } from './components/UnconsciousOverlay';
+import { RageOverlay } from './components/RageOverlay';
 
 function AppContent() {
   const { theme } = useTheme();
   const { state } = useAppState();
   const deathEvent = state.combatState.deathEvent;
+  const damageEvent = state.combatState.damageEvent;
+  const healEvent = state.combatState.healEvent;
+  const unconsciousEvent = state.combatState.unconsciousEvent;
+  const rageEvent = state.combatState.rageEvent;
 
   return (
     <div id="root-theme-wrapper" data-theme={theme} className="w-full min-h-[100dvh] flex flex-col transition-colors duration-300">
       {deathEvent && (
         <DeathOverlay characterName={deathEvent.characterName} />
+      )}
+      {unconsciousEvent && !deathEvent && (
+        <UnconsciousOverlay
+          characterName={unconsciousEvent.characterName}
+        />
+      )}
+      {damageEvent && !deathEvent && !unconsciousEvent && (
+        <DamageOverlay
+          combatantName={damageEvent.combatantName}
+          damageAmount={damageEvent.damageAmount}
+        />
+      )}
+      {healEvent && !deathEvent && !unconsciousEvent && !damageEvent && (
+        <HealOverlay
+          combatantName={healEvent.combatantName}
+          healAmount={healEvent.healAmount}
+        />
+      )}
+      {rageEvent && !deathEvent && !unconsciousEvent && !damageEvent && !healEvent && (
+        <RageOverlay
+          characterName={rageEvent.characterName}
+        />
       )}
       <HashRouter>
         <Routes>

@@ -144,4 +144,252 @@ describe('SettingsModal / SettingsPage Test Button', () => {
     // Expect toast notification to have been fired
     expect(toast).toHaveBeenCalledWith('Death animation triggered', expect.any(Object));
   });
+
+  it('renders "Test Damage Animation" button inside "GM Tools & Testing" section', () => {
+    render(
+      <ThemeProvider>
+        <SettingsPage
+          isGoogleConnected={false}
+          handleSignIn={vi.fn()}
+          handleSignOut={vi.fn()}
+          setIsGoogleConnected={vi.fn()}
+          handleSyncWithSheets={vi.fn()}
+          addLog={vi.fn()}
+        />
+      </ThemeProvider>
+    );
+
+    const btn = screen.getByRole('button', { name: /Test Damage Animation/i });
+    expect(btn).toBeDefined();
+  });
+
+  it('clicking the Test Damage Animation button calls updateState and updates combatState.damageEvent correctly', () => {
+    render(
+      <ThemeProvider>
+        <SettingsPage
+          isGoogleConnected={false}
+          handleSignIn={vi.fn()}
+          handleSignOut={vi.fn()}
+          setIsGoogleConnected={vi.fn()}
+          handleSyncWithSheets={vi.fn()}
+          addLog={vi.fn()}
+        />
+      </ThemeProvider>
+    );
+
+    const btn = screen.getByRole('button', { name: /Test Damage Animation/i });
+    fireEvent.click(btn);
+
+    expect(mockUpdateState).toHaveBeenCalled();
+    const updateFn = mockUpdateState.mock.calls[0][0];
+    const dummyState = {
+      campaignName: 'Test Campaign',
+      characters: [],
+      encounters: [],
+      npcs: [],
+      encounterCombatants: [],
+      difficulties: {},
+      statuses: {},
+      combatState: {
+        activeEncounterId: null,
+        combatants: [],
+        activeTurnId: null,
+        round: 1,
+        deathEvent: null,
+        damageEvent: null,
+      }
+    };
+
+    const nextState = updateFn(dummyState);
+    expect(nextState.combatState.damageEvent).not.toBeNull();
+    expect(nextState.combatState.damageEvent).toBeDefined();
+    expect(nextState.combatState.damageEvent.combatantName).toBe('Thorin Ironforge');
+    expect(nextState.combatState.damageEvent.damageAmount).toBe(47);
+  });
+
+  it('clicking the Test Damage Animation button shows a toast confirming the test was triggered', () => {
+    render(
+      <ThemeProvider>
+        <SettingsPage
+          isGoogleConnected={false}
+          handleSignIn={vi.fn()}
+          handleSignOut={vi.fn()}
+          setIsGoogleConnected={vi.fn()}
+          handleSyncWithSheets={vi.fn()}
+          addLog={vi.fn()}
+        />
+      </ThemeProvider>
+    );
+
+    const btn = screen.getByRole('button', { name: /Test Damage Animation/i });
+    fireEvent.click(btn);
+
+    expect(toast).toHaveBeenCalledWith('Damage animation triggered — check the Player View.', expect.any(Object));
+  });
+
+  it('renders "Test Heal Animation" button inside "GM Tools & Testing" section', () => {
+    render(
+      <ThemeProvider>
+        <SettingsPage
+          isGoogleConnected={false}
+          handleSignIn={vi.fn()}
+          handleSignOut={vi.fn()}
+          setIsGoogleConnected={vi.fn()}
+          handleSyncWithSheets={vi.fn()}
+          addLog={vi.fn()}
+        />
+      </ThemeProvider>
+    );
+
+    const btn = screen.getByRole('button', { name: /Test Heal Animation/i });
+    expect(btn).toBeDefined();
+  });
+
+  it('clicking the Test Heal Animation button calls updateState and updates combatState.healEvent correctly', () => {
+    render(
+      <ThemeProvider>
+        <SettingsPage
+          isGoogleConnected={false}
+          handleSignIn={vi.fn()}
+          handleSignOut={vi.fn()}
+          setIsGoogleConnected={vi.fn()}
+          handleSyncWithSheets={vi.fn()}
+          addLog={vi.fn()}
+        />
+      </ThemeProvider>
+    );
+
+    const btn = screen.getByRole('button', { name: /Test Heal Animation/i });
+    fireEvent.click(btn);
+
+    expect(mockUpdateState).toHaveBeenCalled();
+    const updateFn = mockUpdateState.mock.calls[0][0];
+    const dummyState = {
+      campaignName: 'Test Campaign',
+      characters: [],
+      encounters: [],
+      npcs: [],
+      encounterCombatants: [],
+      difficulties: {},
+      statuses: {},
+      combatState: {
+        activeEncounterId: null,
+        combatants: [],
+        activeTurnId: null,
+        round: 1,
+        deathEvent: null,
+        damageEvent: null,
+        healEvent: null,
+      }
+    };
+
+    const nextState = updateFn(dummyState);
+    expect(nextState.combatState.healEvent).not.toBeNull();
+    expect(nextState.combatState.healEvent).toBeDefined();
+    expect(nextState.combatState.healEvent.combatantName).toBe('Seraphina Brightwell');
+    expect(nextState.combatState.healEvent.healAmount).toBe(34);
+  });
+
+  it('clicking the Test Heal Animation button shows a toast confirming the test was triggered', () => {
+    render(
+      <ThemeProvider>
+        <SettingsPage
+          isGoogleConnected={false}
+          handleSignIn={vi.fn()}
+          handleSignOut={vi.fn()}
+          setIsGoogleConnected={vi.fn()}
+          handleSyncWithSheets={vi.fn()}
+          addLog={vi.fn()}
+        />
+      </ThemeProvider>
+    );
+
+    const btn = screen.getByRole('button', { name: /Test Heal Animation/i });
+    fireEvent.click(btn);
+
+    expect(toast).toHaveBeenCalledWith('Heal animation triggered — check the Player View.', expect.any(Object));
+  });
+
+  it('renders "Test Unconscious Animation" button inside "GM Tools & Testing" section', () => {
+    render(
+      <ThemeProvider>
+        <SettingsPage
+          isGoogleConnected={false}
+          handleSignIn={vi.fn()}
+          handleSignOut={vi.fn()}
+          setIsGoogleConnected={vi.fn()}
+          handleSyncWithSheets={vi.fn()}
+          addLog={vi.fn()}
+        />
+      </ThemeProvider>
+    );
+
+    const btn = screen.getByRole('button', { name: /Test Unconscious Animation/i });
+    expect(btn).toBeDefined();
+  });
+
+  it('clicking the Test Unconscious Animation button calls updateState and updates combatState.unconsciousEvent correctly', () => {
+    render(
+      <ThemeProvider>
+        <SettingsPage
+          isGoogleConnected={false}
+          handleSignIn={vi.fn()}
+          handleSignOut={vi.fn()}
+          setIsGoogleConnected={vi.fn()}
+          handleSyncWithSheets={vi.fn()}
+          addLog={vi.fn()}
+        />
+      </ThemeProvider>
+    );
+
+    const btn = screen.getByRole('button', { name: /Test Unconscious Animation/i });
+    fireEvent.click(btn);
+
+    expect(mockUpdateState).toHaveBeenCalled();
+    const updateFn = mockUpdateState.mock.calls[0][0];
+    const dummyState = {
+      campaignName: 'Test Campaign',
+      characters: [],
+      encounters: [],
+      npcs: [],
+      encounterCombatants: [],
+      difficulties: {},
+      statuses: {},
+      combatState: {
+        activeEncounterId: null,
+        combatants: [],
+        activeTurnId: null,
+        round: 1,
+        deathEvent: null,
+        damageEvent: null,
+        healEvent: null,
+        unconsciousEvent: null,
+      }
+    };
+
+    const nextState = updateFn(dummyState);
+    expect(nextState.combatState.unconsciousEvent).not.toBeNull();
+    expect(nextState.combatState.unconsciousEvent).toBeDefined();
+    expect(nextState.combatState.unconsciousEvent.characterName).toBe('Gareth of Stonehaven');
+  });
+
+  it('clicking the Test Unconscious Animation button shows a toast confirming the test was triggered', () => {
+    render(
+      <ThemeProvider>
+        <SettingsPage
+          isGoogleConnected={false}
+          handleSignIn={vi.fn()}
+          handleSignOut={vi.fn()}
+          setIsGoogleConnected={vi.fn()}
+          handleSyncWithSheets={vi.fn()}
+          addLog={vi.fn()}
+        />
+      </ThemeProvider>
+    );
+
+    const btn = screen.getByRole('button', { name: /Test Unconscious Animation/i });
+    fireEvent.click(btn);
+
+    expect(toast).toHaveBeenCalledWith('Unconscious animation triggered — check the Player View.', expect.any(Object));
+  });
 });

@@ -14,6 +14,13 @@ vi.mock('sonner', () => ({
   toast: vi.fn(),
 }));
 
+const mockUpdateState = vi.fn();
+vi.mock('../../../hooks/useAppState', () => ({
+  useAppState: () => ({
+    updateState: mockUpdateState,
+  }),
+}));
+
 describe('useHealthChange', () => {
   afterEach(() => {
     cleanup();
@@ -280,5 +287,229 @@ describe('useHealthChange', () => {
       deathSavesFails: 2,
       isStable: false,
     });
+  });
+
+  it('When finalDamage > 0, combatState.damageEvent is set with the correct name and amount', () => {
+    mockUpdateState.mockClear();
+    const updateSpy = vi.fn();
+    const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
+
+    act(() => {
+      result.current.setDamageInputs({ c1: '10' });
+    });
+
+    act(() => {
+      // 10 damage: 5 goes to tempHp, 5 to currentHp. finalDamageAmount is 10
+      result.current.handleHealthChange('c1', baseCombatant, true);
+    });
+
+    expect(mockUpdateState).toHaveBeenCalled();
+    const updater = mockUpdateState.mock.calls[0][0];
+    const dummyState = {
+      combatState: {
+        damageEvent: null,
+      },
+    };
+    const nextState = updater(dummyState);
+    expect(nextState.combatState.damageEvent).toEqual({
+      combatantName: 'Goblin',
+      damageAmount: 10,
+    });
+  });
+
+  it('When finalDamage is 0 (immune), damageEvent is NOT set', () => {
+    mockUpdateState.mockClear();
+    const updateSpy = vi.fn();
+    const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
+
+    act(() => {
+      result.current.setDamageInputs({ c1: '0' });
+    });
+
+    act(() => {
+      result.current.handleHealthChange('c1', baseCombatant, true);
+    });
+
+    expect(mockUpdateState).not.toHaveBeenCalled();
+  });
+
+  it('When the target is healing (not damage), damageEvent is NOT set', () => {
+    mockUpdateState.mockClear();
+    const updateSpy = vi.fn();
+    const woundedCombatant = { ...baseCombatant, currentHp: 10, tempHp: 0 };
+    const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
+
+    act(() => {
+      result.current.setHealInputs({ c1: '15' });
+    });
+
+    act(() => {
+      // 15 heal, base max is 15. so actualHeal = 5
+      result.current.handleHealthChange('c1', woundedCombatant, false);
+    });
+
+    // When we heal, it still calls updateState, but it's to set the healEvent, NOT damageEvent. 
+    // Wait, let's just make sure damageEvent is NOT what's set.
+    const updater = mockUpdateState.mock.calls[0][0];
+    const dummyState = { combatState: { damageEvent: null, healEvent: null } };
+    const nextState = updater(dummyState);
+    expect(nextState.combatState.damageEvent).toBeNull();
+  });
+
+  it('When actualHeal > 0, combatState.healEvent is set with the correct name and amount', () => {
+    mockUpdateState.mockClear();
+    const updateSpy = vi.fn();
+    const woundedCombatant = { ...baseCombatant, currentHp: 5, tempHp: 0 };
+    const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
+
+    act(() => {
+      result.current.setHealInputs({ c1: '8' }); // Heals 8, max is 15. Current HP will become 13.
+    });
+
+    act(() => {
+      result.current.handleHealthChange('c1', woundedCombatant, false);
+    });
+
+    expect(mockUpdateState).toHaveBeenCalled();
+    const updater = mockUpdateState.mock.calls[0][0];
+    const dummyState = {
+      combatState: {
+        healEvent: null,
+      },
+    };
+    const nextState = updater(dummyState);
+    expect(nextState.combatState.healEvent).toEqual({
+      combatantName: 'Goblin',
+      healAmount: 8,
+    });
+  });
+
+  it('When the combatant is already at full HP and no HP is actually restored, healEvent is NOT set', () => {
+    mockUpdateState.mockClear();
+    const updateSpy = vi.fn();
+    const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
+
+    act(() => {
+      result.current.setHealInputs({ c1: '10' });
+    });
+
+    act(() => {
+      // already at max (15)
+      result.current.handleHealthChange('c1', baseCombatant, false);
+    });
+
+    expect(mockUpdateState).not.toHaveBeenCalled();
+  });
+
+  it('When the operation is damage (not healing), healEvent is NOT set', () => {
+    mockUpdateState.mockClear();
+    const updateSpy = vi.fn();
+    const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
+
+    act(() => {
+      result.current.setDamageInputs({ c1: '10' });
+    });
+
+    act(() => {
+      result.current.handleHealthChange('c1', baseCombatant, true);
+    });
+
+    expect(mockUpdateState).toHaveBeenCalled();
+    const updater = mockUpdateState.mock.calls[0][0];
+    const dummyState = { combatState: { healEvent: null, damageEvent: null } };
+    const nextState = updater(dummyState);
+    expect(nextState.combatState.healEvent).toBeNull();
+  });
+
+  it('When a PC hits exactly 0 HP from damage, unconsciousEvent is set with the correct name', () => {
+    mockUpdateState.mockClear();
+    const updateSpy = vi.fn();
+    const pcCombatant = { ...baseCombatant, type: 'pc', maxHp: 15, currentHp: 15, tempHp: 0 };
+    const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
+
+    act(() => {
+      result.current.setDamageInputs({ c1: '15' });
+    });
+
+    act(() => {
+      result.current.handleHealthChange('c1', pcCombatant, true);
+    });
+
+    expect(mockUpdateState).toHaveBeenCalled();
+    const updater = mockUpdateState.mock.calls[0][0];
+    const dummyState = { combatState: { unconsciousEvent: null, damageEvent: null } };
+    const nextState = updater(dummyState);
+    expect(nextState.combatState.unconsciousEvent).toEqual({
+      characterName: pcCombatant.name,
+    });
+  });
+
+  it('When a PC hits 0 HP, damageEvent is NOT set (unconsciousEvent takes priority)', () => {
+    mockUpdateState.mockClear();
+    const updateSpy = vi.fn();
+    const pcCombatant = { ...baseCombatant, type: 'pc', maxHp: 15, currentHp: 15, tempHp: 0 };
+    const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
+
+    act(() => {
+      result.current.setDamageInputs({ c1: '15' });
+    });
+
+    act(() => {
+      result.current.handleHealthChange('c1', pcCombatant, true);
+    });
+
+    expect(mockUpdateState).toHaveBeenCalled();
+    const updater = mockUpdateState.mock.calls[0][0];
+    const dummyState = { combatState: { unconsciousEvent: null, damageEvent: null } };
+    const nextState = updater(dummyState);
+    expect(nextState.combatState.damageEvent).toBeNull();
+  });
+
+  it('When an NPC hits 0 HP, unconsciousEvent is NOT set', () => {
+    mockUpdateState.mockClear();
+    const updateSpy = vi.fn();
+    const npcCombatant = { ...baseCombatant, maxHp: 15, currentHp: 15, tempHp: 0 };
+    const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
+
+    act(() => {
+      result.current.setDamageInputs({ c1: '15' });
+    });
+
+    act(() => {
+      result.current.handleHealthChange('c1', npcCombatant, true); // baseCombatant is type 'npc'
+    });
+
+    expect(mockUpdateState).toHaveBeenCalled();
+    const updater = mockUpdateState.mock.calls[0][0];
+    const dummyState = { combatState: { unconsciousEvent: null, damageEvent: null } };
+    const nextState = updater(dummyState);
+    expect(nextState.combatState.unconsciousEvent).toBeNull();
+    // It should have fired damageEvent instead
+    expect(nextState.combatState.damageEvent).toEqual({
+      combatantName: npcCombatant.name,
+      damageAmount: 15,
+    });
+  });
+
+  it('When a PC was already unconscious and takes damage, unconsciousEvent is NOT fired again', () => {
+    mockUpdateState.mockClear();
+    const updateSpy = vi.fn();
+    const pcCombatant = { ...baseCombatant, type: 'pc', maxHp: 15, currentHp: 0, tempHp: 0, conditions: 'unconscious' };
+    const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
+
+    act(() => {
+      // Taking damage while at 0 hp means death saves!
+      result.current.setDamageInputs({ c1: '5' });
+    });
+
+    act(() => {
+      result.current.handleHealthChange('c1', pcCombatant, true);
+    });
+
+    expect(mockUpdateState).not.toHaveBeenCalled();
+    expect(updateSpy).toHaveBeenCalledWith('c1', expect.objectContaining({
+      deathSavesFails: 1,
+      isStable: false
+    }));
   });
 });

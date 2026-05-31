@@ -334,5 +334,66 @@ describe('useCombatSync', () => {
     c = state.combatState.combatants.find((item) => item.id === 'c-pc2');
     expect(c?.tempAcModifier).toBe(0);
   });
+
+  it('sets rageEvent when raging condition is newly added to a PC, does not fire for NPCs or if already raging', async () => {
+    act(() => {
+      const prev = getSnapshot();
+      setGlobalState({
+        ...prev,
+        characters: [
+          ...prev.characters,
+          { id: 'pc-rage', characterName: 'Barbarian', maxHp: 50, currentHp: 50, isActive: true } as any,
+        ],
+        combatState: {
+          ...prev.combatState,
+          rageEvent: null,
+          combatants: [
+            { id: 'c-pc-rage', name: 'Barbarian', characterId: 'pc-rage', type: 'pc', conditions: '' } as any,
+            { id: 'c-npc-rage', name: 'Orc', type: 'npc', conditions: '' } as any,
+          ]
+        }
+      });
+    });
+
+    const { result } = renderHook(() => useCombatSync());
+
+    // 1. Adds raging to PC -> fires event
+    await act(async () => {
+      await result.current.updateCombatant('c-pc-rage', { conditions: 'raging, blessed' });
+    });
+    
+    let state = getSnapshot();
+    expect(state.combatState.rageEvent).toEqual({ characterName: 'Barbarian' });
+
+    // Clear event manually for next test
+    act(() => {
+      const current = getSnapshot();
+      setGlobalState({
+        ...current,
+        combatState: { ...current.combatState, rageEvent: null }
+      });
+    });
+
+    // 2. Conditions update, but raging is already present -> no event
+    await act(async () => {
+      await result.current.updateCombatant('c-pc-rage', { conditions: 'raging' });
+    });
+    state = getSnapshot();
+    expect(state.combatState.rageEvent).toBeNull();
+
+    // 3. Raging removed -> no event
+    await act(async () => {
+      await result.current.updateCombatant('c-pc-rage', { conditions: '' });
+    });
+    state = getSnapshot();
+    expect(state.combatState.rageEvent).toBeNull();
+
+    // 4. Adds raging to NPC -> no event
+    await act(async () => {
+      await result.current.updateCombatant('c-npc-rage', { conditions: 'raging' });
+    });
+    state = getSnapshot();
+    expect(state.combatState.rageEvent).toBeNull();
+  });
 });
 

@@ -1,7 +1,7 @@
 // src/components/SettingsPage.tsx
 
 import { useState } from 'react';
-import { Settings, LogIn, Save, RefreshCw, Trash2, Skull } from 'lucide-react';
+import { Settings, LogIn, Save, RefreshCw, Trash2, Skull, Zap, Heart, Moon, Flame } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTheme } from '../context/ThemeContext';
 import {
@@ -35,7 +35,7 @@ export function SettingsPage({
   const [manualToken, setManualTokenState] = useState('');
   const [showAdvancedAuth, setShowAdvancedAuth] = useState(false);
   const { theme, setTheme } = useTheme();
-  const { fireDeathEvent } = useCombatSync();
+  const { fireDeathEvent, fireDamageEvent, fireHealEvent, fireUnconsciousEvent, fireRageEvent } = useCombatSync();
 
   const handleSaveSpreadsheet = () => {
     setSpreadsheetId(tempSpreadsheetId);
@@ -303,7 +303,7 @@ export function SettingsPage({
           </p>
         </div>
 
-        <div>
+        <div className="flex flex-wrap gap-4">
           <button
             id="test-death-animation-btn"
             type="button"
@@ -318,6 +318,72 @@ export function SettingsPage({
           >
             <Skull className="w-4 h-4" />
             Test Death Animation
+          </button>
+
+          <button
+            id="test-damage-animation-btn"
+            type="button"
+            onClick={() => {
+              fireDamageEvent('Thorin Ironforge', 47);
+              toast('Damage animation triggered — check the Player View.', {
+                duration: 3000,
+              });
+            }}
+            className="border border-[#e5e1d8] hover:bg-[#fcfbf9] text-[#5a5a40] px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all cursor-pointer inline-flex items-center gap-2"
+          >
+            <Zap className="w-4 h-4" />
+            Test Damage Animation
+          </button>
+
+          <button
+            id="test-heal-animation-btn"
+            type="button"
+            onClick={() => {
+              if (fireHealEvent) {
+                fireHealEvent('Seraphina Brightwell', 34);
+              }
+              toast('Heal animation triggered — check the Player View.', {
+                duration: 3000,
+              });
+            }}
+            className="border border-[#eef5e6] bg-[#f8fbf5] hover:bg-[#f2f8ec] text-[#2e5a2c] px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all cursor-pointer inline-flex items-center gap-2"
+          >
+            <Heart className="w-4 h-4" />
+            Test Heal Animation
+          </button>
+
+          <button
+            id="test-unconscious-animation-btn"
+            type="button"
+            onClick={() => {
+              if (fireUnconsciousEvent) {
+                fireUnconsciousEvent('Gareth of Stonehaven');
+              }
+              toast('Unconscious animation triggered — check the Player View.', {
+                duration: 3000,
+              });
+            }}
+            className="border border-[#e2e8f0] bg-[#f8fafc] hover:bg-[#f1f5f9] text-[#475569] px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all cursor-pointer inline-flex items-center gap-2"
+          >
+            <Moon className="w-4 h-4" />
+            Test Unconscious Animation
+          </button>
+
+          <button
+            id="test-rage-animation-btn"
+            type="button"
+            onClick={() => {
+              if (fireRageEvent) {
+                fireRageEvent('Bjorn the Unbroken');
+              }
+              toast('Rage animation triggered — check the Player View.', {
+                duration: 3000,
+              });
+            }}
+            className="border border-[#ffcdce] bg-[#fff5f5] hover:bg-[#ffeded] text-[#9b2c2c] px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all cursor-pointer inline-flex items-center gap-2"
+          >
+            <Flame className="w-4 h-4" />
+            Test Rage Animation
           </button>
         </div>
       </div>
