@@ -34,6 +34,7 @@ const defaultAppState: AppState = {
   difficulties: {},
   statuses: {},
   combatState: defaultCombatState,
+  openDialog: null,
 };
 
 // Global Store Setup

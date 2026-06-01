@@ -27,6 +27,8 @@ export const NpcCard: React.FC<NpcCardProps> = ({
   onResetHp
 }) => {
   const needsReset = npc.currentHp < npc.maxHp;
+  const [newAbilityName, setNewAbilityName] = React.useState('');
+  const [newAbilityRechargeOn, setNewAbilityRechargeOn] = React.useState(6);
 
   return (
     <div className={cn(
@@ -189,6 +191,115 @@ export const NpcCard: React.FC<NpcCardProps> = ({
                     className="w-full text-xs text-[#2c2c26] bg-[#fdfaf5] p-3 rounded-lg border border-[#e5e1d8] focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all resize-none placeholder:text-[#cccbcb] disabled:opacity-50 leading-relaxed font-sans"
                     disabled={isSyncing}
                   />
+                </div>
+
+                {/* Legendary Section */}
+                <div className="border-t border-[#f5f5f0] pt-4">
+                  <div className="text-[10px] uppercase text-[#5a5a40] font-bold tracking-widest mb-2 px-1">Legendary</div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[10px] uppercase text-[#5a5a40]/70 font-semibold tracking-wide mb-1 block px-1">Legendary Actions</label>
+                      <input
+                        type="number"
+                        min={0}
+                        max={10}
+                        step={1}
+                        value={npc.legendaryActions ?? 0}
+                        disabled={isSyncing}
+                        onChange={(e) => onUpdate({ legendaryActions: parseInt(e.target.value) || 0 })}
+                        className="w-full text-xs text-[#2c2c26] bg-[#fdfaf5] p-3 rounded-lg border border-[#e5e1d8] focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] uppercase text-[#5a5a40]/70 font-semibold tracking-wide mb-1 block px-1">Legendary Resistances</label>
+                      <input
+                        type="number"
+                        min={0}
+                        max={10}
+                        step={1}
+                        value={npc.legendaryResistances ?? 0}
+                        disabled={isSyncing}
+                        onChange={(e) => onUpdate({ legendaryResistances: parseInt(e.target.value) || 0 })}
+                        className="w-full text-xs text-[#2c2c26] bg-[#fdfaf5] p-3 rounded-lg border border-[#e5e1d8] focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Recharge Abilities Section */}
+                <div className="border-t border-[#f5f5f0] pt-4">
+                  <div className="text-[10px] uppercase text-[#5a5a40] font-bold tracking-widest mb-2 px-1">Recharge Abilities</div>
+                  
+                  {/* List Existing Abilities */}
+                  <div className="space-y-2 mb-3">
+                    {(!npc.rechargeAbilities || npc.rechargeAbilities.length === 0) ? (
+                      <div className="text-xs text-[#5a5a40]/60 italic p-2 bg-[#fdfaf5] rounded-lg border border-dashed border-[#e5e1d8] text-center">
+                        No recharge abilities — add one below
+                      </div>
+                    ) : (
+                      npc.rechargeAbilities.map((ability, idx) => {
+                        const rechargeText = ability.rechargeOn === 6 ? '6' : `${ability.rechargeOn}-6`;
+                        return (
+                          <div key={idx} className="flex items-center justify-between p-2 bg-[#fdfaf5] rounded-lg border border-[#e5e1d8] text-xs">
+                            <span className="font-semibold text-[#2c2c26] capitalize">{ability.name}</span>
+                            <div className="flex items-center gap-2">
+                              <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-full font-sans font-bold text-[10px]">
+                                Recharge {rechargeText}
+                              </span>
+                              <button
+                                type="button"
+                                disabled={isSyncing}
+                                onClick={() => {
+                                  const updated = (npc.rechargeAbilities || []).filter((_, i) => i !== idx);
+                                  onUpdate({ rechargeAbilities: updated });
+                                }}
+                                className="p-1 hover:bg-red-50 text-red-600 rounded transition-all disabled:opacity-50"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+
+                  {/* Add New Ability Row */}
+                  <div className="flex gap-2 items-center">
+                    <input
+                      type="text"
+                      placeholder="e.g. Fire Breath"
+                      value={newAbilityName}
+                      disabled={isSyncing}
+                      onChange={(e) => setNewAbilityName(e.target.value)}
+                      className="flex-1 text-xs text-[#2c2c26] bg-[#fdfaf5] p-2.5 rounded-lg border border-[#e5e1d8] focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all"
+                    />
+                    <select
+                      value={newAbilityRechargeOn}
+                      disabled={isSyncing}
+                      onChange={(e) => setNewAbilityRechargeOn(parseInt(e.target.value))}
+                      className="text-xs text-[#2c2c26] bg-[#fdfaf5] p-2.5 rounded-lg border border-[#e5e1d8] focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all shrink-0"
+                    >
+                      <option value={6}>6</option>
+                      <option value={5}>5-6</option>
+                      <option value={4}>4-6</option>
+                    </select>
+                    <button
+                      type="button"
+                      disabled={isSyncing || !newAbilityName.trim()}
+                      onClick={() => {
+                        const newEntry = { name: newAbilityName.trim(), rechargeOn: newAbilityRechargeOn };
+                        onUpdate({ rechargeAbilities: [...(npc.rechargeAbilities || []), newEntry] });
+                        setNewAbilityName('');
+                        setNewAbilityRechargeOn(6);
+                      }}
+                      className="px-3 py-2.5 bg-[#c5b358]/10 text-xs font-bold uppercase tracking-widest text-[#2c2c26] hover:bg-[#c5b358]/20 border border-[#c5b358]/20 rounded-lg transition-all shrink-0 disabled:opacity-50"
+                    >
+                      + Add
+                    </button>
+                  </div>
                 </div>
               </div>
 

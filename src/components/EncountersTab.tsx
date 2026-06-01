@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useAppState } from '../hooks/useAppState';
 import { Swords, Loader2, AlertCircle, Plus } from 'lucide-react';
 import { useEncounters } from './EncountersTab/hooks/useEncounters';
 import { EncounterCard } from './EncountersTab/EncounterCard';
@@ -12,6 +13,7 @@ export function EncountersTab({
   onSelectEncounter: (id: string) => void;
   onSyncRequested: () => Promise<void>; 
 }) {
+  const { state: appState, updateState } = useAppState();
   const {
     state,
     isAdding,
@@ -22,6 +24,13 @@ export function EncountersTab({
   } = useEncounters({ onSelectEncounter, onSyncRequested });
 
   const [isNewDialogOpen, setIsNewDialogOpen] = useState(false);
+
+  useEffect(() => {
+    if (appState.openDialog === 'newEncounter') {
+      setIsNewDialogOpen(true);
+      updateState(prev => ({ ...prev, openDialog: null }));
+    }
+  }, [appState.openDialog, updateState]);
 
   const difficulties: DifficultyLevel[] = Object.entries(state.difficulties).map(([id, name]) => ({
     id: parseInt(id),

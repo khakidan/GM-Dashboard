@@ -306,6 +306,51 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
               </Command.Item>
             </Command.Group>
 
+            <Command.Group heading="── Create ──" className="px-2 py-1.5 [&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:font-sans [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-[#c5b358]/50">
+              <Command.Item
+                id="cmd-create-player"
+                onSelect={() => {
+                  window.dispatchEvent(new CustomEvent('gm-change-tab', { detail: 'party' }));
+                  updateState(prev => ({ ...prev, openDialog: 'newPlayer' }));
+                  onClose();
+                }}
+                className="w-full px-3 py-2.5 rounded-lg flex items-center justify-between text-xs font-semibold font-sans transition-all cursor-pointer text-stone-300 hover:bg-[#3f3f37] hover:text-white data-[selected='true']:bg-[#3f3f37] data-[selected='true']:text-white"
+              >
+                <div className="flex items-center gap-3">
+                  <Users className="w-4 h-4 text-[#c5b358]" />
+                  <span>+ New Player</span>
+                </div>
+              </Command.Item>
+              <Command.Item
+                id="cmd-create-npc"
+                onSelect={() => {
+                  window.dispatchEvent(new CustomEvent('gm-change-tab', { detail: 'npc-library' }));
+                  updateState(prev => ({ ...prev, openDialog: 'newNpc' }));
+                  onClose();
+                }}
+                className="w-full px-3 py-2.5 rounded-lg flex items-center justify-between text-xs font-semibold font-sans transition-all cursor-pointer text-stone-300 hover:bg-[#3f3f37] hover:text-white data-[selected='true']:bg-[#3f3f37] data-[selected='true']:text-white"
+              >
+                <div className="flex items-center gap-3">
+                  <Skull className="w-4 h-4 text-[#c5b358]" />
+                  <span>+ New NPC</span>
+                </div>
+              </Command.Item>
+              <Command.Item
+                id="cmd-create-encounter"
+                onSelect={() => {
+                  window.dispatchEvent(new CustomEvent('gm-change-tab', { detail: 'encounters' }));
+                  updateState(prev => ({ ...prev, openDialog: 'newEncounter' }));
+                  onClose();
+                }}
+                className="w-full px-3 py-2.5 rounded-lg flex items-center justify-between text-xs font-semibold font-sans transition-all cursor-pointer text-stone-300 hover:bg-[#3f3f37] hover:text-white data-[selected='true']:bg-[#3f3f37] data-[selected='true']:text-white"
+              >
+                <div className="flex items-center gap-3">
+                  <Map className="w-4 h-4 text-[#c5b358]" />
+                  <span>+ New Encounter</span>
+                </div>
+              </Command.Item>
+            </Command.Group>
+
             {state.combatState.activeEncounterId && (
               <Command.Group heading="── Combat ──" className="px-2 py-1.5 [&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:font-sans [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-[#c5b358]/50">
                 <Command.Item

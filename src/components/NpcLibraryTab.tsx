@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useAppState } from '../hooks/useAppState';
 import { useNpcLibrary } from './NpcLibraryTab/hooks/useNpcLibrary';
 import { BookOpen, AlertCircle, Plus, Search, Filter, X, Shield, Activity } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -8,6 +9,7 @@ import { checkIrvMatch } from '../lib/combatLogic';
 import { DAMAGE_TYPE_OPTIONS, CONDITION_OPTIONS } from '../lib/irvOptions';
 
 export function NpcLibraryTab() {
+  const { state: appState, updateState } = useAppState();
   const {
     state,
     syncingId,
@@ -19,6 +21,13 @@ export function NpcLibraryTab() {
   } = useNpcLibrary();
 
   const [isNewNpcDialogOpen, setIsNewNpcDialogOpen] = useState(false);
+
+  useEffect(() => {
+    if (appState.openDialog === 'newNpc') {
+      setIsNewNpcDialogOpen(true);
+      updateState(prev => ({ ...prev, openDialog: null }));
+    }
+  }, [appState.openDialog, updateState]);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
   // Search and Filter State

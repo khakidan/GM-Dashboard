@@ -37,6 +37,12 @@ export interface NPC {
   resistances?: string;
   immunities?: string;
   vulnerabilities?: string;
+  legendaryActions?: number;
+  legendaryResistances?: number;
+  rechargeAbilities?: Array<{
+    name: string;
+    rechargeOn: number;
+  }>;
 }
 
 export interface Encounter {
@@ -145,6 +151,7 @@ export interface AppState {
   difficulties: Record<string, string>;
   statuses: Record<string, string>;
   combatState: CombatState;
+  openDialog?: 'newPlayer' | 'newNpc' | 'newEncounter' | null;
 }
 
 export type DamageType =

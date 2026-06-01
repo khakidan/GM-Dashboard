@@ -1,5 +1,6 @@
 import React from 'react';
 import { Coffee, Loader2, AlertCircle, Users } from 'lucide-react';
+import { useAppState } from '../hooks/useAppState';
 import { useParty } from './PartyTab/hooks/useParty';
 import { CharacterCard } from './PartyTab/CharacterCard';
 import { LevelUpDialog } from './PartyTab/LevelUpDialog';
@@ -7,6 +8,7 @@ import { NewPlayerDialog } from './PartyTab/NewPlayerDialog';
 import { cn } from '../lib/utils';
 
 export function PartyTab() {
+  const { state: appState, updateState } = useAppState();
   const {
     state,
     syncingId,
@@ -25,6 +27,13 @@ export function PartyTab() {
   } = useParty();
 
   const [isNewPlayerDialogOpen, setIsNewPlayerDialogOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    if (appState.openDialog === 'newPlayer') {
+      setIsNewPlayerDialogOpen(true);
+      updateState(prev => ({ ...prev, openDialog: null }));
+    }
+  }, [appState.openDialog, updateState]);
 
   return (
     <div className="space-y-6">

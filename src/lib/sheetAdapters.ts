@@ -81,6 +81,9 @@ export function mapNpcRowToNpc(
     resistances,
     immunities,
     vulnerabilities,
+    legendaryActions,
+    legendaryResistances,
+    rechargeAbilities,
   ] = data;
 
   return {
@@ -95,6 +98,15 @@ export function mapNpcRowToNpc(
     resistances: resistances || '',
     immunities: immunities || '',
     vulnerabilities: vulnerabilities || '',
+    legendaryActions: legendaryActions ?? 0,
+    legendaryResistances: legendaryResistances ?? 0,
+    rechargeAbilities: (() => {
+      try {
+        return rechargeAbilities ? JSON.parse(rechargeAbilities) : [];
+      } catch {
+        return [];
+      }
+    })(),
   };
 }
 

@@ -162,6 +162,9 @@ describe('sheetAdapters', () => {
         resistances: 'slashing',
         immunities: 'acid',
         vulnerabilities: 'fire',
+        legendaryActions: 0,
+        legendaryResistances: 0,
+        rechargeAbilities: [],
       });
     });
   });

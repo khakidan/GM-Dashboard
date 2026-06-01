@@ -240,7 +240,10 @@ export async function addNpcDB(
   npcNotes: string,
   resistances: string = '',
   immunities: string = '',
-  vulnerabilities: string = ''
+  vulnerabilities: string = '',
+  legendaryActions: number = 0,
+  legendaryResistances: number = 0,
+  rechargeAbilities: Array<{ name: string; rechargeOn: number }> = []
 ) {
   try {
     const nextIdVal = await getNextId('NPCs');
@@ -258,9 +261,12 @@ export async function addNpcDB(
       sanitizeString(resistances),
       sanitizeString(immunities),
       sanitizeString(vulnerabilities),
+      castInt(legendaryActions, 0),
+      castInt(legendaryResistances, 0),
+      JSON.stringify(rechargeAbilities ?? []),
     ];
 
-    await appendSheetData('NPCs!A:K', [rowData]);
+    await appendSheetData('NPCs!A:N', [rowData]);
     return {
       id: finalId,
       name: npcName,
@@ -273,6 +279,9 @@ export async function addNpcDB(
       resistances,
       immunities,
       vulnerabilities,
+      legendaryActions,
+      legendaryResistances,
+      rechargeAbilities,
     };
   } catch (err) {
     console.error('[DB] addNpcDB failed:', err);
@@ -299,10 +308,13 @@ export async function updateNpcFullDB(npc: NPC) {
       sanitizeString(npc.resistances || ''),
       sanitizeString(npc.immunities || ''),
       sanitizeString(npc.vulnerabilities || ''),
+      castInt(npc.legendaryActions ?? 0, 0),
+      castInt(npc.legendaryResistances ?? 0, 0),
+      JSON.stringify(npc.rechargeAbilities ?? []),
     ];
 
     // Using queueWrite to be consistent with updateCharacterDB
-    queueWrite(`NPCs!A${a1Row}:K${a1Row}`, [rowData]);
+    queueWrite(`NPCs!A${a1Row}:N${a1Row}`, [rowData]);
   } catch (err) {
     console.error('[DB] updateNpcFullDB failed:', err);
     throw err;

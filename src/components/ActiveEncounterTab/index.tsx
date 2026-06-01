@@ -301,6 +301,28 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
               immunities: npcTemplate.immunities,
               vulnerabilities: npcTemplate.vulnerabilities,
               reactionUsed: false,
+              legendaryActions: 
+                npcTemplate.legendaryActions && npcTemplate.legendaryActions > 0
+                ? { 
+                    max: npcTemplate.legendaryActions, 
+                    remaining: npcTemplate.legendaryActions 
+                  }
+                : undefined,
+              legendaryResistances: 
+                npcTemplate.legendaryResistances && npcTemplate.legendaryResistances > 0
+                ? { 
+                    max: npcTemplate.legendaryResistances, 
+                    remaining: npcTemplate.legendaryResistances 
+                  }
+                : undefined,
+              rechargeAbilities: 
+                npcTemplate.rechargeAbilities?.length
+                ? npcTemplate.rechargeAbilities.map(a => ({
+                    name: a.name,
+                    rechargeOn: a.rechargeOn,
+                    isCharged: true,
+                  }))
+                : undefined,
             });
             newEcObjects.push({
               id: tempEcIds[i],

@@ -58,7 +58,7 @@ export const CharacterRowSchema = z.preprocess(padRow(19), z.tuple([
   coerceNumber(0),                     // [18] deathSavesSuccesses
 ]));
 
-export const NpcRowSchema = z.preprocess(padRow(11), z.tuple([
+export const NpcRowSchema = z.preprocess(padRow(14), z.tuple([
   idSchema,                            // [0] id
   stringDefault('Unknown NPC'),        // [1] name
   coerceNumber(10),                    // [2] ac
@@ -70,6 +70,9 @@ export const NpcRowSchema = z.preprocess(padRow(11), z.tuple([
   stringDefault(''),                   // [8] resistances
   stringDefault(''),                   // [9] immunities
   stringDefault(''),                   // [10] vulnerabilities
+  coerceNumber(0),                     // [11] legendaryActions
+  coerceNumber(0),                     // [12] legendaryResistances
+  stringDefault(''),                   // [13] rechargeAbilities
 ]));
 
 export const EncounterRowSchema = z.preprocess(padRow(7), z.tuple([

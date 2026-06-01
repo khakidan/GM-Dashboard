@@ -92,6 +92,28 @@ export function buildCombatantsFromState(
               conditionTimers: parsedTimers,
               tempAcModifier: ec.npcTempAcMod || 0,
               reactionUsed: false,
+              legendaryActions: 
+                npcTemplate.legendaryActions && npcTemplate.legendaryActions > 0
+                ? { 
+                    max: npcTemplate.legendaryActions, 
+                    remaining: npcTemplate.legendaryActions 
+                  }
+                : undefined,
+              legendaryResistances: 
+                npcTemplate.legendaryResistances && npcTemplate.legendaryResistances > 0
+                ? { 
+                    max: npcTemplate.legendaryResistances, 
+                    remaining: npcTemplate.legendaryResistances 
+                  }
+                : undefined,
+              rechargeAbilities: 
+                npcTemplate.rechargeAbilities?.length
+                ? npcTemplate.rechargeAbilities.map(a => ({
+                    name: a.name,
+                    rechargeOn: a.rechargeOn,
+                    isCharged: true,
+                  }))
+                : undefined,
             });
           }
         }
@@ -210,7 +232,7 @@ export function useSheetSync({ setIsGoogleConnected, onActiveTabChange }: UseShe
 
       // 3. Fetch NPCs
       addLog('Step 4: Loading NPC library...');
-      const npcRes = await fetchSheetData('NPCs!A2:K');
+      const npcRes = await fetchSheetData('NPCs!A2:N');
       const parsedNPCs: NPC[] = (npcRes.values || [])
         .map((row, i) => {
           const result = NpcRowSchema.safeParse(row);
