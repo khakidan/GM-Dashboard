@@ -138,4 +138,141 @@ describe('ActiveEncounterTab nextTurn logic', () => {
 
     expect(updateEncounterStateDB).toHaveBeenCalledWith('enc-1', 2, 'combat-1');
   });
+
+  it('When nextTurn advances, reactionUsed is reset to false for the newly active combatant only, leaving others unaffected', () => {
+    let updateStateCalledWith: any = null;
+    vi.mocked(useAppState).mockReturnValue({
+      state: {
+        campaignName: 'Test',
+        hasInitialSynced: true,
+        encounters: [{ id: 'enc-1', name: 'Test Enc' }],
+        characters: [],
+        npcs: [],
+        statuses: {},
+        difficulties: {},
+        encounterCombatants: [],
+        combatState: {
+          activeEncounterId: 'enc-1',
+          round: 1,
+          activeTurnId: 'combat-1',
+          combatants: [
+            { id: 'combat-1', initiative: 20, conditions: '', reactionUsed: true },
+            { id: 'combat-2', initiative: 10, conditions: '', reactionUsed: true },
+          ],
+        }
+      },
+      updateState: (fn: any) => { 
+        if (typeof fn === 'function') {
+          updateStateCalledWith = fn({
+            combatState: {
+              activeEncounterId: 'enc-1',
+              round: 1,
+              activeTurnId: 'combat-1',
+              combatants: [
+                { id: 'combat-1', initiative: 20, conditions: '', reactionUsed: true },
+                { id: 'combat-2', initiative: 10, conditions: '', reactionUsed: true },
+              ],
+            }
+          });
+        }
+      }
+    } as any);
+
+    render(
+      <MemoryRouter>
+        <ActiveEncounterTab {...baseProps} />
+      </MemoryRouter>
+    );
+
+    const nextTurnBtn = screen.getByRole('button', { name: /Next Turn/i });
+    fireEvent.click(nextTurnBtn);
+
+    const updatedCombatants = updateStateCalledWith.combatState.combatants;
+    const c1 = updatedCombatants.find((c: any) => c.id === 'combat-1');
+    const c2 = updatedCombatants.find((c: any) => c.id === 'combat-2');
+
+    expect(c2.reactionUsed).toBe(false);
+    expect(c1.reactionUsed).toBe(true);
+  });
+
+  it('When nextTurn advances to an NPC with Legendary Actions, the actions are auto-reset to max while Legendary Resistances do NOT auto-reset', () => {
+    let updateStateCalledWith: any = null;
+    vi.mocked(useAppState).mockReturnValue({
+      state: {
+        campaignName: 'Test',
+        hasInitialSynced: true,
+        encounters: [{ id: 'enc-1', name: 'Test Enc' }],
+        characters: [],
+        npcs: [],
+        statuses: {},
+        difficulties: {},
+        encounterCombatants: [],
+        combatState: {
+          activeEncounterId: 'enc-1',
+          round: 1,
+          activeTurnId: 'combat-1',
+          combatants: [
+            { 
+              id: 'combat-1', 
+              initiative: 20, 
+              conditions: '', 
+              reactionUsed: false 
+            },
+            { 
+              id: 'combat-2', 
+              initiative: 10, 
+              conditions: '', 
+              reactionUsed: false,
+              legendaryActions: { max: 3, remaining: 1 },
+              legendaryResistances: { max: 3, remaining: 1 }
+            },
+          ],
+        }
+      },
+      updateState: (fn: any) => { 
+        if (typeof fn === 'function') {
+          updateStateCalledWith = fn({
+            combatState: {
+              activeEncounterId: 'enc-1',
+              round: 1,
+              activeTurnId: 'combat-1',
+              combatants: [
+                { 
+                  id: 'combat-1', 
+                  initiative: 20, 
+                  conditions: '', 
+                  reactionUsed: false 
+                },
+                { 
+                  id: 'combat-2', 
+                  initiative: 10, 
+                  conditions: '', 
+                  reactionUsed: false,
+                  legendaryActions: { max: 3, remaining: 1 },
+                  legendaryResistances: { max: 3, remaining: 1 }
+                },
+              ],
+            }
+          });
+        }
+      }
+    } as any);
+
+    render(
+      <MemoryRouter>
+        <ActiveEncounterTab {...baseProps} />
+      </MemoryRouter>
+    );
+
+    const nextTurnBtn = screen.getByRole('button', { name: /Next Turn/i });
+    fireEvent.click(nextTurnBtn);
+
+    const updatedCombatants = updateStateCalledWith.combatState.combatants;
+    const c2 = updatedCombatants.find((c: any) => c.id === 'combat-2');
+
+    // legendary actions must be reset to max!
+    expect(c2.legendaryActions.remaining).toBe(3);
+    // legendary resistances must NOT be auto-reset!
+    expect(c2.legendaryResistances.remaining).toBe(1);
+  });
 });

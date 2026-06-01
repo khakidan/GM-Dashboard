@@ -33,6 +33,7 @@ describe('NpcLibraryTab', () => {
     vi.mocked(useAppState).mockReturnValue({
       state: {
         campaignName: 'Test Campaign',
+        hasInitialSynced: true,
         characters: [],
         encounters: [],
         npcs: [],
@@ -88,6 +89,7 @@ describe('NpcLibraryTab', () => {
     vi.mocked(useAppState).mockReturnValue({
       state: {
         campaignName: 'Test Campaign',
+        hasInitialSynced: true,
         characters: [],
         encounters: [],
         npcs: mockNpcs,

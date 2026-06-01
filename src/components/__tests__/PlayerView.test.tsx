@@ -28,6 +28,7 @@ describe('PlayerView Component', () => {
     vi.mocked(useAppState).mockReturnValue({
       state: {
         campaignName: 'Test Campaign',
+        hasInitialSynced: true,
         characters: [],
         encounters: [],
         npcs: [],
@@ -59,6 +60,7 @@ describe('PlayerView Component', () => {
     vi.mocked(useAppState).mockReturnValue({
       state: {
         campaignName: 'Test Campaign',
+        hasInitialSynced: true,
         characters: [],
         encounters: [],
         npcs: [],
@@ -95,6 +97,7 @@ describe('PlayerView Component', () => {
     vi.mocked(useAppState).mockReturnValue({
       state: {
         campaignName: 'Test Campaign',
+        hasInitialSynced: true,
         characters: [],
         encounters: [],
         npcs: [],
@@ -138,6 +141,7 @@ describe('PlayerView Component', () => {
     vi.mocked(useAppState).mockReturnValue({
       state: {
         campaignName: 'Test Campaign',
+        hasInitialSynced: true,
         characters: [],
         encounters: [],
         npcs: [],
@@ -174,6 +178,7 @@ describe('PlayerView Component', () => {
     vi.mocked(useAppState).mockReturnValue({
       state: {
         campaignName: 'Test Campaign',
+        hasInitialSynced: true,
         characters: [],
         encounters: [],
         npcs: [],
@@ -199,6 +204,7 @@ describe('PlayerView Component', () => {
     vi.mocked(useAppState).mockReturnValue({
       state: {
         campaignName: 'Test Campaign',
+        hasInitialSynced: true,
         characters: [],
         encounters: [],
         npcs: [],
@@ -235,6 +241,7 @@ describe('PlayerView Component', () => {
     vi.mocked(useAppState).mockReturnValue({
       state: {
         campaignName: 'Test Campaign',
+        hasInitialSynced: true,
         characters: [],
         encounters: [],
         npcs: [],
@@ -276,6 +283,7 @@ describe('PlayerView Component', () => {
     vi.mocked(useAppState).mockReturnValue({
       state: {
         campaignName: 'Test Campaign',
+        hasInitialSynced: true,
         characters: [],
         encounters: [],
         npcs: [],
@@ -317,6 +325,7 @@ describe('PlayerView Component', () => {
     vi.mocked(useAppState).mockReturnValue({
       state: {
         campaignName: 'Test Campaign',
+        hasInitialSynced: true,
         characters: [],
         encounters: [],
         npcs: [],

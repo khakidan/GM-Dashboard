@@ -50,6 +50,20 @@ export function GMDashboard() {
     localStorage.setItem(LAST_TAB_KEY, tab);
     setActiveTab(tab);
   }, []);
+
+  useEffect(() => {
+    const handleTabChangeEvent = (e: Event) => {
+      const customEvent = e as CustomEvent<Tab>;
+      if (customEvent.detail) {
+        handleTabChange(customEvent.detail);
+      }
+    };
+    window.addEventListener('gm-change-tab', handleTabChangeEvent);
+    return () => {
+      window.removeEventListener('gm-change-tab', handleTabChangeEvent);
+    };
+  }, [handleTabChange]);
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
     const stored = localStorage.getItem('gm_sidebar_open');
     return stored !== null ? stored === 'true' : false;

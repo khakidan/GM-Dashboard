@@ -11,19 +11,20 @@
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
     "test": "vitest run",
-    "test:batch1": "vitest run src/lib/__tests__",
-    "test:batch2": "vitest run src/services/__tests__",
-    "test:batch3": "vitest run src/hooks/__tests__ src/server/__tests__ src/__tests__",
-    "test:batch4": "vitest run src/components/ActiveEncounterTab/__tests__",
-    "test:batch5": "vitest run src/components/PartyTab/__tests__ src/components/EncountersTab/__tests__ src/components/NpcLibraryTab/__tests__",
-    "test:batch6": "vitest run src/components/__tests__ src/components/ui/__tests__",
-    "test:full": "npm run test:batch1 && npm run test:batch2 && npm run test:batch3 && npm run test:batch4 && npm run test:batch5 && npm run test:batch6",
+    "test:batch1": "npx vitest run src/lib/__tests__",
+    "test:batch2": "npx vitest run src/services/__tests__",
+    "test:batch3": "npx vitest run src/hooks/__tests__ src/server/__tests__ src/__tests__",
+    "test:batch4": "npx vitest run src/components/ActiveEncounterTab/__tests__",
+    "test:batch5": "npx vitest run src/components/PartyTab/__tests__ src/components/EncountersTab/__tests__ src/components/NpcLibraryTab/__tests__",
+    "test:batch6": "npx vitest run src/components/__tests__ src/components/ui/__tests__",
+    "test:full": "npx vitest run src/lib/__tests__ && npx vitest run src/services/__tests__ && npx vitest run src/hooks/__tests__ src/server/__tests__ src/__tests__ && npx vitest run src/components/ActiveEncounterTab/__tests__ && npx vitest run src/components/PartyTab/__tests__ src/components/EncountersTab/__tests__ src/components/NpcLibraryTab/__tests__ && npx vitest run src/components/__tests__ src/components/ui/__tests__",
     "test:e2e": "playwright test"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.14",
     "@vitejs/plugin-react": "^5.0.4",
     "clsx": "^2.1.1",
+    "cmdk": "^1.1.1",
     "dotenv": "^17.2.3",
     "express": "^4.21.2",
     "express-rate-limit": "^8.5.2",
@@ -56,6 +57,7 @@
     "tsx": "^4.21.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.3",
+    "vite-plugin-pwa": "^1.3.0",
     "vitest": "^4.1.7"
   }
 }

@@ -76,6 +76,20 @@ export interface Combatant {
   deathSavesSuccesses?: number;
   statusId?: number;
   isStable?: boolean;
+  reactionUsed?: boolean;
+  rechargeAbilities?: Array<{
+    name: string;
+    rechargeOn: number;  // minimum d6 result to recharge (5 = "recharge 5-6", 6 = "recharge 6")
+    isCharged: boolean;  // current state
+  }>;
+  legendaryActions?: {
+    max: number;         // typically 3
+    remaining: number;
+  };
+  legendaryResistances?: {
+    max: number;         // typically 3
+    remaining: number;
+  };
 }
 
 export interface CombatState {

@@ -8,14 +8,17 @@ import { Combatant, DamageType, EncounterCombatant } from '../../types';
 import { addNpcDB, addEncounterCombatantDB, updateInitiativeDB, updateDeathSavesDB, updateEncounterStateDB } from '../../services/dbOperations';
 import { CONCENTRATION_EFFECTS } from '../../lib/irvOptions';
 import { buildConditionSummary } from '../../lib/conditionDefinitions';
+import { playTurnStartSound, playDeathSaveFailSound, playDeathSaveSuccessSound } from '../../lib/audioEngine';
 
 import { CombatHeader } from './CombatHeader';
 import { CombatantCard } from './CombatantCard';
 import { CombatSidebar } from './CombatSidebar';
 import { MultiTargetActionBar } from './MultiTargetActionBar';
+import { MultiTargetActionPanel } from './MultiTargetActionPanel';
 import { useCombatSync } from './hooks/useCombatSync';
 import { useHealthChange } from './hooks/useHealthChange';
 import { CasterAttributionDialog } from './CasterAttributionDialog';
+import { DiceRoller } from '../DiceRoller';
 
 export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
   const { state, updateState } = useAppState();
@@ -28,39 +31,10 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
     targetName: string;
   } | null>(null);
 
-  // Keyboard Shortcuts
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      // Check for modifier keys or if target is an input
-      if (
-        ['INPUT', 'TEXTAREA', 'SELECT'].includes((event.target as HTMLElement).tagName) ||
-        event.ctrlKey ||
-        event.metaKey ||
-        event.altKey
-      ) {
-        return;
-      }
+  const [hpMode, setHpMode] = useState<'damage' | 'heal'>('damage');
+  const [isCheatSheetOpen, setIsCheatSheetOpen] = useState(false);
 
-      switch (event.key.toLowerCase()) {
-        case 'n':
-          nextTurn();
-          break;
-        case 'r':
-          rollInitForNPCs();
-          break;
-        case 't':
-          setIsToolsModalOpen(prev => !prev);
-          break;
-        default:
-          break;
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [state]); // Re-attach listener if combat state changes (nextTurn/rollInitForNPCs rely on state)
+  // Keyboard Shortcuts moved lower down for complete variable accessibility
 
   // Multi-target Selection State
   const [isMultiTargetMode, setIsMultiTargetMode] = useState(false);
@@ -186,8 +160,10 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
 
     if (result === 'success') {
       successes += 1;
+      playDeathSaveSuccessSound();
     } else {
       fails += 1;
+      playDeathSaveFailSound();
     }
 
     try {
@@ -291,6 +267,7 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
             conditions: c.conditions,
             notes: c.notes,
             passivePerception: c.passivePerception,
+            reactionUsed: false,
           });
           newEcObjects.push({
             id: tempEcIds[0],
@@ -323,6 +300,7 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
               resistances: npcTemplate.resistances,
               immunities: npcTemplate.immunities,
               vulnerabilities: npcTemplate.vulnerabilities,
+              reactionUsed: false,
             });
             newEcObjects.push({
               id: tempEcIds[i],
@@ -422,6 +400,7 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
         resistances: resistances,
         immunities: immunities,
         vulnerabilities: vulnerabilities,
+        reactionUsed: false,
       };
 
       updateState(prev => ({
@@ -524,21 +503,44 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
 
     updateState(prev => {
       if (prev.combatState.combatants.length === 0) return prev;
+      const nextActiveId = prev.combatState.combatants[nextIndex].id;
+      const nextCombatants = prev.combatState.combatants.map(c => {
+        if (c.id === nextActiveId) {
+          const updated = { ...c, reactionUsed: false };
+          if (updated.legendaryActions) {
+            updated.legendaryActions = {
+              ...updated.legendaryActions,
+              remaining: updated.legendaryActions.max
+            };
+          }
+          return updated;
+        }
+        return c;
+      });
       return {
         ...prev,
         combatState: {
           ...prev.combatState,
-          activeTurnId: prev.combatState.combatants[nextIndex].id,
+          activeTurnId: nextActiveId,
           round: nextRound,
+          combatants: nextCombatants,
         },
       };
     });
+
+    playTurnStartSound();
     
     updateEncounterStateDB(state.combatState.activeEncounterId ?? '', nextRound, combatants[nextIndex].id).catch(err => {
       console.warn("Failed to write updated turn state to sheet", err);
     });
 
     const newlyActiveCombatant = combatants.length > 0 ? combatants[nextIndex] : null;
+
+    if (newlyActiveCombatant && newlyActiveCombatant.legendaryActions) {
+      toast.success(`${newlyActiveCombatant.name}'s legendary actions are restored.`);
+      toast(`${newlyActiveCombatant.name} regains all legendary actions.`);
+    }
+
     if (newlyActiveCombatant) {
       const activeConditionsList = newlyActiveCombatant.conditions
         ?.split(',')
@@ -693,6 +695,220 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
     });
   };
 
+  const handleDeleteSelected = async () => {
+    if (selectedCombatantIds.size === 0) return;
+
+    const count = selectedCombatantIds.size;
+    const confirm = window.confirm(`Remove ${count} combatants from this encounter? This cannot be undone.`);
+    if (!confirm) return;
+
+    const idsToDelete = Array.from(selectedCombatantIds);
+    const currentState = getSnapshot();
+    const activeId = currentState.combatState.activeTurnId;
+
+    // If active turn is being deleted, advance turn to the first surviving combatant BEFORE deletion
+    if (activeId && selectedCombatantIds.has(activeId)) {
+      const combatants = currentState.combatState.combatants;
+      const currentIndex = combatants.findIndex(c => c.id === activeId);
+      
+      // Find the next surviving index
+      let nextIndex = (currentIndex + 1) % combatants.length;
+      let found = false;
+      let attempts = 0;
+      while (attempts < combatants.length) {
+        if (!selectedCombatantIds.has(combatants[nextIndex].id)) {
+          found = true;
+          break;
+        }
+        nextIndex = (nextIndex + 1) % combatants.length;
+        attempts++;
+      }
+
+      if (found) {
+        // We simulate a "nextTurn" but jumping to the first survivor
+        const nextActiveId = combatants[nextIndex].id;
+        updateState(prev => ({
+          ...prev,
+          combatState: {
+            ...prev.combatState,
+            activeTurnId: nextActiveId,
+          }
+        }));
+      } else {
+        // No survivors!
+        updateState(prev => ({
+          ...prev,
+          combatState: {
+            ...prev.combatState,
+            activeTurnId: null,
+          }
+        }));
+      }
+    }
+
+    // Perform deletions
+    for (const id of idsToDelete) {
+      await removeCombatant(id);
+    }
+
+    setIsMultiTargetMode(false);
+    setSelectedCombatantIds(new Set());
+    toast.success(`${count} combatants removed.`);
+  };
+
+  // Listen for global custom commands from the Command Palette
+  useEffect(() => {
+    const handleNextTurn = () => {
+      nextTurn();
+    };
+    const handleRollNpcInit = () => {
+      rollInitForNPCs();
+    };
+    const handleCallInit = () => {
+      handleCallInitiative();
+    };
+    const handleOpenTools = () => {
+      setIsToolsModalOpen(true);
+    };
+
+    window.addEventListener('gm-cmd-next-turn', handleNextTurn);
+    window.addEventListener('gm-cmd-roll-npc-init', handleRollNpcInit);
+    window.addEventListener('gm-cmd-call-initiative', handleCallInit);
+    window.addEventListener('gm-cmd-open-tools', handleOpenTools);
+
+    return () => {
+      window.removeEventListener('gm-cmd-next-turn', handleNextTurn);
+      window.removeEventListener('gm-cmd-roll-npc-init', handleRollNpcInit);
+      window.removeEventListener('gm-cmd-call-initiative', handleCallInit);
+      window.removeEventListener('gm-cmd-open-tools', handleOpenTools);
+    };
+  }, [nextTurn, rollInitForNPCs, handleCallInitiative]);
+
+  // Integrated Keyboard Shortcuts Hook with complete variable accessibility
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Check for modifier keys or if target is an input
+      if (
+        ['INPUT', 'TEXTAREA', 'SELECT'].includes((event.target as HTMLElement).tagName) ||
+        event.ctrlKey ||
+        event.metaKey ||
+        event.altKey
+      ) {
+        return;
+      }
+
+      const keyLower = event.key.toLowerCase();
+
+      // ? triggers toggle of keyboard shortcuts cheat sheet overlay
+      if (event.key === '?' || (event.key === '/' && event.shiftKey)) {
+        event.preventDefault();
+        setIsCheatSheetOpen(prev => !prev);
+        return;
+      }
+
+      switch (keyLower) {
+        case 'n':
+          nextTurn();
+          break;
+        case 'r':
+          rollInitForNPCs();
+          break;
+        case 't':
+          setIsToolsModalOpen(prev => !prev);
+          break;
+        case 's':
+          toggleMultiTargetMode();
+          break;
+        case 'b':
+          if (typeof window !== 'undefined' && window.open) {
+            window.open('/#/player-view', '_blank');
+          }
+          break;
+        case 'c':
+          if (!state.combatState.initiativeEvent) {
+            handleCallInitiative();
+          }
+          break;
+        case 'h':
+          setHpMode('heal');
+          if (state.combatState.activeTurnId) {
+            setTimeout(() => {
+              const el = document.getElementById(`heal-input-${state.combatState.activeTurnId}`);
+              if (el) {
+                (el as HTMLInputElement).focus();
+                (el as HTMLInputElement).select();
+              }
+            }, 50);
+          }
+          break;
+        case 'd':
+          setHpMode('damage');
+          if (state.combatState.activeTurnId) {
+            setTimeout(() => {
+              const el = document.getElementById(`damage-input-${state.combatState.activeTurnId}`);
+              if (el) {
+                (el as HTMLInputElement).focus();
+                (el as HTMLInputElement).select();
+              }
+            }, 50);
+          }
+          break;
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+        case '9': {
+          const index = parseInt(event.key, 10) - 1;
+          const combatantsList = state.combatState.combatants;
+          if (combatantsList && index < combatantsList.length) {
+            const targetCombatant = combatantsList[index];
+            if (targetCombatant) {
+              setExpandedIds(prev => {
+                const copy = new Set(prev);
+                copy.add(targetCombatant.id);
+                return copy;
+              });
+              setTimeout(() => {
+                const cardEl = document.getElementById(`combatant-card-${targetCombatant.id}`);
+                if (cardEl) {
+                  cardEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+              }, 50);
+            }
+          }
+          break;
+        }
+        case 'escape': {
+          setExpandedIds(new Set());
+          setIsToolsModalOpen(false);
+          setIsCheatSheetOpen(false);
+          break;
+        }
+        default:
+          break;
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [
+    state.combatState.combatants,
+    state.combatState.activeTurnId,
+    state.combatState.initiativeEvent,
+    hpMode,
+    isCheatSheetOpen,
+    nextTurn,
+    rollInitForNPCs,
+    toggleMultiTargetMode,
+    handleCallInitiative
+  ]);
+
   return (
     <div className="flex flex-col gap-8 relative items-start">
       <div className={cn('space-y-6 flex flex-col transition-all duration-300 w-full')}>
@@ -708,14 +924,24 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
             encounter={encounter}
             round={state.combatState.round}
             isMultiTargetMode={isMultiTargetMode}
+            selectedCount={selectedCombatantIds.size}
             onOpenTools={() => setIsToolsModalOpen(true)}
             onRollNpcInit={rollInitForNPCs}
             onResetCombat={resetCombat}
             onNextTurn={nextTurn}
             onToggleMultiTargetMode={toggleMultiTargetMode}
+            onDeleteSelected={handleDeleteSelected}
+            onCancelSelection={() => {
+              setSelectedCombatantIds(new Set());
+              setIsMultiTargetMode(false);
+            }}
             onBack={onBack}
             onCallInitiative={handleCallInitiative}
             initiativeEvent={!!state.combatState.initiativeEvent}
+            onOpenCheatSheet={() => setIsCheatSheetOpen(true)}
+            onApplyDamage={handleApplyMultiDamage}
+            onApplyHealing={handleApplyMultiHealing}
+            onApplyCondition={handleApplyMultiCondition}
           />
 
           <div className="flex-1 bg-white w-full p-6">
@@ -747,6 +973,7 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
                     onUpdateCombatant={(updates) => updateCombatant(c.id, updates)}
                     onRemoveCombatant={() => removeCombatant(c.id)}
                     onConcentrationPrompt={handleConcentrationPrompt}
+                    hpMode={hpMode}
                   />
                 ))
               )}
@@ -755,16 +982,19 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
         </div>
       </div>
 
-      <MultiTargetActionBar
-        selectedCount={selectedCombatantIds.size}
-        onApplyDamage={handleApplyMultiDamage}
-        onApplyHealing={handleApplyMultiHealing}
-        onApplyCondition={handleApplyMultiCondition}
-        onClearSelection={() => {
-          setSelectedCombatantIds(new Set());
-          setIsMultiTargetMode(false);
-        }}
-      />
+      {/* 
+        MultiTargetActionBar commented out; its functionality has moved to the persistent MultiTargetActionPanel banner directly below CombatHeader 
+        <MultiTargetActionBar
+          selectedCount={selectedCombatantIds.size}
+          onApplyDamage={handleApplyMultiDamage}
+          onApplyHealing={handleApplyMultiHealing}
+          onApplyCondition={handleApplyMultiCondition}
+          onClearSelection={() => {
+            setSelectedCombatantIds(new Set());
+            setIsMultiTargetMode(false);
+          }}
+        />
+      */}
 
       <CombatSidebar
         isOpen={isToolsModalOpen}
@@ -773,6 +1003,8 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
         characters={state.characters}
         onAddPreset={handleAddPreset}
         onAddNpc={handleAddNpc}
+        combatants={state.combatState.combatants}
+        onUpdateCombatant={updateCombatant}
       />
 
       <CasterAttributionDialog
@@ -783,6 +1015,98 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
         onSelect={handleSelectCaster}
         onDismiss={() => setConcentrationPrompt(null)}
       />
+
+      {isCheatSheetOpen && (
+        <div 
+          id="shortcut-cheat-sheet"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[120] flex items-center justify-center p-4 animate-fade-in"
+          onClick={() => setIsCheatSheetOpen(false)}
+        >
+          <div 
+            className="bg-[#fdfaf5] w-full max-w-lg rounded-2xl shadow-2xl border border-[#e5e1d8] p-6 text-stone-900"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-2 border-b border-[#e5e1d8] pb-4 mb-4">
+              <span className="p-1.5 bg-[#faf9f6] rounded-lg border border-[#e5e1d8] text-[#c5b358]">
+                ❓
+              </span>
+              <div>
+                <h3 className="text-lg font-bold text-[#2c2c26] font-serif uppercase tracking-wider">Keyboard Shortcuts</h3>
+                <p className="text-xs text-[#5a5a40]">GM Dashboard quick references</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+              <div>
+                <h4 className="font-serif font-bold text-sm text-[#c5b358] border-b border-[#f5f5f0] pb-1 uppercase tracking-wider mb-2">Combat</h4>
+                <div className="space-y-2.5">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-1.5 font-mono text-xs font-bold bg-[#faf9f6]/80 border border-[#e5e1d8] px-2 py-0.5 rounded text-[#2c2c26]">N</span>
+                    <span className="text-[#5a5a40] text-xs">Next turn</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-1.5 font-mono text-xs font-bold bg-[#faf9f6]/80 border border-[#e5e1d8] px-2 py-0.5 rounded text-[#2c2c26]">R</span>
+                    <span className="text-[#5a5a40] text-xs">Roll NPC initiative</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-1.5 font-mono text-xs font-bold bg-[#faf9f6]/80 border border-[#e5e1d8] px-2 py-0.5 rounded text-[#2c2c26]">S</span>
+                    <span className="text-[#5a5a40] text-xs">Toggle select mode</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-1.5 font-mono text-xs font-bold bg-[#faf9f6]/80 border border-[#e5e1d8] px-2 py-0.5 rounded text-[#2c2c26]">B</span>
+                    <span className="text-[#5a5a40] text-xs">Broadcast player view</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-1.5 font-mono text-xs font-bold bg-[#faf9f6]/80 border border-[#e5e1d8] px-2 py-0.5 rounded text-[#2c2c26]">C</span>
+                    <span className="text-[#5a5a40] text-xs">Call for initiative</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-1.5 font-mono text-xs font-bold bg-[#faf9f6]/80 border border-[#e5e1d8] px-2 py-0.5 rounded text-[#2c2c26]">1-9</span>
+                    <span className="text-[#5a5a40] text-xs">Select combatant</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-1.5 font-mono text-xs font-bold bg-[#faf9f6]/80 border border-[#e5e1d8] px-2 py-0.5 rounded text-[#2c2c26]">Esc</span>
+                    <span className="text-[#5a5a40] text-xs">Deselect all</span>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="font-serif font-bold text-sm text-[#c5b358] border-b border-[#f5f5f0] pb-1 uppercase tracking-wider mb-2">Input</h4>
+                <div className="space-y-2.5">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-1.5 font-mono text-xs font-bold bg-[#faf9f6]/80 border border-[#e5e1d8] px-2 py-0.5 rounded text-[#2c2c26]">H</span>
+                    <span className="text-[#5a5a40] text-xs">Heal mode</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-1.5 font-mono text-xs font-bold bg-[#faf9f6]/80 border border-[#e5e1d8] px-2 py-0.5 rounded text-[#2c2c26]">D</span>
+                    <span className="text-[#5a5a40] text-xs">Damage mode</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-1.5 font-mono text-xs font-bold bg-[#faf9f6]/80 border border-[#e5e1d8] px-2 py-0.5 rounded text-[#2c2c26]">T</span>
+                    <span className="text-[#5a5a40] text-xs">Open tools</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-1.5 font-mono text-xs font-bold bg-[#faf9f6]/80 border border-[#e5e1d8] px-2 py-0.5 rounded text-[#2c2c26]">? / Shift+/</span>
+                    <span className="text-[#5a5a40] text-xs">Show shortcuts</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 pt-4 border-t border-[#f5f5f0] flex justify-end">
+              <button 
+                onClick={() => setIsCheatSheetOpen(false)}
+                className="px-4 py-1.5 bg-[#faf9f6] border border-[#e5e1d8] hover:border-[#c5b358] text-[#5a5a40] hover:text-[#2c2c26] text-xs font-bold uppercase rounded-lg transition-colors cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <DiceRoller />
     </div>
   );
 }

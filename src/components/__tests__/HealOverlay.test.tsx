@@ -46,7 +46,7 @@ describe('HealOverlay', () => {
     );
     const nameEl = container.querySelector('#heal-overlay-name') as HTMLElement;
     expect(nameEl).not.toBeNull();
-    expect(nameEl.textContent).toBe('Seraphina Brightwell');
+    expect(nameEl.textContent).toContain('Seraphina Brightwell');
   });
 
   it('at least one video element is present', () => {

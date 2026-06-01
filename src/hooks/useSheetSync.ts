@@ -64,6 +64,7 @@ export function buildCombatantsFromState(
             tempAcModifier: c.tempAc || 0,
             deathSavesFails: c.deathSavesFails || 0,
             deathSavesSuccesses: c.deathSavesSuccesses || 0,
+            reactionUsed: false,
           });
         }
       } else if (ec.npcId) {
@@ -90,6 +91,7 @@ export function buildCombatantsFromState(
               vulnerabilities: npcTemplate.vulnerabilities,
               conditionTimers: parsedTimers,
               tempAcModifier: ec.npcTempAcMod || 0,
+              reactionUsed: false,
             });
           }
         }
@@ -120,6 +122,7 @@ export function buildCombatantsFromState(
         tempAcModifier: c.tempAc || 0,
         deathSavesFails: c.deathSavesFails || 0,
         deathSavesSuccesses: c.deathSavesSuccesses || 0,
+        reactionUsed: false,
       });
     });
   }

@@ -13,16 +13,88 @@ import { HealOverlay } from './components/HealOverlay';
 import { UnconsciousOverlay } from './components/UnconsciousOverlay';
 import { RageOverlay } from './components/RageOverlay';
 import { InitiativeOverlay } from './components/InitiativeOverlay';
+import { CommandPalette } from './components/CommandPalette';
+import {
+  initAudio,
+  playDamageSound,
+  playHealSound,
+  playDeathSound,
+  playUnconsciousSound,
+  playRageSound,
+} from './lib/audioEngine';
 
 function AppContent() {
   const { theme } = useTheme();
   const { state } = useAppState();
+  const [isPaletteOpen, setIsPaletteOpen] = useState(false);
+
+  // Initialize Web Audio API on first user interaction (click)
+  useEffect(() => {
+    const handleInteraction = () => {
+      initAudio();
+      document.removeEventListener('click', handleInteraction);
+    };
+    document.addEventListener('click', handleInteraction);
+    return () => {
+      document.removeEventListener('click', handleInteraction);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setIsPaletteOpen(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
   const deathEvent = state.combatState.deathEvent;
   const damageEvent = state.combatState.damageEvent;
   const healEvent = state.combatState.healEvent;
   const unconsciousEvent = state.combatState.unconsciousEvent;
   const rageEvent = state.combatState.rageEvent;
   const initiativeEvent = state.combatState.initiativeEvent;
+
+  // Audio trigger effects using primitive values to prevent infinite renders or object reference mismatches
+  const damageEventKey = damageEvent ? `${damageEvent.combatantName}-${damageEvent.damageAmount}` : '';
+  useEffect(() => {
+    if (damageEventKey) {
+      playDamageSound();
+    }
+  }, [damageEventKey]);
+
+  const healEventKey = healEvent ? `${healEvent.combatantName}-${healEvent.healAmount}` : '';
+  useEffect(() => {
+    if (healEventKey) {
+      playHealSound();
+    }
+  }, [healEventKey]);
+
+  const deathEventKey = deathEvent ? deathEvent.characterName : '';
+  useEffect(() => {
+    if (deathEventKey) {
+      playDeathSound();
+    }
+  }, [deathEventKey]);
+
+  const unconsciousEventKey = unconsciousEvent ? unconsciousEvent.characterName : '';
+  useEffect(() => {
+    if (unconsciousEventKey) {
+      playUnconsciousSound();
+    }
+  }, [unconsciousEventKey]);
+
+  const rageEventKey = rageEvent ? rageEvent.characterName : '';
+  useEffect(() => {
+    if (rageEventKey) {
+      playRageSound();
+    }
+  }, [rageEventKey]);
 
   return (
     <div id="root-theme-wrapper" data-theme={theme} className="w-full min-h-[100dvh] flex flex-col transition-colors duration-300">
@@ -66,6 +138,7 @@ function AppContent() {
           <Route path="/auth-relay" element={<AuthRelay />} />
         </Routes>
       </HashRouter>
+      <CommandPalette isOpen={isPaletteOpen} onClose={() => setIsPaletteOpen(false)} />
     </div>
   );
 }

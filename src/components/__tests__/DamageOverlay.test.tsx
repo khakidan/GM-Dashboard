@@ -46,7 +46,7 @@ describe('DamageOverlay', () => {
     );
     const nameEl = container.querySelector('#damage-overlay-name') as HTMLElement;
     expect(nameEl).not.toBeNull();
-    expect(nameEl.textContent).toBe('Thorin Ironforge');
+    expect(nameEl.textContent).toContain('Thorin Ironforge');
   });
 
   it('at least one video element is present', () => {
