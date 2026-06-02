@@ -13,6 +13,16 @@ export function useDeathSaves() {
 
   const checkDeathSaveOutcome = useCallback(
     async (combatantId: string, fails: number, successes: number, combatant: Combatant) => {
+      if (!combatant.characterId) {
+        console.warn(
+          '[useDeathSaves] combatant has no ' +
+          'characterId — skipping death save ' +
+          'operation', 
+          combatant.id
+        );
+        return;
+      }
+
       if (fails >= 3) {
         // PC has died!
         const conditionsList = (combatant.conditions || '').split(',').map(s => s.trim()).filter(Boolean);
@@ -84,7 +94,7 @@ export function useDeathSaves() {
           }
         }));
 
-        await updateDeathSavesDB(combatant.characterId!, 0, 0);
+        await updateDeathSavesDB(combatant.characterId, 0, 0);
         toast(`${combatant.name} is stable — no further death saves required until they take damage again.`);
         return 'stable';
       }
@@ -97,7 +107,17 @@ export function useDeathSaves() {
     async (combatantId: string, result: 'success' | 'failure', isCritical = false) => {
       const currentState = getSnapshot();
       const combatant = currentState.combatState.combatants.find(c => c.id === combatantId);
-      if (!combatant || combatant.type !== 'pc' || !combatant.characterId) return;
+      if (!combatant || combatant.type !== 'pc') return;
+
+      if (!combatant.characterId) {
+        console.warn(
+          '[useDeathSaves] combatant has no ' +
+          'characterId — skipping death save ' +
+          'operation', 
+          combatant.id
+        );
+        return;
+      }
 
       let fails = combatant.deathSavesFails || 0;
       let successes = combatant.deathSavesSuccesses || 0;
@@ -144,7 +164,17 @@ export function useDeathSaves() {
     async (combatantId: string, isCritical = false) => {
       const currentState = getSnapshot();
       const combatant = currentState.combatState.combatants.find(c => c.id === combatantId);
-      if (!combatant || combatant.type !== 'pc' || !combatant.characterId) return;
+      if (!combatant || combatant.type !== 'pc') return;
+
+      if (!combatant.characterId) {
+        console.warn(
+          '[useDeathSaves] combatant has no ' +
+          'characterId — skipping death save ' +
+          'operation', 
+          combatant.id
+        );
+        return;
+      }
 
       const failsGain = isCritical ? 2 : 1;
       const currentFails = combatant.isStable ? 0 : (combatant.deathSavesFails || 0);

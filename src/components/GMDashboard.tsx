@@ -15,14 +15,27 @@ import { GMDashboardSidebar } from './GMDashboardSidebar';
 import { GMTabContent } from './GMTabContent';
 import { STORAGE_KEYS, WRITE_QUEUE } from '../lib/constants';
 
-type Tab = 'party' | 'encounters' | 'npc-library' | 'combat' | 'settings';
+const VALID_TABS = [
+  'party',
+  'encounters',
+  'npc-library',
+  'combat',
+  'settings'
+] as const;
+
+type Tab = typeof VALID_TABS[number];
+
+function isTab(value: unknown): value is Tab {
+  return typeof value === 'string' && (VALID_TABS as readonly string[]).includes(value);
+}
+
 const LAST_TAB_KEY = STORAGE_KEYS.lastActiveTab;
 
 export function GMDashboard() {
   const { state } = useAppState();
   const [activeTab, setActiveTab] = useState<Tab>(() => {
     const stored = localStorage.getItem(LAST_TAB_KEY);
-    return (stored as Tab) || 'party';
+    return isTab(stored) ? stored : 'party';
   });
 
   useEffect(() => {

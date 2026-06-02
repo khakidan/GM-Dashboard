@@ -56,6 +56,42 @@ describe('useDeathSaves', () => {
     (getSnapshot as any).mockReturnValue(mockState);
   });
 
+  it('recordDeathSave called with a combatant that has no characterId returns early without throwing and without calling any DB operation', async () => {
+    const noCharIdState = {
+      ...mockState,
+      combatState: {
+        combatants: [{ ...mockState.combatState.combatants[0], characterId: undefined }]
+      }
+    };
+    (getSnapshot as any).mockReturnValue(noCharIdState);
+    const { result } = renderHook(() => useDeathSaves());
+    
+    await act(async () => {
+      await result.current.recordDeathSave('c1', 'success');
+    });
+
+    expect(updateDeathSavesDB).not.toHaveBeenCalled();
+    expect(toast).not.toHaveBeenCalled();
+  });
+
+  it('applyDamageToUnconscious called with a combatant that has no characterId returns early without throwing', async () => {
+    const noCharIdState = {
+      ...mockState,
+      combatState: {
+        combatants: [{ ...mockState.combatState.combatants[0], characterId: undefined }]
+      }
+    };
+    (getSnapshot as any).mockReturnValue(noCharIdState);
+    const { result } = renderHook(() => useDeathSaves());
+    
+    await act(async () => {
+      await result.current.applyDamageToUnconscious('c1');
+    });
+
+    expect(updateDeathSavesDB).not.toHaveBeenCalled();
+    expect(toast).not.toHaveBeenCalled();
+  });
+
   it('records a successful death save', async () => {
     const { result } = renderHook(() => useDeathSaves());
     
