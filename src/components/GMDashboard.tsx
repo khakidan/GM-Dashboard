@@ -3,35 +3,18 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAppState } from '../hooks/useAppState';
 import { getQueueSize } from '../services/writeQueue';
-import {
-  Swords,
-  Users,
-  Map,
-  RefreshCw,
-  PanelLeftClose,
-  PanelLeft,
-  Menu,
-  Skull,
-  Settings,
-  X,
-} from 'lucide-react';
-import { cn } from '../lib/utils';
-import { toast } from 'sonner';
-import { PartyTab } from './PartyTab';
-import { NpcLibraryTab } from './NpcLibraryTab';
-import { EncountersTab } from './EncountersTab';
-import { ActiveEncounterTab } from './ActiveEncounterTab';
-import { ErrorBoundary } from './ErrorBoundary';
+import { Menu } from 'lucide-react';
 import { hasToken } from '../services/googleAuth';
 import { useGoogleAuth } from '../hooks/useGoogleAuth';
 import { useSheetSync } from '../hooks/useSheetSync';
 import { useEncounterLifecycle } from '../hooks/useEncounterLifecycle';
 import { useEncounterResume } from '../hooks/useEncounterResume';
 import { SyncingOverlay } from './SyncingOverlay';
-import { SettingsPage } from './SettingsPage';
+import { GMLoadingScreen } from './GMLoadingScreen';
+import { GMDashboardSidebar } from './GMDashboardSidebar';
+import { GMTabContent } from './GMTabContent';
 
 type Tab = 'party' | 'encounters' | 'npc-library' | 'combat' | 'settings';
-
 const LAST_TAB_KEY = 'gm_last_active_tab';
 
 export function GMDashboard() {
@@ -134,34 +117,19 @@ export function GMDashboard() {
   });
 
   if (!state.hasInitialSynced) {
+    const isAuthenticated = hasToken();
     return (
-      <div className="w-full h-[100dvh] bg-[#2c2c26] flex items-center justify-center font-sans tracking-wide">
-        <div className="flex flex-col items-center gap-6 text-center">
-          <h1 className="text-2xl font-bold tracking-tight text-[#c5b358]">{state.campaignName || "D&D GM Dashboard"}</h1>
-          {(!hasToken() && !isSyncing) ? (
-            <div className="flex flex-col items-center gap-4">
-              <p className="text-[#e5e1d8]/70">Connect your Google account to get started.</p>
-              <button 
-                onClick={handleSignIn} 
-                className="px-6 py-3 bg-[#c5b358] text-[#2c2c26] font-bold uppercase tracking-widest text-xs rounded hover:bg-white transition-colors"
-              >
-                Sign In With Google
-              </button>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center gap-4">
-              <RefreshCw className="w-8 h-8 text-[#c5b358] animate-spin" />
-              <p className="text-[#e5e1d8]/70 text-xs uppercase font-bold tracking-widest">Loading from Google Sheets...</p>
-            </div>
-          )}
-        </div>
-      </div>
+      <GMLoadingScreen
+        isAuthenticated={isAuthenticated}
+        campaignName={state.campaignName}
+        isSyncing={isSyncing}
+        onSignIn={handleSignIn}
+      />
     );
   }
 
   return (
     <div className="w-full h-[100dvh] bg-[#fdfaf5] flex overflow-hidden font-serif select-none relative">
-      {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
         <div
           className="lg:hidden fixed inset-0 bg-[#2c2c26]/60 backdrop-blur-sm z-30"
@@ -169,216 +137,25 @@ export function GMDashboard() {
         />
       )}
 
-      {/* Sidebar Navigation */}
-      <aside className={cn(
-        'bg-[#2c2c26] text-[#e5e1d8] flex flex-col border-r border-[#1a1a14] transition-all duration-300 z-40 fixed h-full lg:relative shrink-0',
-        isSidebarOpen ? 'w-64 translate-x-0' : '-translate-x-full lg:translate-x-0 lg:w-20'
-      )}>
-        <button
-          id="sidebar-toggle-btn"
-          onClick={() => setSidebarOpen(!isSidebarOpen)}
-          className="hidden lg:flex absolute -right-3 top-6 bg-[#3f3f37] border border-[#1a1a14] p-1.5 rounded-full text-white hover:bg-[#5a5a40] transition-colors z-20"
-        >
-          {isSidebarOpen ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeft className="w-4 h-4" />}
-        </button>
+      <GMDashboardSidebar
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        isOpen={isSidebarOpen}
+        onToggle={setSidebarOpen}
+        campaignName={state.campaignName}
+        isSyncing={isSyncing}
+        isOnline={isOnline}
+        queuedWrites={queuedWrites}
+        lastSyncTime={lastSyncTime}
+        syncError={syncError}
+        onSyncWithSheets={handleSyncWithSheets}
+        activeEncounterId={state.combatState.activeEncounterId}
+      />
 
-        <button
-          onClick={() => setSidebarOpen(false)}
-          className="lg:hidden absolute top-4 right-4 p-2 text-white/50 hover:text-white"
-        >
-          <X className="w-5 h-5" />
-        </button>
-
-        <div className="p-4 h-24 flex items-center justify-center">
-          {isSidebarOpen ? (
-            <div className="w-full px-4">
-              <h1 className="text-xl font-bold tracking-tight text-[#c5b358]">GAME MASTER</h1>
-              <div className="mt-0.5 text-[11px] uppercase tracking-widest opacity-50 font-sans">Campaign Hub</div>
-            </div>
-          ) : (
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="p-3 hover:bg-[#3f3f37] rounded-xl text-[#c5b358] transition-all active:scale-95"
-              title="Open Sidebar"
-            >
-              <Menu className="w-6 h-6" />
-            </button>
-          )}
-        </div>
-
-        <nav className="flex-1 px-4 space-y-2 overflow-y-auto">
-          <button
-            onClick={() => {
-              handleTabChange('party');
-              if (window.innerWidth < 1024) setSidebarOpen(false);
-            }}
-            className={cn(
-              'w-full text-left p-3 flex items-center transition-colors rounded-lg',
-              activeTab === 'party' ? 'bg-[#3f3f37] text-white' : 'hover:bg-[#3f3f37]/50 opacity-70',
-              isSidebarOpen ? 'gap-3' : 'justify-center'
-            )}
-            title="Party Roster"
-          >
-            {activeTab === 'party' && isSidebarOpen && <div className="w-2 h-2 rounded-full bg-[#c5b358] shrink-0"></div>}
-            <Users className="w-5 h-5 shrink-0" />
-            {isSidebarOpen && <span className="font-bold font-sans line-clamp-1">Party Roster</span>}
-          </button>
-
-          <button
-            id="nav-npc-library"
-            onClick={() => {
-              handleTabChange('npc-library');
-              if (window.innerWidth < 1024) setSidebarOpen(false);
-            }}
-            className={cn(
-              'w-full text-left p-3 flex items-center transition-colors rounded-lg',
-              activeTab === 'npc-library' ? 'bg-[#3f3f37] text-white' : 'hover:bg-[#3f3f37]/50 opacity-70',
-              isSidebarOpen ? 'gap-3' : 'justify-center'
-            )}
-            title="NPC Library"
-          >
-            {activeTab === 'npc-library' && isSidebarOpen && <div className="w-2 h-2 rounded-full bg-[#c5b358] shrink-0"></div>}
-            <Skull className="w-5 h-5 shrink-0" />
-            {isSidebarOpen && <span className="font-bold font-sans line-clamp-1">NPC Library</span>}
-          </button>
-
-          <button
-            onClick={() => {
-              handleTabChange('encounters');
-              if (window.innerWidth < 1024) setSidebarOpen(false);
-            }}
-            className={cn(
-              'w-full text-left p-3 flex items-center transition-colors rounded-lg',
-              activeTab === 'encounters' ? 'bg-[#3f3f37] text-white' : 'hover:bg-[#3f3f37]/50 opacity-70',
-              isSidebarOpen ? 'gap-3' : 'justify-center'
-            )}
-            title="Encounters"
-          >
-            {activeTab === 'encounters' && isSidebarOpen && <div className="w-2 h-2 rounded-full bg-[#c5b358] shrink-0"></div>}
-            <Map className="w-5 h-5 shrink-0" />
-            {isSidebarOpen && <span className="font-bold font-sans line-clamp-1">Encounters</span>}
-          </button>
-
-          <button
-            onClick={() => {
-              if (state.combatState.activeEncounterId) {
-                handleTabChange('combat');
-                if (window.innerWidth < 1024) setSidebarOpen(false);
-              }
-            }}
-            disabled={!state.combatState.activeEncounterId}
-            className={cn(
-              'w-full text-left p-3 flex items-center transition-colors rounded-lg',
-              activeTab === 'combat' ? 'bg-[#3f3f37] text-white' : (state.combatState.activeEncounterId ? 'hover:bg-[#3f3f37]/50 opacity-70' : 'opacity-30 cursor-not-allowed'),
-              isSidebarOpen ? 'gap-3' : 'justify-center'
-            )}
-            title="Active Combat"
-          >
-            {activeTab === 'combat' && isSidebarOpen && <div className="w-2 h-2 rounded-full bg-[#c5b358] shrink-0"></div>}
-            <Swords className="w-5 h-5 shrink-0" />
-            {isSidebarOpen && <span className="font-bold font-sans line-clamp-1">Active Combat</span>}
-          </button>
-
-          <button
-            id="app-settings-btn"
-            onClick={() => {
-              handleTabChange('settings');
-              if (window.innerWidth < 1024) setSidebarOpen(false);
-            }}
-            className={cn(
-              'w-full text-left p-3 flex items-center transition-colors rounded-lg',
-              activeTab === 'settings' ? 'bg-[#3f3f37] text-white' : 'hover:bg-[#3f3f37]/50 opacity-70',
-              isSidebarOpen ? 'gap-3' : 'justify-center'
-            )}
-            title="App Settings"
-          >
-            {activeTab === 'settings' && isSidebarOpen && <div className="w-2 h-2 rounded-full bg-[#c5b358] shrink-0"></div>}
-            <Settings className="w-5 h-5 shrink-0" />
-            {isSidebarOpen && <span className="font-bold font-sans line-clamp-1">Settings</span>}
-          </button>
-        </nav>
-
-        <div className="p-4 border-t border-[#3f3f37]">
-          {isSidebarOpen ? (
-            <div className="flex flex-col gap-3 p-3 rounded-lg">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-[#5a5a40] flex items-center justify-center text-sm font-bold font-sans text-white shrink-0">G</div>
-                <div className="overflow-hidden">
-                  <div className="text-base font-bold font-sans truncate">Google Sheets</div>
-                  <div className={cn(
-                    'text-[10px] uppercase tracking-widest font-bold truncate',
-                    lastSyncTime ? 'text-green-500' : 'text-yellow-500'
-                  )}>
-                    {lastSyncTime
-                      ? `Synced ${lastSyncTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
-                      : 'Not Synced'}
-                  </div>
-                </div>
-              </div>
-
-              <button
-                onClick={() => handleSyncWithSheets(true)}
-                disabled={isSyncing}
-                className="flex items-center justify-center gap-2 w-full bg-[#3f3f37] hover:bg-[#5a5a40] text-[#e5e1d8] rounded-md py-3 text-xs font-sans font-bold uppercase tracking-widest transition-colors disabled:opacity-50"
-              >
-                <RefreshCw className={cn('w-4 h-4 shrink-0', isSyncing && 'animate-spin')} />
-                {isSyncing ? 'Syncing...' : hasToken() ? 'Pull from Sheets' : 'Connect & Sync'}
-              </button>
-              {syncError && <div className="text-xs text-red-400 font-sans mt-1 leading-tight">{syncError}</div>}
-            </div>
-          ) : (
-            <div className="flex flex-col items-center gap-4 py-2">
-              <div
-                title={lastSyncTime ? `Synced ${lastSyncTime.toLocaleTimeString()}` : 'Not Synced'}
-                className="w-8 h-8 rounded-full bg-[#5a5a40] flex items-center justify-center text-xs font-bold font-sans text-white shrink-0 relative"
-              >
-                G
-                <div className={cn('absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-[#2c2c26]', lastSyncTime ? 'bg-green-500' : 'bg-yellow-500')}></div>
-              </div>
-              <button
-                onClick={() => handleSyncWithSheets()}
-                disabled={isSyncing}
-                title="Pull from Sheets"
-                className="p-2 bg-[#3f3f37] hover:bg-[#5a5a40] rounded-full text-white transition-colors disabled:opacity-50"
-              >
-                <RefreshCw className={cn('w-4 h-4', isSyncing && 'animate-spin')} />
-              </button>
-            </div>
-          )}
-
-          {/* Offline/Syncing Queue Indicator */}
-          {(!isOnline || queuedWrites > 0) && (
-            <div className={cn(
-              "mt-3 text-[11px] font-sans tracking-wider flex items-center bg-[#1a1a14]/60 p-2.5 rounded-lg border",
-              isOnline ? "border-green-500/20 text-green-300" : "border-amber-500/20 text-amber-300",
-              isSidebarOpen ? "gap-2.5 px-3" : "justify-center p-2"
-            )}
-            title={!isOnline ? `Offline — ${queuedWrites} writes queued` : `Syncing ${queuedWrites} writes...`}
-            >
-              {isOnline ? (
-                <span className="relative flex h-2 w-2 shrink-0">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                </span>
-              ) : (
-                <span className="h-2 w-2 rounded-full bg-amber-500 shrink-0"></span>
-              )}
-              {isSidebarOpen && (
-                <span className="font-bold uppercase tracking-wider truncate leading-none">
-                  {!isOnline ? `Offline — ${queuedWrites} writes queued` : `Syncing ${queuedWrites} writes...`}
-                </span>
-              )}
-            </div>
-          )}
-        </div>
-      </aside>
-
-      {/* Main Content Area */}
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-        {/* Top Header */}
         <header className="h-16 lg:h-20 shrink-0 border-b border-[#e5e1d8] px-4 lg:px-8 flex items-center justify-between bg-white/80 lg:bg-white/50 backdrop-blur-md sticky top-0 z-10 transition-all">
           <div className="flex-1 max-w-lg mr-4 group flex items-center gap-2">
-            <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-2 -ml-2 text-[#5a5a40] hover:bg-black/5 rounded">
+            <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-2 -ml-2 text-[#5a5a40] hover:bg-black/5 rounded cursor-pointer">
               <Menu className="w-6 h-6" />
             </button>
             <h2 className="text-lg lg:text-xl font-bold text-[#2c2c26] px-2 py-1">
@@ -387,51 +164,24 @@ export function GMDashboard() {
           </div>
         </header>
 
-        {/* Dashboard Content */}
         <section className="flex-1 p-4 lg:p-8">
           <div className="max-w-7xl mx-auto">
-            {activeTab === 'combat' && state.combatState.activeEncounterId ? (
-              <ErrorBoundary>
-                <ActiveEncounterTab onBack={clearEncounter} />
-              </ErrorBoundary>
-            ) : activeTab === 'party' ? (
-              <ErrorBoundary>
-                <PartyTab />
-              </ErrorBoundary>
-            ) : activeTab === 'npc-library' ? (
-              <ErrorBoundary>
-                <NpcLibraryTab />
-              </ErrorBoundary>
-            ) : activeTab === 'settings' ? (
-              <ErrorBoundary>
-                <SettingsPage
-                  isGoogleConnected={isGoogleConnected}
-                  handleSignIn={handleSignIn}
-                  handleSignOut={handleSignOut}
-                  setIsGoogleConnected={setIsGoogleConnected}
-                  handleSyncWithSheets={handleSyncWithSheets}
-                  addLog={addLog}
-                />
-              </ErrorBoundary>
-            ) : (
-              <ErrorBoundary>
-                <EncountersTab
-                  onSelectEncounter={startEncounter}
-                  onSyncRequested={async () => {
-                    toast.promise(handleSyncWithSheets(false), {
-                      loading: 'Syncing with Google Sheets...',
-                      success: 'Sync complete',
-                      error: 'Sync failed — changes saved locally',
-                    });
-                  }}
-                />
-              </ErrorBoundary>
-            )}
+            <GMTabContent
+              activeTab={activeTab}
+              hasActiveEncounter={!!state.combatState.activeEncounterId}
+              clearEncounter={clearEncounter}
+              startEncounter={startEncounter}
+              isGoogleConnected={isGoogleConnected}
+              handleSignIn={handleSignIn}
+              handleSignOut={handleSignOut}
+              setIsGoogleConnected={setIsGoogleConnected}
+              handleSyncWithSheets={handleSyncWithSheets}
+              addLog={addLog}
+            />
           </div>
         </section>
       </main>
 
-      {/* Syncing Overlay */}
       <SyncingOverlay
         isSyncing={isSyncing}
         syncLogs={syncLogs}

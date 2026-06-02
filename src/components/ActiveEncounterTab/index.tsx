@@ -1,29 +1,22 @@
-import { CONCENTRATION_EFFECTS, buildConditionSummary } from '../../lib/conditions';
-import { OVERLAY_CLEAR_BUFFER_MS } from '../../lib/constants';
-import { OVERLAY_DURATIONS } from '../../lib/constants';
 import React, { useState, useEffect } from 'react';
-import { useAppState, getSnapshot } from '../../hooks/useAppState';
-import { toast } from 'sonner';
-import { getExpiredConditions } from '../../lib/combatLogic';
 import { Skull, AlertCircle } from 'lucide-react';
 import { cn } from '../../lib/utils';
-import { Combatant, DamageType, EncounterCombatant } from '../../types';
-import { addNpcDB, addEncounterCombatantDB, updateInitiativeDB, updateDeathSavesDB, updateEncounterStateDB } from '../../services/dbOperations';
-;
-;
-import { playTurnStartSound, playDeathSaveFailSound, playDeathSaveSuccessSound } from '../../lib/audioEngine';
+import { DamageType } from '../../types';
+import { useAppState, getSnapshot } from '../../hooks/useAppState';
+import { toast } from 'sonner';
 
 import { CombatHeader } from './CombatHeader';
 import { CombatantCard } from './CombatantCard';
 import { CombatSidebar } from './CombatSidebar';
-import { MultiTargetActionBar } from './MultiTargetActionBar';
-import { MultiTargetActionPanel } from './MultiTargetActionPanel';
-import { useCombatSync } from './hooks/useCombatSync';
-import { useHealthChange } from './hooks/useHealthChange';
 import { CasterAttributionDialog } from './CasterAttributionDialog';
 import { DiceRoller } from '../DiceRoller';
-import { useInitiativeEvent } from '../../hooks/useOverlayEvents';
-import { useDeathSaves } from '../../hooks/useDeathSaves';
+
+import { useCombatSync } from './hooks/useCombatSync';
+import { useHealthChange } from './hooks/useHealthChange';
+import { useSelectionMode } from './hooks/useSelectionMode';
+import { useEncounterKeyboard } from './hooks/useEncounterKeyboard';
+import { useEncounterPresetLoader } from './hooks/useEncounterPresetLoader';
+import { BatchActionPanel } from './BatchActionPanel';
 
 export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
   const { state, updateState } = useAppState();
@@ -31,23 +24,24 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
 
   const [isToolsModalOpen, setIsToolsModalOpen] = useState(false);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
-
   const [hpMode, setHpMode] = useState<'damage' | 'heal'>('damage');
   const [isCheatSheetOpen, setIsCheatSheetOpen] = useState(false);
 
-  // Keyboard Shortcuts moved lower down for complete variable accessibility
-
-  // Multi-target Selection State
-  const [isMultiTargetMode, setIsMultiTargetMode] = useState(false);
-  const [selectedCombatantIds, setSelectedCombatantIds] = useState<Set<string>>(new Set());
+  // Modular selection state
+  const {
+    selectedIds: selectedCombatantIds,
+    isSelectionMode: isMultiTargetMode,
+    toggleSelection: toggleCombatantSelection,
+    clearSelection,
+    enterSelectionMode,
+    exitSelectionMode,
+  } = useSelectionMode();
 
   const {
     syncingIds,
     globalError,
-    handleError,
     removeCombatant,
     updateCombatant,
-    fireDeathEvent,
     rollInitForNPCs,
     resetCombat,
     handleCallInitiative,
@@ -55,7 +49,7 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
     handleConcentrationPrompt,
     handleSelectCaster,
     concentrationPrompt,
-    setConcentrationPrompt
+    setConcentrationPrompt,
   } = useCombatSync();
 
   const {
@@ -63,10 +57,11 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
     setDamageInputs,
     healInputs,
     setHealInputs,
-    handleHealthChange
+    handleHealthChange,
   } = useHealthChange(syncingIds, updateCombatant);
 
-  const { recordDeathSave, getDeathSaveReminder } = useDeathSaves();
+  // Modular preset & NPC db-to-state loader
+  const { handleAddPreset, handleAddNpc } = useEncounterPresetLoader(encounter, updateCombatant);
 
   const toggleExpand = (id: string) => {
     setExpandedIds(prev => {
@@ -78,31 +73,20 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
   };
 
   const toggleMultiTargetMode = () => {
-    setIsMultiTargetMode(prev => {
-      if (prev) {
-        setSelectedCombatantIds(new Set());
-      }
-      return !prev;
-    });
+    if (isMultiTargetMode) {
+      exitSelectionMode();
+    } else {
+      enterSelectionMode();
+    }
   };
 
-  const toggleCombatantSelection = (id: string) => {
-    setSelectedCombatantIds(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
-
-  const handleApplyMultiDamage = (amount: number, type: DamageType) => {
+  const handleApplyMultiDamage = (amount: number, type: DamageType | null) => {
     const selectedList = state.combatState.combatants.filter(c => selectedCombatantIds.has(c.id));
     if (selectedList.length === 0) return;
 
     selectedList.forEach(c => {
       handleHealthChange(c.id, c, true, type, amount);
     });
-
     toast.success(`Damage applied to ${selectedList.length} targets`);
   };
 
@@ -113,7 +97,6 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
     selectedList.forEach(c => {
       handleHealthChange(c.id, c, false, null, amount);
     });
-
     toast.success(`Healing applied to ${selectedList.length} targets`);
   };
 
@@ -129,290 +112,7 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
         updateCombatant(c.id, { conditions: next });
       }
     });
-
     toast.success(`${condition} applied to ${selectedList.length} targets`);
-  };
-
-  const handleAddPreset = async (type: 'pc' | 'npc', selectedPreset: string, presetQuantity: number) => {
-    const previousState = state;
-    try {
-      const actualQty = type === 'pc' ? 1 : presetQuantity;
-      const tempEcIds = Array.from({ length: actualQty }, (_, idx) => `temp-ec-${idx}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`);
-
-      let newCombatants: Combatant[] = [];
-      let newEcObjects: EncounterCombatant[] = [];
-
-      if (type === 'pc') {
-        const c = state.characters.find(char => char.id === selectedPreset);
-        if (c) {
-          newCombatants.push({
-            id: `combat-pc-${c.id}`,
-            encounterCombatantId: tempEcIds[0],
-            characterId: c.id,
-            name: c.characterName,
-            type: 'pc',
-            initiative: 0,
-            ac: c.ac,
-            maxHp: c.maxHp,
-            currentHp: c.currentHp,
-            tempHp: c.tempHp,
-            conditions: c.conditions,
-            notes: c.notes,
-            passivePerception: c.passivePerception,
-            reactionUsed: false,
-          });
-          newEcObjects.push({
-            id: tempEcIds[0],
-            encounterId: encounter?.id || '',
-            playerId: selectedPreset,
-            npcId: null,
-            quantity: 1,
-            npcCurrentHp: -1,
-            npcTempHp: 0,
-          });
-        }
-      } else {
-        const npcTemplate = state.npcs.find(n => n.id === selectedPreset);
-        if (npcTemplate) {
-          for (let i = 0; i < actualQty; i++) {
-            const combatantId = `combat-npc-${npcTemplate.id}-${i}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-            newCombatants.push({
-              id: combatantId,
-              encounterCombatantId: tempEcIds[i],
-              name: `${npcTemplate.name}${actualQty > 1 ? ` ${i + 1}` : ''}`,
-              type: 'npc',
-              initiative: 0,
-              ac: npcTemplate.ac,
-              maxHp: npcTemplate.maxHp,
-              currentHp: npcTemplate.currentHp,
-              tempHp: npcTemplate.tempHp,
-              conditions: npcTemplate.conditions,
-              notes: npcTemplate.notes,
-              passivePerception: 10,
-              resistances: npcTemplate.resistances,
-              immunities: npcTemplate.immunities,
-              vulnerabilities: npcTemplate.vulnerabilities,
-              reactionUsed: false,
-              legendaryActions: 
-                npcTemplate.legendaryActions && npcTemplate.legendaryActions > 0
-                ? { 
-                    max: npcTemplate.legendaryActions, 
-                    remaining: npcTemplate.legendaryActions 
-                  }
-                : undefined,
-              legendaryResistances: 
-                npcTemplate.legendaryResistances && npcTemplate.legendaryResistances > 0
-                ? { 
-                    max: npcTemplate.legendaryResistances, 
-                    remaining: npcTemplate.legendaryResistances 
-                  }
-                : undefined,
-              rechargeAbilities: 
-                npcTemplate.rechargeAbilities?.length
-                ? npcTemplate.rechargeAbilities.map(a => ({
-                    name: a.name,
-                    rechargeOn: a.rechargeOn,
-                    isCharged: true,
-                  }))
-                : undefined,
-            });
-            newEcObjects.push({
-              id: tempEcIds[i],
-              encounterId: encounter?.id || '',
-              playerId: null,
-              npcId: selectedPreset,
-              quantity: 1,
-              npcCurrentHp: -1,
-              npcTempHp: 0,
-            });
-          }
-        }
-      }
-
-      updateState(prev => ({
-        ...prev,
-        encounterCombatants: [
-          ...prev.encounterCombatants,
-          ...newEcObjects,
-        ],
-        combatState: {
-          ...prev.combatState,
-          combatants: [...prev.combatState.combatants, ...newCombatants],
-        },
-      }));
-
-      const ecResList = await addEncounterCombatantDB(
-        encounter?.id || '',
-        type === 'pc' ? selectedPreset : null,
-        type === 'npc' ? selectedPreset : null,
-        presetQuantity
-      );
-
-      updateState(prev => {
-        const nextCombatants = prev.combatState.combatants.map(c => {
-          const tempIdx = tempEcIds.indexOf(c.encounterCombatantId || '');
-          if (tempIdx !== -1 && ecResList[tempIdx]) {
-            return { ...c, encounterCombatantId: ecResList[tempIdx].id };
-          }
-          return c;
-        });
-
-        const nextEc = prev.encounterCombatants.map(ec => {
-          const tempIdx = tempEcIds.indexOf(ec.id);
-          if (tempIdx !== -1 && ecResList[tempIdx]) {
-            return { 
-              ...ec, 
-              id: ecResList[tempIdx].id,
-              npcCurrentHp: ecResList[tempIdx].npcCurrentHp ?? ec.npcCurrentHp,
-              npcTempHp: ecResList[tempIdx].npcTempHp ?? ec.npcTempHp
-            };
-          }
-          return ec;
-        });
-
-        return {
-          ...prev,
-          encounterCombatants: nextEc,
-          combatState: {
-            ...prev.combatState,
-            combatants: nextCombatants,
-          }
-        };
-      });
-    } catch (error: any) {
-      // 4a. Roll back to snapshot on failure
-      updateState(() => {
-        const snap = getSnapshot();
-        return snap;
-      });
-      
-      // 4b. Show error toast
-      toast.error('Failed to save changes. Please try again.', {
-        description: error instanceof Error ? error.message : 'Unknown error',
-        duration: 5000,
-      });
-      
-      // 4c. Log for debugging
-      console.error('[DB Error]', error);
-      
-      // 4d. Re-throw so callers can handle if needed
-      throw error;
-    }
-  };
-
-  const handleAddNpc = async (
-    npcName: string, 
-    npcHp: number | '', 
-    npcAc: number | '', 
-    npcNotes: string,
-    resistances: string,
-    immunities: string,
-    vulnerabilities: string
-  ) => {
-    const previousState = state;
-    try {
-      const nextIdStr = `temp-npc-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-      const nextEcId = `temp-ec-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-
-      const newNpcCombatant: Combatant = {
-        id: `combat-npc-${nextIdStr}-0-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-        encounterCombatantId: nextEcId.toString(),
-        name: npcName,
-        type: 'npc',
-        ac: npcAc === '' ? 10 : npcAc,
-        maxHp: npcHp as number,
-        currentHp: npcHp as number,
-        passivePerception: 10,
-        initiative: 0,
-        notes: npcNotes,
-        resistances: resistances,
-        immunities: immunities,
-        vulnerabilities: vulnerabilities,
-        reactionUsed: false,
-      };
-
-      updateState(prev => ({
-        ...prev,
-        npcs: [
-          ...prev.npcs,
-          {
-            id: nextIdStr,
-            name: npcName,
-            ac: npcAc === '' ? 10 : npcAc,
-            maxHp: npcHp as number,
-            tempHp: 0,
-            currentHp: npcHp as number,
-            conditions: '',
-            notes: npcNotes,
-            resistances: resistances,
-            immunities: immunities,
-            vulnerabilities: vulnerabilities,
-          },
-        ],
-        encounterCombatants: [
-          ...prev.encounterCombatants,
-          {
-            id: nextEcId.toString(),
-            encounterId: encounter?.id || '',
-            playerId: null,
-            npcId: nextIdStr,
-            quantity: 1,
-            npcCurrentHp: -1,
-            npcTempHp: 0,
-          },
-        ],
-        combatState: {
-          ...prev.combatState,
-          combatants: [...prev.combatState.combatants, newNpcCombatant].sort(
-            (a, b) => b.initiative - a.initiative
-          ),
-        },
-      }));
-
-      const newNpc = await addNpcDB(
-        npcName, 
-        npcHp as number, 
-        npcAc === '' ? 10 : npcAc, 
-        npcNotes, 
-        resistances, 
-        immunities, 
-        vulnerabilities
-      );
-      const newEcArray = await addEncounterCombatantDB(encounter?.id || '', null, newNpc.id, 1);
-      const newEc = newEcArray[0];
-
-      updateState(prev => ({
-        ...prev,
-        npcs: prev.npcs.map(n => (n.id === nextIdStr ? { ...n, id: newNpc.id } : n)),
-        encounterCombatants: prev.encounterCombatants.map(ec =>
-          ec.id === nextEcId ? { ...ec, id: newEc.id, npcId: newNpc.id } : ec
-        ),
-        combatState: {
-          ...prev.combatState,
-          combatants: prev.combatState.combatants.map(c =>
-            c.id === newNpcCombatant.id ? { ...c, encounterCombatantId: newEc.id } : c
-          ),
-        },
-      }));
-    } catch (error: any) {
-      // 4a. Roll back to snapshot on failure
-      updateState(() => {
-        const snap = getSnapshot();
-        return snap;
-      });
-      
-      // 4b. Show error toast
-      toast.error('Failed to save changes. Please try again.', {
-        description: error instanceof Error ? error.message : 'Unknown error',
-        duration: 5000,
-      });
-      
-      // 4c. Log for debugging
-      console.error('[DB Error]', error);
-      
-      // 4d. Re-throw so callers can handle if needed
-      throw error;
-    }
   };
 
   const handleDeleteSelected = async () => {
@@ -426,12 +126,10 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
     const currentState = getSnapshot();
     const activeId = currentState.combatState.activeTurnId;
 
-    // If active turn is being deleted, advance turn to the first surviving combatant BEFORE deletion
     if (activeId && selectedCombatantIds.has(activeId)) {
       const combatants = currentState.combatState.combatants;
       const currentIndex = combatants.findIndex(c => c.id === activeId);
       
-      // Find the next surviving index
       let nextIndex = (currentIndex + 1) % combatants.length;
       let found = false;
       let attempts = 0;
@@ -445,51 +143,33 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
       }
 
       if (found) {
-        // We simulate a "nextTurn" but jumping to the first survivor
         const nextActiveId = combatants[nextIndex].id;
         updateState(prev => ({
           ...prev,
-          combatState: {
-            ...prev.combatState,
-            activeTurnId: nextActiveId,
-          }
+          combatState: { ...prev.combatState, activeTurnId: nextActiveId },
         }));
       } else {
-        // No survivors!
         updateState(prev => ({
           ...prev,
-          combatState: {
-            ...prev.combatState,
-            activeTurnId: null,
-          }
+          combatState: { ...prev.combatState, activeTurnId: null },
         }));
       }
     }
 
-    // Perform deletions
     for (const id of idsToDelete) {
       await removeCombatant(id);
     }
 
-    setIsMultiTargetMode(false);
-    setSelectedCombatantIds(new Set());
+    exitSelectionMode();
     toast.success(`${count} combatants removed.`);
   };
 
   // Listen for global custom commands from the Command Palette
   useEffect(() => {
-    const handleNextTurn = () => {
-      nextTurn();
-    };
-    const handleRollNpcInit = () => {
-      rollInitForNPCs();
-    };
-    const handleCallInit = () => {
-      handleCallInitiative();
-    };
-    const handleOpenTools = () => {
-      setIsToolsModalOpen(true);
-    };
+    const handleNextTurn = () => nextTurn();
+    const handleRollNpcInit = () => rollInitForNPCs();
+    const handleCallInit = () => handleCallInitiative();
+    const handleOpenTools = () => setIsToolsModalOpen(true);
 
     window.addEventListener('gm-cmd-next-turn', handleNextTurn);
     window.addEventListener('gm-cmd-roll-npc-init', handleRollNpcInit);
@@ -504,130 +184,20 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
     };
   }, [nextTurn, rollInitForNPCs, handleCallInitiative]);
 
-  // Integrated Keyboard Shortcuts Hook with complete variable accessibility
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      // Check for modifier keys or if target is an input
-      if (
-        ['INPUT', 'TEXTAREA', 'SELECT'].includes((event.target as HTMLElement).tagName) ||
-        event.ctrlKey ||
-        event.metaKey ||
-        event.altKey
-      ) {
-        return;
-      }
-
-      const keyLower = event.key.toLowerCase();
-
-      // ? triggers toggle of keyboard shortcuts cheat sheet overlay
-      if (event.key === '?' || (event.key === '/' && event.shiftKey)) {
-        event.preventDefault();
-        setIsCheatSheetOpen(prev => !prev);
-        return;
-      }
-
-      switch (keyLower) {
-        case 'n':
-          nextTurn();
-          break;
-        case 'r':
-          rollInitForNPCs();
-          break;
-        case 't':
-          setIsToolsModalOpen(prev => !prev);
-          break;
-        case 's':
-          toggleMultiTargetMode();
-          break;
-        case 'b':
-          if (typeof window !== 'undefined' && window.open) {
-            window.open('/#/player-view', '_blank');
-          }
-          break;
-        case 'c':
-          if (!state.combatState.initiativeEvent) {
-            handleCallInitiative();
-          }
-          break;
-        case 'h':
-          setHpMode('heal');
-          if (state.combatState.activeTurnId) {
-            setTimeout(() => {
-              const el = document.getElementById(`heal-input-${state.combatState.activeTurnId}`);
-              if (el) {
-                (el as HTMLInputElement).focus();
-                (el as HTMLInputElement).select();
-              }
-            }, 50);
-          }
-          break;
-        case 'd':
-          setHpMode('damage');
-          if (state.combatState.activeTurnId) {
-            setTimeout(() => {
-              const el = document.getElementById(`damage-input-${state.combatState.activeTurnId}`);
-              if (el) {
-                (el as HTMLInputElement).focus();
-                (el as HTMLInputElement).select();
-              }
-            }, 50);
-          }
-          break;
-        case '1':
-        case '2':
-        case '3':
-        case '4':
-        case '5':
-        case '6':
-        case '7':
-        case '8':
-        case '9': {
-          const index = parseInt(event.key, 10) - 1;
-          const combatantsList = state.combatState.combatants;
-          if (combatantsList && index < combatantsList.length) {
-            const targetCombatant = combatantsList[index];
-            if (targetCombatant) {
-              setExpandedIds(prev => {
-                const copy = new Set(prev);
-                copy.add(targetCombatant.id);
-                return copy;
-              });
-              setTimeout(() => {
-                const cardEl = document.getElementById(`combatant-card-${targetCombatant.id}`);
-                if (cardEl) {
-                  cardEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                }
-              }, 50);
-            }
-          }
-          break;
-        }
-        case 'escape': {
-          setExpandedIds(new Set());
-          setIsToolsModalOpen(false);
-          setIsCheatSheetOpen(false);
-          break;
-        }
-        default:
-          break;
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [
-    state.combatState.combatants,
-    state.combatState.activeTurnId,
-    state.combatState.initiativeEvent,
-    hpMode,
-    isCheatSheetOpen,
+  // Integrated Keyboard Shortcuts Hook
+  useEncounterKeyboard({
     nextTurn,
     rollInitForNPCs,
+    setIsToolsModalOpen,
     toggleMultiTargetMode,
-    handleCallInitiative
-  ]);
+    handleCallInitiative,
+    setHpMode,
+    combatants: state.combatState.combatants,
+    activeTurnId: state.combatState.activeTurnId,
+    initiativeEventExists: !!state.combatState.initiativeEvent,
+    setIsCheatSheetOpen,
+    setExpandedIds,
+  });
 
   return (
     <div className="flex flex-col gap-8 relative items-start">
@@ -651,10 +221,7 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
             onNextTurn={nextTurn}
             onToggleMultiTargetMode={toggleMultiTargetMode}
             onDeleteSelected={handleDeleteSelected}
-            onCancelSelection={() => {
-              setSelectedCombatantIds(new Set());
-              setIsMultiTargetMode(false);
-            }}
+            onCancelSelection={exitSelectionMode}
             onBack={onBack}
             onCallInitiative={handleCallInitiative}
             initiativeEvent={!!state.combatState.initiativeEvent}
@@ -701,20 +268,6 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
           </div>
         </div>
       </div>
-
-      {/* 
-        MultiTargetActionBar commented out; its functionality has moved to the persistent MultiTargetActionPanel banner directly below CombatHeader 
-        <MultiTargetActionBar
-          selectedCount={selectedCombatantIds.size}
-          onApplyDamage={handleApplyMultiDamage}
-          onApplyHealing={handleApplyMultiHealing}
-          onApplyCondition={handleApplyMultiCondition}
-          onClearSelection={() => {
-            setSelectedCombatantIds(new Set());
-            setIsMultiTargetMode(false);
-          }}
-        />
-      */}
 
       <CombatSidebar
         isOpen={isToolsModalOpen}

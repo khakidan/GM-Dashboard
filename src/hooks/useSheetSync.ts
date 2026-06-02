@@ -1,30 +1,22 @@
 // src/hooks/useSheetSync.ts
 
 import { useState } from 'react';
-import { z } from 'zod';
-import { useAppState, getSnapshot } from './useAppState';
+import { useAppState } from './useAppState';
 import {
   fetchSheetData,
   initializeDatabaseSchema,
   getSpreadsheetId,
 } from '../services/sheetsService';
 import { clearRetryQueue } from '../services/writeQueue';
-import { Character, Encounter, Combatant, NPC, EncounterCombatant } from '../types';
+import { Character, Encounter, NPC, EncounterCombatant } from '../types';
 import {
-  CharacterRowSchema,
-  NpcRowSchema,
-  EncounterRowSchema,
-  EncounterCombatantRowSchema,
-  StatusRowSchema,
-  DifficultyRowSchema,
-} from '../lib/sheetSchemas';
-import {
-  mapCharacterRowToCharacter,
-  mapNpcRowToNpc,
-  mapEncounterRowToEncounter,
-  mapEncounterCombatantRowToEC,
-} from '../lib/sheetAdapters';
-import { buildCombatantsFromState } from '../lib/combatantBuilder';
+  parseStatuses,
+  parseDifficulties,
+  parseNPCs,
+  parseEncounters,
+  parseEncounterCombatants,
+  parseCharacters,
+} from '../lib/sheetSyncParser';
 
 interface UseSheetSyncProps {
   setIsGoogleConnected: (val: boolean) => void;
@@ -65,59 +57,19 @@ export function useSheetSync({ setIsGoogleConnected, onActiveTabChange }: UseShe
       // 1. Fetch Statuses
       addLog('Step 2: Fetching status definitions...');
       const statusRes = await fetchSheetData('Status!A2:B');
-      const parsedStatuses = (statusRes.values || [])
-        .map((row, i) => {
-          const result = StatusRowSchema.safeParse(row);
-          if (!result.success) {
-            console.warn('[Sync] Status row', i, 'failed validation:',
-              result.error.issues);
-            return null;
-          }
-          return result.data;
-        })
-        .filter((item): item is z.infer<typeof StatusRowSchema> => item !== null);
-
-      const statuses: Record<string, string> = {};
-      parsedStatuses.forEach(([id, name]) => {
-        statuses[id.toString()] = name;
-      });
+      const statuses = parseStatuses(statusRes.values || []);
       addLog(`Status types loaded: ${Object.keys(statuses).length}`);
 
       // 2. Fetch Difficulties
       addLog('Step 3: Fetching difficulty levels...');
       const diffRes = await fetchSheetData('Difficulty_Level!A2:B');
-      const parsedDifficulties = (diffRes.values || [])
-        .map((row, i) => {
-          const result = DifficultyRowSchema.safeParse(row);
-          if (!result.success) {
-            console.warn('[Sync] Difficulty_Level row', i, 'failed validation:',
-              result.error.issues);
-            return null;
-          }
-          return result.data;
-        })
-        .filter((item): item is z.infer<typeof DifficultyRowSchema> => item !== null);
-
-      const difficulties: Record<string, string> = {};
-      parsedDifficulties.forEach(([id, name]) => {
-        difficulties[id.toString()] = name;
-      });
+      const difficulties = parseDifficulties(diffRes.values || []);
       addLog(`Difficulty settings loaded: ${Object.keys(difficulties).length}`);
 
       // 3. Fetch NPCs
       addLog('Step 4: Loading NPC library...');
       const npcRes = await fetchSheetData('NPCs!A2:N');
-      const parsedNPCs: NPC[] = (npcRes.values || [])
-        .map((row, i) => {
-          const result = NpcRowSchema.safeParse(row);
-          if (!result.success) {
-            console.warn('[Sync] NPCs row', i, 'failed validation:',
-              result.error.issues);
-            return null;
-          }
-          return mapNpcRowToNpc(result.data, i);
-        })
-        .filter((npc): npc is NPC => npc !== null);
+      const parsedNPCs = parseNPCs(npcRes.values || []);
       addLog(`NPC entries loaded: ${parsedNPCs.length}`);
 
       // 4. Fetch Characters
@@ -129,56 +81,22 @@ export function useSheetSync({ setIsGoogleConnected, onActiveTabChange }: UseShe
       // 5. Fetch Encounters
       addLog('Step 6: Loading encounter log...');
       const encountersResponse = await fetchSheetData('Encounters!A2:G');
-      const encounterRows = encountersResponse.values || [];
-      addLog(`Encounters found: ${encounterRows.length}`);
-
-      const parsedEncounters: Encounter[] = (encounterRows || [])
-        .map((row, i) => {
-          const result = EncounterRowSchema.safeParse(row);
-          if (!result.success) {
-            console.warn('[Sync] Encounters row', i, 'failed validation:',
-              result.error.issues);
-            return null;
-          }
-          return mapEncounterRowToEncounter(result.data, i + 1, difficulties);
-        })
-        .filter((enc): enc is Encounter => enc !== null);
+      const parsedEncounters = parseEncounters(encountersResponse.values || [], difficulties);
+      addLog(`Encounters found: ${parsedEncounters.length}`);
 
       // 6. Fetch Encounter Combatants
       addLog('Step 7: Synching active combatants...');
       let parsedEncounterCombatants: EncounterCombatant[] = [];
       try {
         const ecResponse = await fetchSheetData('Encounter_Combatants!A2:K');
-        const ecRows = ecResponse.values || [];
-        parsedEncounterCombatants = (ecRows || [])
-          .map((row, i) => {
-            const result = EncounterCombatantRowSchema.safeParse(row);
-            if (!result.success) {
-              console.warn('[Sync] Encounter_Combatants row', i, 'failed validation:',
-                result.error.issues);
-              return null;
-            }
-            return mapEncounterCombatantRowToEC(result.data, i + 1);
-          })
-          .filter((ec): ec is EncounterCombatant => ec !== null);
+        parsedEncounterCombatants = parseEncounterCombatants(ecResponse.values || []);
         addLog(`Combatant links loaded: ${parsedEncounterCombatants.length}`);
       } catch (err) {
         addLog('Relational combatant data skipped.');
       }
 
       updateState(prev => {
-        const parsedCharacters: Character[] = (characterRows || [])
-          .map((row, i) => {
-            const result = CharacterRowSchema.safeParse(row);
-            if (!result.success) {
-              console.warn('[Sync] Characters row', i, 'failed validation:',
-                result.error.issues);
-              return null;
-            }
-            return mapCharacterRowToCharacter(result.data, i + 2, statuses);
-          })
-          .filter((char): char is Character => char !== null);
-
+        const parsedCharacters = parseCharacters(characterRows, statuses);
         return {
           ...prev,
           hasInitialSynced: true,
