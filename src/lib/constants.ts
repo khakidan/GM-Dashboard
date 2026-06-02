@@ -50,6 +50,7 @@ export const WRITE_QUEUE = {
   maxRetryItems: 50,
   debounceMs: 600,
   retryLocalStorageKey: 'gm_write_retry_queue',
+  queuePollIntervalMs: 3000,
 } as const;
 
 export const STORAGE_KEYS = {

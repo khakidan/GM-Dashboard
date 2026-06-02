@@ -143,6 +143,38 @@ describe('useDeathSaves', () => {
     expect(toast).toHaveBeenCalledWith(expect.stringContaining('has died'));
   });
 
+  it('When recordDeathSave records the third failure, characters statusId updates to 3 (Deceased) and isActive to false in state', async () => {
+    const dyingState = {
+      ...mockState,
+      combatState: {
+        combatants: [{ ...mockState.combatState.combatants[0], deathSavesFails: 2 }]
+      }
+    };
+    (getSnapshot as any).mockReturnValue(dyingState);
+
+    const { result } = renderHook(() => useDeathSaves());
+    
+    await act(async () => {
+      await result.current.recordDeathSave('c1', 'failure');
+    });
+
+    expect(mockUpdateState).toHaveBeenCalled();
+    const updater = mockUpdateState.mock.calls.find(call => {
+      const fn = call[0];
+      if (typeof fn !== 'function') return false;
+      const res = fn(mockState);
+      const updatedChar = res.characters.find((c: any) => c.id === 'char1');
+      return updatedChar && updatedChar.statusId === 3;
+    })?.[0];
+
+    expect(updater).toBeDefined();
+    const resultState = updater(mockState);
+    const deadChar = resultState.characters.find((c: any) => c.id === 'char1');
+    expect(deadChar.statusId).toBe(3);
+    expect(deadChar.isActive).toBe(false);
+    expect(deadChar.deathSavesFails).toBe(3);
+  });
+
   it('returns a reminder for unconscious PCs needing saves', () => {
     const { result } = renderHook(() => useDeathSaves());
     

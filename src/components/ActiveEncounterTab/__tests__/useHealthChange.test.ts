@@ -546,4 +546,33 @@ describe('useHealthChange', () => {
     expect(updatedPC.deathSavesFails).toBe(1);
     expect(updatedPC.isStable).toBe(false);
   });
+
+  it('When applyDamage reduces HP below 0 for a PC, the combatant enters unconscious state with deathSavesFails = 0', () => {
+    const updateSpy = vi.fn();
+    const pcCombatant: Combatant = {
+      ...baseCombatant,
+      type: 'pc',
+      currentHp: 10,
+      tempHp: 0,
+      conditions: '',
+    };
+    const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
+
+    act(() => {
+      result.current.setDamageInputs({ c1: '15' });
+    });
+
+    act(() => {
+      result.current.handleHealthChange('c1', pcCombatant, true);
+    });
+
+    expect(updateSpy).toHaveBeenCalledWith('c1', {
+      currentHp: 0,
+      tempHp: 0,
+      conditions: 'Unconscious',
+      deathSavesFails: 0,
+      deathSavesSuccesses: 0,
+      isStable: false,
+    });
+  });
 });

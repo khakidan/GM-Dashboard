@@ -20,9 +20,8 @@ import {
   Heart, 
   Sparkles 
 } from 'lucide-react';
-;
-;
 import { updateCharacterDB } from '../services/dbOperations';
+import { useDeathEvent, useDamageEvent, useHealEvent } from '../hooks/useOverlayEvents';
 
 const COMMAND_ITEM_CLASS = "w-full px-3 py-2.5 rounded-lg flex items-center justify-between text-xs font-semibold font-sans transition-all cursor-pointer text-stone-300 hover:bg-amber-50 hover:text-gray-900 border-l-2 border-transparent hover:border-amber-400 data-[selected='true']:bg-amber-50 data-[selected='true']:text-gray-900 data-[selected='true']:border-amber-400 data-[selected=true]:bg-amber-50 data-[selected=true]:text-gray-900 data-[selected=true]:border-amber-400";
 
@@ -33,6 +32,9 @@ interface CommandPaletteProps {
 
 export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
   const { state, updateState } = useAppState();
+  const { fire: fireDeathEvent } = useDeathEvent();
+  const { fire: fireDamageEvent } = useDamageEvent();
+  const { fire: fireHealEvent } = useHealEvent();
 
   // Escape to close
   useEffect(() => {
@@ -47,22 +49,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
   }, [isOpen, onClose]);
 
   const testDeathAnimation = () => {
-    updateState(prev => ({
-      ...prev,
-      combatState: {
-        ...prev.combatState,
-        deathEvent: { characterName: 'Aldric the Brave' }
-      }
-    }));
-    setTimeout(() => {
-      updateState(prev => ({
-        ...prev,
-        combatState: {
-          ...prev.combatState,
-          deathEvent: null
-        }
-      }));
-    }, 10500);
+    fireDeathEvent({ characterName: 'Aldric the Brave' });
     toast('Death animation triggered', {
       description: 'Check the Player View to see the overlay.',
       duration: 3000,
@@ -70,44 +57,14 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
   };
 
   const testDamageAnimation = () => {
-    updateState(prev => ({
-      ...prev,
-      combatState: {
-        ...prev.combatState,
-        damageEvent: { combatantName: 'Thorin Ironforge', damageAmount: 47 }
-      }
-    }));
-    setTimeout(() => {
-      updateState(prev => ({
-        ...prev,
-        combatState: {
-          ...prev.combatState,
-          damageEvent: null
-        }
-      }));
-    }, 5500);
+    fireDamageEvent({ combatantName: 'Thorin Ironforge', damageAmount: 47 });
     toast('Damage animation triggered — check the Player View.', {
       duration: 3000,
     });
   };
 
   const testHealAnimation = () => {
-    updateState(prev => ({
-      ...prev,
-      combatState: {
-        ...prev.combatState,
-        healEvent: { combatantName: 'Seraphina Brightwell', healAmount: 34 }
-      }
-    }));
-    setTimeout(() => {
-      updateState(prev => ({
-        ...prev,
-        combatState: {
-          ...prev.combatState,
-          healEvent: null
-        }
-      }));
-    }, 5500);
+    fireHealEvent({ combatantName: 'Seraphina Brightwell', healAmount: 34 });
     toast('Heal animation triggered — check the Player View.', {
       duration: 3000,
     });

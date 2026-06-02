@@ -1,12 +1,14 @@
 // src/lib/audioEngine.ts
 
+import { STORAGE_KEYS } from './constants';
+
 let audioCtx: AudioContext | null = null;
 
 export function isSoundEnabled(): boolean {
   if (typeof window === 'undefined' || !window.localStorage) {
     return true;
   }
-  return window.localStorage.getItem('gm_sounds_enabled') !== 'false';
+  return window.localStorage.getItem(STORAGE_KEYS.soundsEnabled) !== 'false';
 }
 
 export function initAudio(): void {

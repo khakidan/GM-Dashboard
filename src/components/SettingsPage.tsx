@@ -14,6 +14,7 @@ import {
 import { syncAndSanitizeDatabase } from '../services/dbOperations';
 import { useAppState } from '../hooks/useAppState';
 import { useDeathEvent, useDamageEvent, useHealEvent, useUnconsciousEvent, useRageEvent, useInitiativeEvent } from '../hooks/useOverlayEvents';
+import { STORAGE_KEYS } from '../lib/constants';
 
 interface SettingsPageProps {
   isGoogleConnected: boolean;
@@ -37,7 +38,7 @@ export function SettingsPage({
   const [showAdvancedAuth, setShowAdvancedAuth] = useState(false);
   const [soundsEnabled, setSoundsEnabled] = useState(() => {
     if (typeof window === 'undefined' || !window.localStorage) return true;
-    return window.localStorage.getItem('gm_sounds_enabled') !== 'false';
+    return window.localStorage.getItem(STORAGE_KEYS.soundsEnabled) !== 'false';
   });
   const { theme, setTheme } = useTheme();
   const { fire: fireDeathEvent } = useDeathEvent();
@@ -157,9 +158,9 @@ export function SettingsPage({
                 id="sound-effects-toggle-btn"
                 type="button"
                 onClick={() => {
-                  const currentSec = localStorage.getItem('gm_sounds_enabled') !== 'false';
+                  const currentSec = localStorage.getItem(STORAGE_KEYS.soundsEnabled) !== 'false';
                   const nextVal = !currentSec;
-                  localStorage.setItem('gm_sounds_enabled', nextVal ? 'true' : 'false');
+                  localStorage.setItem(STORAGE_KEYS.soundsEnabled, nextVal ? 'true' : 'false');
                   setSoundsEnabled(nextVal);
                   toast.success(`Sound effects ${nextVal ? 'enabled' : 'disabled'}`);
                 }}

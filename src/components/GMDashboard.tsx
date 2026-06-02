@@ -13,9 +13,10 @@ import { SyncingOverlay } from './SyncingOverlay';
 import { GMLoadingScreen } from './GMLoadingScreen';
 import { GMDashboardSidebar } from './GMDashboardSidebar';
 import { GMTabContent } from './GMTabContent';
+import { STORAGE_KEYS, WRITE_QUEUE } from '../lib/constants';
 
 type Tab = 'party' | 'encounters' | 'npc-library' | 'combat' | 'settings';
-const LAST_TAB_KEY = 'gm_last_active_tab';
+const LAST_TAB_KEY = STORAGE_KEYS.lastActiveTab;
 
 export function GMDashboard() {
   const { state } = useAppState();
@@ -50,7 +51,7 @@ export function GMDashboard() {
   }, [handleTabChange]);
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
-    const stored = localStorage.getItem('gm_sidebar_open');
+    const stored = localStorage.getItem(STORAGE_KEYS.sidebarOpen);
     return stored !== null ? stored === 'true' : false;
   });
 
@@ -75,7 +76,7 @@ export function GMDashboard() {
 
     const interval = setInterval(() => {
       setQueuedWrites(getQueueSize());
-    }, 3000);
+    }, WRITE_QUEUE.queuePollIntervalMs);
 
     return () => clearInterval(interval);
   }, []);
@@ -83,7 +84,7 @@ export function GMDashboard() {
   const setSidebarOpen = (value: boolean | ((prev: boolean) => boolean)) => {
     setIsSidebarOpen(prev => {
       const next = typeof value === 'function' ? value(prev) : value;
-      localStorage.setItem('gm_sidebar_open', String(next));
+      localStorage.setItem(STORAGE_KEYS.sidebarOpen, String(next));
       return next;
     });
   };

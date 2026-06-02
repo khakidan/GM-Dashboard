@@ -49,12 +49,18 @@ export function useDeathSaves() {
           }
         }));
 
-        await updateCharacterDB({
-          statusId: 3,
-          conditions: updatedConditions,
-          deathSavesFails: fails,
-          deathSavesSuccesses: successes
-        }, { id: combatant.characterId } as any);
+        const currentSnapshot = getSnapshot();
+        const fullChar = currentSnapshot.characters.find(c => c.id === combatant.characterId);
+        if (fullChar) {
+          await updateCharacterDB({
+            statusId: 3,
+            conditions: updatedConditions,
+            deathSavesFails: fails,
+            deathSavesSuccesses: successes
+          }, fullChar);
+        } else {
+          throw new Error(`Character ${combatant.characterId} not found in state`);
+        }
 
         fireDeathEvent({ characterName: combatant.name });
         toast(`${combatant.name} has died. Update their status on the Party Roster.`);

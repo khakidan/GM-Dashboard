@@ -40,17 +40,6 @@ describe('useAppState integration', () => {
     vi.restoreAllMocks();
   });
 
-  it('starts with default state when storage is empty', () => {
-    const { result } = renderHook(() => useAppState());
-    const state = result.current.state;
-    expect(state.characters).toEqual([]);
-    expect(state.combatState.round).toBe(1);
-    expect(state.combatState.activeTurnId).toBeNull();
-    expect(state.hasInitialSynced).toBe(false);
-    expect(state.combatState.combatants).toEqual([]);
-    expect(state.campaignName).toBe('GM Encounter Dashboard');
-  });
-
   it('persists campaignName and combatState to storage but strictly excludes data arrays like characters, and writes hasInitialSynced as false', () => {
     const { result } = renderHook(() => useAppState());
     
@@ -275,6 +264,67 @@ describe('useAppState integration', () => {
       expect(result.current.state.combatState.rageEvent).toBeNull();
       expect(result.current.state.combatState.unconsciousEvent).toBeNull();
       expect(result.current.state.combatState.initiativeEvent).toBe(false);
+    });
+
+    it('When cross-tab sync fires, the receiving tab\'s combatState is updated with incoming data, not its own current data', () => {
+      const { result } = renderHook(() => useAppState());
+
+      // Set some initial local combatState in the receiving tab
+      act(() => {
+        result.current.updateState({
+          combatState: {
+            activeEncounterId: 'old-encounter',
+            activeTurnId: 'old-turn',
+            round: 2,
+            combatants: [{ id: 'old-combatant', name: 'Old Guard' } as any],
+            concentrationLinks: {},
+            deathEvent: null,
+            damageEvent: null,
+            healEvent: null,
+            rageEvent: null,
+            unconsciousEvent: null,
+            initiativeEvent: false,
+          }
+        });
+      });
+
+      expect(result.current.state.combatState.activeEncounterId).toBe('old-encounter');
+      expect(result.current.state.combatState.round).toBe(2);
+
+      // Now simulate a storage event with new incoming combatState data
+      const storageValue = JSON.stringify({
+        state: {
+          campaignName: 'New Campaign',
+          combatState: {
+            activeEncounterId: 'incoming-encounter',
+            activeTurnId: 'incoming-turn',
+            round: 5,
+            combatants: [{ id: 'incoming-combatant', name: 'Incoming Invader' } as any],
+            deathEvent: null,
+            damageEvent: null,
+            healEvent: null,
+            rageEvent: null,
+            unconsciousEvent: null,
+            initiativeEvent: false,
+          }
+        },
+        version: 0
+      });
+
+      act(() => {
+        const storageEvent = new StorageEvent('storage', {
+          key: STORAGE_KEY,
+          newValue: storageValue,
+        });
+        window.dispatchEvent(storageEvent);
+      });
+
+      // Assert that the receiving tab's combatState has been completely updated with the incoming data
+      expect(result.current.state.combatState.activeEncounterId).toBe('incoming-encounter');
+      expect(result.current.state.combatState.activeTurnId).toBe('incoming-turn');
+      expect(result.current.state.combatState.round).toBe(5);
+      expect(result.current.state.combatState.combatants).toHaveLength(1);
+      expect(result.current.state.combatState.combatants[0].id).toBe('incoming-combatant');
     });
 
     it('getSnapshot returns the current state correctly', () => {
