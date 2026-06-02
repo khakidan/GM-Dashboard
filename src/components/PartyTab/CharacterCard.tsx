@@ -1,14 +1,17 @@
 import React from 'react';
-import { Character } from '../../types';
-import { Shield, Eye, Heart, Loader2, X, ChevronDown } from 'lucide-react';
-import { cn } from '../../lib/utils';
-import { getHealthStatus, effectiveMaxHp, effectiveAc } from '../../lib/combatLogic';
 import { motion, AnimatePresence } from 'motion/react';
+import { Loader2, X } from 'lucide-react';
+import { Character } from '../../types';
+import { cn } from '../../lib/utils';
+import { getHealthStatus, effectiveMaxHp, effectiveAc } from '../../lib/conditions';
 import { DebouncedInput } from '../ui/DebouncedInput';
 import { DebouncedTextarea } from '../ui/DebouncedTextarea';
-import { IrvMultiSelect } from '../ui/IrvMultiSelect';
-import { ConditionChips } from '../ui/ConditionChips';
-import { toast } from 'sonner';
+
+// Modular Sub-components
+import { CharacterCardHeader } from './CharacterCardHeader';
+import { CharacterStatGrid } from './CharacterStatGrid';
+import { CharacterIRVSection } from './CharacterIRVSection';
+import { CharacterResourceSection } from './CharacterResourceSection';
 
 export interface CharacterCardProps {
   character: Character; 
@@ -30,10 +33,7 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({
   onLevelUpClick
 }) => {
   const maxHpCeiling = effectiveMaxHp(character.maxHp || 1, character.tempHpMax);
-  const healthStatus = getHealthStatus(
-    character.currentHp || 0, 
-    maxHpCeiling
-  );
+  const healthStatus = getHealthStatus(character.currentHp || 0, maxHpCeiling);
 
   const [localTempAc, setLocalTempAc] = React.useState(character.tempAc ?? 0);
   const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
@@ -44,9 +44,7 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({
 
   React.useEffect(() => {
     return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
   }, []);
 
@@ -55,10 +53,7 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({
     const newValue = isNaN(val) ? 0 : val;
     setLocalTempAc(newValue);
 
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
     timeoutRef.current = setTimeout(() => {
       onUpdate({ tempAc: newValue });
     }, 600);
@@ -76,139 +71,41 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({
         </div>
       )}
       
-      {/* Header Area - Always Visible */}
-      <div className="p-4 flex items-center justify-between gap-3 px-5">
-        <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-6">
-          <div className="flex items-center gap-2 min-w-0">
-             <DebouncedInput 
-                value={character.characterName}
-                onChange={(v) => onUpdate({ characterName: v as string })}
-                className="text-lg font-bold text-[#2c2c26] font-serif bg-transparent border border-transparent rounded hover:bg-[#fdfaf5] focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none px-2 py-1 -ml-2 transition-all placeholder:text-gray-300 disabled:opacity-50 w-auto max-w-[160px] truncate"
-                placeholder="Name"
-                disabled={isSyncing}
-              />
-              <div className="hidden sm:block text-[#e5e1d8] shrink-0">|</div>
-              <DebouncedInput 
-                value={character.playerName}
-                onChange={(v) => onUpdate({ playerName: v as string })}
-                className="text-xs text-[#5a5a40] uppercase tracking-wider font-bold opacity-60 bg-transparent border border-transparent rounded hover:bg-[#fdfaf5] focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none px-2 py-1 -ml-2 transition-all placeholder:text-gray-300 disabled:opacity-50 w-auto max-w-[100px] truncate"
-                placeholder="Player"
-                disabled={isSyncing}
-              />
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="relative shrink-0 flex items-center">
-              <select
-                value={character.statusId}
-                onChange={(e) => {
-                  const id = parseInt(e.target.value);
-                  let statusName = "Unknown";
-                  if (id === 1) statusName = "Active";
-                  if (id === 2) statusName = "Absent";
-                  if (id === 3) statusName = "Dead";
-                  onUpdate({ statusId: id, statusName });
-                }}
-                disabled={isSyncing}
-                className={cn(
-                  "text-xs uppercase tracking-widest font-bold pl-3 pr-8 py-1.5 rounded-full border transition-colors outline-none cursor-pointer appearance-none disabled:opacity-50",
-                  character.statusId === 1 ? "bg-green-50 text-green-700 border-green-100" : 
-                  character.statusId === 3 ? "bg-red-50 text-red-700 border-red-100" :
-                  "bg-gray-50 text-gray-500 border-gray-100"
-                )}
-              >
-                <option value={1}>Active</option>
-                <option value={2}>Absent</option>
-                <option value={3}>Dead</option>
-              </select>
-              <div className="absolute right-2.5 pointer-events-none text-xs font-bold opacity-40">
-                <ChevronDown className="w-3 h-3" />
-              </div>
-            </div>
+      <CharacterCardHeader
+        characterName={character.characterName}
+        playerName={character.playerName}
+        className={""}
+        healthStatus={healthStatus}
+        isActive={character.statusId === 1}
+        isDeceased={character.statusId === 3}
+        isExpanded={isExpanded}
+        onToggleExpand={onToggleExpand}
+        isSyncing={isSyncing}
+        statusId={character.statusId}
+        onStatusChange={(id, name) => onUpdate({ statusId: id, statusName: name })}
+        characterId={character.id}
+        conditions={character.conditions}
+        onUpdateCharacterName={(val) => onUpdate({ characterName: val })}
+        onUpdatePlayerName={(val) => onUpdate({ playerName: val })}
+        onLevelUpClick={onLevelUpClick}
+        statGrid={
+          <CharacterStatGrid
+            ac={character.ac}
+            tempAc={localTempAc}
+            effectiveAc={effectiveAc(character.ac, localTempAc)}
+            maxHp={character.maxHp}
+            currentHp={character.currentHp}
+            tempHp={character.tempHp || 0}
+            tempHpMax={character.tempHpMax || 0}
+            passivePerception={character.passivePerception}
+            level={character.level}
+            onTempAcChange={handleTempAcChange}
+            isSyncing={isSyncing}
+            characterId={character.id}
+          />
+        }
+      />
 
-            {!isExpanded && (
-              <div className="flex items-center gap-4 pl-4 border-l border-[#f5f5f0] whitespace-nowrap">
-                {character.conditions && (
-                  <div className="hidden lg:flex items-center gap-1.5 px-3 py-1 bg-red-50 text-red-700 border border-red-100 rounded-full text-[14px] font-bold italic max-w-[220px] truncate">
-                    {character.conditions}
-                  </div>
-                )}
-                <div className={cn(
-                  "hidden sm:flex items-center px-2 py-0.5 rounded-full font-sans text-xs font-bold uppercase tracking-wider border",
-                  healthStatus.color,
-                  healthStatus.label === 'Full' ? 'bg-emerald-50 border-emerald-200' :
-                  healthStatus.label === 'Healthy' ? 'bg-green-50 border-green-200' :
-                  healthStatus.label === 'Injured' ? 'bg-yellow-50 border-yellow-200' :
-                  healthStatus.label === 'Bloodied' ? 'bg-red-50 border-red-200' :
-                  'bg-gray-100 border-gray-200'
-                )}>
-                  {healthStatus.label}
-                </div>
-                <div className="flex items-center gap-1.5 text-[15px] font-bold text-[#5a5a40] opacity-60">
-                  <Eye className="w-4 h-4" />
-                  {character.passivePerception}
-                </div>
-                <div className="flex items-center gap-1.5 text-[15px] font-bold text-[#c5b358]">
-                  <Heart className="w-4 h-4" />
-                  {character.currentHp}
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-1.5 text-[15px] font-bold text-[#5a5a40]">
-                    <Shield className="w-4 h-4 opacity-50" />
-                    {(() => {
-                      const eff = effectiveAc(character.ac, localTempAc);
-                      const mod = localTempAc;
-                      if (mod === 0) return <span data-testid="eff-ac">{character.ac}</span>;
-                      const sign = mod > 0 ? '+' : '';
-                      return <span data-testid="eff-ac" className="text-amber-600 font-bold">{eff} ({sign}{mod})</span>;
-                    })()}
-                  </div>
-                  <div className={cn(
-                    "flex items-center gap-0.5 px-1.5 py-0.5 bg-transparent border rounded text-xs font-semibold focus-within:border-[#c5b358] focus-within:ring-1 focus-within:ring-[#c5b358] transition-colors",
-                    localTempAc === 0 ? "text-gray-400 border-[#e5e1d8]" : "text-amber-600 font-bold border-amber-300 focus-within:border-amber-500"
-                  )}>
-                    {localTempAc > 0 && <span className="select-none font-bold text-xs inline-block text-amber-600">+</span>}
-                    <input
-                      id={`ac-mod-spinner-${character.id}`}
-                      data-testid="ac-mod-spinner"
-                      type="number"
-                      value={localTempAc}
-                      step="1"
-                      onChange={handleTempAcChange}
-                      disabled={isSyncing}
-                      className="w-10 text-center bg-transparent border-0 outline-none p-0 focus:ring-0 text-inherit font-bold"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 shrink-0 border-l border-[#f5f5f0] pl-3">
-          {character.statusId === 1 && onLevelUpClick && (
-            <button
-              id={`lvl-btn-${character.id}`}
-              onClick={(e) => {
-                e.stopPropagation();
-                onLevelUpClick();
-              }}
-              className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider bg-[#c5b358]/10 text-[#5a5a40] hover:bg-[#c5b358] hover:text-white rounded-md transition-all cursor-pointer border border-[#c5b358]/20"
-            >
-              Level Up
-            </button>
-          )}
-          <button 
-            onClick={onToggleExpand}
-            className="p-2 text-[#5a5a40] opacity-30 hover:opacity-100 hover:bg-[#f5f5f0] rounded-full transition-all"
-          >
-            <motion.div animate={{ rotate: isExpanded ? 180 : 0 }}>
-              <ChevronDown className="w-5 h-5" />
-            </motion.div>
-          </button>
-        </div>
-      </div>
-
-      {/* Expanded Content */}
       <AnimatePresence>
         {isExpanded && (
           <motion.div
@@ -220,23 +117,23 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({
             <div className="p-6 flex flex-col font-sans gap-5">
               <div className="grid grid-cols-3 md:grid-cols-6 gap-3 sm:gap-4">
                 <div className="text-center p-3 bg-[#fdfaf5] border border-[#e5e1d8] rounded-xl shadow-sm">
-                   <div className="text-[10px] font-bold uppercase tracking-widest text-[#5a5a40] mb-1">AC</div>
-                   <DebouncedInput 
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-[#5a5a40] mb-1">AC</div>
+                  <DebouncedInput 
                     type="number"
                     value={character.ac || ''}
                     onFocus={(e) => (e.target as HTMLInputElement).select()}
-                    onChange={(v) => onUpdate({ ac: parseInt(v as string) || 0 })}
+                    onChange={(v) => onUpdate({ ac: parseInt(v as string, 10) || 0 })}
                     className="text-lg font-bold text-[#2c2c26] w-full text-center bg-transparent border border-transparent outline-none focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] rounded transition-all disabled:opacity-50"
                     disabled={isSyncing}
                   />
                 </div>
                 <div className="text-center p-3 bg-[#fdfaf5] border border-[#e5e1d8] rounded-xl shadow-sm">
-                   <div className="text-[10px] font-bold uppercase tracking-widest text-[#5a5a40] mb-1">Max HP</div>
-                   <DebouncedInput 
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-[#5a5a40] mb-1">Max HP</div>
+                  <DebouncedInput 
                     type="number"
                     value={character.maxHp || ''}
                     onFocus={(e) => (e.target as HTMLInputElement).select()}
-                    onChange={(v) => onUpdate({ maxHp: parseInt(v as string) || 1 })}
+                    onChange={(v) => onUpdate({ maxHp: parseInt(v as string, 10) || 1 })}
                     className={cn(
                       "text-lg font-bold w-full text-center bg-transparent border border-transparent outline-none focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] rounded transition-all disabled:opacity-50",
                       character.tempHpMax && character.tempHpMax > 0 ? "text-amber-600 cursor-help" : "text-[#2c2c26]"
@@ -246,86 +143,65 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({
                   />
                 </div>
                 <div className="text-center p-3 bg-[#fdfaf5] border border-[#e5e1d8] rounded-xl shadow-sm">
-                   <div className="text-[10px] font-bold uppercase tracking-widest text-[#5a5a40] mb-1">HP</div>
-                   <DebouncedInput 
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-[#5a5a40] mb-1">HP</div>
+                  <DebouncedInput 
                     type="number"
                     value={character.currentHp === undefined ? '' : character.currentHp}
                     onFocus={(e) => (e.target as HTMLInputElement).select()}
-                    onChange={(v) => onUpdate({ currentHp: parseInt(v as string) || 0 })}
+                    onChange={(v) => onUpdate({ currentHp: parseInt(v as string, 10) || 0 })}
                     className="text-lg font-bold text-[#2c2c26] w-full text-center bg-transparent border border-transparent outline-none focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] rounded transition-all disabled:opacity-50"
                     disabled={isSyncing}
                   />
                 </div>
                 <div className="text-center p-3 bg-[#fdfaf5] border border-[#e5e1d8] rounded-xl shadow-sm">
-                   <div className="text-[10px] font-bold uppercase tracking-widest text-[#5a5a40] mb-1">Temp</div>
-                   <DebouncedInput 
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-[#5a5a40] mb-1">Temp</div>
+                  <DebouncedInput 
                     type="number"
                     value={character.tempHp === undefined ? '' : character.tempHp}
                     onFocus={(e) => (e.target as HTMLInputElement).select()}
-                    onChange={(v) => onUpdate({ tempHp: parseInt(v as string) || 0 })}
+                    onChange={(v) => onUpdate({ tempHp: parseInt(v as string, 10) || 0 })}
                     className="text-lg font-bold text-[#2c2c26] w-full text-center bg-transparent border border-transparent outline-none focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] rounded transition-all disabled:opacity-50"
                     disabled={isSyncing}
                   />
                 </div>
                 <div className="text-center p-3 bg-[#fdfaf5] border border-[#e5e1d8] rounded-xl shadow-sm group/lvl">
-                   <div className="text-[10px] font-bold uppercase tracking-widest text-[#5a5a40] mb-1">Level</div>
-                   <DebouncedInput 
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-[#5a5a40] mb-1">Level</div>
+                  <DebouncedInput 
                     type="number"
                     value={character.level || ''}
                     onFocus={(e) => (e.target as HTMLInputElement).select()}
-                    onChange={(v) => onUpdate({ level: parseInt(v as string) || 1 })}
+                    onChange={(v) => onUpdate({ level: parseInt(v as string, 10) || 1 })}
                     placeholder="1"
                     className="text-lg font-bold text-[#2c2c26] w-full text-center bg-transparent border border-transparent rounded hover:bg-white focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-colors disabled:opacity-50"
                     disabled={isSyncing}
                   />
                 </div>
                 <div className="text-center p-3 bg-[#fdfaf5] border border-[#e5e1d8] rounded-xl shadow-sm">
-                   <div className="text-[10px] font-bold uppercase tracking-widest text-[#5a5a40] mb-1">Passive</div>
-                   <DebouncedInput 
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-[#5a5a40] mb-1">Passive</div>
+                  <DebouncedInput 
                     type="number"
                     value={character.passivePerception === undefined ? '' : character.passivePerception}
                     onFocus={(e) => (e.target as HTMLInputElement).select()}
-                    onChange={(v) => onUpdate({ passivePerception: parseInt(v as string) || 0 })}
+                    onChange={(v) => onUpdate({ passivePerception: parseInt(v as string, 10) || 0 })}
                     className="text-lg font-bold text-[#2c2c26] w-full text-center bg-transparent border border-transparent outline-none focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] rounded transition-all disabled:opacity-50"
                     disabled={isSyncing}
                   />
                 </div>
               </div>
 
-              <div>
-                <div className="text-[10px] uppercase text-[#5a5a40] font-bold tracking-widest mb-2 px-1">Conditions</div>
-                <ConditionChips
-                  value={character.conditions || ''}
-                  onChange={(v) => onUpdate({ conditions: v as string })}
-                  immunities={character.immunities || ''}
-                  onConcentrationEffectAdded={(effectName) => {
-                    toast(`Concentration effect ${effectName} added. Be sure to mark the concentrating character manually if they are in the active encounter.`, {
-                      duration: 6000
-                    });
-                  }}
-                />
-              </div>
+              <CharacterResourceSection
+                conditions={character.conditions || ''}
+                onConditionsChange={(v) => onUpdate({ conditions: v })}
+                immunities={character.immunities || ''}
+                combatantId={character.id}
+              />
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <IrvMultiSelect
-                  label="Resistances"
-                  value={character.resistances || ''}
-                  onChange={(v) => onUpdate({ resistances: v })}
-                  placeholder="e.g. fire"
-                />
-                <IrvMultiSelect
-                  label="Immunities"
-                  value={character.immunities || ''}
-                  onChange={(v) => onUpdate({ immunities: v })}
-                  placeholder="e.g. poison"
-                />
-                <IrvMultiSelect
-                  label="Vulnerabilities"
-                  value={character.vulnerabilities || ''}
-                  onChange={(v) => onUpdate({ vulnerabilities: v })}
-                  placeholder="e.g. cold"
-                />
-              </div>
+              <CharacterIRVSection
+                resistances={character.resistances || ''}
+                immunities={character.immunities || ''}
+                vulnerabilities={character.vulnerabilities || ''}
+                onUpdate={onUpdate}
+              />
 
               <div>
                 <div className="text-[10px] uppercase text-[#5a5a40] font-bold tracking-widest mb-2 px-1">Notes</div>
@@ -342,7 +218,7 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({
                 <button 
                   onClick={onDelete}
                   disabled={isSyncing}
-                  className="w-full py-3 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-xs font-bold uppercase tracking-widest border border-red-100 transition-all flex items-center justify-center gap-2"
+                  className="w-full py-3 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-xs font-bold uppercase tracking-widest border border-red-100 transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                   Delete Player

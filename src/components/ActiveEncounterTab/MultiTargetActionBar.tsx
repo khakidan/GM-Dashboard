@@ -1,9 +1,10 @@
+import { DAMAGE_TYPE_OPTIONS } from '../../lib/conditions';
 import React, { useState } from 'react';
 import { DamageType } from '../../types';
 import { Shield, Heart, Plus, X, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
-import { DAMAGE_TYPE_OPTIONS } from '../../lib/irvOptions';
+;
 
 interface MultiTargetActionBarProps {
   selectedCount: number;

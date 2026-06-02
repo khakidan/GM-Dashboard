@@ -1,10 +1,11 @@
 import { batchUpdateValues } from './sheetsService';
 import { toast } from 'sonner';
+import { STORAGE_KEYS } from '../lib/constants';
 
 const queue = new Map<string, { range: string; values: any[][] }>();
 let flushTimer: ReturnType<typeof setTimeout> | null = null;
 
-const RETRY_STORAGE_KEY = 'gm_failed_writes';
+const RETRY_STORAGE_KEY = STORAGE_KEYS.writeRetryQueue;
 
 function loadPersistedWrites(): Array<{range: string, values: any[][]}> {
   try {

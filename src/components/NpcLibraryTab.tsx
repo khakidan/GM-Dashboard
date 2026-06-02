@@ -1,3 +1,4 @@
+import { DAMAGE_TYPE_OPTIONS, CONDITION_OPTIONS } from '../lib/conditions';
 import React, { useState, useMemo, useEffect } from 'react';
 import { useAppState } from '../hooks/useAppState';
 import { useNpcLibrary } from './NpcLibraryTab/hooks/useNpcLibrary';
@@ -6,7 +7,7 @@ import { cn } from '../lib/utils';
 import { NewNpcDialog } from './NpcLibraryTab/NewNpcDialog';
 import { NpcCard } from './NpcLibraryTab/NpcCard';
 import { checkIrvMatch } from '../lib/combatLogic';
-import { DAMAGE_TYPE_OPTIONS, CONDITION_OPTIONS } from '../lib/irvOptions';
+;
 
 export function NpcLibraryTab() {
   const { state: appState, updateState } = useAppState();

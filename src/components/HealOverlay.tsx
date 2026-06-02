@@ -1,3 +1,4 @@
+import { ANIMATION_TIMING } from '../lib/constants';
   import React, { useRef, useEffect } from 'react';
 
   interface HealOverlayProps {
@@ -98,7 +99,7 @@
           pointerEvents: 'none',
           animation: [
             'heal-overlayIn 120ms ease-out forwards',
-            'heal-overlayOut 900ms ease-in 4600ms forwards',
+            `heal-overlayOut ${ANIMATION_TIMING.healExitDuration}ms ease-in ${ANIMATION_TIMING.healExit}ms forwards`,
           ].join(', '),
         }}
       >

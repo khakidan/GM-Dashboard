@@ -11,14 +11,30 @@ import type { Combatant } from '../../../types';
 import { toast } from 'sonner';
 
 vi.mock('sonner', () => ({
-  toast: vi.fn(),
+  toast: Object.assign(vi.fn(), {
+    error: vi.fn(),
+    success: vi.fn(),
+    dismiss: vi.fn(),
+  }),
+}));
+
+vi.mock('../../../services/dbOperations', () => ({
+  updateDeathSavesDB: vi.fn().mockResolvedValue(true),
+  updateCharacterDB: vi.fn().mockResolvedValue(true),
 }));
 
 const mockUpdateState = vi.fn();
+const mockAppState = {
+  combatState: {
+    combatants: [] as any[],
+  },
+};
+
 vi.mock('../../../hooks/useAppState', () => ({
   useAppState: () => ({
     updateState: mockUpdateState,
   }),
+  getSnapshot: () => mockAppState,
 }));
 
 describe('useHealthChange', () => {
@@ -270,12 +286,14 @@ describe('useHealthChange', () => {
     const unconsciousPC: Combatant = {
       ...baseCombatant,
       type: 'pc',
+      characterId: 'char-1',
       currentHp: 0,
       tempHp: 0,
       conditions: 'Unconscious',
       deathSavesFails: 0,
       deathSavesSuccesses: 0,
     };
+    mockAppState.combatState.combatants = [unconsciousPC];
     act(() => {
       result.current.setDamageInputs({ c1: '5' });
     });
@@ -283,10 +301,18 @@ describe('useHealthChange', () => {
       // isCritical = true is passed
       result.current.handleHealthChange('c1', unconsciousPC, true, null, undefined, true);
     });
-    expect(updateSpy).toHaveBeenCalledWith('c1', {
-      deathSavesFails: 2,
-      isStable: false,
-    });
+    expect(mockUpdateState).toHaveBeenCalled();
+    const updater = mockUpdateState.mock.calls[0][0];
+    const dummyState = {
+      characters: [{ id: 'char-1', deathSavesFails: 0 }],
+      combatState: {
+        combatants: [{ id: 'c1', type: 'pc', characterId: 'char-1', deathSavesFails: 0, isStable: false }]
+      }
+    };
+    const nextState = updater(dummyState as any);
+    const updatedPC = nextState.combatState.combatants[0];
+    expect(updatedPC.deathSavesFails).toBe(2);
+    expect(updatedPC.isStable).toBe(false);
   });
 
   it('When finalDamage > 0, combatState.damageEvent is set with the correct name and amount', () => {
@@ -494,7 +520,8 @@ describe('useHealthChange', () => {
   it('When a PC was already unconscious and takes damage, unconsciousEvent is NOT fired again', () => {
     mockUpdateState.mockClear();
     const updateSpy = vi.fn();
-    const pcCombatant: Combatant = { ...baseCombatant, type: 'pc', maxHp: 15, currentHp: 0, tempHp: 0, conditions: 'unconscious' };
+    const pcCombatant: Combatant = { ...baseCombatant, type: 'pc', characterId: 'char-1', maxHp: 15, currentHp: 0, tempHp: 0, conditions: 'unconscious' };
+    mockAppState.combatState.combatants = [pcCombatant];
     const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
 
     act(() => {
@@ -506,10 +533,17 @@ describe('useHealthChange', () => {
       result.current.handleHealthChange('c1', pcCombatant, true);
     });
 
-    expect(mockUpdateState).not.toHaveBeenCalled();
-    expect(updateSpy).toHaveBeenCalledWith('c1', expect.objectContaining({
-      deathSavesFails: 1,
-      isStable: false
-    }));
+    expect(mockUpdateState).toHaveBeenCalled();
+    const updater = mockUpdateState.mock.calls[0][0];
+    const dummyState = {
+      characters: [{ id: 'char-1', deathSavesFails: 0 }],
+      combatState: {
+        combatants: [{ id: 'c1', type: 'pc', characterId: 'char-1', deathSavesFails: 0, isStable: false }]
+      }
+    };
+    const nextState = updater(dummyState as any);
+    const updatedPC = nextState.combatState.combatants[0];
+    expect(updatedPC.deathSavesFails).toBe(1);
+    expect(updatedPC.isStable).toBe(false);
   });
 });

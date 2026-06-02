@@ -1,3 +1,4 @@
+import { STORAGE_KEYS } from '../lib/constants';
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -13,7 +14,7 @@ import { parseDiceNotation, rollDice, RollResult } from '../lib/diceRoller';
 
 export function DiceRoller() {
   const [isExpanded, setIsExpanded] = useState<boolean>(() => {
-    const stored = localStorage.getItem('dice_roller_expanded');
+    const stored = localStorage.getItem(STORAGE_KEYS.diceRollerExpanded);
     return stored === 'true';
   });
 
@@ -29,7 +30,7 @@ export function DiceRoller() {
   const handleToggleExpand = () => {
     setIsExpanded(prev => {
       const next = !prev;
-      localStorage.setItem('dice_roller_expanded', String(next));
+      localStorage.setItem(STORAGE_KEYS.diceRollerExpanded, String(next));
       return next;
     });
   };
@@ -37,7 +38,7 @@ export function DiceRoller() {
   useEffect(() => {
     const handleFocusEvent = () => {
       setIsExpanded(true);
-      localStorage.setItem('dice_roller_expanded', 'true');
+      localStorage.setItem(STORAGE_KEYS.diceRollerExpanded, 'true');
       setTimeout(() => {
         if (inputRef.current) {
           inputRef.current.focus();

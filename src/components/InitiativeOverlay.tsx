@@ -1,3 +1,4 @@
+import { ANIMATION_TIMING } from '../lib/constants';
 import React, { useRef, useEffect } from 'react';
 
 const STYLES = `
@@ -93,7 +94,7 @@ export function InitiativeOverlay() {
         pointerEvents: 'none',
         animation: [
           'init-overlayIn 150ms ease-out forwards',
-          'init-overlayOut 1000ms ease-in 7500ms forwards',
+          `init-overlayOut ${ANIMATION_TIMING.initiativeExitDuration}ms ease-in ${ANIMATION_TIMING.initiativeExit}ms forwards`,
         ].join(', '),
       }}
     >

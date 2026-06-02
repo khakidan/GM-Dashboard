@@ -25,6 +25,8 @@ import { ErrorBoundary } from './ErrorBoundary';
 import { hasToken } from '../services/googleAuth';
 import { useGoogleAuth } from '../hooks/useGoogleAuth';
 import { useSheetSync } from '../hooks/useSheetSync';
+import { useEncounterLifecycle } from '../hooks/useEncounterLifecycle';
+import { useEncounterResume } from '../hooks/useEncounterResume';
 import { SyncingOverlay } from './SyncingOverlay';
 import { SettingsPage } from './SettingsPage';
 
@@ -105,8 +107,6 @@ export function GMDashboard() {
 
   const {
     handleSyncWithSheets,
-    startEncounter,
-    clearEncounter,
     isSyncing,
     setIsSyncing,
     syncError,
@@ -118,6 +118,10 @@ export function GMDashboard() {
     setIsGoogleConnected: (val) => setIsGoogleConnected(val),
     onActiveTabChange: handleTabChange,
   });
+
+  const { startEncounter, clearEncounter } = useEncounterLifecycle(handleTabChange);
+
+  useEncounterResume(handleTabChange);
 
   const {
     isGoogleConnected,

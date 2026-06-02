@@ -1,3 +1,4 @@
+import { getHealthStatus, getEffectiveResistances, effectiveMaxHp, effectiveAc } from '../../lib/conditions';
 // src/lib/__tests__/combatLogic.test.ts
 
 // ─── PROTECTED TEST FILE ───────────────────────────
@@ -7,21 +8,7 @@
 // ────────────────────────────────────────────────────
 
 import { describe, it, expect } from 'vitest';
-import {
-  applyHealthChange,
-  nextTurnIndex,
-  isNewRound,
-  getHealthStatus,
-  rollD20,
-  rollNpcInitiatives,
-  checkIrvMatch,
-  getEffectiveResistances,
-  computeDamageWithIrv,
-  getExpiredConditions,
-  computeConcentrationDC,
-  effectiveMaxHp,
-  effectiveAc,
-} from '../combatLogic';
+import { applyHealthChange, nextTurnIndex, isNewRound, rollD20, rollNpcInitiatives, checkIrvMatch, computeDamageWithIrv, getExpiredConditions, computeConcentrationDC } from '../combatLogic';
 import type { Combatant } from '../../types';
 
 // ─── applyHealthChange — damage ───────────────────────────────────────────────

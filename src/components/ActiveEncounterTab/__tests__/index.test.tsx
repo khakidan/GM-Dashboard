@@ -20,10 +20,20 @@ vi.mock('../../../services/dbOperations', () => ({
   updateEncounterStateDB: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock('../../../hooks/useAppState', () => ({
-  useAppState: vi.fn(),
-  getSnapshot: vi.fn(),
-}));
+vi.mock('../../../hooks/useAppState', () => {
+  const mockAppStateFn = vi.fn();
+  return {
+    useAppState: mockAppStateFn,
+    getSnapshot: vi.fn(() => {
+      try {
+        const result = mockAppStateFn();
+        return result?.state;
+      } catch {
+        return null;
+      }
+    }),
+  };
+});
 
 import { MemoryRouter } from 'react-router-dom';
 

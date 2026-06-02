@@ -45,7 +45,8 @@ describe('App Level DeathOverlay Integration', () => {
         },
       } as any,
       updateState: vi.fn(),
-    });
+      getSnapshot: vi.fn(),
+    } as any);
 
     const { container } = render(<App />);
     
@@ -76,7 +77,8 @@ describe('App Level DeathOverlay Integration', () => {
         },
       } as any,
       updateState: vi.fn(),
-    });
+      getSnapshot: vi.fn(),
+    } as any);
 
     const { container } = render(<App />);
     

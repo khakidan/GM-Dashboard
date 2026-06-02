@@ -1,6 +1,7 @@
+import { DAMAGE_TYPE_OPTIONS } from '../../lib/conditions';
 import React, { useState } from 'react';
 import { DamageType } from '../../types';
-import { DAMAGE_TYPE_OPTIONS } from '../../lib/irvOptions';
+;
 import { Shield, Heart, PlusCircle, Trash2, X } from 'lucide-react';
 
 interface MultiTargetActionPanelProps {

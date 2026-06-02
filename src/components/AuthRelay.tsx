@@ -1,3 +1,4 @@
+import { STORAGE_KEYS } from '../lib/constants';
 import { useState, useEffect } from 'react';
 import { Copy, Check, LogIn, AlertCircle, Info, RefreshCcw } from 'lucide-react';
 import { signInWithRedirect, signInWithToken } from '../services/googleAuth';
@@ -12,8 +13,8 @@ export function AuthRelay() {
 
   useEffect(() => {
     const checkTokens = () => {
-      const savedToken = localStorage.getItem('GM_GOOGLE_ACCESS_TOKEN');
-      const savedRefresh = localStorage.getItem('GM_GOOGLE_REFRESH_TOKEN');
+      const savedToken = localStorage.getItem(STORAGE_KEYS.googleAccessToken);
+      const savedRefresh = localStorage.getItem(STORAGE_KEYS.googleRefreshToken);
       
       let found = false;
       if (savedToken) {
@@ -39,10 +40,10 @@ export function AuthRelay() {
 
     // Also listen for storage events (if multiple tabs are used)
     const handleStorage = (e: StorageEvent) => {
-      if (e.key === 'GM_GOOGLE_ACCESS_TOKEN' && e.newValue) {
+      if (e.key === STORAGE_KEYS.googleAccessToken && e.newValue) {
         setToken(e.newValue);
       }
-      if (e.key === 'GM_GOOGLE_REFRESH_TOKEN' && e.newValue) {
+      if (e.key === STORAGE_KEYS.googleRefreshToken && e.newValue) {
         setRefreshToken(e.newValue);
       }
     };
@@ -61,8 +62,8 @@ export function AuthRelay() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('GM_GOOGLE_ACCESS_TOKEN');
-    localStorage.removeItem('GM_GOOGLE_REFRESH_TOKEN');
+    localStorage.removeItem(STORAGE_KEYS.googleAccessToken);
+    localStorage.removeItem(STORAGE_KEYS.googleRefreshToken);
     setToken(null);
     setRefreshToken(null);
   };

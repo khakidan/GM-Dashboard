@@ -112,4 +112,18 @@ describe('CommandPalette', () => {
     expect(dispatchSpy).toHaveBeenCalled();
     expect(mockOnClose).toHaveBeenCalled();
   });
+
+  it('renders command items without dark background classes, using the warm amber theme', () => {
+    render(
+      <CommandPalette isOpen={true} onClose={() => {}} />
+    );
+    const partyItem = screen.getByText('Party Roster').closest('[id^="cmd-"]');
+    expect(partyItem).toBeDefined();
+    if (partyItem) {
+      const cls = partyItem.className || '';
+      expect(cls).not.toContain('bg-[#3f3f37]');
+      expect(cls).toContain('hover:bg-amber-50');
+      expect(cls).toContain('data-[selected=\'true\']:bg-amber-50');
+    }
+  });
 });

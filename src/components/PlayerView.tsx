@@ -1,13 +1,14 @@
+import { getHealthStatus } from '../lib/conditions';
 import { useAppState } from '../hooks/useAppState';
 import { cn } from '../lib/utils';
 import { Skull, Heart, ShieldAlert, Shield, Swords } from 'lucide-react';
-import { getHealthStatus } from '../lib/combatLogic';
+;
 
 export function PlayerView() {
   const { state: appState } = useAppState();
   const state = appState.combatState;
 
-  if (!state.activeEncounterId) {
+  if (!state.activeEncounterId || state.combatants.length === 0) {
     return (
       <div className="min-h-screen bg-[#fdfaf5] text-[#2c2c26] p-4 md:p-8 font-serif flex flex-col items-center justify-center">
         <div className="bg-white border border-[#e5e1d8] rounded-2xl text-center text-[#5a5a40] italic py-24 px-8 max-w-md flex flex-col items-center justify-center gap-3 shadow-sm">

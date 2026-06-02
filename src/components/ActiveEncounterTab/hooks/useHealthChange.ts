@@ -1,9 +1,11 @@
+import { effectiveMaxHp, getEffectiveResistances, CONCENTRATION_EFFECTS } from '../../../lib/conditions';
 import { useState } from 'react';
 import { Combatant, DamageType } from '../../../types';
-import { applyHealthChange, computeDamageWithIrv, effectiveMaxHp, getEffectiveResistances } from '../../../lib/combatLogic';
+import { applyHealthChange, computeDamageWithIrv } from '../../../lib/combatLogic';
 import { toast } from 'sonner';
-import { CONCENTRATION_EFFECTS } from '../../../lib/irvOptions';
 import { useAppState } from '../../../hooks/useAppState';
+import { useDamageEvent, useHealEvent, useUnconsciousEvent } from '../../../hooks/useOverlayEvents';
+import { useDeathSaves } from '../../../hooks/useDeathSaves';
 
 export function useHealthChange(
   syncingIds: Set<string>,
@@ -12,6 +14,12 @@ export function useHealthChange(
   const { updateState } = useAppState();
   const [damageInputs, setDamageInputs] = useState<Record<string, string>>({});
   const [healInputs, setHealInputs] = useState<Record<string, string>>({});
+
+  const { fire: fireDamageEvent } = useDamageEvent();
+  const { fire: fireHealEvent } = useHealEvent();
+  const { fire: fireUnconsciousEvent } = useUnconsciousEvent();
+
+  const { applyDamageToUnconscious } = useDeathSaves();
 
   const removeConcentration = (id: string, currentConditions: string, currentTimers: Record<string, number> = {}) => {
     const conEffectsArray = Array.from(CONCENTRATION_EFFECTS);
@@ -52,29 +60,7 @@ export function useHealthChange(
 
       if (isDamage && isUnconscious) {
         // Damage on unconscious PC = failed death save
-        const failsGain = isCritical ? 2 : 1;
-        const newFails = (c.isStable ? 0 : (c.deathSavesFails || 0)) + failsGain;
-        toast(`${c.name} is unconscious and took damage — death save failed automatically`);
-
-        if (newFails >= 3) {
-          // PC has died!
-          const conditionsList = (c.conditions || '').split(',').map(s => s.trim()).filter(Boolean);
-          const updatedConditions = conditionsList.filter(cond => cond.toLowerCase() !== 'unconscious').join(', ');
-          
-          updateCombatant(id, {
-            deathSavesFails: newFails,
-            deathSavesSuccesses: 0,
-            conditions: updatedConditions,
-            statusId: 3, // Deceased
-            isStable: false
-          });
-          toast(`${c.name} has died. Update their status on the Party Roster.`);
-        } else {
-          updateCombatant(id, {
-            deathSavesFails: newFails,
-            isStable: false
-          });
-        }
+        applyDamageToUnconscious(id, isCritical);
 
         if (isDamage) {
           setDamageInputs(prev => ({ ...prev, [id]: '' }));
@@ -165,75 +151,16 @@ export function useHealthChange(
 
       if (isDamage && finalDamageAmount > 0) {
         if (isFirstUnconscious) {
-          updateState(prev => ({
-            ...prev,
-            combatState: {
-              ...prev.combatState,
-              unconsciousEvent: {
-                characterName: c.name,
-              }
-            }
-          }));
-
-          setTimeout(() => {
-            updateState(prev => ({
-              ...prev,
-              combatState: {
-                ...prev.combatState,
-                unconsciousEvent: null,
-              }
-            }));
-          }, 5500);
+          fireUnconsciousEvent({ characterName: c.name });
         } else {
-          const targetCombatant = c;
-          const finalDamage = finalDamageAmount;
-          updateState(prev => ({
-            ...prev,
-            combatState: {
-              ...prev.combatState,
-              damageEvent: {
-                combatantName: targetCombatant.name,
-                damageAmount: finalDamage,
-              }
-            }
-          }));
-
-          setTimeout(() => {
-            updateState(prev => ({
-              ...prev,
-              combatState: {
-                ...prev.combatState,
-                damageEvent: null,
-              }
-            }));
-          }, 5500);
+          fireDamageEvent({ combatantName: c.name, damageAmount: finalDamageAmount });
         }
       }
       
       if (!isDamage) {
         const actualHeal = newCurrentHp - c.currentHp;
         if (actualHeal > 0) {
-          const targetCombatant = c;
-          updateState(prev => ({
-            ...prev,
-            combatState: {
-              ...prev.combatState,
-              healEvent: {
-                combatantName: targetCombatant.name,
-                healAmount: actualHeal,
-              }
-            }
-          }));
-
-          setTimeout(() => {
-            updateState(prev => ({
-              ...prev,
-              combatState: {
-                ...prev.combatState,
-                healEvent: null,
-              }
-            }));
-          }, 5500);
+          fireHealEvent({ combatantName: c.name, healAmount: actualHeal });
         }
       }
       
@@ -254,71 +181,6 @@ export function useHealthChange(
     } else {
       setHealInputs(prev => ({ ...prev, [id]: '' }));
     }
-  };
-
-  const fireDamageEvent = (combatantName: string, damageAmount: number) => {
-    updateState(prev => ({
-      ...prev,
-      combatState: {
-        ...prev.combatState,
-        damageEvent: {
-          combatantName,
-          damageAmount,
-        }
-      }
-    }));
-
-    setTimeout(() => {
-      updateState(prev => ({
-        ...prev,
-        combatState: {
-          ...prev.combatState,
-          damageEvent: null,
-        }
-      }));
-    }, 5500);
-  };
-
-  const fireHealEvent = (combatantName: string, healAmount: number) => {
-    updateState(prev => ({
-      ...prev,
-      combatState: {
-        ...prev.combatState,
-        healEvent: {
-          combatantName,
-          healAmount,
-        }
-      }
-    }));
-
-    setTimeout(() => {
-      updateState(prev => ({
-        ...prev,
-        combatState: {
-          ...prev.combatState,
-          healEvent: null,
-        }
-      }));
-    }, 5500);
-  };
-
-  const fireUnconsciousEvent = (characterName: string) => {
-    updateState(prev => ({
-      ...prev,
-      combatState: {
-        ...prev.combatState,
-        unconsciousEvent: { characterName }
-      }
-    }));
-    setTimeout(() => {
-      updateState(prev => ({
-        ...prev,
-        combatState: {
-          ...prev.combatState,
-          unconsciousEvent: null
-        }
-      }));
-    }, 5500);
   };
 
   return {

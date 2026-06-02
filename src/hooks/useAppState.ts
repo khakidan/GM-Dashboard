@@ -1,122 +1,52 @@
-// src/hooks/useAppState.ts
+import { useCallback } from 'react';
+import { AppState } from '../types';
+import { useDashboardStore } from './dashboardStore';
 
-import { useCallback, useSyncExternalStore } from 'react';
-import { AppState, Character, Encounter, CombatState, NPC, EncounterCombatant } from '../types';
-import { retryPersistedWrites } from '../services/writeQueue';
-
-const STORAGE_KEY = 'dnd-app-state';
-
-export const initialCharacters: Character[] = [];
-export const initialEncounters: Encounter[] = [];
-export const initialNPCs: NPC[] = [];
-export const initialEncounterCombatants: EncounterCombatant[] = [];
-
-const defaultCombatState: CombatState = {
-  activeEncounterId: null,
-  combatants: [],
-  activeTurnId: null,
-  round: 1,
-  deathEvent: null,
-  damageEvent: null,
-  healEvent: null,
-  unconsciousEvent: null,
-  rageEvent: null,
-  initiativeEvent: false,
-};
-
-const defaultAppState: AppState = {
-  campaignName: "GM Encounter Dashboard",
-  hasInitialSynced: false,
-  characters: initialCharacters,
-  encounters: initialEncounters,
-  npcs: initialNPCs,
-  encounterCombatants: initialEncounterCombatants,
-  difficulties: {},
-  statuses: {},
-  combatState: defaultCombatState,
-  openDialog: null,
-};
-
-// Global Store Setup
-type Listener = () => void;
-const listeners = new Set<Listener>();
-
-let globalState = defaultAppState;
-try {
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (stored) {
-    const parsed = JSON.parse(stored);
-    globalState = {
-      ...defaultAppState,
-      campaignName: parsed.campaignName || defaultAppState.campaignName,
-      hasInitialSynced: false,
-    };
-  }
-} catch (e) {
-  console.error("Failed to parse app state", e);
+/**
+ * useAppState is now a thin wrapper around the Zustand store.
+ * The public API is identical to the previous implementation —
+ * all existing hooks and components continue to work without any changes.
+ *
+ * - state: the current AppState (reactive — components re-render when it changes)
+ * - updateState: applies an update to the store. Accepts either a function (prev => next) or a partial state object.
+ * - getSnapshot: returns the current state synchronously without subscribing.
+ */
+export function getSnapshot(): AppState {
+  return useDashboardStore.getState().getSnapshot();
 }
-
-export function getSnapshot() {
-  return globalState;
-}
-
-export function setGlobalState(next: AppState) {
-  globalState = next;
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      campaignName: globalState.campaignName,
-      hasInitialSynced: false,
-    }));
-  } catch (e) {
-    console.error("Failed to save state to localStorage (possibly image is too large)", e);
-  }
-  listeners.forEach(l => l());
-}
-
-export const _testHooks = {
-  getListeners: () => listeners,
-  resetState: () => {
-    globalState = defaultAppState;
-    listeners.clear();
-  }
-};
 
 export function useAppState() {
-  const state = useSyncExternalStore(
-    (callback) => {
-      if (listeners.size === 0) {
-        // First subscriber! Retry any persisted writes from previous sessions
-        void retryPersistedWrites();
-      }
-      listeners.add(callback);
-      const handleStorage = (e: StorageEvent) => {
-        if (e.key === STORAGE_KEY && e.newValue) {
-          try {
-            const parsed = JSON.parse(e.newValue);
-            globalState = {
-              ...globalState,
-              campaignName: parsed.campaignName || globalState.campaignName,
-            };
-            callback();
-          } catch (err) {
-            console.error("Failed to parse cross-tab storage change");
-          }
-        }
-      };
-      window.addEventListener('storage', handleStorage);
-      return () => {
-        listeners.delete(callback);
-        window.removeEventListener('storage', handleStorage);
-      };
-    },
-    getSnapshot,
-    getSnapshot
+  // Subscribes this component to the full store.
+  // Any state change triggers a re-render.
+  const state = useDashboardStore(
+    (s): AppState => ({
+      characters: s.characters,
+      npcs: s.npcs,
+      encounters: s.encounters,
+      encounterCombatants: s.encounterCombatants,
+      statuses: s.statuses,
+      difficulties: s.difficulties,
+      campaignName: s.campaignName,
+      hasInitialSynced: s.hasInitialSynced,
+      openDialog: s.openDialog,
+      combatState: s.combatState,
+    })
   );
 
-  const updateState = useCallback((updates: Partial<AppState> | ((prev: AppState) => Partial<AppState>)) => {
-    const nextState = typeof updates === 'function' ? updates(globalState) : updates;
-    setGlobalState({ ...globalState, ...nextState });
+  const updateState = useCallback(
+    (updater: ((prev: AppState) => AppState) | Partial<AppState>) => {
+      useDashboardStore.getState().updateState(updater);
+    },
+    []
+  );
+
+  const getSnapshot = useCallback((): AppState => {
+    return useDashboardStore.getState().getSnapshot();
   }, []);
 
-  return { state, updateState };
+  return { state, updateState, getSnapshot };
 }
+
+// Re-export the raw store for cases where a hook or utility needs access
+// to the store outside of a React component.
+export { useDashboardStore };

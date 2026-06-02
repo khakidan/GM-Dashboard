@@ -1,10 +1,11 @@
+import { effectiveMaxHp, applyLongRestToConditions } from '../../../lib/conditions';
 import { useState } from 'react';
 import { useAppState, getSnapshot } from '../../../hooks/useAppState';
 import { Character } from '../../../types';
 import { addCharacterDB, updateCharacterDB, deleteCharacterFully } from '../../../services/dbOperations';
 import { toast } from 'sonner';
-import { effectiveMaxHp } from '../../../lib/combatLogic';
-import { applyLongRestToConditions } from '../../../lib/conditionDefinitions';
+;
+;
 
 export function useParty() {
   const { state, updateState } = useAppState();
@@ -17,7 +18,7 @@ export function useParty() {
 
   const handleLevelUpConfirm = async (updates: Partial<Character>) => {
     if (!levelUpCharacter) return;
-    const previousState = getSnapshot();
+    const previousState = state;
     const charId = levelUpCharacter.id;
 
     // 4. Close the dialog
@@ -59,7 +60,7 @@ export function useParty() {
     });
 
     // Find the latest char info to ensure we have the right name for the toast
-    const char = getSnapshot().characters.find(c => c.id === charId) || levelUpCharacter;
+    const char = state.characters.find(c => c.id === charId) || levelUpCharacter;
 
     // 3. Show a sonner toast: "[CharacterName] is now level [N]!"
     const newLevel = updates.level !== undefined ? updates.level : (char.level + 1);
@@ -73,19 +74,21 @@ export function useParty() {
       if (!latestChar) throw new Error("Character not found");
       
       await updateCharacterDB(updates, latestChar);
-    } catch (err: unknown) {
-      console.error("Failed to sync level-up update to sheets", err);
-      // rollback
+    } catch (error) {
+      // 4a. Roll back to snapshot on failure
       updateState(previousState);
-      const errorObj = err as Record<string, unknown> | null;
-      if (errorObj?.message === "UNAUTHENTICATED" || errorObj?.error === "UNAUTHENTICATED") {
-        toast.error('Session expired — please sign in again.', {
-          description: 'Your Google session timed out. Use the Connect & Sync button to reconnect.',
-          duration: 8000,
-        });
-      } else {
-        setGlobalError(`Failed to sync level up for "${char.characterName}".`);
-      }
+      
+      // 4b. Set local error state for UI/Tests
+      setGlobalError(`Failed to update details for "${levelUpCharacter.characterName}".`);
+      
+      // 4c. Show error toast
+      toast.error('Failed to save changes. Please try again.', {
+        description: error instanceof Error ? error.message : 'Unknown error',
+        duration: 5000,
+      });
+      
+      // 4e. Log for debugging
+      console.error('[DB Error]', error);
     } finally {
       setSyncingId(null);
     }
@@ -125,18 +128,21 @@ export function useParty() {
         characters: prev.characters.map(c => c.id === tempId ? { ...savedChar } : c) as Character[]
       }));
       toast.success(`${newCharData.characterName} added to the roster`);
-    } catch (err: unknown) {
-      console.warn(err);
+    } catch (error) {
+      // 4a. Roll back to snapshot on failure
       updateState(previousState);
-      const errorObj = err as Record<string, unknown> | null;
-      if (errorObj?.message === "UNAUTHENTICATED" || errorObj?.error === "UNAUTHENTICATED") {
-        toast.error('Session expired — please sign in again.', {
-          description: 'Your Google session timed out. Use the Connect & Sync button to reconnect.',
-          duration: 8000,
-        });
-      } else {
-        setGlobalError("Failed to add player. Please try again.");
-      }
+      
+      // 4b. Set local error state
+      setGlobalError('Failed to add player. Please try again.');
+      
+      // 4c. Show error toast
+      toast.error('Failed to save changes. Please try again.', {
+        description: error instanceof Error ? error.message : 'Unknown error',
+        duration: 5000,
+      });
+      
+      // 4d. Log for debugging
+      console.error('[DB Error]', error);
     } finally {
       setIsAddingPlayer(false);
     }
@@ -148,7 +154,7 @@ export function useParty() {
     setIsResting(true);
     setGlobalError(null);
     
-    const previousState = getSnapshot();
+    const previousState = state;
     // 1. Update local state optimistically
     updateState(prev => {
       const updatedCharacters = prev.characters.map(c => {
@@ -284,19 +290,18 @@ export function useParty() {
         duration: 8000,
       });
 
-    } catch (err: unknown) {
-      console.error("Long rest failed", err);
-      // 2. Rollback
+    } catch (error) {
+      // 4a. Roll back to snapshot on failure
       updateState(previousState);
-      const errorObj = err as Record<string, unknown> | null;
-      if (errorObj?.message === "UNAUTHENTICATED" || errorObj?.error === "UNAUTHENTICATED") {
-        toast.error('Session expired — please sign in again.', {
-          description: 'Your Google session timed out. Use the Connect & Sync button to reconnect.',
-          duration: 8000,
-        });
-      } else {
-        setGlobalError("Failed to complete long rest synchronisation.");
-      }
+      
+      // 4b. Show error toast
+      toast.error('Failed to save changes. Please try again.', {
+        description: error instanceof Error ? error.message : 'Unknown error',
+        duration: 5000,
+      });
+      
+      // 4c. Log for debugging
+      console.error('[DB Error]', error);
     } finally {
       setIsResting(false);
     }
@@ -320,24 +325,26 @@ export function useParty() {
 
     try {
       await deleteCharacterFully(id);
-    } catch (err: unknown) {
-      console.warn("Failed to delete character", err);
+    } catch (error) {
+      // 4a. Roll back to snapshot on failure
       updateState(previousState);
       
-      const errorObj = err as Record<string, unknown> | null;
-      if (errorObj?.message === "UNAUTHENTICATED" || errorObj?.error === "UNAUTHENTICATED") {
-        toast.error('Session expired — please sign in again.', {
-          description: 'Your Google session timed out. Use the Connect & Sync button to reconnect.',
-          duration: 8000,
-        });
-      } else {
-        setGlobalError(`Failed to delete "${char.characterName}". Please try again.`);
-      }
+      // 4b. Set local error state
+      setGlobalError(`Failed to delete "${char.characterName}".`);
+      
+      // 4c. Show error toast
+      toast.error('Failed to save changes. Please try again.', {
+        description: error instanceof Error ? error.message : 'Unknown error',
+        duration: 5000,
+      });
+      
+      // 4d. Log for debugging
+      console.error('[DB Error]', error);
     }
   };
 
   const handleUpdate = async (id: string, updates: Partial<Character>) => {
-    const previousState = getSnapshot();
+    const previousState = state;
     // Deep validation on updates
     const sanitizedUpdates = { ...updates };
     if (typeof sanitizedUpdates.characterName === 'string') sanitizedUpdates.characterName = sanitizedUpdates.characterName.trim();
@@ -402,19 +409,21 @@ export function useParty() {
     setSyncingId(id);
     try {
       await updateCharacterDB(sanitizedUpdates, char);
-    } catch (err: unknown) {
-      console.error("Failed to sync party update to sheets", err);
-      // 3. Rollback
+    } catch (error) {
+      // 4a. Roll back to snapshot on failure
       updateState(previousState);
-      const errorObj = err as Record<string, unknown> | null;
-      if (errorObj?.message === "UNAUTHENTICATED" || errorObj?.error === "UNAUTHENTICATED") {
-        toast.error('Session expired — please sign in again.', {
-          description: 'Your Google session timed out. Use the Connect & Sync button to reconnect.',
-          duration: 8000,
-        });
-      } else {
-        setGlobalError(`Failed to update details for "${char.characterName}".`);
-      }
+      
+      // 4b. Set local error state
+      setGlobalError(`Failed to update details for "${char.characterName}".`);
+      
+      // 4c. Show error toast
+      toast.error('Failed to save changes. Please try again.', {
+        description: error instanceof Error ? error.message : 'Unknown error',
+        duration: 5000,
+      });
+      
+      // 4d. Log for debugging
+      console.error('[DB Error]', error);
     } finally {
       setSyncingId(null);
     }

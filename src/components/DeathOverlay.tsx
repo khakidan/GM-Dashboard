@@ -1,3 +1,4 @@
+import { ANIMATION_TIMING } from '../lib/constants';
 import React, { useRef, useEffect } from 'react';
 
 interface DeathOverlayProps {
@@ -87,7 +88,7 @@ export function DeathOverlay({ characterName }: DeathOverlayProps) {
         overflow: 'hidden',
         animation: [
           'dof-overlayFadeIn 120ms ease-out forwards',
-          'dof-overlayFadeOut 1500ms ease-in 8500ms forwards',
+          `dof-overlayFadeOut ${ANIMATION_TIMING.deathExitDuration}ms ease-in ${ANIMATION_TIMING.deathExit}ms forwards`,
         ].join(', '),
       }}
     >

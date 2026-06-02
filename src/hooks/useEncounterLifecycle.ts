@@ -1,0 +1,70 @@
+import { useAppState, getSnapshot } from './useAppState';
+import { buildCombatantsFromState } from '../lib/combatantBuilder';
+import { updateEncounterStateDB, clearEncounterStateDB } from '../services/dbOperations';
+
+export function useEncounterLifecycle(onActiveTabChange?: (tab: 'party' | 'encounters' | 'npc-library' | 'combat') => void) {
+  const { updateState } = useAppState();
+
+  const startEncounter = async (id: string) => {
+    const currentState = getSnapshot();
+    const encounter = currentState.encounters.find(e => e.id === id);
+    if (!encounter) return;
+
+    const combatants = buildCombatantsFromState(
+      encounter,
+      currentState.encounterCombatants,
+      currentState.characters,
+      currentState.npcs
+    );
+    
+    combatants.sort((a, b) => b.initiative - a.initiative);
+    const firstCombatantId = combatants.length > 0 ? combatants[0].id : null;
+
+    updateState(prev => ({
+      ...prev,
+      combatState: {
+        activeEncounterId: encounter.id,
+        combatants,
+        activeTurnId: firstCombatantId,
+        round: 1,
+        concentrationLinks: {},
+        deathEvent: null,
+        damageEvent: null,
+        initiativeEvent: false,
+      },
+    }));
+
+    updateEncounterStateDB(encounter.id, 1, firstCombatantId ?? '').catch(err => {
+      console.warn("Failed to write initial combat state to sheet", err);
+    });
+
+    onActiveTabChange?.('combat');
+  };
+
+  const clearEncounter = () => {
+    const activeEncounterId = getSnapshot().combatState.activeEncounterId;
+    updateState(prev => ({
+      ...prev,
+      combatState: {
+        ...prev.combatState,
+        activeEncounterId: null,
+        deathEvent: null,
+        damageEvent: null,
+        initiativeEvent: false,
+      },
+    }));
+
+    if (activeEncounterId) {
+      clearEncounterStateDB(activeEncounterId).catch(err => {
+        console.warn("Failed to clear encounter state in sheet", err);
+      });
+    }
+
+    onActiveTabChange?.('encounters');
+  };
+
+  return {
+    startEncounter,
+    clearEncounter
+  };
+}

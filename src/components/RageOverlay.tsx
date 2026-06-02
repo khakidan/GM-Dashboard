@@ -1,3 +1,4 @@
+import { ANIMATION_TIMING } from '../lib/constants';
   import React, { useRef, useEffect } from 'react';
 
   interface RageOverlayProps {
@@ -119,7 +120,7 @@
           pointerEvents: 'none',
           animation: [
             'rage-overlayIn 60ms ease-out forwards',
-            'rage-overlayOut 700ms ease-in 4800ms forwards',
+            `rage-overlayOut ${ANIMATION_TIMING.rageExitDuration}ms ease-in ${ANIMATION_TIMING.rageExit}ms forwards`,
           ].join(', '),
         }}
       >

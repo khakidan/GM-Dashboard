@@ -1,3 +1,4 @@
+import { STORAGE_KEYS } from '../lib/constants';
 // src/services/googleAuth.ts
 
 // Google Auth Token and Client Management Service
@@ -115,13 +116,13 @@ let refreshToken: string | null = null;
 
 // Helper to keep local variables in sync with storage
 function refreshLocalTokens() {
-  accessToken = localStorage.getItem('GM_GOOGLE_ACCESS_TOKEN');
-  refreshToken = localStorage.getItem('GM_GOOGLE_REFRESH_TOKEN');
+  accessToken = localStorage.getItem(STORAGE_KEYS.googleAccessToken);
+  refreshToken = localStorage.getItem(STORAGE_KEYS.googleRefreshToken);
 }
 
 export function clearTokens() {
-  localStorage.removeItem('GM_GOOGLE_ACCESS_TOKEN');
-  localStorage.removeItem('GM_GOOGLE_REFRESH_TOKEN');
+  localStorage.removeItem(STORAGE_KEYS.googleAccessToken);
+  localStorage.removeItem(STORAGE_KEYS.googleRefreshToken);
   accessToken = null;
   refreshToken = null;
 }
@@ -132,12 +133,12 @@ export function hasToken() {
 }
 
 export function setManualAccessToken(token: string) {
-  localStorage.setItem('GM_GOOGLE_ACCESS_TOKEN', token);
+  localStorage.setItem(STORAGE_KEYS.googleAccessToken, token);
   accessToken = token;
 }
 
 export function setManualRefreshToken(token: string) {
-  localStorage.setItem('GM_GOOGLE_REFRESH_TOKEN', token);
+  localStorage.setItem(STORAGE_KEYS.googleRefreshToken, token);
   refreshToken = token;
 }
 
@@ -152,7 +153,7 @@ export async function checkAndCaptureToken() {
   const hashToken = hashParams.get('access_token');
 
   if (hashToken) {
-    localStorage.setItem('GM_GOOGLE_ACCESS_TOKEN', hashToken);
+    localStorage.setItem(STORAGE_KEYS.googleAccessToken, hashToken);
     accessToken = hashToken;
     // Clean up hash
     window.history.replaceState(null, '', window.location.pathname + window.location.search);
@@ -179,12 +180,12 @@ export async function checkAndCaptureToken() {
       const data = await res.json();
 
       if (data.access_token) {
-        localStorage.setItem('GM_GOOGLE_ACCESS_TOKEN', data.access_token);
+        localStorage.setItem(STORAGE_KEYS.googleAccessToken, data.access_token);
         accessToken = data.access_token;
       }
 
       if (data.refresh_token) {
-        localStorage.setItem('GM_GOOGLE_REFRESH_TOKEN', data.refresh_token);
+        localStorage.setItem(STORAGE_KEYS.googleRefreshToken, data.refresh_token);
         refreshToken = data.refresh_token;
       } else {
         console.warn(
@@ -235,7 +236,7 @@ export async function refreshAccessToken(): Promise<string | null> {
 
     const data = await res.json();
     if (data.access_token) {
-      localStorage.setItem('GM_GOOGLE_ACCESS_TOKEN', data.access_token);
+      localStorage.setItem(STORAGE_KEYS.googleAccessToken, data.access_token);
       accessToken = data.access_token;
       return accessToken;
     }
@@ -281,7 +282,7 @@ async function setupClient(resolve: () => void, reject: (err: Error) => void) {
           reject(tokenResponse);
         }
         accessToken = tokenResponse.access_token;
-        localStorage.setItem('GM_GOOGLE_ACCESS_TOKEN', accessToken!);
+        localStorage.setItem(STORAGE_KEYS.googleAccessToken, accessToken!);
         resolve();
       },
     });

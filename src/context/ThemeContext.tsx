@@ -1,3 +1,4 @@
+import { STORAGE_KEYS } from '../lib/constants';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 export type VisualStyle = 'default' | 'dnd' | 'sleek-modern';
@@ -11,13 +12,13 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<VisualStyle>(() => {
-    const saved = localStorage.getItem('gm_visual_style');
+    const saved = localStorage.getItem(STORAGE_KEYS.visualStyle);
     return (saved as VisualStyle) || 'default';
   });
 
   const setTheme = (newTheme: VisualStyle) => {
     setThemeState(newTheme);
-    localStorage.setItem('gm_visual_style', newTheme);
+    localStorage.setItem(STORAGE_KEYS.visualStyle, newTheme);
   };
 
   useEffect(() => {

@@ -1,3 +1,4 @@
+import { getHealthStatus } from '../../lib/conditions';
 // ─── PROTECTED TEST FILE ───────────────────────────
 // Do not delete, rename, or remove test cases from 
 // this file without an explicit instruction to do so.
@@ -9,7 +10,7 @@ import { render, screen, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { PlayerView } from '../PlayerView';
 import { useAppState } from '../../hooks/useAppState';
-import { getHealthStatus } from '../../lib/combatLogic';
+;
 import type { Combatant } from '../../types';
 
 // Mock the useAppState hook
@@ -40,10 +41,12 @@ describe('PlayerView Component', () => {
           combatants: [],
           activeTurnId: null,
           round: 1,
+          concentrationLinks: {},
         },
       },
       updateState: vi.fn(),
-    });
+      getSnapshot: vi.fn(),
+    } as any);
 
     render(<PlayerView />);
     expect(screen.getByText(/Waiting for GM to start the encounter/i)).toBeDefined();
@@ -72,10 +75,12 @@ describe('PlayerView Component', () => {
           combatants,
           activeTurnId: null,
           round: 1,
+          concentrationLinks: {},
         },
       },
       updateState: vi.fn(),
-    });
+      getSnapshot: vi.fn(),
+    } as any);
 
     render(<PlayerView />);
     expect(screen.getByText('Lidda Halfling')).toBeDefined();
@@ -109,10 +114,12 @@ describe('PlayerView Component', () => {
           combatants,
           activeTurnId: null,
           round: 2,
+          concentrationLinks: {},
         },
       },
       updateState: vi.fn(),
-    });
+      getSnapshot: vi.fn(),
+    } as any);
 
     render(<PlayerView />);
 
@@ -153,10 +160,12 @@ describe('PlayerView Component', () => {
           combatants,
           activeTurnId: 'c1', // Lidda is active
           round: 1,
+          concentrationLinks: {},
         },
       },
       updateState: vi.fn(),
-    });
+      getSnapshot: vi.fn(),
+    } as any);
 
     render(<PlayerView />);
 
@@ -190,17 +199,19 @@ describe('PlayerView Component', () => {
           combatants,
           activeTurnId: null,
           round: 1,
+          concentrationLinks: {},
         },
       },
       updateState: vi.fn(),
-    });
+      getSnapshot: vi.fn(),
+    } as any);
 
     render(<PlayerView />);
     expect(screen.getByText('Poisoned, Charmed')).toBeDefined();
   });
 
-  // Test 8: The component renders without errors when the combatants array is empty
-  it('renders peace message without errors when combatants list is empty', () => {
+  // Test 8: When the combatants array is empty, the waiting message is shown
+  it('renders waiting message when combatants list is empty', () => {
     vi.mocked(useAppState).mockReturnValue({
       state: {
         campaignName: 'Test Campaign',
@@ -216,13 +227,16 @@ describe('PlayerView Component', () => {
           combatants: [],
           activeTurnId: null,
           round: 1,
+          concentrationLinks: {},
         },
       },
       updateState: vi.fn(),
-    });
+      getSnapshot: vi.fn(),
+    } as any);
 
     render(<PlayerView />);
-    expect(screen.getByText(/Peace reigns.*for now/i)).toBeDefined();
+    expect(screen.getByText(/Waiting for GM to start the encounter/i)).toBeDefined();
+    expect(screen.queryByText(/Peace reigns.*for now/i)).toBeNull();
   });
 
   // Test 9: 6 combatants → container has max-w-7xl, no grid-cols-2 or lg:grid-cols-2
@@ -253,10 +267,12 @@ describe('PlayerView Component', () => {
           combatants,
           activeTurnId: null,
           round: 1,
+          concentrationLinks: {},
         },
       },
       updateState: vi.fn(),
-    });
+      getSnapshot: vi.fn(),
+    } as any);
 
     const { container } = render(<PlayerView />);
     const listContainer = container.querySelector('table')?.parentElement?.parentElement;
@@ -295,10 +311,12 @@ describe('PlayerView Component', () => {
           combatants,
           activeTurnId: null,
           round: 1,
+          concentrationLinks: {},
         },
       },
       updateState: vi.fn(),
-    });
+      getSnapshot: vi.fn(),
+    } as any);
 
     const { container } = render(<PlayerView />);
     const listContainer = container.querySelector('table')?.parentElement?.parentElement;
@@ -337,10 +355,12 @@ describe('PlayerView Component', () => {
           combatants,
           activeTurnId: null,
           round: 1,
+          concentrationLinks: {},
         },
       },
       updateState: vi.fn(),
-    });
+      getSnapshot: vi.fn(),
+    } as any);
 
     const { container } = render(<PlayerView />);
     const listContainer = container.querySelector('table')?.parentElement?.parentElement;

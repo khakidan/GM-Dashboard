@@ -1,3 +1,4 @@
+import { STORAGE_KEYS } from '../../lib/constants';
 // ─── PROTECTED TEST FILE ───────────────────────────
 // Do not delete, rename, or remove test cases from 
 // this file without an explicit instruction to do so.
@@ -63,19 +64,19 @@ describe('ThemeContext', () => {
     fireEvent.click(btnSleek);
 
     expect(screen.getByTestId('theme-value').textContent).toBe('sleek-modern');
-    expect(localStorage.getItem('gm_visual_style')).toBe('sleek-modern');
+    expect(localStorage.getItem(STORAGE_KEYS.visualStyle)).toBe('sleek-modern');
     expect(document.documentElement.getAttribute('data-theme')).toBe('sleek-modern');
 
     const btnDnd = screen.getByTestId('btn-dnd');
     fireEvent.click(btnDnd);
 
     expect(screen.getByTestId('theme-value').textContent).toBe('dnd');
-    expect(localStorage.getItem('gm_visual_style')).toBe('dnd');
+    expect(localStorage.getItem(STORAGE_KEYS.visualStyle)).toBe('dnd');
     expect(document.documentElement.getAttribute('data-theme')).toBe('dnd');
   });
 
   it('restores theme from local storage on bootstrap', () => {
-    localStorage.setItem('gm_visual_style', 'sleek-modern');
+    localStorage.setItem(STORAGE_KEYS.visualStyle, 'sleek-modern');
 
     render(
       <ThemeProvider>

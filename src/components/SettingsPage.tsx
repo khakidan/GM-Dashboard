@@ -12,8 +12,8 @@ import {
   setManualRefreshToken,
 } from '../services/googleAuth';
 import { syncAndSanitizeDatabase } from '../services/dbOperations';
-import { useCombatSync } from './ActiveEncounterTab/hooks/useCombatSync';
 import { useAppState } from '../hooks/useAppState';
+import { useDeathEvent, useDamageEvent, useHealEvent, useUnconsciousEvent, useRageEvent, useInitiativeEvent } from '../hooks/useOverlayEvents';
 
 interface SettingsPageProps {
   isGoogleConnected: boolean;
@@ -40,7 +40,12 @@ export function SettingsPage({
     return window.localStorage.getItem('gm_sounds_enabled') !== 'false';
   });
   const { theme, setTheme } = useTheme();
-  const { fireDeathEvent, fireDamageEvent, fireHealEvent, fireUnconsciousEvent, fireRageEvent } = useCombatSync();
+  const { fire: fireDeathEvent } = useDeathEvent();
+  const { fire: fireDamageEvent } = useDamageEvent();
+  const { fire: fireHealEvent } = useHealEvent();
+  const { fire: fireUnconsciousEvent } = useUnconsciousEvent();
+  const { fire: fireRageEvent } = useRageEvent();
+  const { fire: fireInitiativeEvent } = useInitiativeEvent();
   const { updateState } = useAppState();
 
   const handleSaveSpreadsheet = () => {
@@ -351,7 +356,7 @@ export function SettingsPage({
             id="test-death-animation-btn"
             type="button"
             onClick={() => {
-              fireDeathEvent('Aldric the Brave');
+              fireDeathEvent({ characterName: 'Aldric the Brave' });
               toast('Death animation triggered', {
                 description: 'Check the Player View to see the overlay.',
                 duration: 3000,
@@ -367,7 +372,7 @@ export function SettingsPage({
             id="test-damage-animation-btn"
             type="button"
             onClick={() => {
-              fireDamageEvent('Thorin Ironforge', 47);
+              fireDamageEvent({ combatantName: 'Thorin Ironforge', damageAmount: 47 });
               toast('Damage animation triggered — check the Player View.', {
                 duration: 3000,
               });
@@ -382,9 +387,7 @@ export function SettingsPage({
             id="test-heal-animation-btn"
             type="button"
             onClick={() => {
-              if (fireHealEvent) {
-                fireHealEvent('Seraphina Brightwell', 34);
-              }
+              fireHealEvent({ combatantName: 'Seraphina Brightwell', healAmount: 34 });
               toast('Heal animation triggered — check the Player View.', {
                 duration: 3000,
               });
@@ -399,9 +402,7 @@ export function SettingsPage({
             id="test-unconscious-animation-btn"
             type="button"
             onClick={() => {
-              if (fireUnconsciousEvent) {
-                fireUnconsciousEvent('Gareth of Stonehaven');
-              }
+              fireUnconsciousEvent({ characterName: 'Gareth of Stonehaven' });
               toast('Unconscious animation triggered — check the Player View.', {
                 duration: 3000,
               });
@@ -416,9 +417,7 @@ export function SettingsPage({
             id="test-rage-animation-btn"
             type="button"
             onClick={() => {
-              if (fireRageEvent) {
-                fireRageEvent('Bjorn the Unbroken');
-              }
+              fireRageEvent({ characterName: 'Bjorn the Unbroken' });
               toast('Rage animation triggered — check the Player View.', {
                 duration: 3000,
               });
@@ -433,24 +432,7 @@ export function SettingsPage({
             id="test-initiative-animation-btn"
             type="button"
             onClick={() => {
-              updateState(prev => ({
-                ...prev,
-                combatState: {
-                  ...prev.combatState,
-                  initiativeEvent: true,
-                }
-              }));
-
-              setTimeout(() => {
-                updateState(prev => ({
-                  ...prev,
-                  combatState: {
-                    ...prev.combatState,
-                    initiativeEvent: false,
-                  }
-                }));
-              }, 8500);
-
+              fireInitiativeEvent(true);
               toast('Initiative animation triggered — check the Player View.');
             }}
             className="border border-amber-300 bg-amber-50/50 hover:bg-amber-100 text-amber-700 font-bold px-5 py-2.5 rounded-xl text-xs uppercase tracking-widest transition-all cursor-pointer inline-flex items-center gap-2"

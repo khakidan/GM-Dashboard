@@ -103,6 +103,7 @@ export interface CombatState {
   combatants: Combatant[];
   activeTurnId: string | null;
   round: number;
+  concentrationLinks: Record<string, string[]>;
   deathEvent?: { characterName: string } | null;
   damageEvent?: {
     combatantName: string;

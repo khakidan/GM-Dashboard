@@ -1,3 +1,4 @@
+import { CONDITION_MECHANICS, buildConditionSummary, applyLongRestToConditions, CONDITION_OPTIONS } from '../../lib/conditions';
 // ─── PROTECTED TEST FILE ───────────────────────────
 // Do not delete, rename, or remove test cases from 
 // this file without an explicit instruction to do so.
@@ -5,8 +6,8 @@
 // ────────────────────────────────────────────────────
 
 import { expect, it, describe } from 'vitest';
-import { CONDITION_MECHANICS, buildConditionSummary, applyLongRestToConditions } from '../conditionDefinitions';
-import { CONDITION_OPTIONS } from '../irvOptions';
+;
+;
 
 describe('conditionDefinitions', () => {
   it('CONDITION_MECHANICS contains entries for all values in CONDITION_OPTIONS from irvOptions.ts', () => {

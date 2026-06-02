@@ -1,3 +1,4 @@
+import { STORAGE_KEYS } from '../../lib/constants';
 // src/services/__tests__/sheetsService.test.ts
 
 // ─── PROTECTED TEST FILE ───────────────────────────
@@ -91,8 +92,8 @@ describe('Notifier Pattern', () => {
   });
 
   it('After setting a custom notifier object, its loading method is called when a sheet write begins', async () => {
-    localStorage.setItem('GM_GOOGLE_ACCESS_TOKEN', 'fake-token');
-    localStorage.setItem('GM_DATA_SPREADSHEET_ID', 'test-id');
+    localStorage.setItem(STORAGE_KEYS.googleAccessToken, 'fake-token');
+    localStorage.setItem(STORAGE_KEYS.spreadsheetId, 'test-id');
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({}), { status: 200 })));
 
     await updateSheetData('A1', [[1]]);
@@ -100,7 +101,7 @@ describe('Notifier Pattern', () => {
   });
 
   it("The notifier's success method is called when the write succeeds", async () => {
-    localStorage.setItem('GM_GOOGLE_ACCESS_TOKEN', 'fake-token');
+    localStorage.setItem(STORAGE_KEYS.googleAccessToken, 'fake-token');
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({}), { status: 200 })));
 
     await updateSheetData('A1', [[1]]);
@@ -108,7 +109,7 @@ describe('Notifier Pattern', () => {
   });
 
   it("The notifier's error method is called when the write fails with a non-UNAUTHENTICATED error", async () => {
-    localStorage.setItem('GM_GOOGLE_ACCESS_TOKEN', 'fake-token');
+    localStorage.setItem(STORAGE_KEYS.googleAccessToken, 'fake-token');
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('Bad Request', { status: 400 })));
 
     await expect(updateSheetData('A1', [[1]])).rejects.toThrow();
@@ -116,7 +117,7 @@ describe('Notifier Pattern', () => {
   });
 
   it("The notifier's dismiss method is called when the write fails with an UNAUTHENTICATED error", async () => {
-    localStorage.setItem('GM_GOOGLE_ACCESS_TOKEN', 'fake-token');
+    localStorage.setItem(STORAGE_KEYS.googleAccessToken, 'fake-token');
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ error: 'UNAUTHENTICATED' }), { status: 401 })));
 
     await expect(updateSheetData('A1', [[1]])).rejects.toThrow('UNAUTHENTICATED');

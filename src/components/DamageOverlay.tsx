@@ -1,3 +1,4 @@
+import { ANIMATION_TIMING } from '../lib/constants';
 import React, { useRef, useEffect } from 'react';
 
 interface DamageOverlayProps {
@@ -85,7 +86,7 @@ export function DamageOverlay({
         pointerEvents: 'none',
         animation: [
           'dmg-overlayIn 80ms ease-out forwards',
-          'dmg-overlayOut 800ms ease-in 4700ms forwards',
+          `dmg-overlayOut ${ANIMATION_TIMING.damageExitDuration}ms ease-in ${ANIMATION_TIMING.damageExit}ms forwards`,
         ].join(', '),
       }}
     >

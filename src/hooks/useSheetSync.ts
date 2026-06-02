@@ -9,7 +9,6 @@ import {
   getSpreadsheetId,
 } from '../services/sheetsService';
 import { clearRetryQueue } from '../services/writeQueue';
-import { updateEncounterStateDB, clearEncounterStateDB } from '../services/dbOperations';
 import { Character, Encounter, Combatant, NPC, EncounterCombatant } from '../types';
 import {
   CharacterRowSchema,
@@ -25,132 +24,7 @@ import {
   mapEncounterRowToEncounter,
   mapEncounterCombatantRowToEC,
 } from '../lib/sheetAdapters';
-
-export function buildCombatantsFromState(
-  encounter: Encounter,
-  encounterCombatants: EncounterCombatant[],
-  characters: Character[],
-  npcs: NPC[]
-): Combatant[] {
-  const combatants: Combatant[] = [];
-  const linkedCombatants = encounterCombatants.filter(ec => ec.encounterId === encounter.id);
-
-  if (linkedCombatants.length > 0) {
-    linkedCombatants.forEach(ec => {
-      const parsedTimers: Record<string, number> = ec.conditionTimers || {};
-
-      if (ec.playerId) {
-        const c = characters.find(char => char.id === ec.playerId);
-        if (c) {
-          combatants.push({
-            id: `combat-pc-${c.id}`,
-            encounterCombatantId: ec.id,
-            characterId: c.id,
-            name: c.characterName,
-            type: 'pc',
-            initiative: ec.initiative || 0,
-            ac: c.ac,
-            maxHp: c.maxHp,
-            currentHp: c.currentHp,
-            tempHp: c.tempHp,
-            conditions: c.conditions,
-            notes: c.notes,
-            passivePerception: c.passivePerception,
-            resistances: c.resistances || '',
-            immunities: c.immunities || '',
-            vulnerabilities: c.vulnerabilities || '',
-            conditionTimers: parsedTimers,
-            tempHpMax: c.tempHpMax,
-            tempAcModifier: c.tempAc || 0,
-            deathSavesFails: c.deathSavesFails || 0,
-            deathSavesSuccesses: c.deathSavesSuccesses || 0,
-            reactionUsed: false,
-          });
-        }
-      } else if (ec.npcId) {
-        const npcTemplate = npcs.find(n => n.id === ec.npcId);
-        if (npcTemplate) {
-          for (let i = 0; i < ec.quantity; i++) {
-            combatants.push({
-              id: `combat-npc-${npcTemplate.id}-${i}-${Date.now()}`,
-              encounterCombatantId: ec.id,
-              name: `${npcTemplate.name}${ec.quantity > 1 ? ` ${i + 1}` : ''}`,
-              type: 'npc',
-              initiative: ec.initiative || 0,
-              ac: npcTemplate.ac,
-              maxHp: npcTemplate.maxHp,
-              currentHp: ec.npcCurrentHp !== undefined && ec.npcCurrentHp >= 0 
-                ? ec.npcCurrentHp 
-                : npcTemplate.maxHp,
-              tempHp: ec.npcTempHp ?? 0,
-              conditions: ec.npcCurrentConditions?.trim() ? ec.npcCurrentConditions : (npcTemplate.conditions || ''),
-              notes: npcTemplate.notes,
-              passivePerception: 10,
-              resistances: npcTemplate.resistances,
-              immunities: npcTemplate.immunities,
-              vulnerabilities: npcTemplate.vulnerabilities,
-              conditionTimers: parsedTimers,
-              tempAcModifier: ec.npcTempAcMod || 0,
-              reactionUsed: false,
-              legendaryActions: 
-                npcTemplate.legendaryActions && npcTemplate.legendaryActions > 0
-                ? { 
-                    max: npcTemplate.legendaryActions, 
-                    remaining: npcTemplate.legendaryActions 
-                  }
-                : undefined,
-              legendaryResistances: 
-                npcTemplate.legendaryResistances && npcTemplate.legendaryResistances > 0
-                ? { 
-                    max: npcTemplate.legendaryResistances, 
-                    remaining: npcTemplate.legendaryResistances 
-                  }
-                : undefined,
-              rechargeAbilities: 
-                npcTemplate.rechargeAbilities?.length
-                ? npcTemplate.rechargeAbilities.map(a => ({
-                    name: a.name,
-                    rechargeOn: a.rechargeOn,
-                    isCharged: true,
-                  }))
-                : undefined,
-            });
-          }
-        }
-      }
-    });
-  } else {
-    // Fallback: add all active characters
-    const activePcs = characters.filter(c => c.isActive);
-    activePcs.forEach(c => {
-      combatants.push({
-        id: `combat-pc-${c.id}`,
-        characterId: c.id,
-        name: c.characterName,
-        type: 'pc',
-        initiative: 0,
-        ac: c.ac,
-        maxHp: c.maxHp,
-        currentHp: c.currentHp,
-        tempHp: c.tempHp,
-        conditions: c.conditions,
-        notes: c.notes,
-        passivePerception: c.passivePerception,
-        resistances: c.resistances || '',
-        immunities: c.immunities || '',
-        vulnerabilities: c.vulnerabilities || '',
-        conditionTimers: {},
-        tempHpMax: c.tempHpMax,
-        tempAcModifier: c.tempAc || 0,
-        deathSavesFails: c.deathSavesFails || 0,
-        deathSavesSuccesses: c.deathSavesSuccesses || 0,
-        reactionUsed: false,
-      });
-    });
-  }
-
-  return combatants;
-}
+import { buildCombatantsFromState } from '../lib/combatantBuilder';
 
 interface UseSheetSyncProps {
   setIsGoogleConnected: (val: boolean) => void;
@@ -305,44 +179,6 @@ export function useSheetSync({ setIsGoogleConnected, onActiveTabChange }: UseShe
           })
           .filter((char): char is Character => char !== null);
 
-        let combatStateUpdates = {};
-        const inProgressEncounter = parsedEncounters.find(e => (e.currentRound ?? 0) > 0);
-        let shouldSwitchToCombat = false;
-
-        if (inProgressEncounter) {
-          const linkedCombatants = parsedEncounterCombatants.filter(ec => ec.encounterId === inProgressEncounter.id);
-          if (linkedCombatants.length === 0) {
-            console.warn("In-progress encounter found, but no combatants exist. Skipping auto-resume.");
-          } else {
-            const rebuiltCombatants = buildCombatantsFromState(
-              inProgressEncounter,
-              parsedEncounterCombatants,
-              parsedCharacters,
-              parsedNPCs
-            );
-            
-            rebuiltCombatants.sort((a, b) => b.initiative - a.initiative);
-            
-            let activeTurnId = inProgressEncounter.activeTurnId || null;
-            if (activeTurnId && !rebuiltCombatants.some(c => c.id === activeTurnId)) {
-               console.warn("Active turn ID from sheet not found in combatants. Defaulting to first.");
-               activeTurnId = rebuiltCombatants.length > 0 ? rebuiltCombatants[0].id : null;
-            }
-
-            combatStateUpdates = {
-              activeEncounterId: inProgressEncounter.id,
-              round: inProgressEncounter.currentRound,
-              activeTurnId,
-              combatants: rebuiltCombatants,
-            };
-            shouldSwitchToCombat = true;
-          }
-        }
-
-        if (shouldSwitchToCombat) {
-           setTimeout(() => onActiveTabChange?.('combat'), 0);
-        }
-
         return {
           ...prev,
           hasInitialSynced: true,
@@ -352,10 +188,6 @@ export function useSheetSync({ setIsGoogleConnected, onActiveTabChange }: UseShe
           encounterCombatants: parsedEncounterCombatants,
           statuses,
           difficulties,
-          combatState: {
-             ...prev.combatState,
-             ...combatStateUpdates
-          }
         };
       });
 
@@ -384,67 +216,8 @@ export function useSheetSync({ setIsGoogleConnected, onActiveTabChange }: UseShe
     }
   };
 
-  const startEncounter = async (id: string) => {
-    const currentState = getSnapshot();
-    const encounter = currentState.encounters.find(e => e.id === id);
-    if (!encounter) return;
-
-    let combatants = buildCombatantsFromState(
-      encounter,
-      currentState.encounterCombatants,
-      currentState.characters,
-      currentState.npcs
-    );
-    
-    combatants.sort((a, b) => b.initiative - a.initiative);
-    const firstCombatantId = combatants.length > 0 ? combatants[0].id : null;
-
-    updateState(prev => ({
-      ...prev,
-      combatState: {
-        activeEncounterId: encounter.id,
-        combatants,
-        activeTurnId: firstCombatantId,
-        round: 1,
-        deathEvent: null,
-        damageEvent: null,
-        initiativeEvent: false,
-      },
-    }));
-
-    updateEncounterStateDB(encounter.id, 1, firstCombatantId ?? '').catch(err => {
-      console.warn("Failed to write initial combat state to sheet", err);
-    });
-
-    onActiveTabChange?.('combat');
-  };
-
-  const clearEncounter = () => {
-    const activeEncounterId = getSnapshot().combatState.activeEncounterId;
-    updateState(prev => ({
-      ...prev,
-      combatState: {
-        ...prev.combatState,
-        activeEncounterId: null,
-        deathEvent: null,
-        damageEvent: null,
-        initiativeEvent: false,
-      },
-    }));
-
-    if (activeEncounterId) {
-      clearEncounterStateDB(activeEncounterId).catch(err => {
-        console.warn("Failed to clear encounter state in sheet", err);
-      });
-    }
-
-    onActiveTabChange?.('encounters');
-  };
-
   return {
     handleSyncWithSheets,
-    startEncounter,
-    clearEncounter,
     isSyncing,
     setIsSyncing,
     syncError,

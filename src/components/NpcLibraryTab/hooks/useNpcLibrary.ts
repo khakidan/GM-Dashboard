@@ -11,7 +11,7 @@ export function useNpcLibrary() {
 
   const handleResetNpcHp = async (npcId: string, maxHp: number) => {
     setGlobalError(null);
-    const previousState = getSnapshot();
+    const previousState = state;
     
     // 1. Update the NPC in local state optimistically
     updateState(prev => ({
@@ -24,20 +24,21 @@ export function useNpcLibrary() {
     try {
       await resetNpcHpDB(npcId, maxHp);
       toast.success('NPC HP reset successfully!');
-    } catch (err: unknown) {
-      console.error("Failed to reset NPC HP", err);
-      // Rollback
+    } catch (error) {
+      // 4a. Roll back to snapshot on failure
       updateState(previousState);
-      const errorObj = err as Record<string, unknown> | null;
-      if (errorObj?.message === "UNAUTHENTICATED" || errorObj?.error === "UNAUTHENTICATED") {
-        toast.error('Session expired — please sign in again.', {
-          description: 'Your Google session timed out. Use the Connect & Sync button to reconnect.',
-          duration: 8000,
-        });
-      } else {
-        setGlobalError("Failed to reset NPC HP.");
-        toast.error("Failed to reset NPC HP.");
-      }
+      
+      // 4b. Show error toast
+      toast.error('Failed to save changes. Please try again.', {
+        description: error instanceof Error ? error.message : 'Unknown error',
+        duration: 5000,
+      });
+      
+      // 4c. Log for debugging
+      console.error('[DB Error]', error);
+      
+      // 4d. Re-throw so callers can handle if needed
+      throw error;
     } finally {
       setSyncingId(null);
     }
@@ -71,14 +72,26 @@ export function useNpcLibrary() {
         npcs: prev.npcs.map(n => n.id === tempId ? { ...savedNpc } : n) as NPC[]
       }));
       toast.success(`${newNpcData.name} added to NPC Library`);
-    } catch (err: unknown) {
-      console.warn(err);
+    } catch (error) {
+      // 4a. Roll back to snapshot on failure
       updateState(previousState);
-      setGlobalError("Failed to add NPC. Please try again.");
+      
+      // 4b. Show error toast
+      toast.error('Failed to save changes. Please try again.', {
+        description: error instanceof Error ? error.message : 'Unknown error',
+        duration: 5000,
+      });
+      
+      // 4c. Log for debugging
+      console.error('[DB Error]', error);
+      
+      // 4d. Re-throw so callers can handle if needed
+      throw error;
     }
   };
 
   const handleUpdateNpc = async (npcId: string, updates: Partial<NPC>) => {
+    const previousState = state;
     // Optimistically update local state
     updateState(prev => {
       const nextNpcs = prev.npcs.map(n => n.id === npcId ? { ...n, ...updates } : n);
@@ -129,29 +142,38 @@ export function useNpcLibrary() {
 
     try {
       // Re-fetch the latest NPC from the global store to ensure we're not using stale closure data
-      const latestSnapshot = getSnapshot();
-      const npc = latestSnapshot.npcs.find(n => n.id === npcId);
+      const npc = state.npcs.find(n => n.id === npcId);
       if (!npc) return;
 
       await updateNpcFullDB(npc);
-    } catch (err: unknown) {
-      console.error("Failed to update NPC", err);
-      // We don't rollback every type character, but maybe we should if blur fails?
-      // For now we'll just show error. Blur happens often.
-      setGlobalError("Failed to sync NPC updates to sheet.");
+    } catch (error) {
+      // 4a. Roll back to snapshot on failure
+      updateState(previousState);
+      
+      // 4b. Show error toast
+      toast.error('Failed to save changes. Please try again.', {
+        description: error instanceof Error ? error.message : 'Unknown error',
+        duration: 5000,
+      });
+      
+      // 4c. Log for debugging
+      console.error('[DB Error]', error);
+      
+      // 4d. Re-throw so callers can handle if needed
+      throw error;
     } finally {
       setSyncingId(null);
     }
   };
 
   const handleDeleteNpc = async (npcId: string) => {
-    const latestSnapshot = getSnapshot();
+    const latestSnapshot = state;
     const npc = latestSnapshot.npcs.find(n => n.id === npcId);
     if (!npc) return;
 
     if (!confirm(`Are you sure you want to delete ${npc.name}? This action cannot be undone.`)) return;
 
-    const previousState = getSnapshot();
+    const previousState = state;
     
     // Optimistic delete
     updateState(prev => ({
@@ -165,10 +187,21 @@ export function useNpcLibrary() {
 
     try {
       await deleteNpcDB(npcId);
-    } catch (err: unknown) {
-      console.error("Failed to delete NPC", err);
+    } catch (error) {
+      // 4a. Roll back to snapshot on failure
       updateState(previousState);
-      setGlobalError("Failed to delete NPC from sheet.");
+      
+      // 4b. Show error toast
+      toast.error('Failed to save changes. Please try again.', {
+        description: error instanceof Error ? error.message : 'Unknown error',
+        duration: 5000,
+      });
+      
+      // 4c. Log for debugging
+      console.error('[DB Error]', error);
+      
+      // 4d. Re-throw so callers can handle if needed
+      throw error;
     } finally {
       setSyncingId(null);
     }

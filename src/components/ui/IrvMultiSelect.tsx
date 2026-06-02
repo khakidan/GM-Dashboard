@@ -1,8 +1,9 @@
+import { IRV_OPTIONS } from '../../lib/conditions';
 import React, { useState, useRef, useEffect } from 'react';
 import { X, Search, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
-import { IRV_OPTIONS } from '../../lib/irvOptions';
+;
 
 interface IrvMultiSelectProps {
   label: string;

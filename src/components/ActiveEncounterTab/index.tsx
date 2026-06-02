@@ -1,3 +1,6 @@
+import { CONCENTRATION_EFFECTS, buildConditionSummary } from '../../lib/conditions';
+import { OVERLAY_CLEAR_BUFFER_MS } from '../../lib/constants';
+import { OVERLAY_DURATIONS } from '../../lib/constants';
 import React, { useState, useEffect } from 'react';
 import { useAppState, getSnapshot } from '../../hooks/useAppState';
 import { toast } from 'sonner';
@@ -6,8 +9,8 @@ import { Skull, AlertCircle } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { Combatant, DamageType, EncounterCombatant } from '../../types';
 import { addNpcDB, addEncounterCombatantDB, updateInitiativeDB, updateDeathSavesDB, updateEncounterStateDB } from '../../services/dbOperations';
-import { CONCENTRATION_EFFECTS } from '../../lib/irvOptions';
-import { buildConditionSummary } from '../../lib/conditionDefinitions';
+;
+;
 import { playTurnStartSound, playDeathSaveFailSound, playDeathSaveSuccessSound } from '../../lib/audioEngine';
 
 import { CombatHeader } from './CombatHeader';
@@ -19,6 +22,8 @@ import { useCombatSync } from './hooks/useCombatSync';
 import { useHealthChange } from './hooks/useHealthChange';
 import { CasterAttributionDialog } from './CasterAttributionDialog';
 import { DiceRoller } from '../DiceRoller';
+import { useInitiativeEvent } from '../../hooks/useOverlayEvents';
+import { useDeathSaves } from '../../hooks/useDeathSaves';
 
 export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
   const { state, updateState } = useAppState();
@@ -26,10 +31,6 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
 
   const [isToolsModalOpen, setIsToolsModalOpen] = useState(false);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
-  const [concentrationPrompt, setConcentrationPrompt] = useState<{
-    effectName: string;
-    targetName: string;
-  } | null>(null);
 
   const [hpMode, setHpMode] = useState<'damage' | 'heal'>('damage');
   const [isCheatSheetOpen, setIsCheatSheetOpen] = useState(false);
@@ -46,7 +47,15 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
     handleError,
     removeCombatant,
     updateCombatant,
-    fireDeathEvent
+    fireDeathEvent,
+    rollInitForNPCs,
+    resetCombat,
+    handleCallInitiative,
+    nextTurn,
+    handleConcentrationPrompt,
+    handleSelectCaster,
+    concentrationPrompt,
+    setConcentrationPrompt
   } = useCombatSync();
 
   const {
@@ -57,71 +66,7 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
     handleHealthChange
   } = useHealthChange(syncingIds, updateCombatant);
 
-  const handleConcentrationPrompt = (effectName: string, targetName: string) => {
-    toast('Concentration required', {
-      description: `${effectName} requires concentration. Select the caster to apply the Concentrating condition — or dismiss if already applied.`,
-      duration: 10000,
-      action: {
-        label: 'Select caster',
-        onClick: () => {
-          setConcentrationPrompt({
-            effectName,
-            targetName,
-          });
-        }
-      }
-    });
-  };
-
-  const handleSelectCaster = (casterId: string) => {
-    if (!concentrationPrompt) return;
-    const { effectName } = concentrationPrompt;
-
-    const currentState = getSnapshot();
-    const caster = currentState.combatState.combatants.find(c => c.id === casterId);
-    if (!caster) return;
-
-    const lowerConditions = (caster.conditions || '').toLowerCase();
-    const isCasterConcentrating = lowerConditions.split(',').map(s => s.trim().toLowerCase()).includes('concentrating');
-
-    const executeCasterUpdate = () => {
-      const conEffectsArray = Array.from(CONCENTRATION_EFFECTS);
-      const currentCasterConds = (caster.conditions || '').split(',').map(s => s.trim()).filter(Boolean);
-      
-      const nextCasterConds = currentCasterConds.filter(cName => {
-        const lowerC = cName.toLowerCase();
-        return lowerC !== 'concentrating' && !conEffectsArray.includes(lowerC);
-      });
-      
-      nextCasterConds.push('concentrating');
-      
-      const nextTimers = { ...(caster.conditionTimers || {}) };
-      Object.keys(nextTimers).forEach(key => {
-        const lowerKey = key.toLowerCase();
-        if (lowerKey === 'concentrating' || conEffectsArray.includes(lowerKey)) {
-          delete nextTimers[key];
-        }
-      });
-
-      updateCombatant(casterId, {
-        conditions: nextCasterConds.join(', '),
-        conditionTimers: nextTimers,
-      });
-
-      setConcentrationPrompt(null);
-    };
-
-    if (isCasterConcentrating) {
-      const confirmProceed = window.confirm(
-        `${caster.name} is already concentrating on another effect. Applying a new concentration spell will end the previous one. Proceed?`
-      );
-      if (confirmProceed) {
-        executeCasterUpdate();
-      }
-    } else {
-      executeCasterUpdate();
-    }
-  };
+  const { recordDeathSave, getDeathSaveReminder } = useDeathSaves();
 
   const toggleExpand = (id: string) => {
     setExpandedIds(prev => {
@@ -148,59 +93,6 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
       else next.add(id);
       return next;
     });
-  };
-
-  const recordDeathSave = async (combatantId: string, result: 'success' | 'fail') => {
-    const currentState = getSnapshot();
-    const combatant = currentState.combatState.combatants.find(c => c.id === combatantId);
-    if (!combatant || combatant.type !== 'pc' || !combatant.characterId) return;
-
-    let fails = combatant.deathSavesFails || 0;
-    let successes = combatant.deathSavesSuccesses || 0;
-
-    if (result === 'success') {
-      successes += 1;
-      playDeathSaveSuccessSound();
-    } else {
-      fails += 1;
-      playDeathSaveFailSound();
-    }
-
-    try {
-      await updateDeathSavesDB(combatant.characterId, fails, successes);
-
-      if (fails >= 3) {
-        const conditionsList = (combatant.conditions || '').split(',').map(s => s.trim()).filter(Boolean);
-        const updatedConditions = conditionsList.filter(cond => cond.toLowerCase() !== 'unconscious').join(', ');
-        
-        updateCombatant(combatantId, {
-          deathSavesFails: fails,
-          deathSavesSuccesses: successes,
-          conditions: updatedConditions,
-          statusId: 3, // Deceased
-          isStable: false
-        });
-        fireDeathEvent(combatant.name);
-        toast(`${combatant.name} has died. Update their status on the Party Roster.`);
-      } else if (successes >= 3) {
-        updateCombatant(combatantId, {
-          deathSavesFails: 0,
-          deathSavesSuccesses: 0,
-          isStable: true
-        });
-        toast(`${combatant.name} is stable — no further death saves required until they take damage again.`);
-      } else {
-        updateCombatant(combatantId, {
-          deathSavesFails: fails,
-          deathSavesSuccesses: successes,
-          isStable: false
-        });
-        toast(`Death save recorded for ${combatant.name}: ${result === 'success' ? 'Success' : 'Failure'}. (${successes}/3 Successes, ${fails}/3 Fails)`);
-      }
-    } catch (err) {
-      console.error('Failed to update death saves:', err);
-      toast.error(`Failed to record death save for ${combatant.name}`);
-    }
   };
 
   const handleApplyMultiDamage = (amount: number, type: DamageType) => {
@@ -387,10 +279,24 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
           }
         };
       });
-    } catch (err) {
-      console.warn('Sync failed', err);
-      updateState(previousState);
-      handleError(err, 'Failed to sync updates—retrying...');
+    } catch (error: any) {
+      // 4a. Roll back to snapshot on failure
+      updateState(() => {
+        const snap = getSnapshot();
+        return snap;
+      });
+      
+      // 4b. Show error toast
+      toast.error('Failed to save changes. Please try again.', {
+        description: error instanceof Error ? error.message : 'Unknown error',
+        duration: 5000,
+      });
+      
+      // 4c. Log for debugging
+      console.error('[DB Error]', error);
+      
+      // 4d. Re-throw so callers can handle if needed
+      throw error;
     }
   };
 
@@ -488,233 +394,25 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
           ),
         },
       }));
-    } catch (err) {
-      console.error('Sync failed', err);
-      updateState(previousState);
-      handleError(err, 'Failed to sync updates—retrying...');
-    }
-  };
-
-  const rollInitForNPCs = () => {
-    updateState(prev => {
-      const nextCombatants = prev.combatState.combatants
-        .map(c => (c.type === 'npc' ? { ...c, initiative: Math.floor(Math.random() * 20) + 1 } : c))
-        .sort((a, b) => b.initiative - a.initiative);
-
-      return {
-        ...prev,
-        combatState: { ...prev.combatState, combatants: nextCombatants },
-      };
-    });
-  };
-
-  const nextTurn = () => {
-    let nextRound = state.combatState.round;
-    const combatants = state.combatState.combatants;
-    if (combatants.length === 0) return;
-
-    const currentIndex = combatants.findIndex(
-      c => c.id === state.combatState.activeTurnId
-    );
-    const nextIndex =
-      currentIndex + 1 >= combatants.length ? 0 : currentIndex + 1;
-
-    if (currentIndex !== -1 && nextIndex === 0) {
-      nextRound += 1;
-    }
-
-    updateState(prev => {
-      if (prev.combatState.combatants.length === 0) return prev;
-      const nextActiveId = prev.combatState.combatants[nextIndex].id;
-      const nextCombatants = prev.combatState.combatants.map(c => {
-        if (c.id === nextActiveId) {
-          const updated = { ...c, reactionUsed: false };
-          if (updated.legendaryActions) {
-            updated.legendaryActions = {
-              ...updated.legendaryActions,
-              remaining: updated.legendaryActions.max
-            };
-          }
-          return updated;
-        }
-        return c;
+    } catch (error: any) {
+      // 4a. Roll back to snapshot on failure
+      updateState(() => {
+        const snap = getSnapshot();
+        return snap;
       });
-      return {
-        ...prev,
-        combatState: {
-          ...prev.combatState,
-          activeTurnId: nextActiveId,
-          round: nextRound,
-          combatants: nextCombatants,
-        },
-      };
-    });
-
-    playTurnStartSound();
-    
-    updateEncounterStateDB(state.combatState.activeEncounterId ?? '', nextRound, combatants[nextIndex].id).catch(err => {
-      console.warn("Failed to write updated turn state to sheet", err);
-    });
-
-    const newlyActiveCombatant = combatants.length > 0 ? combatants[nextIndex] : null;
-
-    if (newlyActiveCombatant && newlyActiveCombatant.legendaryActions) {
-      toast.success(`${newlyActiveCombatant.name}'s legendary actions are restored.`);
-      toast(`${newlyActiveCombatant.name} regains all legendary actions.`);
-    }
-
-    if (newlyActiveCombatant) {
-      const activeConditionsList = newlyActiveCombatant.conditions
-        ?.split(',')
-        .map(s => s.trim())
-        .filter(Boolean) || [];
-
-      const isPcUnconscious = newlyActiveCombatant.type === 'pc' && 
-        activeConditionsList.some(cond => cond.toLowerCase() === 'unconscious');
-
-      if (isPcUnconscious && !newlyActiveCombatant.isStable && (newlyActiveCombatant.deathSavesSuccesses || 0) < 3) {
-        const fails = newlyActiveCombatant.deathSavesFails || 0;
-        const successes = newlyActiveCombatant.deathSavesSuccesses || 0;
-        const toastId = `death-save-${newlyActiveCombatant.id}`;
-
-        toast(
-          <div className="flex flex-col gap-1.5" id={`ds-prompt-${newlyActiveCombatant.id}`}>
-            <div className="font-semibold text-sm text-neutral-900">
-              {newlyActiveCombatant.name} is unconscious — Death Saving Throw
-            </div>
-            <div className="text-xs text-neutral-500">
-              Fails: {fails}/3  Successes: {successes}/3. Roll a D20. On 10 or higher: success. On 1: two failures.
-            </div>
-            <div className="flex gap-2 mt-1">
-              <button
-                id={`ds-success-${newlyActiveCombatant.id}`}
-                onClick={() => {
-                  recordDeathSave(newlyActiveCombatant.id, 'success');
-                  toast.dismiss(toastId);
-                }}
-                className="px-2.5 py-1 bg-green-600 text-white rounded text-xs font-semibold hover:bg-green-700 cursor-pointer pointer-events-auto"
-              >
-                Success
-              </button>
-              <button
-                id={`ds-fail-${newlyActiveCombatant.id}`}
-                onClick={() => {
-                  recordDeathSave(newlyActiveCombatant.id, 'fail');
-                  toast.dismiss(toastId);
-                }}
-                className="px-2.5 py-1 bg-red-600 text-white rounded text-xs font-semibold hover:bg-red-700 cursor-pointer pointer-events-auto"
-              >
-                Failure
-              </button>
-            </div>
-          </div>,
-          {
-            duration: 15000,
-            id: toastId,
-          }
-        );
-      } else if (activeConditionsList.length > 0) {
-        const summary = buildConditionSummary(activeConditionsList);
-        if (summary.lines.length > 0) {
-          toast(`${newlyActiveCombatant.name}'s turn`, {
-            description: summary.lines.join('\n'),
-            duration: 7000,
-          });
-        }
-      }
-    }
-
-    // Check for expired conditions
-    const expired = getExpiredConditions(combatants, nextRound);
-    expired.forEach(({ combatantId, combatantName, conditionName }) => {
-      const isConcentration = CONCENTRATION_EFFECTS.has(conditionName.toLowerCase());
-      const message = isConcentration
-        ? `${conditionName} concentration on ${combatantName} has ended`
-        : `${conditionName} on ${combatantName} has ended`;
-
-      toast(message, {
-        action: {
-          label: "Remove",
-          onClick: () => {
-            const currentState = getSnapshot();
-            const target = currentState.combatState.combatants.find(c => c.id === combatantId);
-            if (!target) return;
-
-            const conditionsStr = target.conditions || '';
-            const nextConditionsList = conditionsStr
-              .split(',')
-              .map(s => s.trim())
-              .filter(s => s.toLowerCase() !== conditionName.toLowerCase() && s !== '');
-              
-            // Concentration auto-remove logic
-            const conEffectsArray = Array.from(CONCENTRATION_EFFECTS);
-            const remainingConEffects = nextConditionsList.filter(s => 
-              conEffectsArray.includes(s.toLowerCase())
-            );
-            
-            let finalConditionsList = nextConditionsList;
-            if (remainingConEffects.length === 0) {
-              finalConditionsList = nextConditionsList.filter(s => s.toLowerCase() !== 'concentrating');
-            }
-
-            const nextTimers = { ...(target.conditionTimers || {}) };
-            delete nextTimers[conditionName];
-
-            updateCombatant(combatantId, {
-              conditions: finalConditionsList.join(', '),
-              conditionTimers: nextTimers,
-            });
-          },
-        },
+      
+      // 4b. Show error toast
+      toast.error('Failed to save changes. Please try again.', {
+        description: error instanceof Error ? error.message : 'Unknown error',
+        duration: 5000,
       });
-    });
-  };
-
-  const resetCombat = () => {
-    updateState(prev => ({
-      ...prev,
-      combatState: {
-        ...prev.combatState,
-        activeTurnId: null,
-        round: 1,
-        combatants: prev.combatState.combatants.map(c => ({ ...c, initiative: 0 })),
-      },
-    }));
-
-    // BUG 1 Fix: Sync zeroed initiatives to the sheet
-    const latestCombatants = state.combatState.combatants;
-    latestCombatants.forEach(c => {
-      if (c.encounterCombatantId) {
-        updateInitiativeDB(c.encounterCombatantId, 0).catch(err => {
-          console.error(`Failed to reset initiative for combatant ${c.id}`, err);
-        });
-      }
-    });
-  };
-
-  const handleCallInitiative = () => {
-    updateState(prev => ({
-      ...prev,
-      combatState: {
-        ...prev.combatState,
-        initiativeEvent: true,
-      }
-    }));
-
-    setTimeout(() => {
-      updateState(prev => ({
-        ...prev,
-        combatState: {
-          ...prev.combatState,
-          initiativeEvent: false,
-        }
-      }));
-    }, 8500);
-
-    toast('Initiative called!', {
-      description: 'Players can see the overlay on the Player View.',
-      duration: 3000,
-    });
+      
+      // 4c. Log for debugging
+      console.error('[DB Error]', error);
+      
+      // 4d. Re-throw so callers can handle if needed
+      throw error;
+    }
   };
 
   const handleDeleteSelected = async () => {

@@ -1,3 +1,4 @@
+import { STORAGE_KEYS } from '../../lib/constants';
 // src/services/__tests__/googleAuth.test.ts
 
 // ─── PROTECTED TEST FILE ───────────────────────────
@@ -27,8 +28,8 @@ import {
 // and the Google Identity Services script loader, which don't exist in the
 // test environment.
 
-const ACCESS_KEY  = 'GM_GOOGLE_ACCESS_TOKEN';
-const REFRESH_KEY = 'GM_GOOGLE_REFRESH_TOKEN';
+const ACCESS_KEY  = STORAGE_KEYS.googleAccessToken;
+const REFRESH_KEY = STORAGE_KEYS.googleRefreshToken;
 
 function makeTokenStore(storage: {
   getItem: (k: string) => string | null;
@@ -188,13 +189,13 @@ describe('googleAuth exported functions direct tests', () => {
 
   describe('clearTokens', () => {
     it('removes both tokens from real localStorage', () => {
-      localStorage.setItem('GM_GOOGLE_ACCESS_TOKEN', 'acc');
-      localStorage.setItem('GM_GOOGLE_REFRESH_TOKEN', 'ref');
+      localStorage.setItem(STORAGE_KEYS.googleAccessToken, 'acc');
+      localStorage.setItem(STORAGE_KEYS.googleRefreshToken, 'ref');
 
       clearTokens();
 
-      expect(localStorage.getItem('GM_GOOGLE_ACCESS_TOKEN')).toBeNull();
-      expect(localStorage.getItem('GM_GOOGLE_REFRESH_TOKEN')).toBeNull();
+      expect(localStorage.getItem(STORAGE_KEYS.googleAccessToken)).toBeNull();
+      expect(localStorage.getItem(STORAGE_KEYS.googleRefreshToken)).toBeNull();
       expect(hasToken()).toBe(false);
     });
   });
@@ -205,12 +206,12 @@ describe('googleAuth exported functions direct tests', () => {
     });
 
     it('returns true when access token is in localStorage', () => {
-      localStorage.setItem('GM_GOOGLE_ACCESS_TOKEN', 'acc');
+      localStorage.setItem(STORAGE_KEYS.googleAccessToken, 'acc');
       expect(hasToken()).toBe(true);
     });
 
     it('returns true when refresh token is in localStorage', () => {
-      localStorage.setItem('GM_GOOGLE_REFRESH_TOKEN', 'ref');
+      localStorage.setItem(STORAGE_KEYS.googleRefreshToken, 'ref');
       expect(hasToken()).toBe(true);
     });
   });
@@ -218,7 +219,7 @@ describe('googleAuth exported functions direct tests', () => {
   describe('setManualAccessToken', () => {
     it('saves raw access token directly to localStorage', () => {
       setManualAccessToken('ya29.abcdef');
-      expect(localStorage.getItem('GM_GOOGLE_ACCESS_TOKEN')).toBe('ya29.abcdef');
+      expect(localStorage.getItem(STORAGE_KEYS.googleAccessToken)).toBe('ya29.abcdef');
       expect(hasToken()).toBe(true);
     });
   });
@@ -226,14 +227,14 @@ describe('googleAuth exported functions direct tests', () => {
   describe('setManualRefreshToken', () => {
     it('saves raw refresh token directly to localStorage', () => {
       setManualRefreshToken('1//ref-abc-123');
-      expect(localStorage.getItem('GM_GOOGLE_REFRESH_TOKEN')).toBe('1//ref-abc-123');
+      expect(localStorage.getItem(STORAGE_KEYS.googleRefreshToken)).toBe('1//ref-abc-123');
       expect(hasToken()).toBe(true);
     });
   });
 
   describe('requestAccessToken fallback behaviors', () => {
     it('returns access token if already present in state/storage', async () => {
-      localStorage.setItem('GM_GOOGLE_ACCESS_TOKEN', 'instantiated-access-token');
+      localStorage.setItem(STORAGE_KEYS.googleAccessToken, 'instantiated-access-token');
       const token = await requestAccessToken();
       expect(token).toBe('instantiated-access-token');
     });

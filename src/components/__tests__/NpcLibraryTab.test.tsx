@@ -45,10 +45,12 @@ describe('NpcLibraryTab', () => {
           combatants: [],
           activeTurnId: null,
           round: 1,
+          concentrationLinks: {},
         },
       },
       updateState: vi.fn(),
-    });
+      getSnapshot: vi.fn(),
+    } as any);
 
     render(<NpcLibraryTab />);
 
@@ -101,10 +103,12 @@ describe('NpcLibraryTab', () => {
           combatants: [],
           activeTurnId: null,
           round: 1,
+          concentrationLinks: {},
         },
       },
       updateState: vi.fn(),
-    });
+      getSnapshot: vi.fn(),
+    } as any);
 
     render(<NpcLibraryTab />);
 

@@ -5,7 +5,7 @@
 // ────────────────────────────────────────────────────
 
 import { renderHook, act } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useParty } from '../hooks/useParty';
 import { useAppState, getSnapshot } from '../../../hooks/useAppState';
 import { deleteCharacterFully, addCharacterDB, updateCharacterDB } from '../../../services/dbOperations';
@@ -30,6 +30,64 @@ vi.mock('../../../hooks/useAppState', () => ({
 }));
 
 describe('useParty', () => {
+  afterEach(() => { vi.restoreAllMocks(); vi.resetAllMocks(); });
+
+  describe('handleDeletePlayer', () => {
+    it('rolls back state and shows error toast if deleteCharacterFully throws', async () => {
+      const mockChar = { id: 'char-1', characterName: 'Testo' };
+      const updateStateSpy = vi.fn();
+      const mockState = { characters: [mockChar] };
+
+      vi.mocked(useAppState).mockReturnValue({
+        state: mockState as any,
+        updateState: updateStateSpy,
+        getSnapshot: vi.fn(),
+      } as any);
+      vi.mocked(getSnapshot).mockReturnValue(mockState as any);
+
+      vi.mocked(deleteCharacterFully).mockRejectedValue(new Error('DB Error'));
+
+      const { result } = renderHook(() => useParty());
+      
+      await act(async () => {
+        await result.current.handleDeletePlayer('char-1');
+      });
+
+      expect(toast.error).toHaveBeenCalledWith('Failed to save changes. Please try again.', expect.any(Object));
+      expect(updateStateSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe('handleLevelUpConfirm error handling', () => {
+    it('rolls back state and shows error toast if updateCharacterDB throws', async () => {
+      const mockChar = { id: 'char-1', characterName: 'Testo' };
+      const updateStateSpy = vi.fn();
+      const mockState = { characters: [mockChar], combatState: { combatants: [] } };
+
+      vi.mocked(useAppState).mockReturnValue({
+        state: mockState as any,
+        updateState: updateStateSpy,
+        getSnapshot: vi.fn(),
+      } as any);
+      vi.mocked(getSnapshot).mockReturnValue(mockState as any);
+
+      vi.mocked(updateCharacterDB).mockRejectedValue(new Error('DB Error'));
+
+      const { result } = renderHook(() => useParty());
+      
+      act(() => {
+        result.current.setLevelUpCharacter(mockChar as any);
+      });
+
+      await act(async () => {
+        await result.current.handleLevelUpConfirm({ level: 2 });
+      });
+
+      expect(toast.error).toHaveBeenCalledWith('Failed to save changes. Please try again.', expect.any(Object));
+      expect(updateStateSpy).toHaveBeenCalled();
+    });
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
     vi.stubGlobal('confirm', vi.fn().mockReturnValue(true));
@@ -39,8 +97,9 @@ describe('useParty', () => {
     const mockChar = { id: 'char-1', characterName: 'Testo' };
     vi.mocked(useAppState).mockReturnValue({
       state: { characters: [mockChar] } as any,
-      updateState: vi.fn()
-    });
+      updateState: vi.fn(),
+      getSnapshot: vi.fn(),
+    } as any);
     vi.mocked(getSnapshot).mockReturnValue({ characters: [mockChar] } as any);
 
     const { result } = renderHook(() => useParty());
@@ -72,8 +131,9 @@ describe('useParty', () => {
       const updateStateSpy = vi.fn();
       vi.mocked(useAppState).mockReturnValue({
         state: mockState as any,
-        updateState: updateStateSpy
-      });
+        updateState: updateStateSpy,
+        getSnapshot: vi.fn(),
+      } as any);
       vi.mocked(getSnapshot).mockReturnValue(mockState as any);
 
       const { result } = renderHook(() => useParty());
@@ -144,7 +204,8 @@ describe('useParty', () => {
       vi.mocked(useAppState).mockReturnValue({
         state: { characters: [] } as any,
         updateState: updateStateSpy,
-      });
+        getSnapshot: vi.fn(),
+      } as any);
 
       vi.mocked(addCharacterDB).mockResolvedValue(mockSavedChar as any);
 
@@ -202,7 +263,8 @@ describe('useParty', () => {
       vi.mocked(useAppState).mockReturnValue({
         state: initialState as any,
         updateState: updateStateSpy,
-      });
+        getSnapshot: vi.fn(),
+      } as any);
 
       vi.mocked(addCharacterDB).mockRejectedValue(new Error('DB Error'));
 
@@ -224,7 +286,8 @@ describe('useParty', () => {
       vi.mocked(useAppState).mockReturnValue({
         state: { characters: [mockChar] } as any,
         updateState: updateStateSpy,
-      });
+        getSnapshot: vi.fn(),
+      } as any);
       vi.mocked(getSnapshot).mockReturnValue({ characters: [mockChar] } as any);
 
       vi.mocked(updateCharacterDB).mockResolvedValue(undefined as any);
@@ -250,7 +313,8 @@ describe('useParty', () => {
       vi.mocked(useAppState).mockReturnValue({
         state: { characters: [mockChar] } as any,
         updateState: updateStateSpy,
-      });
+        getSnapshot: vi.fn(),
+      } as any);
       vi.mocked(getSnapshot).mockReturnValue({ characters: [mockChar] } as any);
 
       vi.mocked(updateCharacterDB).mockResolvedValue(undefined as any);
@@ -273,7 +337,8 @@ describe('useParty', () => {
       vi.mocked(useAppState).mockReturnValue({
         state: mockInitialState as any,
         updateState: updateStateSpy,
-      });
+        getSnapshot: vi.fn(),
+      } as any);
       vi.mocked(getSnapshot).mockReturnValue(mockInitialState as any);
 
       vi.mocked(updateCharacterDB).mockRejectedValue(new Error('Sync failed'));
@@ -301,7 +366,8 @@ describe('useParty', () => {
       vi.mocked(useAppState).mockReturnValue({
         state: mockState as any,
         updateState: updateStateSpy,
-      });
+        getSnapshot: vi.fn(),
+      } as any);
       vi.mocked(getSnapshot).mockReturnValue(mockState as any);
       vi.mocked(updateCharacterDB).mockResolvedValue(undefined as any);
 
@@ -335,7 +401,8 @@ describe('useParty', () => {
       vi.mocked(useAppState).mockReturnValue({
         state: mockState as any,
         updateState: updateStateSpy,
-      });
+        getSnapshot: vi.fn(),
+      } as any);
       vi.mocked(getSnapshot).mockReturnValue(mockState as any);
 
       vi.mocked(updateCharacterDB).mockResolvedValue(undefined as any);
@@ -380,8 +447,9 @@ describe('useParty', () => {
       const updateStateSpy = vi.fn();
       vi.mocked(useAppState).mockReturnValue({
         state: mockState as any,
-        updateState: updateStateSpy
-      });
+        updateState: updateStateSpy,
+        getSnapshot: vi.fn(),
+      } as any);
       vi.mocked(getSnapshot).mockReturnValue(mockState as any);
 
       vi.mocked(updateCharacterDB).mockResolvedValue(undefined as any);
@@ -419,8 +487,9 @@ describe('useParty', () => {
       const updateStateSpy = vi.fn();
       vi.mocked(useAppState).mockReturnValue({
         state: mockState as any,
-        updateState: updateStateSpy
-      });
+        updateState: updateStateSpy,
+        getSnapshot: vi.fn(),
+      } as any);
       vi.mocked(getSnapshot).mockReturnValue(mockState as any);
 
       vi.mocked(updateCharacterDB).mockResolvedValue(undefined as any);
@@ -447,7 +516,8 @@ describe('useParty', () => {
       vi.mocked(useAppState).mockReturnValue({
         state: { characters: [] } as any,
         updateState: vi.fn(),
-      });
+        getSnapshot: vi.fn(),
+      } as any);
 
       const { result } = renderHook(() => useParty());
       

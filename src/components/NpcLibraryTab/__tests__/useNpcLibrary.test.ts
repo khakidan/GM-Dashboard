@@ -5,7 +5,7 @@
 // ────────────────────────────────────────────────────
 
 import { renderHook, act } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useNpcLibrary } from '../hooks/useNpcLibrary';
 import { useAppState, getSnapshot } from '../../../hooks/useAppState';
 import { deleteNpcDB, resetNpcHpDB, addNpcDB, updateNpcFullDB } from '../../../services/dbOperations';
@@ -31,6 +31,40 @@ vi.mock('../../../hooks/useAppState', () => ({
 }));
 
 describe('useNpcLibrary', () => {
+  afterEach(() => { vi.restoreAllMocks(); vi.resetAllMocks(); });
+
+  describe('handleUpdateNpc error handling', () => {
+    it('rolls back state and shows error toast if updateNpcFullDB throws', async () => {
+      const mockNpc = { id: 'npc-1', name: 'Goblin' };
+      const updateStateSpy = vi.fn();
+      const mockState = { npcs: [mockNpc], encounterCombatants: [], combatState: { combatants: [] } };
+
+      vi.mocked(useAppState).mockReturnValue({
+        state: mockState as any,
+        updateState: updateStateSpy,
+        getSnapshot: vi.fn(),
+      } as any);
+      vi.mocked(getSnapshot).mockReturnValue(mockState as any);
+
+      vi.mocked(updateNpcFullDB).mockRejectedValue(new Error('DB Error'));
+
+      const { result } = renderHook(() => useNpcLibrary());
+      
+      let eRef;
+      await act(async () => {
+        try {
+          await result.current.handleUpdateNpc('npc-1', { ac: 15 });
+        } catch (e) {
+          eRef = e;
+        }
+      });
+
+      expect(eRef).toBeDefined();
+      expect(toast.error).toHaveBeenCalledWith('Failed to save changes. Please try again.', expect.any(Object));
+      expect(updateStateSpy).toHaveBeenCalled();
+    });
+  });
+  
   beforeEach(() => {
     vi.clearAllMocks();
     vi.stubGlobal('confirm', vi.fn().mockReturnValue(true));
@@ -40,8 +74,9 @@ describe('useNpcLibrary', () => {
     const mockNpc = { id: 'npc-1', name: 'Goblin', ac: 10, maxHp: 10, currentHp: 10, tempHp: 0 };
     vi.mocked(useAppState).mockReturnValue({
       state: { npcs: [mockNpc] } as any,
-      updateState: vi.fn()
-    });
+      updateState: vi.fn(),
+      getSnapshot: vi.fn(),
+    } as any);
     vi.mocked(getSnapshot).mockReturnValue({ npcs: [mockNpc] } as any);
 
     const { result } = renderHook(() => useNpcLibrary());
@@ -60,8 +95,9 @@ describe('useNpcLibrary', () => {
     const updateSpy = vi.fn();
     vi.mocked(useAppState).mockReturnValue({
       state: { npcs: [mockNpc] } as any,
-      updateState: updateSpy
-    });
+      updateState: updateSpy,
+      getSnapshot: vi.fn(),
+    } as any);
     vi.mocked(getSnapshot).mockReturnValue({ npcs: [mockNpc] } as any);
 
     const { result } = renderHook(() => useNpcLibrary());
@@ -79,8 +115,9 @@ describe('useNpcLibrary', () => {
     const updateSpy = vi.fn();
     vi.mocked(useAppState).mockReturnValue({
       state: { npcs: [] } as any,
-      updateState: updateSpy
-    });
+      updateState: updateSpy,
+      getSnapshot: vi.fn(),
+    } as any);
 
     const { result } = renderHook(() => useNpcLibrary());
 
@@ -119,8 +156,9 @@ describe('useNpcLibrary', () => {
     const updateSpy = vi.fn();
     vi.mocked(useAppState).mockReturnValue({
       state: mockState as any,
-      updateState: updateSpy
-    });
+      updateState: updateSpy,
+      getSnapshot: vi.fn(),
+    } as any);
     vi.mocked(getSnapshot).mockReturnValue({ npcs: [{ ...mockNpc, ac: 12, maxHp: 15 }] } as any);
 
     const { result } = renderHook(() => useNpcLibrary());

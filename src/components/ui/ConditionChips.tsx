@@ -1,16 +1,12 @@
+import { CONDITION_OPTIONS, EFFECT_OPTIONS, CONDITION_IMMUNITY_MAP, CONCENTRATION_EFFECTS, CONDITION_MECHANICS, buildConditionSummary } from '../../lib/conditions';
 // src/components/ui/ConditionChips.tsx
 
 import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { cn } from '../../lib/utils';
-import {
-  CONDITION_OPTIONS,
-  EFFECT_OPTIONS,
-  CONDITION_IMMUNITY_MAP,
-  CONCENTRATION_EFFECTS,
-} from '../../lib/irvOptions';
+;
 import { checkIrvMatch } from '../../lib/combatLogic';
-import { CONDITION_MECHANICS, buildConditionSummary } from '../../lib/conditionDefinitions';
+;
 import { toast } from 'sonner';
 
 interface ConditionChipsProps {

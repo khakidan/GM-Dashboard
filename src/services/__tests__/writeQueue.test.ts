@@ -7,6 +7,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { queueWrite, flushQueue, getQueueSize, retryPersistedWrites, clearRetryQueue } from '../writeQueue';
 import { batchUpdateValues } from '../sheetsService';
+import { STORAGE_KEYS } from '../../lib/constants';
+
+const RETRY_STORAGE_KEY = STORAGE_KEYS.writeRetryQueue;
 
 vi.mock('../sheetsService', () => ({
   batchUpdateValues: vi.fn(),
@@ -95,23 +98,23 @@ describe('writeQueue persistence', () => {
     vi.mocked(batchUpdateValues).mockRejectedValueOnce(new Error('Network error'));
     queueWrite('A1', [[1]]);
     await flushQueue();
-    expect(localStorage.getItem('gm_failed_writes')).toBe(JSON.stringify([{ range: 'A1', values: [[1]] }]));
+    expect(localStorage.getItem(RETRY_STORAGE_KEY)).toBe(JSON.stringify([{ range: 'A1', values: [[1]] }]));
   });
 
   it('loadPersistedWrites returns an empty array when localStorage is empty', async () => {
-    expect(localStorage.getItem('gm_failed_writes')).toBeNull();
+    expect(localStorage.getItem(RETRY_STORAGE_KEY)).toBeNull();
     await retryPersistedWrites();
     expect(getQueueSize()).toBe(0);
   });
 
   it('loadPersistedWrites returns an empty array when localStorage contains invalid JSON', async () => {
-    localStorage.setItem('gm_failed_writes', '{ invalid');
+    localStorage.setItem(RETRY_STORAGE_KEY, '{ invalid');
     await retryPersistedWrites();
     expect(getQueueSize()).toBe(0);
   });
 
   it('loadPersistedWrites returns previously saved writes correctly', async () => {
-    localStorage.setItem('gm_failed_writes', JSON.stringify([{ range: 'B2', values: [[2]] }]));
+    localStorage.setItem(RETRY_STORAGE_KEY, JSON.stringify([{ range: 'B2', values: [[2]] }]));
     await retryPersistedWrites();
     expect(getQueueSize()).toBe(1);
     await flushQueue();
@@ -119,7 +122,7 @@ describe('writeQueue persistence', () => {
   });
 
   it('persistFailedWrites merges with existing stored writes, with the latest values winning on range conflicts', async () => {
-    localStorage.setItem('gm_failed_writes', JSON.stringify([
+    localStorage.setItem(RETRY_STORAGE_KEY, JSON.stringify([
       { range: 'A1', values: [[1]] },
       { range: 'B2', values: [[2]] }
     ]));
@@ -129,7 +132,7 @@ describe('writeQueue persistence', () => {
     queueWrite('C3', [[3]]);
     await flushQueue();
     
-    const stored = JSON.parse(localStorage.getItem('gm_failed_writes') || '[]');
+    const stored = JSON.parse(localStorage.getItem(RETRY_STORAGE_KEY) || '[]');
     expect(stored).toEqual([
       { range: 'A1', values: [[99]] },
       { range: 'B2', values: [[2]] },
@@ -139,7 +142,7 @@ describe('writeQueue persistence', () => {
 
   it('persistFailedWrites caps stored entries at 50', async () => {
     const existing = Array.from({ length: 20 }, (_, i) => ({ range: `Z${i}`, values: [[i]] }));
-    localStorage.setItem('gm_failed_writes', JSON.stringify(existing));
+    localStorage.setItem(RETRY_STORAGE_KEY, JSON.stringify(existing));
     
     vi.mocked(batchUpdateValues).mockRejectedValueOnce(new Error('Network error'));
     for (let i = 20; i < 60; i++) {
@@ -147,14 +150,14 @@ describe('writeQueue persistence', () => {
     }
     await flushQueue();
     
-    const stored = JSON.parse(localStorage.getItem('gm_failed_writes') || '[]');
+    const stored = JSON.parse(localStorage.getItem(RETRY_STORAGE_KEY) || '[]');
     expect(stored.length).toBe(50);
     expect(stored[0].range).toBe('Z10');
     expect(stored[49].range).toBe('Z59');
   });
 
   it('retryPersistedWrites re-queues stored writes so getQueueSize increases', async () => {
-    localStorage.setItem('gm_failed_writes', JSON.stringify([{ range: 'C3', values: [[3]] }]));
+    localStorage.setItem(RETRY_STORAGE_KEY, JSON.stringify([{ range: 'C3', values: [[3]] }]));
     expect(getQueueSize()).toBe(0);
     await retryPersistedWrites();
     expect(getQueueSize()).toBe(1);
@@ -166,34 +169,34 @@ describe('writeQueue persistence', () => {
   });
 
   it('flushQueue calls clearPersistedWrites after a successful batch write', async () => {
-    localStorage.setItem('gm_failed_writes', JSON.stringify([{ range: 'A1', values: [[1]] }]));
+    localStorage.setItem(RETRY_STORAGE_KEY, JSON.stringify([{ range: 'A1', values: [[1]] }]));
     queueWrite('B2', [[2]]);
     await flushQueue();
-    expect(localStorage.getItem('gm_failed_writes')).toBeNull();
+    expect(localStorage.getItem(RETRY_STORAGE_KEY)).toBeNull();
   });
 
   it('flushQueue calls persistFailedWrites when batchUpdateValues throws', async () => {
     vi.mocked(batchUpdateValues).mockRejectedValueOnce(new Error('Network error'));
     queueWrite('D4', [[4]]);
     await flushQueue();
-    expect(localStorage.getItem('gm_failed_writes')).toBe(JSON.stringify([{ range: 'D4', values: [[4]] }]));
+    expect(localStorage.getItem(RETRY_STORAGE_KEY)).toBe(JSON.stringify([{ range: 'D4', values: [[4]] }]));
   });
 
   it('clearRetryQueue removes all retry items from localStorage', () => {
-    localStorage.setItem('gm_failed_writes', JSON.stringify([{ range: 'X1', values: [[1]] }]));
+    localStorage.setItem(RETRY_STORAGE_KEY, JSON.stringify([{ range: 'X1', values: [[1]] }]));
     
     clearRetryQueue();
     
-    expect(localStorage.getItem('gm_failed_writes')).toBeNull();
+    expect(localStorage.getItem(RETRY_STORAGE_KEY)).toBeNull();
   });
 
   it('clearRetryQueue does not affect writes that are currently queued in memory for the active session', () => {
-    localStorage.setItem('gm_failed_writes', JSON.stringify([{ range: 'X1', values: [[1]] }]));
+    localStorage.setItem(RETRY_STORAGE_KEY, JSON.stringify([{ range: 'X1', values: [[1]] }]));
     queueWrite('Y2', [[2]]);
     
     clearRetryQueue();
     
-    expect(localStorage.getItem('gm_failed_writes')).toBeNull();
+    expect(localStorage.getItem(RETRY_STORAGE_KEY)).toBeNull();
     expect(getQueueSize()).toBe(1); // 'Y2' is still queued in memory
   });
 });

@@ -1,3 +1,4 @@
+import { RECHARGE_THRESHOLDS } from '../../lib/constants';
 import React, { useState, useEffect } from 'react';
 import { X, Library, Plus } from 'lucide-react';
 import { cn } from '../../lib/utils';
@@ -49,7 +50,7 @@ export function CombatSidebar({
 
   const [selectedToolsNpcId, setSelectedToolsNpcId] = useState<string>('');
   const [abilityName, setAbilityName] = useState<string>('');
-  const [rechargeThreshold, setRechargeThreshold] = useState<number>(5);
+  const [rechargeThreshold, setRechargeThreshold] = useState<number>(RECHARGE_THRESHOLDS.onFiveOrSix);
 
   const [legendaryActionsMax, setLegendaryActionsMax] = useState<number>(3);
   const [legendaryResistancesMax, setLegendaryResistancesMax] = useState<number>(3);
@@ -340,9 +341,9 @@ export function CombatSidebar({
                         onChange={e => setRechargeThreshold(parseInt(e.target.value))}
                         className="w-full bg-white border border-[#e5e1d8] rounded-lg px-3 py-2 text-[#2c2c26] text-sm focus:border-[#c5b358] outline-none transition-all"
                       >
-                        <option value={6}>6 (recharge 6)</option>
-                        <option value={5}>5 (recharge 5-6)</option>
-                        <option value={4}>4 (recharge 4-6)</option>
+                        <option value={RECHARGE_THRESHOLDS.onSix}>6 (recharge 6)</option>
+                        <option value={RECHARGE_THRESHOLDS.onFiveOrSix}>5 (recharge 5-6)</option>
+                        <option value={RECHARGE_THRESHOLDS.onFourToSix}>4 (recharge 4-6)</option>
                       </select>
                     </div>
                   </div>

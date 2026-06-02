@@ -5,9 +5,9 @@
 // ────────────────────────────────────────────────────
 
 import { renderHook, act } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useEncounters } from '../hooks/useEncounters';
-import { useAppState } from '../../../hooks/useAppState';
+import { useAppState, getSnapshot } from '../../../hooks/useAppState';
 import { deleteEncounterFully, addEncounterDB } from '../../../services/dbOperations';
 import { toast } from 'sonner';
 
@@ -24,12 +24,41 @@ vi.mock('../../../services/dbOperations', () => ({
 }));
 
 vi.mock('../../../hooks/useAppState', () => ({
-  useAppState: vi.fn()
+  useAppState: vi.fn(),
+  getSnapshot: vi.fn()
 }));
 
 const mockSyncRequested = vi.fn().mockResolvedValue(undefined);
 
 describe('useEncounters', () => {
+  afterEach(() => { vi.restoreAllMocks(); vi.resetAllMocks(); });
+
+  describe('handleDelete error handling', () => {
+    it('rolls back state and shows error toast if deleteEncounterFully throws', async () => {
+      const mockEnc = { id: 'enc-1', name: 'Goblin ambush' };
+      const updateStateSpy = vi.fn();
+      const mockState = { encounters: [mockEnc], encounterCombatants: [] };
+
+      vi.mocked(useAppState).mockReturnValue({
+        state: mockState as any,
+        updateState: updateStateSpy,
+        getSnapshot: vi.fn(),
+      } as any);
+      vi.mocked(getSnapshot).mockReturnValue(mockState as any);
+
+      vi.mocked(deleteEncounterFully).mockRejectedValue(new Error('DB Error'));
+
+      const { result } = renderHook(() => useEncounters({ onSelectEncounter: vi.fn(), onSyncRequested: vi.fn().mockResolvedValue(undefined) }));
+      
+      await act(async () => {
+        await result.current.handleDelete(mockEnc as any);
+      });
+
+      expect(toast.error).toHaveBeenCalledWith('Failed to save changes. Please try again.', expect.any(Object));
+      expect(updateStateSpy).toHaveBeenCalled();
+    });
+  });
+  
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -38,8 +67,9 @@ describe('useEncounters', () => {
     const mockEnc = { id: 'enc-1', name: 'Goblin Ambush', location: 'Woods' };
     vi.mocked(useAppState).mockReturnValue({
       state: { encounters: [mockEnc], encounterCombatants: [] } as any,
-      updateState: vi.fn()
-    });
+      updateState: vi.fn(),
+      getSnapshot: vi.fn(),
+    } as any);
 
     const { result } = renderHook(() => useEncounters({
       onSelectEncounter: vi.fn(),
@@ -61,7 +91,8 @@ describe('useEncounters', () => {
       vi.mocked(useAppState).mockReturnValue({
         state: { encounters: [], difficulties: mockDifficulties } as any,
         updateState: updateStateSpy,
-      });
+        getSnapshot: vi.fn(),
+      } as any);
 
       const mockRealEncounter = { id: 'real-enc-99', name: 'Goblin Ambush', location: 'Woods', difficultyId: 2, status: 'planned', difficultyName: 'Medium' };
       vi.mocked(addEncounterDB).mockResolvedValue(mockRealEncounter as any);
@@ -112,7 +143,8 @@ describe('useEncounters', () => {
       vi.mocked(useAppState).mockReturnValue({
         state: mockInitialState as any,
         updateState: updateStateSpy,
-      });
+        getSnapshot: vi.fn(),
+      } as any);
 
       const mockOnSelectEncounter = vi.fn();
       const mockOnSyncRequested = vi.fn().mockResolvedValue(undefined);
@@ -153,7 +185,8 @@ describe('useEncounters', () => {
       vi.mocked(useAppState).mockReturnValue({
         state: mockInitialState as any,
         updateState: updateStateSpy,
-      });
+        getSnapshot: vi.fn(),
+      } as any);
 
       vi.mocked(deleteEncounterFully).mockResolvedValue(undefined as any);
 
@@ -194,7 +227,8 @@ describe('useEncounters', () => {
       vi.mocked(useAppState).mockReturnValue({
         state: mockInitialState as any,
         updateState: updateStateSpy,
-      });
+        getSnapshot: vi.fn(),
+      } as any);
 
       vi.mocked(deleteEncounterFully).mockRejectedValue(new Error('Cascade deletion failed'));
 

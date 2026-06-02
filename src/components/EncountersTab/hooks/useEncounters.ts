@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useAppState } from '../../../hooks/useAppState';
+import { useAppState, getSnapshot } from '../../../hooks/useAppState';
 import { Encounter } from '../../../types';
 import { addEncounterDB, deleteEncounterFully } from '../../../services/dbOperations';
 import { toast } from 'sonner';
@@ -48,20 +48,22 @@ export function useEncounters({ onSelectEncounter, onSyncRequested }: UseEncount
       }));
       
       toast.success(`${data.name} added to Encounters`);
-      onSyncRequested().catch(console.error);
-    } catch (err: unknown) {
-      console.error("Failed to create encounter", err);
+      onSyncRequested?.()?.catch(console.error);
+    } catch (error) {
+      // 4a. Roll back to snapshot on failure
       updateState(previousState);
       
-      const errorObj = err as Record<string, unknown> | null;
-      if (errorObj?.message === "UNAUTHENTICATED" || errorObj?.error === "UNAUTHENTICATED") {
-        toast.error('Session expired — please sign in again.', {
-          description: 'Your Google session timed out. Use the Connect & Sync button to reconnect.',
-          duration: 8000,
-        });
-      } else {
-        setGlobalError("Unable to create a new encounter at this time. Please try again.");
-      }
+      // 4b. Set local error state
+      setGlobalError('Unable to create a new encounter at this time. Please try again.');
+      
+      // 4c. Show error toast
+      toast.error('Failed to save changes. Please try again.', {
+        description: error instanceof Error ? error.message : 'Unknown error',
+        duration: 5000,
+      });
+      
+      // 4d. Log for debugging
+      console.error('[DB Error]', error);
     } finally {
       setIsAdding(false);
     }
@@ -82,20 +84,22 @@ export function useEncounters({ onSelectEncounter, onSyncRequested }: UseEncount
 
     try {
       await deleteEncounterFully(enc.id);
-      onSyncRequested().catch(console.error);
-    } catch (err: unknown) {
-      console.error("Failed to delete encounter", err);
+      onSyncRequested?.()?.catch(console.error);
+    } catch (error) {
+      // 4a. Roll back to snapshot on failure
       updateState(previousState);
       
-      const errorObj = err as Record<string, unknown> | null;
-      if (errorObj?.message === "UNAUTHENTICATED" || errorObj?.error === "UNAUTHENTICATED") {
-        toast.error('Session expired — please sign in again.', {
-          description: 'Your Google session timed out. Use the Connect & Sync button to reconnect.',
-          duration: 8000,
-        });
-      } else {
-        setGlobalError(`Failed to delete "${enc.name || 'Encounter'}". It might be heavily linked to combatants.`);
-      }
+      // 4b. Set local error state
+      setGlobalError(`Failed to delete "${enc.name}". It might be heavily linked to combatants.`);
+      
+      // 4c. Show error toast
+      toast.error('Failed to save changes. Please try again.', {
+        description: error instanceof Error ? error.message : 'Unknown error',
+        duration: 5000,
+      });
+      
+      // 4e. Log for debugging
+      console.error('[DB Error]', error);
     } finally {
       setIsDeletingId(null);
     }

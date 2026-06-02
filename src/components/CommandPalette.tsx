@@ -1,3 +1,4 @@
+import { effectiveMaxHp, applyLongRestToConditions } from '../lib/conditions';
 // src/components/CommandPalette.tsx
 
 import React, { useEffect } from 'react';
@@ -19,9 +20,11 @@ import {
   Heart, 
   Sparkles 
 } from 'lucide-react';
-import { effectiveMaxHp } from '../lib/combatLogic';
-import { applyLongRestToConditions } from '../lib/conditionDefinitions';
+;
+;
 import { updateCharacterDB } from '../services/dbOperations';
+
+const COMMAND_ITEM_CLASS = "w-full px-3 py-2.5 rounded-lg flex items-center justify-between text-xs font-semibold font-sans transition-all cursor-pointer text-stone-300 hover:bg-amber-50 hover:text-gray-900 border-l-2 border-transparent hover:border-amber-400 data-[selected='true']:bg-amber-50 data-[selected='true']:text-gray-900 data-[selected='true']:border-amber-400 data-[selected=true]:bg-amber-50 data-[selected=true]:text-gray-900 data-[selected=true]:border-amber-400";
 
 interface CommandPaletteProps {
   isOpen: boolean;
@@ -244,7 +247,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                   window.dispatchEvent(new CustomEvent('gm-change-tab', { detail: 'party' }));
                   onClose();
                 }}
-                className="w-full px-3 py-2.5 rounded-lg flex items-center justify-between text-xs font-semibold font-sans transition-all cursor-pointer text-stone-300 hover:bg-[#3f3f37] hover:text-white data-[selected='true']:bg-[#3f3f37] data-[selected='true']:text-white"
+                className={COMMAND_ITEM_CLASS}
               >
                 <div className="flex items-center gap-3">
                   <Users className="w-4 h-4 text-[#c5b358]" />
@@ -257,7 +260,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                   window.dispatchEvent(new CustomEvent('gm-change-tab', { detail: 'encounters' }));
                   onClose();
                 }}
-                className="w-full px-3 py-2.5 rounded-lg flex items-center justify-between text-xs font-semibold font-sans transition-all cursor-pointer text-stone-300 hover:bg-[#3f3f37] hover:text-white data-[selected='true']:bg-[#3f3f37] data-[selected='true']:text-white"
+                className={COMMAND_ITEM_CLASS}
               >
                 <div className="flex items-center gap-3">
                   <Map className="w-4 h-4 text-[#c5b358]" />
@@ -270,7 +273,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                   window.dispatchEvent(new CustomEvent('gm-change-tab', { detail: 'npc-library' }));
                   onClose();
                 }}
-                className="w-full px-3 py-2.5 rounded-lg flex items-center justify-between text-xs font-semibold font-sans transition-all cursor-pointer text-stone-300 hover:bg-[#3f3f37] hover:text-white data-[selected='true']:bg-[#3f3f37] data-[selected='true']:text-white"
+                className={COMMAND_ITEM_CLASS}
               >
                 <div className="flex items-center gap-3">
                   <Skull className="w-4 h-4 text-[#c5b358]" />
@@ -283,7 +286,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                   window.dispatchEvent(new CustomEvent('gm-change-tab', { detail: 'combat' }));
                   onClose();
                 }}
-                className="w-full px-3 py-2.5 rounded-lg flex items-center justify-between text-xs font-semibold font-sans transition-all cursor-pointer text-stone-300 hover:bg-[#3f3f37] hover:text-white data-[selected='true']:bg-[#3f3f37] data-[selected='true']:text-white"
+                className={COMMAND_ITEM_CLASS}
               >
                 <div className="flex items-center gap-3">
                   <Swords className="w-4 h-4 text-[#c5b358]" />
@@ -297,7 +300,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                   window.open(url, '_blank');
                   onClose();
                 }}
-                className="w-full px-3 py-2.5 rounded-lg flex items-center justify-between text-xs font-semibold font-sans transition-all cursor-pointer text-stone-300 hover:bg-[#3f3f37] hover:text-white data-[selected='true']:bg-[#3f3f37] data-[selected='true']:text-white"
+                className={COMMAND_ITEM_CLASS}
               >
                 <div className="flex items-center gap-3">
                   <ExternalLink className="w-4 h-4 text-[#c5b358]" />
@@ -314,7 +317,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                   updateState(prev => ({ ...prev, openDialog: 'newPlayer' }));
                   onClose();
                 }}
-                className="w-full px-3 py-2.5 rounded-lg flex items-center justify-between text-xs font-semibold font-sans transition-all cursor-pointer text-stone-300 hover:bg-[#3f3f37] hover:text-white data-[selected='true']:bg-[#3f3f37] data-[selected='true']:text-white"
+                className={COMMAND_ITEM_CLASS}
               >
                 <div className="flex items-center gap-3">
                   <Users className="w-4 h-4 text-[#c5b358]" />
@@ -328,7 +331,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                   updateState(prev => ({ ...prev, openDialog: 'newNpc' }));
                   onClose();
                 }}
-                className="w-full px-3 py-2.5 rounded-lg flex items-center justify-between text-xs font-semibold font-sans transition-all cursor-pointer text-stone-300 hover:bg-[#3f3f37] hover:text-white data-[selected='true']:bg-[#3f3f37] data-[selected='true']:text-white"
+                className={COMMAND_ITEM_CLASS}
               >
                 <div className="flex items-center gap-3">
                   <Skull className="w-4 h-4 text-[#c5b358]" />
@@ -342,7 +345,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                   updateState(prev => ({ ...prev, openDialog: 'newEncounter' }));
                   onClose();
                 }}
-                className="w-full px-3 py-2.5 rounded-lg flex items-center justify-between text-xs font-semibold font-sans transition-all cursor-pointer text-stone-300 hover:bg-[#3f3f37] hover:text-white data-[selected='true']:bg-[#3f3f37] data-[selected='true']:text-white"
+                className={COMMAND_ITEM_CLASS}
               >
                 <div className="flex items-center gap-3">
                   <Map className="w-4 h-4 text-[#c5b358]" />
@@ -359,7 +362,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                     window.dispatchEvent(new CustomEvent('gm-cmd-next-turn'));
                     onClose();
                   }}
-                  className="w-full px-3 py-2.5 rounded-lg flex items-center justify-between text-xs font-semibold font-sans transition-all cursor-pointer text-stone-300 hover:bg-[#3f3f37] hover:text-white data-[selected='true']:bg-[#3f3f37] data-[selected='true']:text-white"
+                  className={COMMAND_ITEM_CLASS}
                 >
                   <div className="flex items-center gap-3">
                     <Play className="w-4 h-4 text-[#c5b358]" />
@@ -373,7 +376,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                     window.dispatchEvent(new CustomEvent('gm-cmd-roll-npc-init'));
                     onClose();
                   }}
-                  className="w-full px-3 py-2.5 rounded-lg flex items-center justify-between text-xs font-semibold font-sans transition-all cursor-pointer text-stone-300 hover:bg-[#3f3f37] hover:text-white data-[selected='true']:bg-[#3f3f37] data-[selected='true']:text-white"
+                  className={COMMAND_ITEM_CLASS}
                 >
                   <div className="flex items-center gap-3">
                     <Dices className="w-4 h-4 text-[#c5b358]" />
@@ -386,7 +389,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                     window.dispatchEvent(new CustomEvent('gm-cmd-call-initiative'));
                     onClose();
                   }}
-                  className="w-full px-3 py-2.5 rounded-lg flex items-center justify-between text-xs font-semibold font-sans transition-all cursor-pointer text-stone-300 hover:bg-[#3f3f37] hover:text-white data-[selected='true']:bg-[#3f3f37] data-[selected='true']:text-white"
+                  className={COMMAND_ITEM_CLASS}
                 >
                   <div className="flex items-center gap-3">
                     <AlertCircle className="w-4 h-4 text-[#c5b358]" />
@@ -399,7 +402,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                     window.dispatchEvent(new CustomEvent('gm-cmd-open-tools'));
                     onClose();
                   }}
-                  className="w-full px-3 py-2.5 rounded-lg flex items-center justify-between text-xs font-semibold font-sans transition-all cursor-pointer text-stone-300 hover:bg-[#3f3f37] hover:text-white data-[selected='true']:bg-[#3f3f37] data-[selected='true']:text-white"
+                  className={COMMAND_ITEM_CLASS}
                 >
                   <div className="flex items-center gap-3">
                     <Settings className="w-4 h-4 text-[#c5b358]" />
@@ -422,7 +425,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                     });
                     onClose();
                   }}
-                  className="w-full px-3 py-2.5 rounded-lg flex items-center justify-between text-xs font-semibold font-sans transition-all cursor-pointer text-stone-300 hover:bg-[#3f3f37] hover:text-white data-[selected='true']:bg-[#3f3f37] data-[selected='true']:text-white"
+                  className={COMMAND_ITEM_CLASS}
                 >
                   <div className="flex items-center gap-3">
                     <Dices className="w-4 h-4 text-[#c5b358]" />
@@ -436,7 +439,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                   window.dispatchEvent(new CustomEvent('gm-cmd-focus-dice'));
                   onClose();
                 }}
-                className="w-full px-3 py-2.5 rounded-lg flex items-center justify-between text-xs font-semibold font-sans transition-all cursor-pointer text-stone-300 hover:bg-[#3f3f37] hover:text-white data-[selected='true']:bg-[#3f3f37] data-[selected='true']:text-white"
+                className={COMMAND_ITEM_CLASS}
               >
                 <div className="flex items-center gap-3">
                   <Sparkles className="w-4 h-4 text-[#c5b358]" />
@@ -452,7 +455,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                   handleLongRest();
                   onClose();
                 }}
-                className="w-full px-3 py-2.5 rounded-lg flex items-center justify-between text-xs font-semibold font-sans transition-all cursor-pointer text-stone-300 hover:bg-[#3f3f37] hover:text-white data-[selected='true']:bg-[#3f3f37] data-[selected='true']:text-white"
+                className={COMMAND_ITEM_CLASS}
               >
                 <div className="flex items-center gap-3">
                   <Moon className="w-4 h-4 text-[#c5b358]" />
@@ -468,7 +471,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                   window.dispatchEvent(new CustomEvent('gm-change-tab', { detail: 'settings' }));
                   onClose();
                 }}
-                className="w-full px-3 py-2.5 rounded-lg flex items-center justify-between text-xs font-semibold font-sans transition-all cursor-pointer text-stone-300 hover:bg-[#3f3f37] hover:text-white data-[selected='true']:bg-[#3f3f37] data-[selected='true']:text-white"
+                className={COMMAND_ITEM_CLASS}
               >
                 <div className="flex items-center gap-3">
                   <Settings className="w-4 h-4 text-[#c5b358]" />
@@ -481,7 +484,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                   testDeathAnimation();
                   onClose();
                 }}
-                className="w-full px-3 py-2.5 rounded-lg flex items-center justify-between text-xs font-semibold font-sans transition-all cursor-pointer text-stone-300 hover:bg-[#3f3f37] hover:text-white data-[selected='true']:bg-[#3f3f37] data-[selected='true']:text-white"
+                className={COMMAND_ITEM_CLASS}
               >
                 <div className="flex items-center gap-3">
                   <Skull className="w-4 h-4 text-[#c5b358]" />
@@ -494,7 +497,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                   testDamageAnimation();
                   onClose();
                 }}
-                className="w-full px-3 py-2.5 rounded-lg flex items-center justify-between text-xs font-semibold font-sans transition-all cursor-pointer text-stone-300 hover:bg-[#3f3f37] hover:text-white data-[selected='true']:bg-[#3f3f37] data-[selected='true']:text-white"
+                className={COMMAND_ITEM_CLASS}
               >
                 <div className="flex items-center gap-3">
                   <Zap className="w-4 h-4 text-[#c5b358]" />
@@ -507,7 +510,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                   testHealAnimation();
                   onClose();
                 }}
-                className="w-full px-3 py-2.5 rounded-lg flex items-center justify-between text-xs font-semibold font-sans transition-all cursor-pointer text-stone-300 hover:bg-[#3f3f37] hover:text-white data-[selected='true']:bg-[#3f3f37] data-[selected='true']:text-white"
+                className={COMMAND_ITEM_CLASS}
               >
                 <div className="flex items-center gap-3">
                   <Heart className="w-4 h-4 text-[#c5b358]" />

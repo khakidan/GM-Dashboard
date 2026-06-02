@@ -1,3 +1,4 @@
+import { ANIMATION_TIMING } from '../lib/constants';
   import React, { useRef, useEffect } from 'react';
 
   interface UnconsciousOverlayProps {
@@ -106,7 +107,7 @@
           pointerEvents: 'none',
           animation: [
             'unc-overlayIn 100ms ease-out forwards',
-            'unc-overlayOut 1200ms ease-in 4300ms forwards',
+            `unc-overlayOut ${ANIMATION_TIMING.unconsciousExitDuration}ms ease-in ${ANIMATION_TIMING.unconsciousExit}ms forwards`,
           ].join(', '),
         }}
       >
