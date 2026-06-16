@@ -63,5 +63,7 @@ export const STORAGE_KEYS = {
   googleAccessToken: 'GM_GOOGLE_ACCESS_TOKEN',
   googleRefreshToken: 'GM_GOOGLE_REFRESH_TOKEN',
   spreadsheetId: 'GM_DATA_SPREADSHEET_ID',
-  diceRollerExpanded: 'dice_roller_expanded'
+  diceRollerExpanded: 'dice_roller_expanded',
+  ambientVolume: 'gm_ambient_volume',
+  effectVolume: 'gm_effect_volume',
 } as const;
