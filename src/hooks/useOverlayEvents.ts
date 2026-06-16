@@ -10,7 +10,11 @@ export function useDeathEvent() {
 }
 
 export function useDamageEvent() {
-  return useOverlayEvent<{ combatantName: string; damageAmount: number }, null>(
+  return useOverlayEvent<{ 
+    combatantNames: string[]; 
+    damageAmount: number; 
+    damageType?: string; 
+  }, null>(
     'damageEvent',
     OVERLAY_DURATIONS.damage,
     null
@@ -18,7 +22,10 @@ export function useDamageEvent() {
 }
 
 export function useHealEvent() {
-  return useOverlayEvent<{ combatantName: string; healAmount: number }, null>(
+  return useOverlayEvent<{ 
+    combatantNames: string[]; 
+    healAmount: number; 
+  }, null>(
     'healEvent',
     OVERLAY_DURATIONS.heal,
     null

@@ -44,6 +44,19 @@ vi.mock('../../../hooks/useAppState', () => ({
   getSnapshot: () => mockAppState,
 }));
 
+const mockFireDamage = vi.fn();
+const mockFireHeal = vi.fn();
+
+vi.mock('../../../hooks/useOverlayEvents', () => ({
+  useDamageEvent: () => ({ fire: mockFireDamage }),
+  useHealEvent: () => ({ fire: mockFireHeal }),
+  useUnconsciousEvent: () => ({ fire: vi.fn() }),
+}));
+
+vi.mock('../../../hooks/useDeathSaves', () => ({
+  useDeathSaves: () => ({ applyDamageToUnconscious: vi.fn(), recordDeathSave: vi.fn(), clearDeathSaves: vi.fn() })
+}));
+
 describe('useBatchActions', () => {
   afterEach(() => {
     cleanup();
@@ -119,6 +132,12 @@ describe('useBatchActions', () => {
     expect(toast.success).toHaveBeenCalledWith('Damage applied to 2 targets');
     expect(updateNpcInstanceHpDB).toHaveBeenCalledWith('ec-1', 15, 0);
     expect(updateNpcInstanceHpDB).toHaveBeenCalledWith('ec-2', 15, 0);
+    expect(mockFireDamage).toHaveBeenCalledTimes(1);
+    expect(mockFireDamage).toHaveBeenCalledWith({
+      combatantNames: ['Goblin A', 'Goblin B'],
+      damageAmount: 5,
+      damageType: 'fire',
+    });
   });
 
   it('handleApplyMultiDamage skips combatants not in selectedIds', async () => {
@@ -157,6 +176,11 @@ describe('useBatchActions', () => {
     expect(updateNpcInstanceHpDB).toHaveBeenCalledWith('ec-1', 15, 0);
     expect(updateNpcInstanceHpDB).toHaveBeenCalledWith('ec-2', 20, 0);
     expect(toast.success).toHaveBeenCalledWith('Healing applied to 2 targets');
+    expect(mockFireHeal).toHaveBeenCalledTimes(1);
+    expect(mockFireHeal).toHaveBeenCalledWith({
+      combatantNames: ['Goblin A', 'Goblin B'],
+      healAmount: 10,
+    });
   });
 
   it('handleApplyMultiCondition adds a condition to each selected combatant if not already present', async () => {

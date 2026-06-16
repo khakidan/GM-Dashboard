@@ -106,11 +106,12 @@ export interface CombatState {
   concentrationLinks: Record<string, string[]>;
   deathEvent?: { characterName: string } | null;
   damageEvent?: {
-    combatantName: string;
+    combatantNames: string[];
     damageAmount: number;
+    damageType?: string;
   } | null;
   healEvent?: {
-    combatantName: string;
+    combatantNames: string[];
     healAmount: number;
   } | null;
   unconsciousEvent?: {

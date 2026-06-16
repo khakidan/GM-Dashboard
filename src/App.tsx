@@ -108,13 +108,14 @@ function AppContent() {
       )}
       {damageEvent && !deathEvent && !unconsciousEvent && (
         <DamageOverlay
-          combatantName={damageEvent.combatantName}
+          combatantNames={damageEvent.combatantNames}
           damageAmount={damageEvent.damageAmount}
+          damageType={damageEvent.damageType}
         />
       )}
       {healEvent && !deathEvent && !unconsciousEvent && !damageEvent && (
         <HealOverlay
-          combatantName={healEvent.combatantName}
+          combatantNames={healEvent.combatantNames}
           healAmount={healEvent.healAmount}
         />
       )}

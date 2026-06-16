@@ -48,7 +48,8 @@ export function useHealthChange(
     isDamage: boolean,
     damageType?: DamageType | null,
     amountOverride?: number,
-    isCritical: boolean = false
+    isCritical: boolean = false,
+    skipOverlay: boolean = false
   ) => {
     if (syncingIds.has(id)) return;
     
@@ -149,18 +150,22 @@ export function useHealthChange(
 
       const isFirstUnconscious = isDamage && c.type === 'pc' && newCurrentHp === 0 && c.currentHp > 0;
 
-      if (isDamage && finalDamageAmount > 0) {
+      if (isDamage && finalDamageAmount > 0 && !skipOverlay) {
         if (isFirstUnconscious) {
           fireUnconsciousEvent({ characterName: c.name });
         } else {
-          fireDamageEvent({ combatantName: c.name, damageAmount: finalDamageAmount });
+          fireDamageEvent({ 
+            combatantNames: [c.name], 
+            damageAmount: finalDamageAmount,
+            damageType: damageType || undefined
+          });
         }
       }
       
-      if (!isDamage) {
+      if (!isDamage && !skipOverlay) {
         const actualHeal = newCurrentHp - c.currentHp;
         if (actualHeal > 0) {
-          fireHealEvent({ combatantName: c.name, healAmount: actualHeal });
+          fireHealEvent({ combatantNames: [c.name], healAmount: actualHeal });
         }
       }
       

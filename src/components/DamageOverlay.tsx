@@ -2,8 +2,18 @@ import { ANIMATION_TIMING } from '../lib/constants';
 import React, { useRef, useEffect } from 'react';
 
 interface DamageOverlayProps {
-  combatantName: string;
+  combatantNames: string[];
   damageAmount: number;
+  damageType?: string;
+}
+
+function formatNames(names: string[]): string {
+  if (names.length === 1) return names[0];
+  if (names.length === 2) 
+    return `${names[0]} and ${names[1]}`;
+  const last = names[names.length - 1];
+  const rest = names.slice(0, -1).join(', ');
+  return `${rest}, and ${last}`;
 }
 
 const STYLES = `
@@ -63,8 +73,9 @@ const STYLES = `
 `;
 
 export function DamageOverlay({ 
-  combatantName, 
-  damageAmount 
+  combatantNames, 
+  damageAmount,
+  damageType 
 }: DamageOverlayProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -73,7 +84,7 @@ export function DamageOverlay({
       videoRef.current.currentTime = 0;
       videoRef.current.play().catch(() => {});
     }
-  }, [combatantName, damageAmount]);
+  }, [combatantNames, damageAmount, damageType]);
 
   return (
     <div
@@ -242,6 +253,27 @@ export function DamageOverlay({
             -{damageAmount}
           </div>
 
+          {damageType && (
+            <div
+              id="damage-overlay-type"
+              style={{
+                fontFamily: 
+                  '"Helvetica Neue", Arial, sans-serif',
+                fontSize: 'clamp(1.2rem, 3vw, 2rem)',
+                fontWeight: 600,
+                letterSpacing: '0.15em',
+                color: '#e2d6b5', // Muted gold
+                textTransform: 'capitalize',
+                textShadow: '0 0 16px rgba(200, 0, 0, 0.6)',
+                opacity: 0,
+                animation: 
+                  'dmg-nameIn 400ms ease-out 250ms forwards',
+              }}
+            >
+              {damageType.charAt(0).toUpperCase() + damageType.slice(1)}
+            </div>
+          )}
+
           {/* Combatant name */}
           <div
             id="damage-overlay-name"
@@ -259,7 +291,7 @@ export function DamageOverlay({
                 'dmg-nameIn 400ms ease-out 380ms forwards',
             }}
           >
-            Applied to {combatantName}
+            {formatNames(combatantNames)} took damage
           </div>
         </div>
 

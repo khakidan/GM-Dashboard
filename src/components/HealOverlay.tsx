@@ -2,8 +2,17 @@ import { ANIMATION_TIMING } from '../lib/constants';
   import React, { useRef, useEffect } from 'react';
 
   interface HealOverlayProps {
-    combatantName: string;
+    combatantNames: string[];
     healAmount: number;
+  }
+
+  function formatNames(names: string[]): string {
+    if (names.length === 1) return names[0];
+    if (names.length === 2) 
+      return `${names[0]} and ${names[1]}`;
+    const last = names[names.length - 1];
+    const rest = names.slice(0, -1).join(', ');
+    return `${rest}, and ${last}`;
   }
 
   const STYLES = `
@@ -76,7 +85,7 @@ import { ANIMATION_TIMING } from '../lib/constants';
   `;
 
   export function HealOverlay({ 
-    combatantName, 
+    combatantNames, 
     healAmount 
   }: HealOverlayProps) {
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -86,7 +95,7 @@ import { ANIMATION_TIMING } from '../lib/constants';
         videoRef.current.currentTime = 0;
         videoRef.current.play().catch(() => {});
       }
-    }, [combatantName, healAmount]);
+    }, [combatantNames, healAmount]);
 
     return (
       <div
@@ -271,13 +280,13 @@ import { ANIMATION_TIMING } from '../lib/constants';
                 letterSpacing: '0.55em',
                 color: '#ffffff',
                 textTransform: 'uppercase',
-                textShadow: '0 0 16px rgba(200, 0, 0, 0.8)',
+                textShadow: '0 0 16px rgba(0, 150, 40, 0.8)', // Note: fixing shadow color from red to green
                 opacity: 0,
                 animation: 
                   'heal-nameIn 400ms ease-out 380ms forwards',
               }}
             >
-              Added to {combatantName}
+              {formatNames(combatantNames)} {combatantNames.length === 1 ? 'was' : 'were'} healed
             </div>
           </div>
 

@@ -15,16 +15,16 @@ afterEach(() => {
 });
 
 describe('HealOverlay', () => {
-  it('renders without crashing given combatantName and healAmount props', () => {
+  it('renders without crashing given combatantNames and healAmount props', () => {
     const { container } = render(
-      <HealOverlay combatantName="Seraphina Brightwell" healAmount={34} />
+      <HealOverlay combatantNames={["Seraphina Brightwell"]} healAmount={34} />
     );
     expect(container).toBeDefined();
   });
 
   it('id="heal-overlay" is present with fixed position', () => {
     const { container } = render(
-      <HealOverlay combatantName="Seraphina Brightwell" healAmount={34} />
+      <HealOverlay combatantNames={["Seraphina Brightwell"]} healAmount={34} />
     );
     const element = container.querySelector('#heal-overlay') as HTMLElement;
     expect(element).not.toBeNull();
@@ -33,25 +33,34 @@ describe('HealOverlay', () => {
 
   it('id="heal-overlay-amount" shows the heal number with a plus sign', () => {
     const { container } = render(
-      <HealOverlay combatantName="Seraphina Brightwell" healAmount={34} />
+      <HealOverlay combatantNames={["Seraphina Brightwell"]} healAmount={34} />
     );
     const amountEl = container.querySelector('#heal-overlay-amount') as HTMLElement;
     expect(amountEl).not.toBeNull();
     expect(amountEl.textContent).toContain('+34');
   });
 
-  it('id="heal-overlay-name" shows the combatant name', () => {
+  it('id="heal-overlay-name" shows the combatant name correctly for one name', () => {
     const { container } = render(
-      <HealOverlay combatantName="Seraphina Brightwell" healAmount={34} />
+      <HealOverlay combatantNames={["Drogar"]} healAmount={34} />
     );
     const nameEl = container.querySelector('#heal-overlay-name') as HTMLElement;
     expect(nameEl).not.toBeNull();
-    expect(nameEl.textContent).toContain('Seraphina Brightwell');
+    expect(nameEl.textContent).toContain('Drogar was healed');
+  });
+
+  it('id="heal-overlay-name" shows the combatant name correctly for multiple names', () => {
+    const { container } = render(
+      <HealOverlay combatantNames={["Drogar", "Druin", "Maeve"]} healAmount={34} />
+    );
+    const nameEl = container.querySelector('#heal-overlay-name') as HTMLElement;
+    expect(nameEl).not.toBeNull();
+    expect(nameEl.textContent).toContain('Drogar, Druin, and Maeve were healed');
   });
 
   it('at least one video element is present', () => {
     const { container } = render(
-      <HealOverlay combatantName="Seraphina Brightwell" healAmount={34} />
+      <HealOverlay combatantNames={["Seraphina Brightwell"]} healAmount={34} />
     );
     const video = container.querySelector('video');
     expect(video).not.toBeNull();
@@ -59,7 +68,7 @@ describe('HealOverlay', () => {
 
   it('at least one style tag with @keyframes is present', () => {
     const { container } = render(
-      <HealOverlay combatantName="Seraphina Brightwell" healAmount={34} />
+      <HealOverlay combatantNames={["Seraphina Brightwell"]} healAmount={34} />
     );
     const styleTag = container.querySelector('style');
     expect(styleTag).not.toBeNull();

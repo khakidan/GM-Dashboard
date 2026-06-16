@@ -106,17 +106,26 @@ export function useBatchActions({ selectedIds, combatants, onSuccess }: UseBatch
     }
   };
 
-  const { handleHealthChange } = useHealthChange(new Set(), updateCombatant);
+  const { handleHealthChange, fireDamageEvent, fireHealEvent } = useHealthChange(new Set(), updateCombatant);
 
   const handleApplyMultiDamage = async (amount: number, type: DamageType | null) => {
     const selectedList = combatants.filter(c => selectedIds.has(c.id));
     if (selectedList.length === 0) return;
 
+    const affectedNames = selectedList.map(c => c.name);
     const previousState = getSnapshot();
     try {
       for (const c of selectedList) {
-        handleHealthChange(c.id, c, true, type, amount);
+        handleHealthChange(c.id, c, true, type, amount, false, true); // pass skipOverlay=true
       }
+      
+      // Fire ONE overlay event with all names
+      fireDamageEvent({
+        combatantNames: affectedNames,
+        damageAmount: amount,
+        damageType: type || undefined,
+      });
+
       toast.success(`Damage applied to ${selectedList.length} targets`);
     } catch (err) {
       updateState(() => previousState);
@@ -130,11 +139,19 @@ export function useBatchActions({ selectedIds, combatants, onSuccess }: UseBatch
     const selectedList = combatants.filter(c => selectedIds.has(c.id));
     if (selectedList.length === 0) return;
 
+    const affectedNames = selectedList.map(c => c.name);
     const previousState = getSnapshot();
     try {
       for (const c of selectedList) {
-        handleHealthChange(c.id, c, false, null, amount);
+        handleHealthChange(c.id, c, false, null, amount, false, true); // pass skipOverlay=true
       }
+      
+      // Fire ONE healEvent after the loop with all names
+      fireHealEvent({
+        combatantNames: affectedNames,
+        healAmount: amount
+      });
+
       toast.success(`Healing applied to ${selectedList.length} targets`);
     } catch (err) {
       updateState(() => previousState);
