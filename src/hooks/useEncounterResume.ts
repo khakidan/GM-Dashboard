@@ -6,6 +6,12 @@ export function useEncounterResume(onActiveTabChange?: (tab: 'party' | 'encounte
   const { state, updateState } = useAppState();
   const hasAttemptedResume = useRef(false);
 
+  // Runs once after the initial Google 
+  // Sheets sync completes. If an encounter 
+  // was in progress when the app was last 
+  // closed (currentRound > 0), restore it 
+  // automatically so the GM does not need 
+  // to manually re-select the encounter.
   useEffect(() => {
     // Only attempt resume once when hasInitialSynced transitions to true
     if (!state.hasInitialSynced || hasAttemptedResume.current) return;

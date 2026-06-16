@@ -1,7 +1,7 @@
 import { buildConditionSummary, CONDITION_MECHANICS, CONCENTRATION_EFFECTS } from '../../../lib/conditions';
 import { OVERLAY_CLEAR_BUFFER_MS } from '../../../lib/constants';
 import { OVERLAY_DURATIONS } from '../../../lib/constants';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, createElement } from 'react';
 import { useAppState, getSnapshot } from '../../../hooks/useAppState';
 import { updateSheetData } from '../../../services/sheetsService';
 import { updateCharacterDB, updateNpcDB, deleteEncounterCombatantDB, updateEncounterCombatantQuantityDB, updateInitiativeDB, updateConditionTimersDB, updateNpcInstanceHpDB, updateNpcInstanceConditionsDB, updateNpcInstanceAcModDB, updateEncounterStateDB } from '../../../services/dbOperations';
@@ -14,7 +14,22 @@ import { useDeathSaves } from '../../../hooks/useDeathSaves';
 
 export function useCombatSync() {
   const { state, updateState } = useAppState();
-  const [syncingIds, setSyncingIds] = useState<Set<string>>(new Set());
+  
+  const syncingIds = new Set(state.combatState.syncingIds || []);
+  const setSyncingIds = (action: Set<string> | ((prev: Set<string>) => Set<string>)) => {
+    updateState(pState => {
+      const currentSet = new Set(pState.combatState.syncingIds || []);
+      const nextSet = typeof action === 'function' ? action(currentSet) : action;
+      return {
+        ...pState,
+        combatState: {
+          ...pState.combatState,
+          syncingIds: Array.from(nextSet),
+        }
+      };
+    });
+  };
+
   const [globalError, setGlobalError] = useState<string | null>(null);
 
   const { fire: fireDeathEvent } = useDeathEvent();
@@ -408,36 +423,30 @@ export function useCombatSync() {
         const toastId = `death-save-${cId}`;
 
         toast(
-          <div className="flex flex-col gap-1.5" id={`ds-prompt-${cId}`}>
-            <div className="font-semibold text-sm text-neutral-900">
-              {cName} is unconscious — Death Saving Throw
-            </div>
-            <div className="text-xs text-neutral-500">
-              Fails: {fails}/3  Successes: {successes}/3.
-            </div>
-            <div className="flex gap-2 mt-1">
-              <button
-                id={`ds-success-${cId}`}
-                onClick={() => {
+          createElement('div', { className: 'flex flex-col gap-1.5', id: `ds-prompt-${cId}` }, [
+            createElement('div', { key: 'title', className: 'font-semibold text-sm text-neutral-900' }, `${cName} is unconscious — Death Saving Throw`),
+            createElement('div', { key: 'status', className: 'text-xs text-neutral-500' }, `Fails: ${fails}/3  Successes: ${successes}/3.`),
+            createElement('div', { key: 'actions', className: 'flex gap-2 mt-1' }, [
+              createElement('button', {
+                key: 'succ',
+                id: `ds-success-${cId}`,
+                onClick: () => {
                   recordDeathSave(cId, 'success');
                   toast.dismiss(toastId);
-                }}
-                className="px-2.5 py-1 bg-green-600 text-white rounded text-xs font-semibold hover:bg-green-700 cursor-pointer pointer-events-auto"
-              >
-                Success
-              </button>
-              <button
-                id={`ds-fail-${cId}`}
-                onClick={() => {
+                },
+                className: 'px-2.5 py-1 bg-green-600 text-white rounded text-xs font-semibold hover:bg-green-700 cursor-pointer pointer-events-auto'
+              }, 'Success'),
+              createElement('button', {
+                key: 'fail',
+                id: `ds-fail-${cId}`,
+                onClick: () => {
                   recordDeathSave(cId, 'failure');
                   toast.dismiss(toastId);
-                }}
-                className="px-2.5 py-1 bg-red-600 text-white rounded text-xs font-semibold hover:bg-red-700 cursor-pointer pointer-events-auto"
-              >
-                Failure
-              </button>
-            </div>
-          </div>,
+                },
+                className: 'px-2.5 py-1 bg-red-600 text-white rounded text-xs font-semibold hover:bg-red-700 cursor-pointer pointer-events-auto'
+              }, 'Failure')
+            ])
+          ]),
           {
             duration: 15000,
             id: toastId,

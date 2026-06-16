@@ -27,6 +27,10 @@ describe('useDashboardStore', () => {
         rageEvent: null,
         unconsciousEvent: null,
         initiativeEvent: false,
+        selectedIds: [],
+        isSelectionMode: false,
+        syncingIds: [],
+        expandedIds: [],
       },
     });
   });

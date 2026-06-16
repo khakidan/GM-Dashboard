@@ -5,11 +5,12 @@
 // ────────────────────────────────────────────────────
 
 import React from 'react';
-import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react';
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { render as originalRender, screen, fireEvent, cleanup, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import * as diceRoller from '../../../lib/diceRoller';
 import { CombatantCard } from '../CombatantCard';
 import type { Combatant } from '../../../types';
+import { useDashboardStore } from '../../../hooks/useAppState';
 
 vi.mock('../../../lib/diceRoller', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../../../lib/diceRoller')>();
@@ -21,6 +22,7 @@ vi.mock('../../../lib/diceRoller', async (importOriginal) => {
 
 describe('CombatantCard', () => {
   afterEach(() => cleanup());
+
   const defaultCombatant: Combatant = {
     id: 'c1',
     name: 'Goblin',
@@ -32,6 +34,68 @@ describe('CombatantCard', () => {
     conditions: 'Poisoned',
     notes: 'Some notes',
     passivePerception: 10,
+  };
+
+  beforeEach(() => {
+    // Reset store state before each test
+    useDashboardStore.setState({
+      combatState: {
+        activeEncounterId: null,
+        activeTurnId: null,
+        round: 1,
+        combatants: [defaultCombatant],
+        concentrationLinks: {},
+        selectedIds: [],
+        isSelectionMode: false,
+        syncingIds: [],
+        expandedIds: [],
+      },
+    });
+  });
+
+  const render = (element: React.ReactElement) => {
+    const updateStoreWithProps = (props: any) => {
+      const c = props.c || defaultCombatant;
+      const combatantId = c.id;
+
+      useDashboardStore.setState(prev => {
+        const currentCombatants = prev.combatState?.combatants || [];
+        const updatedCombatants = currentCombatants.some(com => com.id === combatantId)
+          ? currentCombatants.map(com => com.id === combatantId ? { ...com, ...c } : com)
+          : [...currentCombatants, c];
+
+        return {
+          ...prev,
+          combatState: {
+            ...prev.combatState,
+            combatants: updatedCombatants,
+            activeTurnId: props.isActive ? combatantId : (prev.combatState?.activeTurnId === combatantId ? null : prev.combatState?.activeTurnId),
+            selectedIds: props.isSelected 
+              ? Array.from(new Set([...(prev.combatState?.selectedIds || []), combatantId]))
+              : (prev.combatState?.selectedIds || []).filter(id => id !== combatantId),
+            isSelectionMode: props.isSelectable !== undefined ? props.isSelectable : !!prev.combatState?.isSelectionMode,
+            syncingIds: props.isSyncing
+              ? Array.from(new Set([...(prev.combatState?.syncingIds || []), combatantId]))
+              : (prev.combatState?.syncingIds || []).filter(id => id !== combatantId),
+          }
+        };
+      });
+    };
+
+    const props = element.props as any;
+    updateStoreWithProps(props);
+    const { isActive, isSelectable, isSelected, isSyncing, ...rest } = props;
+    const result = originalRender(React.cloneElement(element, rest));
+
+    return {
+      ...result,
+      rerender: (newElement: React.ReactElement) => {
+        const newProps = newElement.props as any;
+        updateStoreWithProps(newProps);
+        const { isActive: newIsActive, isSelectable: newIsSelectable, isSelected: newIsSelected, isSyncing: newIsSyncing, ...newRest } = newProps;
+        result.rerender(React.cloneElement(newElement, newRest));
+      }
+    };
   };
 
   const defaultProps = {

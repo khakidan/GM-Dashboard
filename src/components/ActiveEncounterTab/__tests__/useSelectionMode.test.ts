@@ -1,8 +1,31 @@
 import { renderHook, act } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { useSelectionMode } from '../hooks/useSelectionMode';
+import { useDashboardStore } from '../../../hooks/useAppState';
 
 describe('useSelectionMode', () => {
+  beforeEach(() => {
+    useDashboardStore.setState({
+      combatState: {
+        activeEncounterId: null,
+        activeTurnId: null,
+        round: 1,
+        combatants: [],
+        concentrationLinks: {},
+        deathEvent: null,
+        damageEvent: null,
+        healEvent: null,
+        rageEvent: null,
+        unconsciousEvent: null,
+        initiativeEvent: false,
+        selectedIds: [],
+        isSelectionMode: false,
+        syncingIds: [],
+        expandedIds: [],
+      }
+    });
+  });
+
   it('Initial state has isSelectionMode: false', () => {
     const { result } = renderHook(() => useSelectionMode());
     expect(result.current.isSelectionMode).toBe(false);

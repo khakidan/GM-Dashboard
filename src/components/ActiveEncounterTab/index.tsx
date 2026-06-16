@@ -17,6 +17,8 @@ import { useSelectionMode } from './hooks/useSelectionMode';
 import { useEncounterKeyboard } from './hooks/useEncounterKeyboard';
 import { useEncounterPresetLoader } from './hooks/useEncounterPresetLoader';
 import { BatchActionPanel } from './BatchActionPanel';
+import { ShortcutCheatSheet } from './ShortcutCheatSheet';
+import { useBatchActions } from './hooks/useBatchActions';
 
 export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
   const { state, updateState } = useAppState();
@@ -80,89 +82,16 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
     }
   };
 
-  const handleApplyMultiDamage = (amount: number, type: DamageType | null) => {
-    const selectedList = state.combatState.combatants.filter(c => selectedCombatantIds.has(c.id));
-    if (selectedList.length === 0) return;
-
-    selectedList.forEach(c => {
-      handleHealthChange(c.id, c, true, type, amount);
-    });
-    toast.success(`Damage applied to ${selectedList.length} targets`);
-  };
-
-  const handleApplyMultiHealing = (amount: number) => {
-    const selectedList = state.combatState.combatants.filter(c => selectedCombatantIds.has(c.id));
-    if (selectedList.length === 0) return;
-
-    selectedList.forEach(c => {
-      handleHealthChange(c.id, c, false, null, amount);
-    });
-    toast.success(`Healing applied to ${selectedList.length} targets`);
-  };
-
-  const handleApplyMultiCondition = (condition: string) => {
-    const selectedList = state.combatState.combatants.filter(c => selectedCombatantIds.has(c.id));
-    if (selectedList.length === 0) return;
-
-    selectedList.forEach(c => {
-      const currentConditions = c.conditions || '';
-      const list = currentConditions.split(',').map(s => s.trim()).filter(Boolean);
-      if (!list.includes(condition)) {
-        const next = [...list, condition].join(', ');
-        updateCombatant(c.id, { conditions: next });
-      }
-    });
-    toast.success(`${condition} applied to ${selectedList.length} targets`);
-  };
-
-  const handleDeleteSelected = async () => {
-    if (selectedCombatantIds.size === 0) return;
-
-    const count = selectedCombatantIds.size;
-    const confirm = window.confirm(`Remove ${count} combatants from this encounter? This cannot be undone.`);
-    if (!confirm) return;
-
-    const idsToDelete = Array.from(selectedCombatantIds);
-    const currentState = getSnapshot();
-    const activeId = currentState.combatState.activeTurnId;
-
-    if (activeId && selectedCombatantIds.has(activeId)) {
-      const combatants = currentState.combatState.combatants;
-      const currentIndex = combatants.findIndex(c => c.id === activeId);
-      
-      let nextIndex = (currentIndex + 1) % combatants.length;
-      let found = false;
-      let attempts = 0;
-      while (attempts < combatants.length) {
-        if (!selectedCombatantIds.has(combatants[nextIndex].id)) {
-          found = true;
-          break;
-        }
-        nextIndex = (nextIndex + 1) % combatants.length;
-        attempts++;
-      }
-
-      if (found) {
-        const nextActiveId = combatants[nextIndex].id;
-        updateState(prev => ({
-          ...prev,
-          combatState: { ...prev.combatState, activeTurnId: nextActiveId },
-        }));
-      } else {
-        updateState(prev => ({
-          ...prev,
-          combatState: { ...prev.combatState, activeTurnId: null },
-        }));
-      }
-    }
-
-    for (const id of idsToDelete) {
-      await removeCombatant(id);
-    }
-
-    exitSelectionMode();
-    toast.success(`${count} combatants removed.`);
-  };
+  const {
+    handleApplyMultiDamage,
+    handleApplyMultiHealing,
+    handleApplyMultiCondition,
+    handleDeleteSelected
+  } = useBatchActions({
+    selectedIds: selectedCombatantIds,
+    combatants: state.combatState.combatants,
+    onSuccess: exitSelectionMode
+  });
 
   // Listen for global custom commands from the Command Palette
   useEffect(() => {
@@ -244,11 +173,7 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
                   <CombatantCard
                     key={c.id}
                     c={c}
-                    isActive={c.id === state.combatState.activeTurnId}
                     isExpanded={expandedIds.has(c.id)}
-                    isSyncing={syncingIds.has(c.id)}
-                    isSelectable={isMultiTargetMode}
-                    isSelected={selectedCombatantIds.has(c.id)}
                     damageInput={damageInputs[c.id] || ''}
                     healInput={healInputs[c.id] || ''}
                     currentRound={state.combatState.round}
@@ -289,95 +214,10 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
         onDismiss={() => setConcentrationPrompt(null)}
       />
 
-      {isCheatSheetOpen && (
-        <div 
-          id="shortcut-cheat-sheet"
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[120] flex items-center justify-center p-4 animate-fade-in"
-          onClick={() => setIsCheatSheetOpen(false)}
-        >
-          <div 
-            className="bg-[#fdfaf5] w-full max-w-lg rounded-2xl shadow-2xl border border-[#e5e1d8] p-6 text-stone-900"
-            onClick={e => e.stopPropagation()}
-          >
-            <div className="flex items-center gap-2 border-b border-[#e5e1d8] pb-4 mb-4">
-              <span className="p-1.5 bg-[#faf9f6] rounded-lg border border-[#e5e1d8] text-[#c5b358]">
-                ❓
-              </span>
-              <div>
-                <h3 className="text-lg font-bold text-[#2c2c26] font-serif uppercase tracking-wider">Keyboard Shortcuts</h3>
-                <p className="text-xs text-[#5a5a40]">GM Dashboard quick references</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-x-8 gap-y-4">
-              <div>
-                <h4 className="font-serif font-bold text-sm text-[#c5b358] border-b border-[#f5f5f0] pb-1 uppercase tracking-wider mb-2">Combat</h4>
-                <div className="space-y-2.5">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="flex items-center gap-1.5 font-mono text-xs font-bold bg-[#faf9f6]/80 border border-[#e5e1d8] px-2 py-0.5 rounded text-[#2c2c26]">N</span>
-                    <span className="text-[#5a5a40] text-xs">Next turn</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="flex items-center gap-1.5 font-mono text-xs font-bold bg-[#faf9f6]/80 border border-[#e5e1d8] px-2 py-0.5 rounded text-[#2c2c26]">R</span>
-                    <span className="text-[#5a5a40] text-xs">Roll NPC initiative</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="flex items-center gap-1.5 font-mono text-xs font-bold bg-[#faf9f6]/80 border border-[#e5e1d8] px-2 py-0.5 rounded text-[#2c2c26]">S</span>
-                    <span className="text-[#5a5a40] text-xs">Toggle select mode</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="flex items-center gap-1.5 font-mono text-xs font-bold bg-[#faf9f6]/80 border border-[#e5e1d8] px-2 py-0.5 rounded text-[#2c2c26]">B</span>
-                    <span className="text-[#5a5a40] text-xs">Broadcast player view</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="flex items-center gap-1.5 font-mono text-xs font-bold bg-[#faf9f6]/80 border border-[#e5e1d8] px-2 py-0.5 rounded text-[#2c2c26]">C</span>
-                    <span className="text-[#5a5a40] text-xs">Call for initiative</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="flex items-center gap-1.5 font-mono text-xs font-bold bg-[#faf9f6]/80 border border-[#e5e1d8] px-2 py-0.5 rounded text-[#2c2c26]">1-9</span>
-                    <span className="text-[#5a5a40] text-xs">Select combatant</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="flex items-center gap-1.5 font-mono text-xs font-bold bg-[#faf9f6]/80 border border-[#e5e1d8] px-2 py-0.5 rounded text-[#2c2c26]">Esc</span>
-                    <span className="text-[#5a5a40] text-xs">Deselect all</span>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <h4 className="font-serif font-bold text-sm text-[#c5b358] border-b border-[#f5f5f0] pb-1 uppercase tracking-wider mb-2">Input</h4>
-                <div className="space-y-2.5">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="flex items-center gap-1.5 font-mono text-xs font-bold bg-[#faf9f6]/80 border border-[#e5e1d8] px-2 py-0.5 rounded text-[#2c2c26]">H</span>
-                    <span className="text-[#5a5a40] text-xs">Heal mode</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="flex items-center gap-1.5 font-mono text-xs font-bold bg-[#faf9f6]/80 border border-[#e5e1d8] px-2 py-0.5 rounded text-[#2c2c26]">D</span>
-                    <span className="text-[#5a5a40] text-xs">Damage mode</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="flex items-center gap-1.5 font-mono text-xs font-bold bg-[#faf9f6]/80 border border-[#e5e1d8] px-2 py-0.5 rounded text-[#2c2c26]">T</span>
-                    <span className="text-[#5a5a40] text-xs">Open tools</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="flex items-center gap-1.5 font-mono text-xs font-bold bg-[#faf9f6]/80 border border-[#e5e1d8] px-2 py-0.5 rounded text-[#2c2c26]">? / Shift+/</span>
-                    <span className="text-[#5a5a40] text-xs">Show shortcuts</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-6 pt-4 border-t border-[#f5f5f0] flex justify-end">
-              <button 
-                onClick={() => setIsCheatSheetOpen(false)}
-                className="px-4 py-1.5 bg-[#faf9f6] border border-[#e5e1d8] hover:border-[#c5b358] text-[#5a5a40] hover:text-[#2c2c26] text-xs font-bold uppercase rounded-lg transition-colors cursor-pointer"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ShortcutCheatSheet
+        isOpen={isCheatSheetOpen}
+        onClose={() => setIsCheatSheetOpen(false)}
+      />
 
       <DiceRoller />
     </div>

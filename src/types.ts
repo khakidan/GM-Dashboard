@@ -120,6 +120,10 @@ export interface CombatState {
     characterName: string;
   } | null;
   initiativeEvent?: boolean;
+  selectedIds: string[];
+  isSelectionMode: boolean;
+  syncingIds: string[];
+  expandedIds: string[];
 }
 
 export interface EncounterCombatant {

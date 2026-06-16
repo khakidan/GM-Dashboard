@@ -7,23 +7,36 @@ import { parseDiceNotation, rollDice } from '../../lib/diceRoller';
 import { Combatant, DamageType } from '../../types';
 import { CombatantCardHeader } from './CombatantCardHeader';
 import { CombatantCardExpanded } from './CombatantCardExpanded';
+import { useCombatantCard } from './hooks/useCombatantCard';
 
 export interface CombatantCardProps {
-  c: Combatant; isActive: boolean; isExpanded: boolean; isSyncing: boolean; isSelectable?: boolean; isSelected?: boolean;
-  damageInput: string; healInput: string; currentRound: number; hpMode?: 'damage' | 'heal';
-  onDamageInputChange: (val: string) => void; onHealInputChange: (val: string) => void;
+  c: Combatant;
+  isExpanded: boolean;
+  damageInput: string;
+  healInput: string;
+  currentRound: number;
+  hpMode?: 'damage' | 'heal';
+  onDamageInputChange: (val: string) => void;
+  onHealInputChange: (val: string) => void;
   onHealthSubmit: (isDamage: boolean, damageType?: DamageType | null) => void;
-  onToggleExpand: () => void; onToggleSelect?: (id: string) => void;
-  onUpdateCombatant: (updates: Partial<Combatant>) => void; onRemoveCombatant: () => void | Promise<void>;
+  onToggleExpand: () => void;
+  onToggleSelect?: (id: string) => void;
+  onUpdateCombatant: (updates: Partial<Combatant>) => void;
+  onRemoveCombatant: () => void | Promise<void>;
   onConcentrationPrompt?: (effectName: string, targetName: string) => void;
+  isActive?: boolean;
+  isSyncing?: boolean;
+  isSelectable?: boolean;
+  isSelected?: boolean;
 }
 
 export function CombatantCard({
-  c, isActive, isExpanded, isSyncing, isSelectable, isSelected, damageInput, healInput,
+  c, isExpanded, damageInput, healInput,
   currentRound, onDamageInputChange, onHealInputChange, onHealthSubmit, onToggleExpand,
   onToggleSelect, onUpdateCombatant, onRemoveCombatant, onConcentrationPrompt, hpMode = 'damage',
 }: CombatantCardProps) {
   const [recentRechargeRolls, setRecentRechargeRolls] = useState<Record<string, number>>({});
+  const { isActiveTurn: isActive, isSelected, isSelectable, isSyncing } = useCombatantCard(c.id);
 
   const handleRechargeRoll = (abilityName: string, rechargeOn: number) => {
     const rolledNum = rollDice(parseDiceNotation('1d6')).total;
@@ -66,14 +79,18 @@ export function CombatantCard({
       )}
 
       <CombatantCardHeader
-        name={c.name} ac={c.ac} tempAcModifier={c.tempAcModifier} initiative={c.initiative}
-        onInitiativeChange={val => onUpdateCombatant({ initiative: val })} type={c.type}
-        isActiveTurn={isActive} c={c} isExpanded={isExpanded} onToggleExpand={onToggleExpand}
-        isSyncing={isSyncing} damageInput={damageInput} healInput={healInput}
-        onDamageInputChange={onDamageInputChange} onHealInputChange={onHealInputChange}
-        onHealthSubmit={onHealthSubmit} onUpdateCombatant={onUpdateCombatant}
-        onToggleSelect={onToggleSelect} isSelectable={isSelectable} isSelected={isSelected}
-        onMarkSpent={handleMarkSpent} hpMode={hpMode}
+        c={c}
+        isExpanded={isExpanded}
+        onToggleExpand={onToggleExpand}
+        damageInput={damageInput}
+        healInput={healInput}
+        onDamageInputChange={onDamageInputChange}
+        onHealInputChange={onHealInputChange}
+        onHealthSubmit={onHealthSubmit}
+        onUpdateCombatant={onUpdateCombatant}
+        onToggleSelect={onToggleSelect}
+        onMarkSpent={handleMarkSpent}
+        hpMode={hpMode}
       />
 
       <AnimatePresence>

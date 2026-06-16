@@ -1,9 +1,5 @@
+import { vi } from 'vitest';
 import React from 'react';
-import { render, screen, fireEvent, cleanup, act } from '@testing-library/react';
-import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
-import { ActiveEncounterTab } from '../index';
-import { useAppState } from '../../../hooks/useAppState';
-import { MemoryRouter } from 'react-router-dom';
 
 vi.mock('../../../services/dbOperations', () => ({
   addNpcDB: vi.fn(),
@@ -13,10 +9,11 @@ vi.mock('../../../services/dbOperations', () => ({
   updateEncounterStateDB: vi.fn(),
 }));
 
-vi.mock('../../../hooks/useAppState', () => ({
-  useAppState: vi.fn(),
-  getSnapshot: vi.fn(),
-}));
+import { render, screen, fireEvent, cleanup, act } from '@testing-library/react';
+import { describe, it, expect, afterEach, beforeEach } from 'vitest';
+import { ActiveEncounterTab } from '../index';
+import { useDashboardStore } from '../../../hooks/useAppState';
+import { MemoryRouter } from 'react-router-dom';
 
 describe('KeyboardShortcuts integration tests', () => {
   afterEach(() => {
@@ -26,30 +23,58 @@ describe('KeyboardShortcuts integration tests', () => {
 
   const baseProps = { onBack: vi.fn() };
 
+  const defaultInitialState = {
+    characters: [],
+    npcs: [],
+    encounters: [],
+    encounterCombatants: [],
+    statuses: {},
+    difficulties: {},
+    campaignName: '',
+    hasInitialSynced: false,
+    openDialog: null,
+    combatState: {
+      activeEncounterId: null,
+      activeTurnId: null,
+      round: 1,
+      combatants: [],
+      concentrationLinks: {},
+      deathEvent: null,
+      damageEvent: null,
+      healEvent: null,
+      rageEvent: null,
+      unconsciousEvent: null,
+      initiativeEvent: false,
+      selectedIds: [],
+      isSelectionMode: false,
+      syncingIds: [],
+      expandedIds: [],
+    }
+  } as any;
+
   beforeEach(() => {
-    vi.mocked(useAppState).mockReturnValue({
-      state: {
-        campaignName: 'Shortcuts test',
-        hasInitialSynced: true,
-        encounters: [{ id: 'enc-1', name: 'Keyboard Encounter' }],
-        characters: [],
-        npcs: [],
-        statuses: {},
-        difficulties: {},
-        encounterCombatants: [],
-        combatState: {
-          activeEncounterId: 'enc-1',
-          round: 1,
-          activeTurnId: 'combat-1',
-          combatants: [
-            { id: 'combat-1', name: 'Alyn', type: 'pc', ac: 18, maxHp: 50, currentHp: 50, initiative: 20, notes: 'Alyn is beautiful' },
-            { id: 'combat-2', name: 'Bob', type: 'pc', ac: 15, maxHp: 40, currentHp: 40, initiative: 15, notes: 'Bob is great' },
-            { id: 'combat-3', name: 'Goblin', type: 'npc', ac: 12, maxHp: 15, currentHp: 15, initiative: 10, notes: 'Goblin is stinky' },
-          ],
-        }
-      },
-      updateState: vi.fn(),
-    } as any);
+    // Reset the store to a clean initial state before each test runs to guarantee store isolation
+    useDashboardStore.setState(defaultInitialState);
+
+    useDashboardStore.setState({
+      campaignName: 'Shortcuts test',
+      hasInitialSynced: true,
+      encounters: [{ id: 'enc-1', name: 'Keyboard Encounter' }] as any,
+      combatState: {
+        activeEncounterId: 'enc-1',
+        round: 1,
+        activeTurnId: 'combat-1',
+        combatants: [
+          { id: 'combat-1', name: 'Alyn', type: 'pc', ac: 18, maxHp: 50, currentHp: 50, initiative: 20, notes: 'Alyn is beautiful' },
+          { id: 'combat-2', name: 'Bob', type: 'pc', ac: 15, maxHp: 40, currentHp: 40, initiative: 15, notes: 'Bob is great' },
+          { id: 'combat-3', name: 'Goblin', type: 'npc', ac: 12, maxHp: 15, currentHp: 15, initiative: 10, notes: 'Goblin is stinky' },
+        ] as any[],
+        selectedIds: [],
+        syncingIds: [],
+        concentrationLinks: {},
+        isSelectionMode: false,
+      } as any
+    });
   });
 
   it('Pressing H switches input to heal mode and D switches to damage mode', () => {
@@ -223,29 +248,32 @@ describe('KeyboardShortcuts integration tests', () => {
   });
 
   it('Pressing C fires the initiative event', () => {
-    const mockUpdateState = vi.fn();
-    vi.mocked(useAppState).mockReturnValue({
-      state: {
-        campaignName: 'Shortcuts test',
-        hasInitialSynced: true,
-        encounters: [{ id: 'enc-1', name: 'Keyboard Encounter' }],
-        characters: [],
-        npcs: [],
-        statuses: {},
-        difficulties: {},
-        encounterCombatants: [],
-        combatState: {
-          activeEncounterId: 'enc-1',
-          round: 1,
-          activeTurnId: 'combat-1',
-          initiativeEvent: false,
-          combatants: [
-            { id: 'combat-1', name: 'Alyn', type: 'pc', ac: 18, maxHp: 50, currentHp: 50, initiative: 20 },
-          ],
-        }
-      },
-      updateState: mockUpdateState,
-    } as any);
+    const updateSpy = vi.spyOn(useDashboardStore.getState(), 'updateState');
+
+    useDashboardStore.setState({
+      campaignName: 'Shortcuts test',
+      hasInitialSynced: true,
+      encounters: [{ id: 'enc-1', name: 'Keyboard Encounter' }] as any,
+      characters: [],
+      npcs: [],
+      statuses: {},
+      difficulties: {},
+      encounterCombatants: [],
+      combatState: {
+        activeEncounterId: 'enc-1',
+        round: 1,
+        activeTurnId: 'combat-1',
+        initiativeEvent: false,
+        combatants: [
+          { id: 'combat-1', name: 'Alyn', type: 'pc', ac: 18, maxHp: 50, currentHp: 50, initiative: 20 } as any,
+        ],
+        selectedIds: [],
+        syncingIds: [],
+        concentrationLinks: {},
+        isSelectionMode: false,
+        expandedIds: [],
+      }
+    });
 
     render(
       <MemoryRouter>
@@ -257,7 +285,8 @@ describe('KeyboardShortcuts integration tests', () => {
       fireEvent.keyDown(document, { key: 'c' });
     });
 
-    expect(mockUpdateState).toHaveBeenCalled();
+    expect(updateSpy).toHaveBeenCalled();
+    updateSpy.mockRestore();
   });
 
   it('The ? cheat sheet overlay includes S, B, and C in its shortcut list', () => {

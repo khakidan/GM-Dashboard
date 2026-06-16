@@ -31,6 +31,10 @@ describe('useAppState integration', () => {
         rageEvent: null,
         unconsciousEvent: null,
         initiativeEvent: false,
+        selectedIds: [],
+        isSelectionMode: false,
+        syncingIds: [],
+        expandedIds: [],
       },
     });
     vi.clearAllMocks();
@@ -284,6 +288,10 @@ describe('useAppState integration', () => {
             rageEvent: null,
             unconsciousEvent: null,
             initiativeEvent: false,
+            selectedIds: [],
+            isSelectionMode: false,
+            syncingIds: [],
+            expandedIds: [],
           }
         });
       });

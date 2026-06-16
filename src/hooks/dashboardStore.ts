@@ -17,6 +17,10 @@ const initialCombatState: CombatState = {
   rageEvent: null,
   unconsciousEvent: null,
   initiativeEvent: false,
+  selectedIds: [],
+  isSelectionMode: false,
+  syncingIds: [],
+  expandedIds: [],
 };
 
 const initialState: AppState = {
@@ -103,6 +107,10 @@ export const useDashboardStore =
             rageEvent: null,
             unconsciousEvent: null,
             initiativeEvent: false,
+            syncingIds: [],
+            selectedIds: [],
+            isSelectionMode: false,
+            expandedIds: [],
           },
         }),
       }

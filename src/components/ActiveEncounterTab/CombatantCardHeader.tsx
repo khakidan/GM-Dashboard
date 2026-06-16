@@ -7,6 +7,7 @@ import { getHealthStatus, effectiveAc, effectiveMaxHp } from '../../lib/conditio
 import { DAMAGE_TYPE_OPTIONS } from '../../lib/conditions';
 import { CombatantCardBadges } from './CombatantCardBadges';
 import { DeathSaveTrackerDisplay } from './DeathSaveTrackerDisplay';
+import { useCombatantCard } from './hooks/useCombatantCard';
 
 const AnimatedHpDisplay = ({
   value,
@@ -110,21 +111,9 @@ const InitiativeInput = ({
 };
 
 export interface CombatantCardHeaderProps {
-  name: string;
-  ac: number;
-  tempAcModifier?: number;
-  initiative: number;
-  isEditing?: boolean;
-  onInitiativeChange: (val: number) => void;
-  type: 'pc' | 'npc';
-  isActiveTurn: boolean;
-  selectionCheckbox?: React.ReactNode;
-  
-  // Outer orchestrator level values
   c: Combatant;
   isExpanded: boolean;
   onToggleExpand: () => void;
-  isSyncing: boolean;
   damageInput: string;
   healInput: string;
   onDamageInputChange: (val: string) => void;
@@ -132,27 +121,15 @@ export interface CombatantCardHeaderProps {
   onHealthSubmit: (isDamage: boolean, damageType?: DamageType | null) => void;
   onUpdateCombatant: (updates: Partial<Combatant>) => void;
   onToggleSelect?: (id: string) => void;
-  isSelectable?: boolean;
-  isSelected?: boolean;
   onMarkSpent?: (abilityName: string) => void;
   hpMode?: 'damage' | 'heal';
+  selectionCheckbox?: React.ReactNode;
 }
 
 export function CombatantCardHeader({
-  name,
-  ac,
-  tempAcModifier,
-  initiative,
-  isEditing,
-  onInitiativeChange,
-  type,
-  isActiveTurn,
-  selectionCheckbox,
-  
   c,
   isExpanded,
   onToggleExpand,
-  isSyncing,
   damageInput,
   healInput,
   onDamageInputChange,
@@ -160,11 +137,13 @@ export function CombatantCardHeader({
   onHealthSubmit,
   onUpdateCombatant,
   onToggleSelect,
-  isSelectable = false,
-  isSelected = false,
   onMarkSpent,
   hpMode,
+  selectionCheckbox,
 }: CombatantCardHeaderProps) {
+  const { isActiveTurn, isSelected, isSelectable, isSyncing } = useCombatantCard(c.id);
+  const { name, ac, tempAcModifier, initiative, type } = c;
+
   const [selectedDamageType, setSelectedDamageType] = useState<DamageType | null>(null);
   const maxHpCeiling = effectiveMaxHp(c.maxHp, c.tempHpMax || 0);
 
@@ -202,7 +181,7 @@ export function CombatantCardHeader({
             <span className="text-[10px] font-bold uppercase text-[#5a5a40] opacity-60 leading-none mb-1">Init</span>
             <InitiativeInput
               value={initiative}
-              onSave={onInitiativeChange}
+              onSave={val => onUpdateCombatant({ initiative: val })}
               disabled={isSyncing}
             />
           </div>

@@ -1,33 +1,68 @@
-import { useState } from 'react';
+import { useAppState } from '../../../hooks/useAppState';
 
 export function useSelectionMode() {
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const { state, updateState } = useAppState();
+
+  const selectedIds = new Set(state.combatState.selectedIds || []);
+  const isSelectionMode = !!state.combatState.isSelectionMode;
 
   const toggleSelection = (id: string) => {
-    setSelectedIds(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
+    updateState(prev => {
+      const selected = new Set(prev.combatState.selectedIds || []);
+      if (selected.has(id)) {
+        selected.delete(id);
+      } else {
+        selected.add(id);
+      }
+      return {
+        ...prev,
+        combatState: {
+          ...prev.combatState,
+          selectedIds: Array.from(selected),
+        }
+      };
     });
   };
 
   const selectAll = (allIds: string[]) => {
-    setSelectedIds(new Set(allIds));
+    updateState(prev => ({
+      ...prev,
+      combatState: {
+        ...prev.combatState,
+        selectedIds: allIds,
+      }
+    }));
   };
 
   const clearSelection = () => {
-    setSelectedIds(new Set());
+    updateState(prev => ({
+      ...prev,
+      combatState: {
+        ...prev.combatState,
+        selectedIds: [],
+      }
+    }));
   };
 
   const enterSelectionMode = () => {
-    setIsSelectionMode(true);
+    updateState(prev => ({
+      ...prev,
+      combatState: {
+        ...prev.combatState,
+        isSelectionMode: true,
+      }
+    }));
   };
 
   const exitSelectionMode = () => {
-    setSelectedIds(new Set());
-    setIsSelectionMode(false);
+    updateState(prev => ({
+      ...prev,
+      combatState: {
+        ...prev.combatState,
+        isSelectionMode: false,
+        selectedIds: [],
+      }
+    }));
   };
 
   return {

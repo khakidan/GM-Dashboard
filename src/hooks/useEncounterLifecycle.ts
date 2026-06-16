@@ -31,6 +31,10 @@ export function useEncounterLifecycle(onActiveTabChange?: (tab: 'party' | 'encou
         deathEvent: null,
         damageEvent: null,
         initiativeEvent: false,
+        selectedIds: [],
+        isSelectionMode: false,
+        syncingIds: [],
+        expandedIds: [],
       },
     }));
 
