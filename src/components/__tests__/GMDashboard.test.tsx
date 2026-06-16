@@ -54,6 +54,23 @@ vi.mock('../../hooks/useEncounterResume', () => ({
   useEncounterResume: vi.fn()
 }));
 
+vi.mock('../../hooks/useAudioEngine', () => ({
+  useAudioEngine: () => ({
+    currentAmbientId: null,
+    isAmbientPlaying: false,
+    ambientVolume: 0.5,
+    effectVolume: 0.5,
+    storedFiles: [],
+    playAmbient: vi.fn(),
+    stopAmbient: vi.fn(),
+    setAmbientVolume: vi.fn(),
+    playEffect: vi.fn(),
+    setEffectVolume: vi.fn(),
+    addFiles: vi.fn(),
+    removeFile: vi.fn(),
+  })
+}));
+
 vi.mock('../../components/CommandPalette', () => ({
   CommandPalette: () => <div data-testid="command-palette" />
 }));

@@ -90,6 +90,10 @@ export function ShortcutCheatSheet({ isOpen, onClose }: ShortcutCheatSheetProps)
                 <span className="text-[#5a5a40] text-xs">Open tools</span>
               </div>
               <div className="flex items-center justify-between text-sm">
+                <span className="flex items-center gap-1.5 font-mono text-xs font-bold bg-[#faf9f6]/80 border border-[#e5e1d8] px-2 py-0.5 rounded text-[#2c2c26]">M</span>
+                <span className="text-[#5a5a40] text-xs">Toggle audio panel</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
                 <span className="flex items-center gap-1.5 font-mono text-xs font-bold bg-[#faf9f6]/80 border border-[#e5e1d8] px-2 py-0.5 rounded text-[#2c2c26]">? / Shift+/</span>
                 <span className="text-[#5a5a40] text-xs">Show shortcuts</span>
               </div>

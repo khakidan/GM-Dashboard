@@ -66,4 +66,5 @@ export const STORAGE_KEYS = {
   diceRollerExpanded: 'dice_roller_expanded',
   ambientVolume: 'gm_ambient_volume',
   effectVolume: 'gm_effect_volume',
+  soundboardLayout: 'gm_soundboard_layout',
 } as const;

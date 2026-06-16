@@ -14,6 +14,8 @@ import { GMLoadingScreen } from './GMLoadingScreen';
 import { GMDashboardSidebar } from './GMDashboardSidebar';
 import { GMTabContent } from './GMTabContent';
 import { STORAGE_KEYS, WRITE_QUEUE } from '../lib/constants';
+import { useAudioEngine } from '../hooks/useAudioEngine';
+import { AudioPanel } from './AudioPanel';
 
 const VALID_TABS = [
   'party',
@@ -130,6 +132,8 @@ export function GMDashboard() {
     onAuthSuccess: () => handleSyncWithSheets(false),
   });
 
+  const audioEngine = useAudioEngine();
+
   if (!state.hasInitialSynced) {
     const isAuthenticated = hasToken();
     return (
@@ -192,6 +196,7 @@ export function GMDashboard() {
               handleSyncWithSheets={handleSyncWithSheets}
               addLog={addLog}
             />
+            <AudioPanel {...audioEngine} />
           </div>
         </section>
       </main>
