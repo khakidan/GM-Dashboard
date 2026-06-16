@@ -16,7 +16,6 @@ import { useHealthChange } from './hooks/useHealthChange';
 import { useSelectionMode } from './hooks/useSelectionMode';
 import { useEncounterKeyboard } from './hooks/useEncounterKeyboard';
 import { useEncounterPresetLoader } from './hooks/useEncounterPresetLoader';
-import { BatchActionPanel } from './BatchActionPanel';
 import { ShortcutCheatSheet } from './ShortcutCheatSheet';
 import { useBatchActions } from './hooks/useBatchActions';
 

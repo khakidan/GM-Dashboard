@@ -5,7 +5,6 @@ import { toast } from 'sonner';
 import { STORAGE_KEYS } from '../lib/constants';
 import { getSpreadsheetId, setSpreadsheetId } from '../services/sheetsService';
 import { setManualRefreshToken, clearTokens } from '../services/googleAuth';
-import { syncAndSanitizeDatabase } from '../services/dbOperations';
 import { useAppState } from './useAppState';
 import { useTheme } from '../context/ThemeContext';
 import {
@@ -70,21 +69,6 @@ export function useSettings({
       success: 'Sync complete',
       error: 'Sync failed — changes saved locally',
     });
-  };
-
-  const handleSanitize = async () => {
-    const conf = confirm('Run Sync & Sanitize? This will clean up empty rows and sync entities.');
-    if (!conf) return;
-    try {
-      addLog('Starting Sync & Sanitize...');
-      const deletedCount = await syncAndSanitizeDatabase();
-      addLog(`Sanitize complete. Cleaned up ${deletedCount} rows.`);
-      toast.success(`Sanitize complete. Cleaned up ${deletedCount} rows.`);
-      await handleSyncWithSheets(false);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'An error occurred';
-      toast.error('Db Sanitize Failed: ' + msg);
-    }
   };
 
   const handleApplyManualToken = async () => {
@@ -174,7 +158,6 @@ export function useSettings({
     isSoundEnabled,
     toggleSound,
     handleSaveSpreadsheet,
-    handleSanitize,
     handleApplyManualToken,
     handleSignOutWithClear,
     handleResetConfiguration,

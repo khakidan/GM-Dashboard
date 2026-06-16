@@ -1,6 +1,6 @@
 // src/components/SheetConnectionSettings.tsx
 
-import { Save, RotateCcw, Trash2 } from 'lucide-react';
+import { Save, RotateCcw } from 'lucide-react';
 
 interface SheetConnectionSettingsProps {
   tempSpreadsheetId: string;
@@ -8,7 +8,6 @@ interface SheetConnectionSettingsProps {
   handleSaveSpreadsheet: () => void;
   handleResetConfiguration: () => void;
   isGoogleConnected: boolean;
-  handleSanitize: () => void;
 }
 
 export function SheetConnectionSettings({
@@ -17,7 +16,6 @@ export function SheetConnectionSettings({
   handleSaveSpreadsheet,
   handleResetConfiguration,
   isGoogleConnected,
-  handleSanitize,
 }: SheetConnectionSettingsProps) {
   return (
     <div className="bg-white p-6 rounded-2xl border border-[#e5e1d8] shadow-sm space-y-4">
@@ -59,26 +57,6 @@ export function SheetConnectionSettings({
             </div>
           </div>
         </div>
-
-        {isGoogleConnected && (
-          <div className="border-t border-[#e5e1d8] pt-4 mt-4">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-[#f5f5f0] border border-[#e5e1d8] rounded-2xl p-4">
-              <div>
-                <h4 className="text-xs font-bold uppercase tracking-wider text-[#2c2c26] mb-1">Database Maintenance</h4>
-                <p className="text-[11px] text-[#5a5a40]">
-                  Runs a sanitization job to secure proper IDs and clear empty/broken sheet values.
-                </p>
-              </div>
-              <button
-                onClick={handleSanitize}
-                className="bg-[#5a5a40] hover:bg-[#3f3f37] text-white px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-widest transition-all cursor-pointer inline-flex items-center gap-2"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-                Sanitize DB
-              </button>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

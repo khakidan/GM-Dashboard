@@ -7,7 +7,6 @@ import { STORAGE_KEYS } from '../../lib/constants';
 import { toast } from 'sonner';
 import * as sheetsService from '../../services/sheetsService';
 import * as googleAuth from '../../services/googleAuth';
-import * as dbOperations from '../../services/dbOperations';
 
 // Mock sonner
 vi.mock('sonner', () => ({
@@ -28,11 +27,6 @@ vi.mock('../../services/sheetsService', () => ({
 vi.mock('../../services/googleAuth', () => ({
   setManualRefreshToken: vi.fn(),
   clearTokens: vi.fn(),
-}));
-
-// Mock dbOperations
-vi.mock('../../services/dbOperations', () => ({
-  syncAndSanitizeDatabase: vi.fn().mockResolvedValue(5),
 }));
 
 // Mock useTheme
@@ -208,21 +202,6 @@ describe('useSettings', () => {
       expect(toast.success).toHaveBeenCalledWith('Refresh Token Saved!');
       expect(result.current.manualToken).toBe('');
       expect(result.current.showAdvancedAuth).toBe(false);
-    });
-
-    it('handleSanitize sanitizes and triggers full sheet sync', async () => {
-      const { result } = renderHook(() => useSettings(mockProps));
-      vi.spyOn(window, 'confirm').mockReturnValue(true);
-
-      await act(async () => {
-        await result.current.handleSanitize();
-      });
-
-      expect(dbOperations.syncAndSanitizeDatabase).toHaveBeenCalledTimes(1);
-      expect(mockProps.addLog).toHaveBeenCalledWith('Starting Sync & Sanitize...');
-      expect(mockProps.addLog).toHaveBeenLastCalledWith('Sanitize complete. Cleaned up 5 rows.');
-      expect(toast.success).toHaveBeenCalledWith('Sanitize complete. Cleaned up 5 rows.');
-      expect(mockProps.handleSyncWithSheets).toHaveBeenCalledWith(false);
     });
   });
 });

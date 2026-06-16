@@ -4,7 +4,7 @@ import { OVERLAY_DURATIONS } from '../../../lib/constants';
 import { useState, useCallback, createElement } from 'react';
 import { useAppState, getSnapshot } from '../../../hooks/useAppState';
 import { updateSheetData } from '../../../services/sheetsService';
-import { updateCharacterDB, updateNpcDB, deleteEncounterCombatantDB, updateEncounterCombatantQuantityDB, updateInitiativeDB, updateConditionTimersDB, updateNpcInstanceHpDB, updateNpcInstanceConditionsDB, updateNpcInstanceAcModDB, updateEncounterStateDB } from '../../../services/dbOperations';
+import { updateCharacterDB, deleteEncounterCombatantDB, updateEncounterCombatantQuantityDB, updateInitiativeDB, updateConditionTimersDB, updateNpcInstanceHpDB, updateNpcInstanceConditionsDB, updateNpcInstanceAcModDB, updateEncounterStateDB } from '../../../services/dbOperations';
 import { Combatant } from '../../../types';
 import { toast } from 'sonner';
 import { useDeathEvent, useDamageEvent, useHealEvent, useUnconsciousEvent, useRageEvent, useInitiativeEvent } from '../../../hooks/useOverlayEvents';

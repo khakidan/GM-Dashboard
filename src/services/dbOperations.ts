@@ -341,29 +341,6 @@ export async function deleteNpcDB(npcId: string) {
   }
 }
 
-export async function updateNpcDB(
-  npcId: string,
-  currentHp: number,
-  tempHp: number,
-  conditions: string
-) {
-  try {
-    const rowIdx = await findRowIndexById('NPCs', npcId);
-    if (rowIdx === null) {
-      throw new Error(`NPC ${npcId} not found`);
-    }
-    const a1Row = rowIdx + 1;
-    // NPCs sheet: Column E = TempHP, F = CurrentHP, G = Conditions
-    // ✅ queueWrite replaces updateSheetData to prevent API quotas inside combat loops
-    queueWrite(`NPCs!E${a1Row}:G${a1Row}`, [
-      [tempHp.toString(), currentHp.toString(), conditions],
-    ]);
-  } catch (err) {
-    console.error('[DB] updateNpcDB failed:', err);
-    throw err;
-  }
-}
-
 export async function resetNpcHpDB(
   npcId: string,
   maxHp: number
@@ -672,49 +649,4 @@ export async function updateEncounterDB(
     console.error('[DB] updateEncounterDB failed:', err);
     throw err;
   }
-}
-
-export async function syncAndSanitizeDatabase() {
-  const ids = await getSheetIds();
-  const sheets = [
-    'Characters',
-    'Status',
-    'Encounters',
-    'Difficulty_Level',
-    'NPCs',
-    'Encounter_Combatants',
-  ];
-
-  const requests: BatchRequest[] = [];
-
-  for (const sheet of sheets) {
-    if (!ids[sheet]) continue;
-    const data = await fetchSheetData(`${sheet}!A2:Z`).catch(() => null);
-    if (!data || !data.values) continue;
-
-    // Iterate backwards so deletion indices don't shift as we go
-    for (let i = data.values.length - 1; i >= 0; i--) {
-      const row = data.values[i];
-      const hasData =
-        row && row.some((cell: unknown) => cell && String(cell).trim() !== '');
-      if (!hasData) {
-        requests.push({
-          deleteDimension: {
-            range: {
-              sheetId: ids[sheet],
-              dimension: 'ROWS' as const,
-              startIndex: i + 1, // +1 to account for header row
-              endIndex: i + 2,
-            },
-          },
-        });
-      }
-    }
-  }
-
-  if (requests.length > 0) {
-    await batchUpdateSpreadsheet(requests);
-  }
-
-  return requests.length;
 }

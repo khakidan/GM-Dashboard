@@ -8,7 +8,6 @@ import React from 'react';
 import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import { EncounterCard } from '../EncounterCard';
-// import { AppStateProvider } from '../../../hooks/useAppState';
 
 // Mock the dbOperations module
 vi.mock('../../../services/dbOperations', () => ({

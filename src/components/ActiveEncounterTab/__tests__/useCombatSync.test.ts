@@ -261,7 +261,7 @@ describe('useCombatSync', () => {
     expect(templateNPC?.currentHp).toBe(30); // Unaltered template!
   });
 
-  it('updateCombatant changes conditions on an NPC combatant, calls updateNpcInstanceConditionsDB and bypasses updateNpcDB', async () => {
+  it('updateCombatant changes conditions on an NPC combatant, calls updateNpcInstanceConditionsDB', async () => {
     act(() => {
       const prev = getSnapshot();
       useDashboardStore.setState({
@@ -278,7 +278,7 @@ describe('useCombatSync', () => {
       });
     });
 
-    const { updateNpcInstanceConditionsDB, updateNpcDB } = await import('../../../services/dbOperations');
+    const { updateNpcInstanceConditionsDB } = await import('../../../services/dbOperations');
     const { result } = renderHook(() => useCombatSync());
 
     await act(async () => {
@@ -286,7 +286,6 @@ describe('useCombatSync', () => {
     });
 
     expect(updateNpcInstanceConditionsDB).toHaveBeenCalledWith('ec-test', 'stunned');
-    expect(updateNpcDB).not.toHaveBeenCalled();
   });
 
   it('updateCombatant changes conditions on a PC combatant, calls updateCharacterDB and not updateNpcInstanceConditionsDB', async () => {

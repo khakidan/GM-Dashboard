@@ -30,7 +30,6 @@ export function SettingsPage(props: SettingsPageProps) {
     isSoundEnabled,
     toggleSound,
     handleSaveSpreadsheet,
-    handleSanitize,
     handleApplyManualToken,
     handleSignOutWithClear,
     handleResetConfiguration,
@@ -78,7 +77,6 @@ export function SettingsPage(props: SettingsPageProps) {
             handleSaveSpreadsheet={handleSaveSpreadsheet}
             handleResetConfiguration={handleResetConfiguration}
             isGoogleConnected={props.isGoogleConnected}
-            handleSanitize={handleSanitize}
           />
         </div>
 
