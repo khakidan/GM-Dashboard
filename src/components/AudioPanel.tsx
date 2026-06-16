@@ -79,17 +79,15 @@ export function AudioPanel({
     <div
       id="audio-panel-container"
       className={cn(
-        "fixed bottom-6 z-40 flex flex-col bg-white rounded-xl shadow-2xl border border-[#e5e1d8] text-stone-900 overflow-hidden transition-all duration-300 font-sans",
-        // Positioned on the left boundary to avoid overlapping with DiceRoller on the bottom-right
-        "left-6 md:left-[18rem] lg:left-[20rem]",
-        isExpanded ? "w-80 sm:w-96" : "w-48"
+        "relative flex flex-col bg-white rounded-xl shadow-2xl border border-[#e5e1d8] text-stone-900 overflow-visible transition-all font-sans",
+        "w-48 h-11"
       )}
     >
       {/* Header bar / Collapsed state bar */}
       <div
         id="audio-panel-header"
         onClick={handleToggleExpand}
-        className="h-11 bg-[#faf9f6]/95 border-b border-[#e5e1d8] flex items-center justify-between px-3.5 cursor-pointer hover:bg-[#f5f5f0] transition-colors select-none"
+        className="h-11 w-full bg-[#faf9f6]/95 rounded-xl border-b border-[#e5e1d8] flex items-center justify-between px-3.5 cursor-pointer hover:bg-[#f5f5f0] transition-colors select-none"
       >
         <div className="flex items-center gap-2 min-w-0">
           <span className="text-xs shrink-0 font-bold uppercase tracking-wider text-[#2c2c26] flex items-center gap-1.5 font-sans" id="audio-panel-label">
@@ -125,7 +123,7 @@ export function AudioPanel({
 
       {/* Expanded Main Tabs Layout */}
       {isExpanded && (
-        <div className="flex flex-col bg-white" id="audio-panel-expanded-content">
+        <div className="absolute top-full mt-2 left-0 w-80 sm:w-96 flex flex-col bg-white rounded-xl shadow-2xl border border-[#e5e1d8] overflow-hidden z-50" id="audio-panel-expanded-content">
           {/* Inner Tab switching bar */}
           <div className="flex border-b border-stone-200 bg-[#faf9f6]/40 px-2.5 pt-1.5 shrink-0 select-none gap-1" id="audio-panel-tabs">
             <button

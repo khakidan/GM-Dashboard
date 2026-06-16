@@ -16,6 +16,7 @@ import { GMTabContent } from './GMTabContent';
 import { STORAGE_KEYS, WRITE_QUEUE } from '../lib/constants';
 import { useAudioEngine } from '../hooks/useAudioEngine';
 import { AudioPanel } from './AudioPanel';
+import { DiceRoller } from './DiceRoller';
 
 const VALID_TABS = [
   'party',
@@ -196,10 +197,25 @@ export function GMDashboard() {
               handleSyncWithSheets={handleSyncWithSheets}
               addLog={addLog}
             />
-            <AudioPanel {...audioEngine} />
           </div>
         </section>
       </main>
+
+      <div
+        style={{
+          position: 'fixed',
+          top: '1rem',
+          right: '1rem',
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'flex-start',
+          gap: '0.5rem',
+          zIndex: 50,
+        }}
+      >
+        <AudioPanel {...audioEngine} />
+        <DiceRoller />
+      </div>
 
       <SyncingOverlay
         isSyncing={isSyncing}

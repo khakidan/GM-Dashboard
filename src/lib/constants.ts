@@ -68,3 +68,9 @@ export const STORAGE_KEYS = {
   effectVolume: 'gm_effect_volume',
   soundboardLayout: 'gm_soundboard_layout',
 } as const;
+
+export const AUDIO = {
+  crossfadeDurationSec: 5,
+  ambientDefaultVolume: 0.7,
+  effectDefaultVolume: 0.8,
+} as const;

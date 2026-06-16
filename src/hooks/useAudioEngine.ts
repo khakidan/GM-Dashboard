@@ -1,27 +1,34 @@
 // src/hooks/useAudioEngine.ts
 
 import { useState, useEffect } from 'react';
-import { STORAGE_KEYS } from '../lib/constants';
+import { STORAGE_KEYS, AUDIO } from '../lib/constants';
 import {
   saveAudioFile,
   getAllAudioFiles,
   deleteAudioFile,
-  createObjectURL,
   StoredAudioFile,
 } from '../lib/audioFileStore';
 
+interface AudioDeck {
+  audio: HTMLAudioElement;
+  source: MediaElementAudioSourceNode;
+  gainNode: GainNode;
+  objectUrl: string | null;
+}
+
 // Global singletons for Web Audio and HTML5 Elements
 let globalAudioContext: AudioContext | null = null;
-let globalAmbientAudioElement: HTMLAudioElement | null = null;
-let globalAmbientSourceNode: MediaElementAudioSourceNode | null = null;
-let globalAmbientGainNode: GainNode | null = null;
+const deckA = { current: null as AudioDeck | null };
+const deckB = { current: null as AudioDeck | null };
+const activeDeck = { current: 'A' as 'A' | 'B' };
+
 const globalEffectCache = new Map<string, AudioBuffer>();
 
 // Global reactive states
 let globalCurrentAmbientId: string | null = null;
 let globalIsAmbientPlaying = false;
-let globalAmbientVolume = 0.7;
-let globalEffectVolume = 0.8;
+let globalAmbientVolume: number = AUDIO.ambientDefaultVolume;
+let globalEffectVolume: number = AUDIO.effectDefaultVolume;
 let globalStoredFiles: StoredAudioFile[] = [];
 
 // Storage defaults
@@ -60,23 +67,28 @@ function initAudio() {
   }
 }
 
+function initDeck(): AudioDeck | null {
+  if (!globalAudioContext) return null;
+  const audio = new Audio();
+  audio.crossOrigin = 'anonymous';
+  audio.loop = true;
+
+  const source = globalAudioContext.createMediaElementSource(audio);
+  const gainNode = globalAudioContext.createGain();
+  gainNode.gain.setValueAtTime(0, globalAudioContext.currentTime);
+
+  source.connect(gainNode);
+  gainNode.connect(globalAudioContext.destination);
+
+  return { audio, source, gainNode, objectUrl: null };
+}
+
 // Initialize ambient HTMLAudioElement and Gain Nodes lazily
 function initAmbient() {
   initAudio();
   if (!globalAudioContext) return;
-
-  if (!globalAmbientAudioElement) {
-    globalAmbientAudioElement = new Audio();
-    globalAmbientAudioElement.crossOrigin = 'anonymous';
-    globalAmbientAudioElement.loop = true;
-
-    globalAmbientSourceNode = globalAudioContext.createMediaElementSource(globalAmbientAudioElement);
-    globalAmbientGainNode = globalAudioContext.createGain();
-    globalAmbientGainNode.gain.setValueAtTime(globalAmbientVolume, globalAudioContext.currentTime);
-
-    globalAmbientSourceNode.connect(globalAmbientGainNode);
-    globalAmbientGainNode.connect(globalAudioContext.destination);
-  }
+  if (!deckA.current) deckA.current = initDeck();
+  if (!deckB.current) deckB.current = initDeck();
 }
 
 // Global flag to kick off first load
@@ -95,19 +107,28 @@ async function refreshFiles() {
 export function resetAudioEngineState() {
   globalCurrentAmbientId = null;
   globalIsAmbientPlaying = false;
-  globalAmbientVolume = 0.7;
-  globalEffectVolume = 0.8;
+  globalAmbientVolume = AUDIO.ambientDefaultVolume;
+  globalEffectVolume = AUDIO.effectDefaultVolume;
   globalStoredFiles = [];
   initialLoadStarted = false;
   globalEffectCache.clear();
-  if (globalAmbientAudioElement) {
-    globalAmbientAudioElement.pause();
-    globalAmbientAudioElement.src = '';
-  }
+  
+  const cleanupDeck = (deck: { current: AudioDeck | null }) => {
+    if (deck.current) {
+      deck.current.audio.pause();
+      deck.current.audio.src = '';
+      if (deck.current.objectUrl) {
+        URL.revokeObjectURL(deck.current.objectUrl);
+        deck.current.objectUrl = null;
+      }
+    }
+    deck.current = null;
+  };
+  cleanupDeck(deckA);
+  cleanupDeck(deckB);
+  
+  activeDeck.current = 'A';
   globalAudioContext = null;
-  globalAmbientAudioElement = null;
-  globalAmbientSourceNode = null;
-  globalAmbientGainNode = null;
 }
 
 export function useAudioEngine() {
@@ -128,8 +149,8 @@ export function useAudioEngine() {
   // Play Ambient FileId (using HTML5 Streaming + Web Audio Gain fading)
   async function playAmbient(fileId: string) {
     initAmbient();
-    if (!globalAudioContext || !globalAmbientAudioElement || !globalAmbientGainNode) {
-      console.error('Audio nodes could not be initialized');
+    if (!globalAudioContext || !deckA.current || !deckB.current) {
+      console.error('Audio decks could not be initialized');
       return;
     }
 
@@ -139,75 +160,109 @@ export function useAudioEngine() {
       return;
     }
 
-    const prevId = globalCurrentAmbientId;
-    const wasPlaying = globalIsAmbientPlaying;
+    const incomingDeck = activeDeck.current === 'A' ? deckB : deckA;
+    const outgoingDeck = activeDeck.current === 'A' ? deckA : deckB;
+    const now = globalAudioContext.currentTime;
+    const fadeDuration = AUDIO.crossfadeDurationSec;
 
+    // Load new track onto incoming deck
+    const url = URL.createObjectURL(file.blob);
+    
+    // Revoke previous objectUrl on incoming deck if one exists
+    if (incomingDeck.current && incomingDeck.current.objectUrl) {
+      URL.revokeObjectURL(incomingDeck.current.objectUrl);
+    }
+    
+    if (incomingDeck.current) {
+      incomingDeck.current.audio.src = url;
+      incomingDeck.current.audio.loop = true;
+      incomingDeck.current.objectUrl = url;
+      
+      // Start incoming deck at 0 volume
+      incomingDeck.current.gainNode.gain.cancelScheduledValues(now);
+      incomingDeck.current.gainNode.gain.setValueAtTime(0, now);
+      try {
+        await incomingDeck.current.audio.play();
+      } catch (err) {
+        console.warn('[Ambient audio] failed to start play:', err);
+      }
+      
+      // Ramp incoming up and outgoing down simultaneously
+      incomingDeck.current.gainNode.gain.linearRampToValueAtTime(
+        globalAmbientVolume, 
+        now + fadeDuration
+      );
+    }
+    
+    if (outgoingDeck.current && outgoingDeck.current.audio.src) {
+      outgoingDeck.current.gainNode.gain.cancelScheduledValues(now);
+      outgoingDeck.current.gainNode.gain.setValueAtTime(
+        outgoingDeck.current.gainNode.gain.value, 
+        now
+      );
+      outgoingDeck.current.gainNode.gain.linearRampToValueAtTime(
+        0, 
+        now + fadeDuration
+      );
+    }
+
+    // After crossfade completes, stop and clean up outgoing deck
+    setTimeout(() => {
+      if (outgoingDeck.current && outgoingDeck.current.audio) {
+        outgoingDeck.current.audio.pause();
+        outgoingDeck.current.audio.src = '';
+      }
+      if (outgoingDeck.current && outgoingDeck.current.objectUrl) {
+        URL.revokeObjectURL(outgoingDeck.current.objectUrl);
+        outgoingDeck.current.objectUrl = null;
+      }
+    }, fadeDuration * 1000);
+
+    // Swap the active deck
+    activeDeck.current = activeDeck.current === 'A' ? 'B' : 'A';
     globalCurrentAmbientId = fileId;
     globalIsAmbientPlaying = true;
     notifyListeners();
-
-    // If already playing another track, fade out current music
-    if (wasPlaying && prevId !== fileId) {
-      const currTime = globalAudioContext.currentTime;
-      globalAmbientGainNode.gain.cancelScheduledValues(currTime);
-      globalAmbientGainNode.gain.setValueAtTime(globalAmbientGainNode.gain.value, currTime);
-      globalAmbientGainNode.gain.linearRampToValueAtTime(0, currTime + 1.5);
-
-      // Wait 1.5s for audio fade out
-      await new Promise<void>((resolve) => {
-        setTimeout(resolve, 1500);
-      });
-
-      // Guard check: did user stop or pick another file during fadeout?
-      if (globalCurrentAmbientId !== fileId || !globalIsAmbientPlaying) {
-        return;
-      }
-    }
-
-    const objectUrl = createObjectURL(file.blob);
-    globalAmbientAudioElement.src = objectUrl;
-
-    const currTime = globalAudioContext.currentTime;
-    globalAmbientGainNode.gain.cancelScheduledValues(currTime);
-    globalAmbientGainNode.gain.setValueAtTime(0, currTime);
-
-    try {
-      await globalAmbientAudioElement.play();
-    } catch (err) {
-      console.warn('[Ambient audio] failed to start play:', err);
-    }
-
-    // Fade in to desired volume over 1.5s
-    const latestTime = globalAudioContext.currentTime;
-    globalAmbientGainNode.gain.linearRampToValueAtTime(globalAmbientVolume, latestTime + 1.5);
-    notifyListeners();
   }
 
-  // Fade out current playing track over 1.5s, then stop
+  // Fade out active deck over crossfadeDurationSec seconds, then pause and clean up
   async function stopAmbient() {
-    if (!globalAmbientAudioElement || !globalAmbientGainNode || !globalAudioContext) {
+    if (!globalAudioContext || !deckA.current || !deckB.current) {
       globalCurrentAmbientId = null;
       globalIsAmbientPlaying = false;
       notifyListeners();
       return;
     }
 
-    const currTime = globalAudioContext.currentTime;
-    globalAmbientGainNode.gain.cancelScheduledValues(currTime);
-    globalAmbientGainNode.gain.setValueAtTime(globalAmbientGainNode.gain.value, currTime);
-    globalAmbientGainNode.gain.linearRampToValueAtTime(0, currTime + 1.5);
-
+    const outgoing = activeDeck.current === 'A' ? deckA : deckB;
+    const now = globalAudioContext.currentTime;
+    
+    if (outgoing.current) {
+      outgoing.current.gainNode.gain.cancelScheduledValues(now);
+      outgoing.current.gainNode.gain.setValueAtTime(
+        outgoing.current.gainNode.gain.value, 
+        now
+      );
+      outgoing.current.gainNode.gain.linearRampToValueAtTime(
+        0, 
+        now + AUDIO.crossfadeDurationSec
+      );
+    }
+    
     globalCurrentAmbientId = null;
     globalIsAmbientPlaying = false;
     notifyListeners();
 
-    await new Promise<void>((resolve) => setTimeout(resolve, 1500));
-
-    // Check that we haven't selected some other audio since stop was requested
-    if (globalCurrentAmbientId === null) {
-      globalAmbientAudioElement.pause();
-      globalAmbientAudioElement.src = '';
-    }
+    setTimeout(() => {
+      if (outgoing.current) {
+        outgoing.current.audio.pause();
+        outgoing.current.audio.src = '';
+        if (outgoing.current.objectUrl) {
+          URL.revokeObjectURL(outgoing.current.objectUrl);
+          outgoing.current.objectUrl = null;
+        }
+      }
+    }, AUDIO.crossfadeDurationSec * 1000);
   }
 
   function setAmbientVolume(volume: number) {
@@ -217,10 +272,15 @@ export function useAudioEngine() {
       localStorage.setItem(STORAGE_KEYS.ambientVolume, clamped.toString());
     }
 
-    if (globalAmbientGainNode && globalAudioContext) {
-      const currTime = globalAudioContext.currentTime;
-      globalAmbientGainNode.gain.cancelScheduledValues(currTime);
-      globalAmbientGainNode.gain.setValueAtTime(clamped, currTime);
+    // Active deck is whichever is considered active now
+    // Actually the prompt says: update the gain on whichever deck is currently active (the incoming deck after a crossfade has started)
+    if (globalAudioContext) {
+      const activeDeckRef = activeDeck.current === 'A' ? deckA : deckB;
+      const now = globalAudioContext.currentTime;
+      if (activeDeckRef.current) {
+        activeDeckRef.current.gainNode.gain.cancelScheduledValues(now);
+        activeDeckRef.current.gainNode.gain.setValueAtTime(clamped, now);
+      }
     }
     notifyListeners();
   }

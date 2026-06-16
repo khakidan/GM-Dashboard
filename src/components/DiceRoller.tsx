@@ -108,14 +108,14 @@ export function DiceRoller() {
   return (
     <div 
       className={cn(
-        "fixed bottom-6 right-6 z-50 flex flex-col bg-white rounded-xl shadow-2xl border border-[#e5e1d8] text-stone-900 overflow-hidden transition-all duration-300 font-sans",
-        isExpanded ? "w-80 sm:w-96" : "w-44"
+        "relative flex flex-col bg-white rounded-xl shadow-2xl border border-[#e5e1d8] text-stone-900 overflow-visible transition-all font-sans",
+        "w-44 h-11"
       )}
     >
       {/* Mini Collapsed / Expanded Header */}
       <div 
         onClick={handleToggleExpand}
-        className="h-11 bg-[#faf9f6] border-b border-[#e5e1d8] flex items-center justify-between px-3.5 cursor-pointer hover:bg-[#f5f5f0] transition-colors select-none"
+        className="h-11 w-full bg-[#faf9f6] rounded-xl border-b border-[#e5e1d8] flex items-center justify-between px-3.5 cursor-pointer hover:bg-[#f5f5f0] transition-colors select-none"
       >
         <div className="flex items-center gap-2 text-[#2c2c26]">
           <Dices className="w-5 h-5 text-[#c5b358]" />
@@ -128,7 +128,7 @@ export function DiceRoller() {
 
       {/* Main Panel Content Area */}
       {isExpanded && (
-        <div className="p-4 flex flex-col gap-3.5 bg-white max-h-[480px] overflow-y-auto">
+        <div className="absolute top-full mt-2 right-0 w-80 sm:w-96 p-4 flex flex-col gap-3.5 bg-white rounded-xl shadow-2xl border border-[#e5e1d8] max-h-[480px] overflow-y-auto z-50">
           
           {/* Main Notation Input */}
           <div className="flex flex-col gap-1.5">

@@ -9,7 +9,6 @@ import { CombatHeader } from './CombatHeader';
 import { CombatantCard } from './CombatantCard';
 import { CombatSidebar } from './CombatSidebar';
 import { CasterAttributionDialog } from './CasterAttributionDialog';
-import { DiceRoller } from '../DiceRoller';
 
 import { useCombatSync } from './hooks/useCombatSync';
 import { useHealthChange } from './hooks/useHealthChange';
@@ -217,8 +216,6 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
         isOpen={isCheatSheetOpen}
         onClose={() => setIsCheatSheetOpen(false)}
       />
-
-      <DiceRoller />
     </div>
   );
 }

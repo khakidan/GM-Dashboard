@@ -13,24 +13,29 @@ URL.createObjectURL = vi.fn().mockImplementation(() => 'mock://object-url');
 Blob.prototype.arrayBuffer = vi.fn().mockResolvedValue(new ArrayBuffer(8));
 
 // Mock Web Audio API
+export const createdGainNodes: any[] = [];
 class MockAudioContext {
   state = 'suspended';
-  currentTime = 0;
+  currentTime = 100;
   resume = vi.fn().mockImplementation(async () => {
     this.state = 'running';
   });
   createMediaElementSource = vi.fn().mockImplementation(() => ({
     connect: vi.fn(),
   }));
-  createGain = vi.fn().mockImplementation(() => ({
-    gain: {
-      value: 1,
-      setValueAtTime: vi.fn(),
-      cancelScheduledValues: vi.fn(),
-      linearRampToValueAtTime: vi.fn(),
-    },
-    connect: vi.fn(),
-  }));
+  createGain = vi.fn().mockImplementation(() => {
+    const node = {
+      gain: {
+        value: 1,
+        setValueAtTime: vi.fn(),
+        cancelScheduledValues: vi.fn(),
+        linearRampToValueAtTime: vi.fn(),
+      },
+      connect: vi.fn(),
+    };
+    createdGainNodes.push(node);
+    return node;
+  });
   createBufferSource = vi.fn().mockImplementation(() => ({
     buffer: null,
     connect: vi.fn(),
@@ -42,12 +47,16 @@ class MockAudioContext {
   destination = {} as AudioNode;
 }
 
+export const createdAudios: any[] = [];
 class MockAudio {
   src = '';
   crossOrigin = '';
   loop = false;
   play = vi.fn().mockResolvedValue(undefined);
   pause = vi.fn();
+  constructor() {
+    createdAudios.push(this);
+  }
 }
 
 // Attach mocks globally and to window
@@ -209,5 +218,81 @@ describe('useAudioEngine', () => {
     // Ambient state remains untouched
     expect(result.current.currentAmbientId).toBe(ambientId);
     expect(result.current.isAmbientPlaying).toBe(true);
+  });
+
+  it('crossfades between tracks: sets incoming gain to 0, ramps up, and ramps outgoing down', async () => {
+    createdGainNodes.length = 0;
+    createdAudios.length = 0;
+
+    const { result } = renderHook(() => useAudioEngine());
+    const file1 = new File(['1'], 'A.mp3', { type: 'audio/mp3' });
+    const file2 = new File(['2'], 'B.mp3', { type: 'audio/mp3' });
+    
+    await act(async () => {
+      await result.current.addFiles([file1, file2], 'ambient');
+    });
+
+    const file1Id = result.current.storedFiles[0].id;
+    const file2Id = result.current.storedFiles[1].id;
+
+    // Track 1
+    await act(async () => {
+      await result.current.playAmbient(file1Id);
+    });
+    
+    expect(createdGainNodes).toHaveLength(2); // Two decks created lazily
+    const deckA = createdGainNodes[0];
+    const deckB = createdGainNodes[1];
+    
+    // First track plays on incoming deck (deck B, because active starts at 'A')
+    expect(deckB.gain.setValueAtTime).toHaveBeenCalledWith(0, expect.any(Number));
+    expect(deckB.gain.linearRampToValueAtTime).toHaveBeenCalledWith(result.current.ambientVolume, expect.any(Number));
+    
+    // Reset mocks for track 2 assertions
+    deckA.gain.setValueAtTime.mockClear();
+    deckB.gain.setValueAtTime.mockClear();
+    deckA.gain.linearRampToValueAtTime.mockClear();
+    deckB.gain.linearRampToValueAtTime.mockClear();
+    
+    // Play Track 2, should crossfade simultaneously
+    await act(async () => {
+      await result.current.playAmbient(file2Id);
+    });
+
+    // Outgoing (Deck B) ramps down
+    expect(deckB.gain.linearRampToValueAtTime).toHaveBeenCalledWith(0, expect.any(Number));
+    
+    // Incoming (Deck A) starts at 0 and ramps up
+    expect(deckA.gain.setValueAtTime).toHaveBeenCalledWith(0, expect.any(Number));
+    expect(deckA.gain.linearRampToValueAtTime).toHaveBeenCalledWith(result.current.ambientVolume, expect.any(Number));
+    
+    // Fast forward timeouts to check pause on outgoing deck
+    await act(async () => {
+      await new Promise(r => setTimeout(r, 5500)); // wait for crossfade duration
+    });
+    
+    // Expect outgoing deck audio to be paused (Deck B is the second element)
+    expect(createdAudios[1].pause).toHaveBeenCalled();
+  }, 10000);
+
+  it('Calling playAmbient twice in quick succession does not leave more than two Audio elements active simultaneously', async () => {
+    createdAudios.length = 0;
+    const { result } = renderHook(() => useAudioEngine());
+    const file = new File(['1'], 'A.mp3', { type: 'audio/mp3' });
+    await act(async () => {
+      await result.current.addFiles([file], 'ambient');
+    });
+    const fileId = result.current.storedFiles[0].id;
+    
+    await act(async () => {
+      await result.current.playAmbient(fileId);
+      await result.current.playAmbient(fileId);
+      await result.current.playAmbient(fileId);
+      await result.current.playAmbient(fileId);
+    });
+    
+    // We expect there to only be 2 Audio HTML elements created (Deck A and Deck B), 
+    // regardless of how many times play is called
+    expect(createdAudios.length).toBe(2);
   });
 });
