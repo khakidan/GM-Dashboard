@@ -61,14 +61,14 @@ function AppContent() {
   const initiativeEvent = state.combatState.initiativeEvent;
 
   // Audio trigger effects using primitive values to prevent infinite renders or object reference mismatches
-  const damageEventKey = damageEvent ? `${damageEvent.combatantName}-${damageEvent.damageAmount}` : '';
+  const damageEventKey = damageEvent ? `${damageEvent.combatantNames.join(',')}-${damageEvent.damageAmount}` : '';
   useEffect(() => {
     if (damageEventKey) {
       playDamageSound();
     }
   }, [damageEventKey]);
 
-  const healEventKey = healEvent ? `${healEvent.combatantName}-${healEvent.healAmount}` : '';
+  const healEventKey = healEvent ? `${healEvent.combatantNames.join(',')}-${healEvent.healAmount}` : '';
   useEffect(() => {
     if (healEventKey) {
       playHealSound();

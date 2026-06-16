@@ -57,14 +57,14 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
   };
 
   const testDamageAnimation = () => {
-    fireDamageEvent({ combatantName: 'Thorin Ironforge', damageAmount: 47 });
+    fireDamageEvent({ combatantNames: ['Thorin Ironforge'], damageAmount: 47 });
     toast('Damage animation triggered — check the Player View.', {
       duration: 3000,
     });
   };
 
   const testHealAnimation = () => {
-    fireHealEvent({ combatantName: 'Seraphina Brightwell', healAmount: 34 });
+    fireHealEvent({ combatantNames: ['Seraphina Brightwell'], healAmount: 34 });
     toast('Heal animation triggered — check the Player View.', {
       duration: 3000,
     });

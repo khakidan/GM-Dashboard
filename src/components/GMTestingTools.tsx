@@ -5,8 +5,8 @@ import { toast } from 'sonner';
 
 interface GMTestingToolsProps {
   fireDeathEvent: (payload: { characterName: string }) => void;
-  fireDamageEvent: (payload: { combatantName: string; damageAmount: number }) => void;
-  fireHealEvent: (payload: { combatantName: string; healAmount: number }) => void;
+  fireDamageEvent: (payload: { combatantNames: string[]; damageAmount: number; damageType?: string }) => void;
+  fireHealEvent: (payload: { combatantNames: string[]; healAmount: number }) => void;
   fireUnconsciousEvent: (payload: { characterName: string }) => void;
   fireRageEvent: (payload: { characterName: string }) => void;
   fireInitiativeEvent: (isActive: boolean) => void;
@@ -50,7 +50,7 @@ export function GMTestingTools({
           id="test-damage-animation-btn"
           type="button"
           onClick={() => {
-            fireDamageEvent({ combatantName: 'Thorin Ironforge', damageAmount: 47 });
+            fireDamageEvent({ combatantNames: ['Thorin Ironforge'], damageAmount: 47 });
             toast('Damage animation triggered — check the Player View.', {
               duration: 3000,
             });
@@ -65,7 +65,7 @@ export function GMTestingTools({
           id="test-heal-animation-btn"
           type="button"
           onClick={() => {
-            fireHealEvent({ combatantName: 'Seraphina Brightwell', healAmount: 34 });
+            fireHealEvent({ combatantNames: ['Seraphina Brightwell'], healAmount: 34 });
             toast('Heal animation triggered — check the Player View.', {
               duration: 3000,
             });
