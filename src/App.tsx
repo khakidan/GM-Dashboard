@@ -27,9 +27,14 @@ function AppContent() {
         setIsPaletteOpen(true);
       }
     };
+    const handleOpenPalette = () => {
+      setIsPaletteOpen(true);
+    };
     window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('open-command-palette', handleOpenPalette);
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('open-command-palette', handleOpenPalette);
     };
   }, []);
 

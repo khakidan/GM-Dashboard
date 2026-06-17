@@ -30,6 +30,9 @@ describe('LevelUpDialog', () => {
     statusName: 'Active',
     notes: 'Brave warrior, specializes in shields.',
     isActive: true,
+    class: '',
+    hitDiceConfig: '',
+    hitDiceUsed: '{}',
   };
 
   const defaultProps = {
@@ -188,5 +191,55 @@ describe('LevelUpDialog', () => {
     expect(onConfirmMock).toHaveBeenCalledWith({
       level: 4,
     });
+  });
+
+  it('updates hit dice and class for existing class level up', () => {
+    const onConfirmMock = vi.fn();
+    const wizardChar: Character = {
+      ...mockCharacter,
+      class: 'wizard',
+      hitDiceConfig: '4d6',
+    };
+    const { container } = render(<LevelUpDialog {...defaultProps} character={wizardChar} onConfirm={onConfirmMock} />);
+    const confirmBtn = container.querySelector('#confirm-level-up-btn') as HTMLButtonElement;
+
+    fireEvent.click(confirmBtn);
+
+    expect(onConfirmMock).toHaveBeenCalledWith(expect.objectContaining({
+      level: 5,
+      class: 'wizard',
+      hitDiceConfig: '5d6',
+    }));
+  });
+
+  it('updates hit dice and class when multiclassing into a new class', () => {
+    const onConfirmMock = vi.fn();
+    const wizardChar: Character = {
+      ...mockCharacter,
+      class: 'wizard',
+      hitDiceConfig: '4d6',
+    };
+    const { container } = render(<LevelUpDialog {...defaultProps} character={wizardChar} onConfirm={onConfirmMock} />);
+    
+    // Select multiclass radio button
+    const multiclassRadio = container.querySelector('#multiclass-radio-btn') as HTMLInputElement;
+    fireEvent.click(multiclassRadio);
+
+    // Type in new class name
+    const classNameInput = container.querySelector('#new-class-name') as HTMLInputElement;
+    fireEvent.change(classNameInput, { target: { value: 'fighter' } });
+
+    // Select hit die size d10
+    const hitDieSelect = container.querySelector('#new-class-hitdie') as HTMLSelectElement;
+    fireEvent.change(hitDieSelect, { target: { value: '10' } });
+
+    const confirmBtn = container.querySelector('#confirm-level-up-btn') as HTMLButtonElement;
+    fireEvent.click(confirmBtn);
+
+    expect(onConfirmMock).toHaveBeenCalledWith(expect.objectContaining({
+      level: 5,
+      class: 'wizard/fighter',
+      hitDiceConfig: '1d10+4d6',
+    }));
   });
 });

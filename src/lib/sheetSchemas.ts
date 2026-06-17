@@ -36,7 +36,7 @@ const padRow = (length: number) => (val: unknown) => {
   return arr;
 };
 
-export const CharacterRowSchema = z.preprocess(padRow(19), z.tuple([
+export const CharacterRowSchema = z.preprocess(padRow(22), z.tuple([
   idSchema,                            // [0] id
   stringDefault(''),                   // [1] playerName
   nonEmptyString,                      // [2] characterName
@@ -56,6 +56,9 @@ export const CharacterRowSchema = z.preprocess(padRow(19), z.tuple([
   coerceNumber(0),                     // [16] tempAc
   coerceNumber(0),                     // [17] deathSavesFails
   coerceNumber(0),                     // [18] deathSavesSuccesses
+  stringDefault(''),                   // [19] class
+  stringDefault(''),                   // [20] hitDiceConfig
+  stringDefault('{}'),                 // [21] hitDiceUsed
 ]));
 
 export const NpcRowSchema = z.preprocess(padRow(14), z.tuple([

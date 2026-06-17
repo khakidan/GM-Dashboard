@@ -26,7 +26,7 @@ vi.mock('../../ui/IrvMultiSelect', () => ({
 describe('CombatSidebar', () => {
   afterEach(() => cleanup());
   const npcs: NPC[] = [{ id: 'n1', name: 'Goblin', ac: 15, maxHp: 7, currentHp: 7, tempHp: 0, conditions: '', notes: '' }];
-  const characters: Character[] = [{ id: 'p1', playerName: 'P1', characterName: 'Char1', ac: 16, maxHp: 20, currentHp: 20, tempHp: 0, conditions: '', passivePerception: 12, isActive: true, level: 1, statusId: 1, statusName: 'Active', notes: '' }];
+  const characters: Character[] = [{ id: 'p1', playerName: 'P1', characterName: 'Char1', ac: 16, maxHp: 20, currentHp: 20, tempHp: 0, conditions: '', passivePerception: 12, isActive: true, level: 1, statusId: 1, statusName: 'Active', notes: '', class: '', hitDiceConfig: '', hitDiceUsed: '{}' }];
   const combatants: Combatant[] = [];
 
   const defaultProps = {

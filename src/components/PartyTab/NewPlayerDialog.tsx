@@ -1,10 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { X, UserPlus, Shield, Heart, Eye, Star, Info, Save } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Character } from '../../types';
 import { cn } from '../../lib/utils';
 import { IrvMultiSelect } from '../ui/IrvMultiSelect';
 import { useFormState } from '../../hooks/useFormState';
+import { parseHitDiceConfig, suggestHitDiceConfig } from '../../lib/hitDice';
 
 interface NewPlayerDialogProps {
   isOpen: boolean;
@@ -16,6 +17,7 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
   const { values: formData, handleChange, reset } = useFormState({
     playerName: '',
     characterName: '',
+    class: '',
     level: 1,
     ac: 10,
     maxHp: 10,
@@ -27,15 +29,51 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
     vulnerabilities: '',
   });
 
+  const [hitDiceConfig, setHitDiceConfig] = useState('');
+  const [hitDiceError, setHitDiceError] = useState('');
+  const [isHitDiceTouched, setIsHitDiceTouched] = useState(false);
+
   useEffect(() => {
     if (!isOpen) {
       reset();
+      setHitDiceConfig('');
+      setHitDiceError('');
+      setIsHitDiceTouched(false);
     }
   }, [isOpen, reset]);
 
+  const handleHitDiceChange = (val: string) => {
+    setHitDiceConfig(val);
+    setIsHitDiceTouched(true);
+    if (!val.trim()) {
+      setHitDiceError('');
+    } else {
+      const parsed = parseHitDiceConfig(val);
+      if (parsed.length === 0) {
+        setHitDiceError('Invalid format. Use [count]d[size], e.g. 7d8 or 4d12+3d10');
+      } else {
+        setHitDiceError('');
+      }
+    }
+  };
+
+  const classValue = formData.class;
+  const levelValue = formData.level;
+
+  const suggestedConfig = useMemo(() => {
+    return suggestHitDiceConfig(classValue, Number(levelValue));
+  }, [classValue, levelValue]);
+
+  useEffect(() => {
+    if (!isHitDiceTouched && suggestedConfig) {
+      setHitDiceConfig(suggestedConfig);
+    }
+  }, [suggestedConfig, isHitDiceTouched]);
+
   const isFormValid = formData.playerName.trim() !== '' && 
                       formData.characterName.trim() !== '' && 
-                      formData.maxHp > 0;
+                      formData.maxHp > 0 &&
+                      !hitDiceError;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,6 +83,7 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
       playerName: formData.playerName,
       characterName: formData.characterName,
       level: formData.level,
+      class: formData.class,
       ac: formData.ac,
       maxHp: formData.maxHp,
       currentHp: formData.maxHp, // Defaults to Max HP
@@ -58,6 +97,8 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
       vulnerabilities: formData.vulnerabilities,
       conditions: '',
       isActive: formData.statusId === 1,
+      hitDiceConfig: hitDiceConfig.trim(),
+      hitDiceUsed: '{}',
     });
   };
 
@@ -122,6 +163,19 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                       onChange={e => handleChange('characterName', e.target.value)}
                       placeholder="e.g. Caleb"
                       className="w-full bg-white border border-[#e5e1d8] rounded-xl px-4 py-3 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all font-serif italic"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40] mb-1.5 px-1">
+                      Class
+                    </label>
+                    <input
+                      id="new-character-class"
+                      type="text"
+                      value={formData.class}
+                      onChange={e => handleChange('class', e.target.value)}
+                      placeholder="e.g. Barbarian or Barbarian / Fighter"
+                      className="w-full bg-white border border-[#e5e1d8] rounded-xl px-4 py-3 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all"
                     />
                   </div>
                 </div>
@@ -198,6 +252,40 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                         className="w-full bg-white border border-[#e5e1d8] rounded-xl pl-10 pr-4 py-3 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all"
                       />
                     </div>
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40] mb-1.5 px-1">
+                      Hit Dice
+                    </label>
+                    <input
+                      id="new-character-hitdice"
+                      type="text"
+                      value={hitDiceConfig}
+                      onChange={e => handleHitDiceChange(e.target.value)}
+                      placeholder="e.g. 7d8 or 4d12+3d10"
+                      className="w-full bg-white border border-[#e5e1d8] rounded-xl px-4 py-3 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all font-mono"
+                    />
+                    <p className="text-[10px] text-gray-400 mt-1 px-1">
+                      Format: [count]d[size]. Separate multiple pools with +.
+                    </p>
+                    {hitDiceError && (
+                      <p id="hitdice-error-msg" className="text-xs text-red-500 mt-1 px-1">
+                        {hitDiceError}
+                      </p>
+                    )}
+                    {suggestedConfig && suggestedConfig !== hitDiceConfig && (
+                      <div className="flex items-center gap-1.5 mt-1 text-xs">
+                        <span className="text-gray-500">Suggested: <code className="bg-[#2c2c26]/5 px-1 py-0.5 rounded font-mono text-[11px]">{suggestedConfig}</code></span>
+                        <button
+                          id="use-suggestion-btn"
+                          type="button"
+                          onClick={() => handleHitDiceChange(suggestedConfig)}
+                          className="text-[#c5b358] hover:text-[#b0a04f] font-bold cursor-pointer underline decoration-dotted text-xs"
+                        >
+                          Use suggestion
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

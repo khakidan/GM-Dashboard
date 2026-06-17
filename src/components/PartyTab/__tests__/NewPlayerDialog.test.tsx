@@ -84,6 +84,7 @@ describe('NewPlayerDialog', () => {
     
     fireEvent.change(container.querySelector('#new-player-name')!, { target: { value: 'Matt' } });
     fireEvent.change(container.querySelector('#new-character-name')!, { target: { value: 'Caleb' } });
+    fireEvent.change(container.querySelector('#new-character-class')!, { target: { value: 'Wizard' } });
     fireEvent.change(container.querySelector('#new-character-level')!, { target: { value: '3' } });
     fireEvent.change(container.querySelector('#new-character-ac')!, { target: { value: '15' } });
     fireEvent.change(container.querySelector('#new-character-maxhp')!, { target: { value: '25' } });
@@ -93,6 +94,7 @@ describe('NewPlayerDialog', () => {
     fireEvent.change(container.querySelector('#new-character-immunities')!, { target: { value: 'Poison' } });
     fireEvent.change(container.querySelector('#new-character-vulnerabilities')!, { target: { value: 'Cold' } });
     fireEvent.change(container.querySelector('#new-character-notes')!, { target: { value: 'A wizard.' } });
+    fireEvent.change(container.querySelector('#new-character-hitdice')!, { target: { value: '3d6' } });
 
     fireEvent.click(container.querySelector('#confirm-add-character-btn')!);
 
@@ -100,6 +102,7 @@ describe('NewPlayerDialog', () => {
     expect(onConfirmMock).toHaveBeenCalledWith({
       playerName: 'Matt',
       characterName: 'Caleb',
+      class: 'Wizard',
       level: 3,
       ac: 15,
       maxHp: 25,
@@ -114,6 +117,8 @@ describe('NewPlayerDialog', () => {
       vulnerabilities: 'Cold',
       conditions: '',
       isActive: false,
+      hitDiceConfig: '3d6',
+      hitDiceUsed: '{}',
     });
   });
 
@@ -163,5 +168,26 @@ describe('NewPlayerDialog', () => {
       currentHp: 50,
       tempHp: 0
     }));
+  });
+
+  it('displays validation error for invalid hit dice format', () => {
+    const { container } = render(<NewPlayerDialog {...defaultProps} />);
+    
+    fireEvent.change(container.querySelector('#new-character-hitdice')!, { target: { value: 'invalid' } });
+    
+    expect(screen.getByText(/Invalid format/)).toBeDefined();
+    
+    const confirmBtn = container.querySelector('#confirm-add-character-btn') as HTMLButtonElement;
+    expect(confirmBtn.disabled).toBe(true);
+  });
+
+  it('suggests hit dice based on class and level and populates suggests config', () => {
+    const { container } = render(<NewPlayerDialog {...defaultProps} />);
+    
+    fireEvent.change(container.querySelector('#new-character-class')!, { target: { value: 'barbarian' } });
+    fireEvent.change(container.querySelector('#new-character-level')!, { target: { value: '5' } });
+    
+    const hitDiceInput = container.querySelector('#new-character-hitdice') as HTMLInputElement;
+    expect(hitDiceInput.value).toBe('5d12');
   });
 });

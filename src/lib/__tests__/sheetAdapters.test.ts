@@ -52,6 +52,9 @@ describe('sheetAdapters', () => {
         0,                        // [16] tempAc
         0,                        // [17] deathSavesFails
         0,                        // [18] deathSavesSuccesses
+        '',                       // [19] unused
+        '4d12+3d10',              // [20] hitDiceConfig
+        '{"d12":1}',             // [21] hitDiceUsed
       ];
 
       const character = mapCharacterRowToCharacter(data, 2, mockStatuses);
@@ -60,6 +63,7 @@ describe('sheetAdapters', () => {
         id: 'char-1',
         playerName: 'Alice',
         characterName: 'Thor',
+        class: '',
         ac: 15,
         maxHp: 20,
         tempHp: 5,
@@ -79,6 +83,8 @@ describe('sheetAdapters', () => {
         tempAc: 0,
         deathSavesFails: 0,
         deathSavesSuccesses: 0,
+        hitDiceConfig: '4d12+3d10',
+        hitDiceUsed: '{"d12":1}',
       });
     });
 
@@ -100,6 +106,12 @@ describe('sheetAdapters', () => {
         '',
         '',
         0,
+        0,
+        0,
+        0,
+        '',
+        '',
+        '',
       ];
 
       const character = mapCharacterRowToCharacter(data, 3, mockStatuses);
@@ -124,11 +136,42 @@ describe('sheetAdapters', () => {
         '',
         '',
         0,
+        0,
+        0,
+        0,
+        '',
+        '',
+        '',
       ];
 
       const characterUnknown = mapCharacterRowToCharacter(dataUnknown, 4, mockStatuses);
       expect(characterUnknown.statusName).toBe('Unknown');
       expect(characterUnknown.isActive).toBe(false);
+    });
+
+    it('mapCharacterRowToCharacter defaults hitDiceConfig and hitDiceUsed when row is shorter than 22 columns', () => {
+      const shortRow = [
+        'char-short', 'Alice', 'Shorty', 10, 10, 0, 10, '', 10, 1, 1, 'notes'
+      ] as any;
+      const character = mapCharacterRowToCharacter(shortRow, 5, mockStatuses);
+      expect(character.hitDiceConfig).toBe('');
+      expect(character.hitDiceUsed).toBe('{}');
+    });
+
+    it('mapCharacterRowToCharacter maps index 19 to the class field', () => {
+      const data: CharacterRowData = [
+        'char-class', 'Alice', 'Thor', 15, 20, 5, 25, '', 14, 3, 1, '', '', '', '', 0, 0, 0, 0, 'Barbarian', '4d12', '{}'
+      ];
+      const character = mapCharacterRowToCharacter(data, 6, mockStatuses);
+      expect(character.class).toBe('Barbarian');
+    });
+
+    it('class defaults to empty string when row is shorter than 20 columns', () => {
+      const shortRow = [
+        'char-short', 'Alice', 'Shorty', 10, 10, 0, 10, '', 10, 1, 1, 'notes'
+      ] as any;
+      const character = mapCharacterRowToCharacter(shortRow, 5, mockStatuses);
+      expect(character.class).toBe('');
     });
   });
 

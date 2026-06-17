@@ -26,7 +26,10 @@ describe('CharacterCard', () => {
     statusName: 'Active',
     notes: 'Brave warrior.',
     isActive: true,
+    class: 'Fighter',
     tempAc: 0,
+    hitDiceConfig: '',
+    hitDiceUsed: '{}',
   };
 
   const defaultProps = {

@@ -6,6 +6,7 @@ import { DebouncedInput } from '../ui/DebouncedInput';
 import { DebouncedTextarea } from '../ui/DebouncedTextarea';
 import { CharacterResourceSection } from './CharacterResourceSection';
 import { CharacterIRVSection } from './CharacterIRVSection';
+import { getHitDiceStatus, getTotalHitDiceCount } from '../../lib/hitDice';
 
 export interface CharacterCardExpandedProps {
   character: Character;
@@ -94,6 +95,85 @@ export const CharacterCardExpanded: React.FC<CharacterCardExpandedProps> = ({
             disabled={isSyncing}
           />
         </div>
+      </div>
+
+      <div>
+        <div className="text-[10px] uppercase text-[#5a5a40] font-bold tracking-widest mb-2 px-1">Class</div>
+        <DebouncedInput 
+          type="text"
+          value={character.class || ''}
+          onChange={(v) => onUpdate({ class: v as string })}
+          className="text-sm text-[#2c2c26] font-medium bg-[#fdfaf5] p-3 border border-[#e5e1d8] rounded-lg hover:bg-white focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all placeholder:text-[#cccbcb] disabled:opacity-50 w-full"
+          placeholder="e.g. Barbarian or Barbarian / Fighter"
+          disabled={isSyncing}
+        />
+      </div>
+
+      {/* Hit Dice Config and Display Section */}
+      <div className="border border-[#e5e1d8] hover:border-[#c5b358]/30 rounded-xl bg-white p-4 space-y-3 shadow-inner">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-[#e5e1d8]/50 pb-2">
+          <div className="text-[10px] uppercase text-[#5a5a40] font-bold tracking-widest px-1">
+            Hit Dice
+          </div>
+          {/* Config Input directly inline */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-[#5a5a40]/70">Config:</span>
+            <DebouncedInput
+              type="text"
+              value={character.hitDiceConfig || ''}
+              onChange={(value) => onUpdate({ hitDiceConfig: value as string })}
+              placeholder="e.g. 5d8 or 2d10+3d8"
+              className="text-xs bg-[#fdfaf5] hover:bg-white focus:bg-white text-[#2c2c26] border border-[#e5e1d8] focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none px-2 py-1 rounded w-36 transition-all font-mono"
+              disabled={isSyncing}
+              id={`hit-dice-config-input-${character.id}`}
+            />
+          </div>
+        </div>
+
+        {/* Pool Display */}
+        {!character.hitDiceConfig ? (
+          <p className="text-xs text-[#5a5a40]/60 italic px-1" id={`hit-dice-empty-helper-${character.id}`}>
+            No hit dice configured. Enter a formula (e.g., "5d8" or "2d10+3d8") to track rest pools.
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {(() => {
+              const pools = getHitDiceStatus(character.hitDiceConfig, character.hitDiceUsed || '{}');
+              if (pools.length === 0) {
+                return (
+                  <p className="text-xs text-amber-600 italic px-1">
+                    Invalid hit dice config formula. Use e.g. "5d8" or "1d10+4d8".
+                  </p>
+                );
+              }
+              return pools.map((pool, idx) => {
+                const dotsRemaining = Array.from({ length: pool.remaining }, (_, i) => (
+                  <span key={`rem-${idx}-${i}`} className="inline-block w-2.5 h-2.5 rounded-full bg-[#c5b358] border border-[#a39240]" title="Remaining" />
+                ));
+                const dotsSpent = Array.from({ length: pool.used }, (_, i) => (
+                  <span key={`spent-${idx}-${i}`} className="inline-block w-2.5 h-2.5 rounded-full bg-gray-100 border border-gray-300" title="Spent" />
+                ));
+                return (
+                  <div key={pool.die} className="flex items-center justify-between text-xs py-1 px-1 border-b border-[#fdfaf5]/50 last:border-b-0" id={`pool-display-d{pool.die}`}>
+                    <div className="flex items-center gap-2">
+                      <span className="font-serif font-bold text-[#20201a] inline-block bg-[#5a5a40]/10 px-1.5 py-0.5 rounded text-[10px]">
+                        d{pool.die}
+                      </span>
+                      <span className="font-mono text-[#5a5a40]">
+                        {pool.remaining} / {getTotalHitDiceCount(character.hitDiceConfig || '')} remaining
+                      </span>
+                    </div>
+                    {/* Visual spent indicators */}
+                    <div className="flex items-center gap-1">
+                      {dotsRemaining}
+                      {dotsSpent}
+                    </div>
+                  </div>
+                );
+              });
+            })()}
+          </div>
+        )}
       </div>
 
       <CharacterResourceSection

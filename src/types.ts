@@ -19,10 +19,13 @@ export interface Character {
   resistances?: string;
   immunities?: string;
   vulnerabilities?: string;
+  class: string;
   tempHpMax?: number;
   tempAc?: number;
   deathSavesFails?: number;
   deathSavesSuccesses?: number;
+  hitDiceConfig: string;
+  hitDiceUsed: string;
 }
 
 export interface NPC {

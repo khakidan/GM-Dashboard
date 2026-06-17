@@ -5,6 +5,8 @@ import { useParty } from './PartyTab/hooks/useParty';
 import { CharacterCard } from './PartyTab/CharacterCard';
 import { LevelUpDialog } from './PartyTab/LevelUpDialog';
 import { NewPlayerDialog } from './PartyTab/NewPlayerDialog';
+import { LongRestDialog } from './PartyTab/LongRestDialog';
+import { ShortRestDialog } from './PartyTab/ShortRestDialog';
 import { cn } from '../lib/utils';
 
 export function PartyTab() {
@@ -19,6 +21,7 @@ export function PartyTab() {
     toggleExpand,
     handleCreateCharacter,
     handleLongRest,
+    handleShortRest,
     handleDeletePlayer,
     handleUpdate,
     levelUpCharacter,
@@ -27,6 +30,8 @@ export function PartyTab() {
   } = useParty();
 
   const [isNewPlayerDialogOpen, setIsNewPlayerDialogOpen] = React.useState(false);
+  const [isLongRestOpen, setIsLongRestOpen] = React.useState(false);
+  const [isShortRestOpen, setIsShortRestOpen] = React.useState(false);
 
   React.useEffect(() => {
     if (appState.openDialog === 'newPlayer') {
@@ -44,12 +49,22 @@ export function PartyTab() {
         </div>
         <div className="flex items-center gap-3 w-full sm:w-auto">
           <button
-            onClick={handleLongRest}
+            onClick={() => setIsLongRestOpen(true)}
             disabled={isResting || state.characters.length === 0}
             className="flex-1 sm:flex-none items-center justify-center gap-2 bg-[#5a5a40] hover:bg-[#3f3f37] focus:ring-2 focus:ring-offset-2 focus:ring-[#5a5a40] outline-none text-white px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all shadow-sm hover:shadow-md disabled:opacity-50 inline-flex"
+            id="party-long-rest-btn"
           >
             {isResting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Coffee className="w-3.5 h-3.5" />}
             Long Rest
+          </button>
+          <button
+            onClick={() => setIsShortRestOpen(true)}
+            disabled={isResting || state.characters.length === 0}
+            className="flex-1 sm:flex-none items-center justify-center gap-2 bg-[#8e8b75] hover:bg-[#726e5a] focus:ring-2 focus:ring-offset-2 focus:ring-[#8e8b75] outline-none text-white px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all shadow-sm hover:shadow-md disabled:opacity-50 inline-flex"
+            id="party-short-rest-btn"
+          >
+            <Coffee className="w-3.5 h-3.5" />
+            Short Rest
           </button>
           <button
             onClick={() => setIsNewPlayerDialogOpen(true)}
@@ -115,6 +130,28 @@ export function PartyTab() {
           setIsNewPlayerDialogOpen(false);
         }}
       />
+      {isLongRestOpen && (
+        <LongRestDialog
+          isOpen={isLongRestOpen}
+          characters={state.characters}
+          onClose={() => setIsLongRestOpen(false)}
+          onConfirm={async (selectedIds) => {
+            setIsLongRestOpen(false);
+            await handleLongRest(selectedIds);
+          }}
+        />
+      )}
+      {isShortRestOpen && (
+        <ShortRestDialog
+          isOpen={isShortRestOpen}
+          characters={state.characters}
+          onClose={() => setIsShortRestOpen(false)}
+          onConfirm={async (results) => {
+            setIsShortRestOpen(false);
+            await handleShortRest(results);
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -39,6 +39,19 @@ export function ShortcutCheatSheet({ isOpen, onClose }: ShortcutCheatSheetProps)
           </div>
         </div>
 
+        {/* Prominent Command Palette shortcut callout */}
+        <div className="bg-[#fdfbf7] border border-[#c5b358]/40 rounded-xl p-3.5 mb-5 flex items-center justify-between text-stone-900 shadow-sm hover:border-[#c5b358] transition-all">
+          <div className="space-y-0.5">
+            <h4 className="text-xs font-bold font-serif uppercase tracking-wider text-[#2c2c26]">GM Command Palette</h4>
+            <p className="text-[11px] text-[#5a5a40]">Quick access to rests, rolls, conditions, and search.</p>
+          </div>
+          <div className="flex items-center gap-1 shrink-0">
+            <kbd className="font-mono text-xs font-bold bg-white border border-[#e5e1d8] shadow-sm px-2 py-0.5 rounded text-[#2a2a22] self-center">⌘</kbd>
+            <span className="text-stone-400 text-xs self-center">+</span>
+            <kbd className="font-mono text-xs font-bold bg-white border border-[#e5e1d8] shadow-sm px-2 py-0.5 rounded text-[#2a2a22] self-center">K</kbd>
+          </div>
+        </div>
+
         <div className="grid grid-cols-2 gap-x-8 gap-y-4">
           <div>
             <h4 className="font-serif font-bold text-sm text-[#c5b358] border-b border-[#f5f5f0] pb-1 uppercase tracking-wider mb-2">Combat</h4>

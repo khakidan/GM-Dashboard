@@ -175,16 +175,22 @@ export async function addCharacterDB(character: Partial<Character>) {
       castInt(character.tempAc, 0),
       castInt(character.deathSavesFails, 0),
       castInt(character.deathSavesSuccesses, 0),
+      sanitizeString(character.class || ''), // [19] class name
+      sanitizeString(character.hitDiceConfig || ''),
+      sanitizeString(character.hitDiceUsed || '{}'),
     ];
 
-    await appendSheetData('Characters!A:S', [rowData]);
+    await appendSheetData('Characters!A:V', [rowData]);
     return {
       ...character,
       id: finalId,
+      class: character.class ?? '',
       tempHpMax: character.tempHpMax ?? 0,
       tempAc: character.tempAc ?? 0,
       deathSavesFails: character.deathSavesFails ?? 0,
       deathSavesSuccesses: character.deathSavesSuccesses ?? 0,
+      hitDiceConfig: character.hitDiceConfig ?? '',
+      hitDiceUsed: character.hitDiceUsed ?? '{}',
     };
   } catch (err) {
     console.error('[DB] addCharacterDB failed:', err);
@@ -222,11 +228,14 @@ export async function updateCharacterDB(
       castInt(character.tempAc ?? fullState.tempAc, 0),
       castInt(character.deathSavesFails ?? fullState.deathSavesFails, 0),
       castInt(character.deathSavesSuccesses ?? fullState.deathSavesSuccesses, 0),
+      sanitizeString(character.class ?? fullState.class ?? ''), // [19] class
+      sanitizeString(character.hitDiceConfig ?? fullState.hitDiceConfig ?? ''),
+      sanitizeString(character.hitDiceUsed ?? fullState.hitDiceUsed ?? '{}'),
     ];
 
     const a1Row = charRowIdx + 1;
     // ✅ queueWrite replaces updateSheetData to prevent API quotas inside combat loops
-    queueWrite(`Characters!A${a1Row}:S${a1Row}`, [rowData]);
+    queueWrite(`Characters!A${a1Row}:V${a1Row}`, [rowData]);
   } catch (err) {
     console.error('[DB] updateCharacterDB failed:', err);
     throw err;

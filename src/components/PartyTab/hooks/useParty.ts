@@ -1,4 +1,5 @@
 import { effectiveMaxHp, applyLongRestToConditions } from '../../../lib/conditions';
+import { applyLongRestHitDiceRecovery } from '../../../lib/hitDice';
 import { useState } from 'react';
 import { useAppState, getSnapshot } from '../../../hooks/useAppState';
 import { Character } from '../../../types';
@@ -148,9 +149,7 @@ export function useParty() {
     }
   };
 
-  const handleLongRest = async () => {
-    if (!confirm("Are you sure you want the party to take a long rest? This will reset all Current HP to Max HP and clear all Temp HP.")) return;
-    
+  const handleLongRest = async (characterIds: string[]) => {
     setIsResting(true);
     setGlobalError(null);
     
@@ -158,35 +157,17 @@ export function useParty() {
     // 1. Update local state optimistically
     updateState(prev => {
       const updatedCharacters = prev.characters.map(c => {
-        if (!c.isActive) return c;
+        if (!characterIds.includes(c.id)) return c;
         
-        const { 
-          remaining, 
-          removed, 
-          exhaustionReduced,
-          newExhaustionLevel
-        } = applyLongRestToConditions(c.conditions || '');
+        const nextHitDiceUsed = applyLongRestHitDiceRecovery(c.hitDiceConfig || '', c.hitDiceUsed || '{}');
 
         const updates: Partial<Character> = {
           currentHp: effectiveMaxHp(c.maxHp, c.tempHpMax),
           tempHp: 0,
+          hitDiceUsed: nextHitDiceUsed,
+          deathSavesFails: 0,
+          deathSavesSuccesses: 0,
         };
-
-        if (remaining !== c.conditions) {
-          updates.conditions = remaining;
-        }
-
-        const hadHpHalvingExhaustion = [4, 5, 6].some(
-          n => (c.conditions || '').toLowerCase()
-            .includes(`exhaustion ${n}`)
-        );
-        const stillHasHpHalvingExhaustion = newExhaustionLevel 
-          !== null && newExhaustionLevel >= 4;
-
-        if (hadHpHalvingExhaustion && !stillHasHpHalvingExhaustion) {
-          updates.tempHpMax = 0;
-          updates.currentHp = c.maxHp;
-        }
 
         return { ...c, ...updates };
       });
@@ -194,7 +175,7 @@ export function useParty() {
       // Mirror the changes into any active PC combatants
       const updatedCombatants = (prev.combatState?.combatants || []).map(
         combatant => {
-          if (combatant.type !== 'pc' || !combatant.characterId) {
+          if (combatant.type !== 'pc' || !combatant.characterId || !characterIds.includes(combatant.characterId)) {
             return combatant;
           }
           const updatedChar = updatedCharacters.find(
@@ -207,8 +188,6 @@ export function useParty() {
             currentHp: updatedChar.currentHp,
             tempHp: updatedChar.tempHp ?? 0,
             maxHp: updatedChar.maxHp,
-            conditions: updatedChar.conditions || '',
-            conditionTimers: {},
           };
         }
       );
@@ -227,66 +206,25 @@ export function useParty() {
     });
 
     try {
-      // It's best to rely on dbOperations update loop for safety
-      // Use getSnapshot() to ensure we aren't using stale 'state' from the hook closure
-      const preRestActivePCs = previousState.characters.filter(c => c.isActive);
+      const selectedChars = previousState.characters.filter(c => characterIds.includes(c.id));
       
-      let anyExhaustionReduced = false;
-      const removedEffects: string[] = [];
-
-      const updatePromises = preRestActivePCs.map(char => {
-        const { 
-          remaining, 
-          removed, 
-          exhaustionReduced,
-          newExhaustionLevel
-        } = applyLongRestToConditions(char.conditions || '');
-
-        if (exhaustionReduced) {
-          anyExhaustionReduced = true;
-        }
-        if (removed.length > 0) {
-          removedEffects.push(...removed);
-        }
-
+      const updatePromises = selectedChars.map(char => {
+        const nextHitDiceUsed = applyLongRestHitDiceRecovery(char.hitDiceConfig || '', char.hitDiceUsed || '{}');
         const updates: Partial<Character> = {
           currentHp: effectiveMaxHp(char.maxHp, char.tempHpMax),
           tempHp: 0,
+          hitDiceUsed: nextHitDiceUsed,
+          deathSavesFails: 0,
+          deathSavesSuccesses: 0,
         };
-
-        if (remaining !== char.conditions) {
-          updates.conditions = remaining;
-        }
-
-        const hadHpHalvingExhaustion = [4, 5, 6].some(
-          n => (char.conditions || '').toLowerCase()
-            .includes(`exhaustion ${n}`)
-        );
-        const stillHasHpHalvingExhaustion = newExhaustionLevel 
-          !== null && newExhaustionLevel >= 4;
-
-        if (hadHpHalvingExhaustion && !stillHasHpHalvingExhaustion) {
-          updates.tempHpMax = 0;
-          updates.currentHp = char.maxHp;
-        }
 
         return updateCharacterDB(updates, char);
       });
 
       await Promise.all(updatePromises);
 
-      const lines: string[] = [];
-      if (anyExhaustionReduced) {
-        lines.push('Exhaustion reduced by 1 for affected characters.');
-      }
-      if (removedEffects.length > 0) {
-        lines.push(`Effects cleared: ${[...new Set(removedEffects)].join(', ')}.`);
-      }
-
       toast.success('Long rest complete', {
-        description: lines.length > 0 
-          ? lines.join(' ') 
-          : 'All HP restored. No conditions were changed.',
+        description: `Long rest applied to ${selectedChars.length} character(s).`,
         duration: 8000,
       });
 
@@ -304,6 +242,109 @@ export function useParty() {
       console.error('[DB Error]', error);
     } finally {
       setIsResting(false);
+    }
+  };
+
+  const handleShortRest = async (
+    results: Array<{
+      characterId: string;
+      hpToAdd: number;
+      newHitDiceUsed: string;
+    }>
+  ) => {
+    setGlobalError(null);
+    const previousState = state;
+
+    // 1. Update local state optimistically
+    updateState(prev => {
+      const updatedCharacters = prev.characters.map(c => {
+        const res = results.find(r => r.characterId === c.id);
+        if (!res) return c;
+
+        const newHp = Math.min(
+          c.currentHp + res.hpToAdd,
+          c.maxHp + (c.tempHp ?? 0)
+        );
+
+        return {
+          ...c,
+          currentHp: newHp,
+          hitDiceUsed: res.newHitDiceUsed,
+        };
+      });
+
+      // Mirror the changes into any active PC combatants
+      const updatedCombatants = (prev.combatState?.combatants || []).map(
+        combatant => {
+          if (combatant.type !== 'pc' || !combatant.characterId) {
+            return combatant;
+          }
+          const updatedChar = updatedCharacters.find(
+            c => c.id === combatant.characterId
+          );
+          if (!updatedChar) return combatant;
+
+          return {
+            ...combatant,
+            currentHp: updatedChar.currentHp,
+            tempHp: updatedChar.tempHp ?? 0,
+            maxHp: updatedChar.maxHp,
+          };
+        }
+      );
+
+      return {
+        ...prev,
+        characters: updatedCharacters,
+        combatState: {
+          activeEncounterId: prev.combatState?.activeEncounterId ?? null,
+          activeTurnId: prev.combatState?.activeTurnId ?? null,
+          round: prev.combatState?.round ?? 1,
+          ...prev.combatState,
+          combatants: updatedCombatants,
+        },
+      };
+    });
+
+    try {
+      const updatePromises = results.map(res => {
+        const char = previousState.characters.find(c => c.id === res.characterId);
+        if (!char) return Promise.resolve();
+
+        const newHp = Math.min(
+          char.currentHp + res.hpToAdd,
+          char.maxHp + (char.tempHp ?? 0)
+        );
+
+        const updates: Partial<Character> = {
+          currentHp: newHp,
+          hitDiceUsed: res.newHitDiceUsed,
+        };
+
+        return updateCharacterDB(updates, char);
+      });
+
+      await Promise.all(updatePromises);
+
+      toast.success('Short rest complete', {
+        description: `Short rest applied to ${results.length} character(s).`,
+      });
+
+    } catch (error) {
+      // 4a. Roll back to snapshot on failure
+      updateState(previousState);
+      
+      // 4b. Set local error state
+      setGlobalError('Failed to save short rest. Please try again.');
+
+      // 4c. Show error toast
+      toast.error('Failed to save changes. Please try again.', {
+        description: error instanceof Error ? error.message : 'Unknown error',
+        duration: 5000,
+      });
+      
+      // 4d. Log for debugging
+      console.error('[DB Error]', error);
     }
   };
 
@@ -397,7 +438,7 @@ export function useParty() {
 
     // 2. Check if we need to sync to sheets (if we updated data that lives in the sheet)
     const isSheetData = Object.keys(sanitizedUpdates).some(k => 
-      ['playerName', 'characterName', 'ac', 'maxHp', 'tempHp', 'currentHp', 'conditions', 'passivePerception', 'level', 'statusId', 'notes', 'resistances', 'immunities', 'vulnerabilities', 'tempAc'].includes(k)
+      ['playerName', 'characterName', 'class', 'ac', 'maxHp', 'tempHp', 'currentHp', 'conditions', 'passivePerception', 'level', 'statusId', 'notes', 'resistances', 'immunities', 'vulnerabilities', 'tempAc', 'hitDiceConfig', 'hitDiceUsed'].includes(k)
     );
 
     if (!isSheetData) return;
@@ -439,6 +480,7 @@ export function useParty() {
     toggleExpand,
     handleCreateCharacter,
     handleLongRest,
+    handleShortRest,
     handleDeletePlayer,
     handleUpdate,
     levelUpCharacter,

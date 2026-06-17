@@ -22,7 +22,7 @@ describe('sheetSchemas', () => {
       const result = CharacterRowSchema.safeParse(row);
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data).toEqual(['char-1', 'Alice', 'Thor', 15, 20, 5, 25, 'Blinded', 14, 3, 1, 'Notes', '', '', '', 0, 0, 0, 0]);
+        expect(result.data).toEqual(['char-1', 'Alice', 'Thor', 15, 20, 5, 25, 'Blinded', 14, 3, 1, 'Notes', '', '', '', 0, 0, 0, 0, '', '', '{}']);
       }
     });
 
@@ -51,6 +51,9 @@ describe('sheetSchemas', () => {
          0, // tempAc
          0, // deathSavesFails
          0, // deathSavesSuccesses
+         '', // class
+         '', // hitDiceConfig
+         '{}', // hitDiceUsed
         ]);
       }
     });
@@ -59,6 +62,22 @@ describe('sheetSchemas', () => {
       const row = ['char-3', 'Alice', '', 15];
       const result = CharacterRowSchema.safeParse(row);
       expect(result.success).toBe(false);
+    });
+
+    it('parses class at index 19 and defaults to empty string when absent', () => {
+      const rowWithClass = ['char-1', 'Alice', 'Thor', 15, 20, 5, 25, 'Blinded', 14, 3, 1, 'Notes', '', '', '', 0, 0, 0, 0, 'Wizard', '4d6', '{}'];
+      const parsedWithClass = CharacterRowSchema.safeParse(rowWithClass);
+      expect(parsedWithClass.success).toBe(true);
+      if (parsedWithClass.success) {
+        expect(parsedWithClass.data[19]).toBe('Wizard');
+      }
+
+      const rowWithoutClass = ['char-1', 'Alice', 'Thor', 15, 20, 5, 25, 'Blinded', 14, 3, 1, 'Notes', '', '', '', 0, 0, 0, 0];
+      const parsedWithoutClass = CharacterRowSchema.safeParse(rowWithoutClass);
+      expect(parsedWithoutClass.success).toBe(true);
+      if (parsedWithoutClass.success) {
+        expect(parsedWithoutClass.data[19]).toBe('');
+      }
     });
 
     it('fails validation on empty string id', () => {
@@ -126,6 +145,38 @@ describe('sheetSchemas', () => {
       if (result.success) {
         expect(result.data[3]).toBe(18); // AC is coerced to number
         expect(result.data[4]).toBe(40); // maxHp is coerced to number
+      }
+    });
+
+    it('CharacterRowSchema parses hitDiceConfig at index 20, defaults to empty string when absent', () => {
+      const row: SheetRow = ['char-1', 'Alice', 'Thor', 15, 20, 5, 25, 'Blinded', 14, 3, 1, 'Notes', '', '', '', 0, 0, 0, 0, '', '4d12+3d10'];
+      const result = CharacterRowSchema.safeParse(row);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data[20]).toBe('4d12+3d10');
+      }
+
+      const rowAbsent: SheetRow = ['char-1', 'Alice', 'Thor'];
+      const resultAbsent = CharacterRowSchema.safeParse(rowAbsent);
+      expect(resultAbsent.success).toBe(true);
+      if (resultAbsent.success) {
+        expect(resultAbsent.data[20]).toBe('');
+      }
+    });
+
+    it('CharacterRowSchema parses hitDiceUsed at index 21, defaults to {} when absent', () => {
+      const row: SheetRow = ['char-1', 'Alice', 'Thor', 15, 20, 5, 25, 'Blinded', 14, 3, 1, 'Notes', '', '', '', 0, 0, 0, 0, '', '', '{"d12":1}'];
+      const result = CharacterRowSchema.safeParse(row);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data[21]).toBe('{"d12":1}');
+      }
+
+      const rowAbsent: SheetRow = ['char-1', 'Alice', 'Thor'];
+      const resultAbsent = CharacterRowSchema.safeParse(rowAbsent);
+      expect(resultAbsent.success).toBe(true);
+      if (resultAbsent.success) {
+        expect(resultAbsent.data[21]).toBe('{}');
       }
     });
   });

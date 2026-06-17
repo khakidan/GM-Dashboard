@@ -190,7 +190,7 @@ describe('addCharacterDB logic', () => {
     });
 
     expect(result.id).toBe('pc-1');
-    expect(sheetsService.appendSheetData).toHaveBeenCalledWith('Characters!A:S', [[
+    expect(sheetsService.appendSheetData).toHaveBeenCalledWith('Characters!A:V', [[
       'pc-1',
       'Alice',      // trimmed playerName
       'Thorn',      // characterName
@@ -210,6 +210,9 @@ describe('addCharacterDB logic', () => {
       0,            // tempAc
       0,            // deathSavesFails
       0,            // deathSavesSuccesses
+      '',           // unused placeholder
+      '',           // hitDiceConfig default
+      '{}',         // hitDiceUsed default
     ]]);
   });
 
@@ -582,6 +585,9 @@ describe('updateCharacterDB', () => {
       statusName: 'Active',
       notes: 'Notes',
       isActive: true,
+      class: '',
+      hitDiceConfig: '',
+      hitDiceUsed: '{}',
     };
 
     await updateCharacterDB(
@@ -598,7 +604,7 @@ describe('updateCharacterDB', () => {
       characterFullState
     );
 
-    expect(queueWrite).toHaveBeenCalledWith('Characters!A4:S4', [[
+    expect(queueWrite).toHaveBeenCalledWith('Characters!A4:V4', [[
       'pc-2',
       'Bob',
       'Grunk',
@@ -618,6 +624,9 @@ describe('updateCharacterDB', () => {
       0,
       0,
       0,
+      '',           // unused placeholder
+      '',           // hitDiceConfig default
+      '{}',         // hitDiceUsed default
     ]]);
   });
 

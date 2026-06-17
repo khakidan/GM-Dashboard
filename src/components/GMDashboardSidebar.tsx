@@ -9,6 +9,7 @@ import {
   X,
   Skull,
   Settings,
+  Search,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { hasToken } from '../services/googleAuth';
@@ -80,6 +81,26 @@ export function GMDashboardSidebar({
       </div>
 
       <nav className="flex-1 px-4 space-y-2 overflow-y-auto">
+        <button
+          id="sidebar-search-btn"
+          onClick={() => {
+            window.dispatchEvent(new CustomEvent('open-command-palette'));
+          }}
+          className={cn(
+            'w-full text-left p-3 flex items-center transition-all rounded-lg cursor-pointer hover:bg-[#3f3f37] active:scale-95 text-[#c5b358]',
+            isOpen ? 'gap-3 px-4 mb-2 bg-[#2a2a22] border border-[#3f3f37]' : 'justify-center'
+          )}
+          title="Command Palette (⌘K)"
+        >
+          <Search className="w-5 h-5 shrink-0" />
+          {isOpen && (
+            <div className="flex items-center justify-between flex-1">
+              <span className="font-bold font-sans">Search</span>
+              <kbd className="text-[9px] bg-[#3f3f37] text-white/70 px-1.5 py-0.5 rounded border border-[#5a5a40] font-mono">⌘K</kbd>
+            </div>
+          )}
+        </button>
+
         <button
           onClick={() => {
             onTabChange('party');

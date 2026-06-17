@@ -112,19 +112,15 @@ describe('useParty', () => {
     expect(toast.success).toHaveBeenCalledWith(expect.stringContaining('removed from roster'));
   });
 
-  describe('handleLongRest combatState mirroring', () => {
-    it('correctly mirrors state updates to active PC combatants and leaves NPCs untouched', async () => {
-      const mockActiveChar1 = { id: 'char-1', characterName: 'Maeve', isActive: true, maxHp: 100, currentHp: 50, conditions: 'exhaustion 4, concentrating', tempHpMax: 0, tempHp: 0 };
-      const mockActiveChar2 = { id: 'char-2', characterName: 'Drogar', isActive: true, maxHp: 160, currentHp: 80, conditions: 'poisoned', tempHpMax: 0, tempHp: 0 };
-      const mockInactiveChar = { id: 'char-3', characterName: 'Ylva', isActive: false, maxHp: 90, currentHp: 10, conditions: 'blinded', tempHpMax: 0, tempHp: 0 };
-
-      const mockPcCombatant1 = { id: 'combatant-1', type: 'pc', characterId: 'char-1', name: 'Maeve', maxHp: 100, currentHp: 50, tempHp: 0, conditions: 'exhaustion 4, concentrating', conditionTimers: { 'concentrating': 1 } };
-      const mockNpcCombatant = { id: 'combatant-npc', type: 'npc', npcId: 'npc-1', name: 'Orc', maxHp: 30, currentHp: 30, tempHp: 0, conditions: 'stunned', conditionTimers: {} };
+  describe('handleLongRest basic expectations', () => {
+    it('handleLongRest with [id1] applies long rest only to character id1, not to id2', async () => {
+      const mockActiveChar1 = { id: 'char-1', characterName: 'Maeve', isActive: true, maxHp: 100, currentHp: 50, conditions: 'exhaustion 4', tempHpMax: 0, tempHp: 0, hitDiceConfig: '4d12', hitDiceUsed: '{"d12":2}' };
+      const mockActiveChar2 = { id: 'char-2', characterName: 'Drogar', isActive: true, maxHp: 160, currentHp: 80, conditions: '', tempHpMax: 0, tempHp: 0, hitDiceConfig: '4d10', hitDiceUsed: '{"d10":2}' };
 
       const mockState = {
-        characters: [mockActiveChar1, mockActiveChar2, mockInactiveChar],
+        characters: [mockActiveChar1, mockActiveChar2],
         combatState: {
-          combatants: [mockPcCombatant1, mockNpcCombatant]
+          combatants: []
         }
       };
 
@@ -138,42 +134,59 @@ describe('useParty', () => {
 
       const { result } = renderHook(() => useParty());
       await act(async () => {
-        await result.current.handleLongRest();
+        await result.current.handleLongRest(['char-1']);
       });
 
       expect(updateStateSpy).toHaveBeenCalled();
       const stateUpdater = updateStateSpy.mock.calls[0][0];
       const nextState = stateUpdater(mockState);
 
-      // 1. Check characters are updated
       const updatedMaeve = nextState.characters.find((c: any) => c.id === 'char-1');
       const updatedDrogar = nextState.characters.find((c: any) => c.id === 'char-2');
-      const updatedYlva = nextState.characters.find((c: any) => c.id === 'char-3');
 
-      // Maeve: exhaustion 4 -> exhaustion 3, concentrating -> removed
-      expect(updatedMaeve.conditions).toBe('exhaustion 3');
+      // Maeve is updated
       expect(updatedMaeve.currentHp).toBe(100);
+      expect(updatedMaeve.tempHp).toBe(0);
+      // Drogar is NOT updated because his ID was not passed
+      expect(updatedDrogar.currentHp).toBe(80);
+    });
 
-      // Drogar: poisoned (persists under long rest)
-      expect(updatedDrogar.conditions).toBe('poisoned');
-      expect(updatedDrogar.currentHp).toBe(160);
+    it('handleLongRest restores currentHp to maxHp and calls applyLongRestHitDiceRecovery for selected characters', async () => {
+      const mockActiveChar1 = { id: 'char-1', characterName: 'Maeve', isActive: true, maxHp: 100, currentHp: 50, conditions: 'exhaustion 4', tempHpMax: 0, tempHp: 0, hitDiceConfig: '4d12', hitDiceUsed: '{"d12":2}' };
 
-      // Inactive character (Ylva) not updated by long rest
-      expect(updatedYlva.currentHp).toBe(10);
-      expect(updatedYlva.conditions).toBe('blinded');
+      const mockState = {
+        characters: [mockActiveChar1],
+        combatState: {
+          combatants: []
+        }
+      };
 
-      // 2. Check combatants mirroring
-      const updatedMaeveCombatant = nextState.combatState.combatants.find((c: any) => c.id === 'combatant-1');
-      const updatedNpcCombatantRec = nextState.combatState.combatants.find((c: any) => c.id === 'combatant-npc');
+      const updateStateSpy = vi.fn();
+      vi.mocked(useAppState).mockReturnValue({
+        state: mockState as any,
+        updateState: updateStateSpy,
+        getSnapshot: vi.fn(),
+      } as any);
+      vi.mocked(getSnapshot).mockReturnValue(mockState as any);
 
-      // Maeve PC combatant must mirror the changes
-      expect(updatedMaeveCombatant.conditions).toBe('exhaustion 3'); // exhaustion 4 -> 3
-      expect(updatedMaeveCombatant.currentHp).toBe(100);
-      expect(updatedMaeveCombatant.conditionTimers).toEqual({}); // reset/cleared
+      const { result } = renderHook(() => useParty());
+      await act(async () => {
+        await result.current.handleLongRest(['char-1']);
+      });
 
-      // NPC combatant must remain completely untouched
-      expect(updatedNpcCombatantRec.conditions).toBe('stunned');
-      expect(updatedNpcCombatantRec.currentHp).toBe(30);
+      expect(updateStateSpy).toHaveBeenCalled();
+      const stateUpdater = updateStateSpy.mock.calls[0][0];
+      const nextState = stateUpdater(mockState);
+
+      const updatedMaeve = nextState.characters.find((c: any) => c.id === 'char-1');
+      expect(updatedMaeve.currentHp).toBe(100);
+      // d12 pool of 4, recover ceil(4/2) = 2, so 2 - 2 = 0 used
+      expect(updatedMaeve.hitDiceUsed).toBe('{"d12":0}');
+
+      expect(updateCharacterDB).toHaveBeenCalledWith(expect.objectContaining({
+        currentHp: 100,
+        hitDiceUsed: '{"d12":0}'
+      }), mockActiveChar1);
     });
   });
 
@@ -197,6 +210,9 @@ describe('useParty', () => {
         resistances: '',
         immunities: '',
         vulnerabilities: '',
+        class: 'Rogue',
+        hitDiceConfig: '',
+        hitDiceUsed: '{}',
       };
       const mockSavedChar = { ...mockNewCharData, id: 'char-real-id', sheetRowIndex: 4 };
 
@@ -256,6 +272,9 @@ describe('useParty', () => {
         resistances: '',
         immunities: '',
         vulnerabilities: '',
+        class: 'Rogue',
+        hitDiceConfig: '',
+        hitDiceUsed: '{}',
       };
 
       const updateStateSpy = vi.fn();
@@ -385,15 +404,38 @@ describe('useParty', () => {
 
       expect(updateCharacterDB).toHaveBeenCalledWith({ tempAc: 2 }, expect.objectContaining({ id: 'char-1' }));
     });
+
+    it('calls updateCharacterDB with the new class when handleUpdate is called with class', async () => {
+      const mockChar = { id: 'char-1', characterName: 'Maeve', isActive: true, class: 'Fighter' };
+      const mockState = {
+        characters: [mockChar],
+        combatState: { combatants: [] }
+      };
+
+      const updateStateSpy = vi.fn();
+      vi.mocked(useAppState).mockReturnValue({
+        state: mockState as any,
+        updateState: updateStateSpy,
+        getSnapshot: vi.fn(),
+      } as any);
+      vi.mocked(getSnapshot).mockReturnValue(mockState as any);
+      vi.mocked(updateCharacterDB).mockResolvedValue(undefined as any);
+
+      const { result } = renderHook(() => useParty());
+      await act(async () => {
+        await result.current.handleUpdate('char-1', { class: 'Barbarian / Fighter' });
+      });
+
+      expect(updateCharacterDB).toHaveBeenCalledWith({ class: 'Barbarian / Fighter' }, expect.objectContaining({ id: 'char-1' }));
+    });
   });
 
-  describe('handleLongRest basic updates', () => {
-    it('restores currentHp to maxHp, sets tempHp to 0, skips inactive characters, and calls updateCharacterDB for each active character', async () => {
-      const mockActiveChar = { id: 'char-1', characterName: 'Maeve', isActive: true, maxHp: 50, currentHp: 20, tempHp: 10, tempHpMax: 0, conditions: '' };
-      const mockInactiveChar = { id: 'char-2', characterName: 'Drogar', isActive: false, maxHp: 60, currentHp: 30, tempHp: 5, tempHpMax: 0, conditions: '' };
+  describe('handleShortRest basic expectations', () => {
+    it('handleShortRest adds hpToAdd to currentHp without exceeding maxHp and updates hitDiceUsed', async () => {
+      const mockActiveChar = { id: 'char-1', characterName: 'Maeve', isActive: true, maxHp: 50, currentHp: 20, tempHp: 5, hitDiceConfig: '4d8', hitDiceUsed: '{"d8":1}' };
       
       const mockState = {
-        characters: [mockActiveChar, mockInactiveChar],
+        characters: [mockActiveChar],
         combatState: { combatants: [] }
       };
 
@@ -409,7 +451,9 @@ describe('useParty', () => {
 
       const { result } = renderHook(() => useParty());
       await act(async () => {
-        await result.current.handleLongRest();
+        await result.current.handleShortRest([
+          { characterId: 'char-1', hpToAdd: 40, newHitDiceUsed: '{"d8":2}' }
+        ]);
       });
 
       // Verify the state updater function restores and maps correctly
@@ -418,18 +462,43 @@ describe('useParty', () => {
       const nextState = stateUpdater(mockState);
       
       const updatedActive = nextState.characters.find((c: any) => c.id === 'char-1');
-      const updatedInactive = nextState.characters.find((c: any) => c.id === 'char-2');
 
-      expect(updatedActive.currentHp).toBe(50);
-      expect(updatedActive.tempHp).toBe(0);
+      // Max HP is 50, temp HP is 5. Max allowed HP is maxHp + tempHp = 55. But 20 + 40 = 60. So capped at 55.
+      expect(updatedActive.currentHp).toBe(55);
+      expect(updatedActive.hitDiceUsed).toBe('{"d8":2}');
+
+      // Verify updateCharacterDB called
+      expect(updateCharacterDB).toHaveBeenCalledWith({ currentHp: 55, hitDiceUsed: '{"d8":2}' }, mockActiveChar);
+    });
+
+    it('handleShortRest rolls back on DB failure', async () => {
+      const mockActiveChar = { id: 'char-1', characterName: 'Maeve', isActive: true, maxHp: 50, currentHp: 20, tempHp: 0, hitDiceConfig: '4d12', hitDiceUsed: '{"d12":1}' };
       
-      // Inactive should remain unchanged in state mapping
-      expect(updatedInactive.currentHp).toBe(30);
-      expect(updatedInactive.tempHp).toBe(5);
+      const mockState = {
+        characters: [mockActiveChar],
+        combatState: { combatants: [] }
+      };
 
-      // Verify updateCharacterDB called for active character but NOT inactive
-      expect(updateCharacterDB).toHaveBeenCalledWith({ currentHp: 50, tempHp: 0 }, mockActiveChar);
-      expect(updateCharacterDB).not.toHaveBeenCalledWith(expect.any(Object), mockInactiveChar);
+      const updateStateSpy = vi.fn();
+      vi.mocked(useAppState).mockReturnValue({
+        state: mockState as any,
+        updateState: updateStateSpy,
+        getSnapshot: vi.fn(),
+      } as any);
+      vi.mocked(getSnapshot).mockReturnValue(mockState as any);
+
+      vi.mocked(updateCharacterDB).mockRejectedValue(new Error('DB Error'));
+
+      const { result } = renderHook(() => useParty());
+      await act(async () => {
+        await result.current.handleShortRest([
+          { characterId: 'char-1', hpToAdd: 10, newHitDiceUsed: '{"d12":2}' }
+        ]);
+      });
+
+      // Verification of rollback
+      expect(updateStateSpy).toHaveBeenCalledWith(mockState);
+      expect(result.current.globalError).toBe('Failed to save short rest. Please try again.');
     });
   });
 
@@ -535,6 +604,100 @@ describe('useParty', () => {
         result.current.toggleExpand('id-1');
       });
       expect(result.current.expandedIds.has('id-1')).toBe(false);
+    });
+  });
+
+  describe('hitDice specific DB write path tests', () => {
+    it('calls updateCharacterDB with the new hitDiceConfig when handleUpdate is called with hitDiceConfig', async () => {
+      const mockChar = { id: 'char-1', characterName: 'Maeve', isActive: true, maxHp: 50, currentHp: 20, hitDiceConfig: '4d12', hitDiceUsed: '{"d12":1}' };
+      const mockState = {
+        characters: [mockChar],
+        combatState: { combatants: [] }
+      };
+
+      const updateStateSpy = vi.fn();
+      vi.mocked(useAppState).mockReturnValue({
+        state: mockState as any,
+        updateState: updateStateSpy,
+        getSnapshot: vi.fn(),
+      } as any);
+      vi.mocked(getSnapshot).mockReturnValue(mockState as any);
+      vi.mocked(updateCharacterDB).mockResolvedValue(undefined as any);
+
+      const { result } = renderHook(() => useParty());
+      await act(async () => {
+        await result.current.handleUpdate('char-1', { hitDiceConfig: '5d12' });
+      });
+
+      expect(updateCharacterDB).toHaveBeenCalledWith({ hitDiceConfig: '5d12' }, expect.objectContaining({ id: 'char-1' }));
+    });
+
+    it('calls updateCharacterDB with the new hitDiceUsed when handleShortRest completes', async () => {
+      const mockChar = { id: 'char-1', characterName: 'Maeve', isActive: true, maxHp: 50, currentHp: 20, hitDiceConfig: '4d12', hitDiceUsed: '{"d12":1}' };
+      const mockState = {
+        characters: [mockChar],
+        combatState: { combatants: [] }
+      };
+
+      const updateStateSpy = vi.fn();
+      vi.mocked(useAppState).mockReturnValue({
+        state: mockState as any,
+        updateState: updateStateSpy,
+        getSnapshot: vi.fn(),
+      } as any);
+      vi.mocked(getSnapshot).mockReturnValue(mockState as any);
+      vi.mocked(updateCharacterDB).mockResolvedValue(undefined as any);
+
+      const { result } = renderHook(() => useParty());
+      await act(async () => {
+        await result.current.handleShortRest([
+          { characterId: 'char-1', hpToAdd: 15, newHitDiceUsed: '{"d12":2}' }
+        ]);
+      });
+
+      expect(updateCharacterDB).toHaveBeenCalledWith({ currentHp: 35, hitDiceUsed: '{"d12":2}' }, mockChar);
+    });
+
+    it('calls updateCharacterDB with partially recovered hitDiceUsed for 7d8 config (7 spent -> 3 spent) when handleLongRest completes', async () => {
+      const mockChar = {
+        id: 'char-7d8',
+        characterName: 'Caleb',
+        isActive: true,
+        maxHp: 40,
+        currentHp: 10,
+        hitDiceConfig: '7d8',
+        hitDiceUsed: '{"d8":7}',
+        tempHpMax: 0,
+        tempHp: 0,
+        deathSavesFails: 0,
+        deathSavesSuccesses: 0
+      };
+      const mockState = {
+        characters: [mockChar],
+        combatState: { combatants: [] }
+      };
+
+      const updateStateSpy = vi.fn();
+      vi.mocked(useAppState).mockReturnValue({
+        state: mockState as any,
+        updateState: updateStateSpy,
+        getSnapshot: vi.fn(),
+      } as any);
+      vi.mocked(getSnapshot).mockReturnValue(mockState as any);
+      vi.mocked(updateCharacterDB).mockResolvedValue(undefined as any);
+
+      const { result } = renderHook(() => useParty());
+      await act(async () => {
+        await result.current.handleLongRest(['char-7d8']);
+      });
+
+      expect(updateCharacterDB).toHaveBeenCalledWith({
+        currentHp: 40,
+        tempHp: 0,
+        hitDiceUsed: '{"d8":3}',
+        deathSavesFails: 0,
+        deathSavesSuccesses: 0
+      }, mockChar);
     });
   });
 });

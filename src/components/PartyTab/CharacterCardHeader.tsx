@@ -64,13 +64,6 @@ export const CharacterCardHeader: React.FC<CharacterCardHeaderProps> = ({
             placeholder="Player"
             disabled={isSyncing}
           />
-
-          {/* Class Badge (renders if className is provided and acts as class name) */}
-          {className && !className.includes(' ') && (
-            <span className="hidden md:inline-flex items-center px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-[#c5b358]/10 text-[#5a5a40] border border-[#c5b358]/20 rounded-md shrink-0">
-              {className}
-            </span>
-          )}
         </div>
 
         <div className="flex items-center gap-4">

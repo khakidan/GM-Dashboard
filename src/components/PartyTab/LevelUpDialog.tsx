@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Character } from '../../types';
 import { X, ArrowRight, CheckSquare, Square } from 'lucide-react';
 import { IrvMultiSelect } from '../ui/IrvMultiSelect';
+import { parseClassString, getHitDieForClass, addHitDieToConfig } from '../../lib/hitDice';
 
 export interface LevelUpDialogProps {
   character: Character;
@@ -16,6 +17,18 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
   onClose,
   onConfirm,
 }) => {
+  const classesList = parseClassString(character.class || '');
+  const classLevels = classesList.map((cls, i) => {
+    const perClass = Math.floor(character.level / classesList.length);
+    const remainder = character.level % classesList.length;
+    const currentClsLevel = perClass + (i < remainder ? 1 : 0);
+    return {
+      className: cls,
+      currentLevel: currentClsLevel,
+      nextLevel: currentClsLevel + 1,
+    };
+  });
+
   // Section A checklist states (visual only)
   const [chkHp, setChkHp] = useState(false);
   const [chkAc, setChkAc] = useState(false);
@@ -33,6 +46,11 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
   const [newResistances, setNewResistances] = useState<string>(character.resistances || '');
   const [newImmunities, setNewImmunities] = useState<string>(character.immunities || '');
   const [newVulnerabilities, setNewVulnerabilities] = useState<string>(character.vulnerabilities || '');
+
+  // Multiclass / Class level increase states
+  const [levelUpOption, setLevelUpOption] = useState<string>(''); // Class name or 'newClass'
+  const [newClassName, setNewClassName] = useState('');
+  const [newClassHitDie, setNewClassHitDie] = useState<number>(8);
 
   // Keep states updated if the input character prop changes while open
   useEffect(() => {
@@ -52,6 +70,16 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
       setChkPerception(false);
       setChkResistances(false);
       setChkOther(false);
+
+      // Initialize class states
+      const classesList = parseClassString(character.class || '');
+      if (classesList.length > 0) {
+        setLevelUpOption(classesList[0]);
+      } else {
+        setLevelUpOption('newClass');
+      }
+      setNewClassName('');
+      setNewClassHitDie(8);
     }
   }, [character, isOpen]);
 
@@ -61,9 +89,24 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
   const hpIncrease = Math.max(0, newMaxHp - character.maxHp);
 
   const handleConfirm = () => {
+    const finalClass = levelUpOption === 'newClass'
+      ? (character.class ? `${character.class}/${newClassName.trim()}` : newClassName.trim())
+      : (character.class || '');
+
+    const hasClassUpdate = levelUpOption !== 'newClass' || newClassName.trim() !== '';
+
     const updates: Partial<Character> = {
       level: Number(newLevel),
     };
+
+    if (hasClassUpdate) {
+      const hitDieSize = levelUpOption === 'newClass'
+        ? newClassHitDie
+        : (getHitDieForClass(levelUpOption) || 8);
+      const newHitDiceConfig = addHitDieToConfig(character.hitDiceConfig || '', hitDieSize, 1);
+      updates.class = finalClass;
+      updates.hitDiceConfig = newHitDiceConfig;
+    }
 
     if (Number(newMaxHp) !== character.maxHp) {
       updates.maxHp = Number(newMaxHp);
@@ -102,6 +145,8 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
 
     onConfirm(updates);
   };
+
+  const isConfirmDisabled = levelUpOption === 'newClass' && !!character.class && !newClassName.trim();
 
   return (
     <div
@@ -227,6 +272,76 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
             <h3 className="text-xs font-bold uppercase tracking-widest text-[#2c2c26] border-b border-[#e5e1d8] pb-1.5">
               Section B: Updated Values
             </h3>
+
+            {/* Class Level Up Selection */}
+            <div className="bg-[#fcfbf9] border border-[#e5e1d8] rounded-2xl p-4 space-y-3">
+              <span className="block text-[9px] font-bold uppercase tracking-wider text-[#5a5a40]">
+                Class Level Up / Multiclass
+              </span>
+              
+              <div className="space-y-2">
+                {classLevels.map((cLevel) => (
+                  <label key={cLevel.className} className="flex items-center gap-2.5 text-xs text-[#5a5a40] select-none cursor-pointer hover:text-[#2c2c26]">
+                    <input
+                      type="radio"
+                      name="level-up-class"
+                      checked={levelUpOption === cLevel.className}
+                      onChange={() => setLevelUpOption(cLevel.className)}
+                      className="w-4 h-4 accent-[#c5b358]"
+                    />
+                    <span>
+                      {cLevel.className} <span className="text-gray-400">(Level {cLevel.currentLevel} → {cLevel.nextLevel})</span>
+                    </span>
+                  </label>
+                ))}
+
+                <label className="flex items-center gap-2.5 text-xs text-[#5a5a40] select-none cursor-pointer hover:text-[#2c2c26]">
+                  <input
+                    id="multiclass-radio-btn"
+                    type="radio"
+                    name="level-up-class"
+                    checked={levelUpOption === 'newClass'}
+                    onChange={() => setLevelUpOption('newClass')}
+                    className="w-4 h-4 accent-[#c5b358]"
+                  />
+                  <span>Multiclassing into a new class</span>
+                </label>
+              </div>
+
+              {levelUpOption === 'newClass' && (
+                <div className="grid grid-cols-2 gap-3 pt-2 pl-6 border-l-2 border-[#c5b358]/30">
+                  <div>
+                    <label htmlFor="new-class-name" className="block text-[9px] font-bold uppercase tracking-wider text-[#5a5a40] mb-1">
+                      New Class Name
+                    </label>
+                    <input
+                      id="new-class-name"
+                      type="text"
+                      placeholder="e.g. Fighter"
+                      value={newClassName}
+                      onChange={e => setNewClassName(e.target.value)}
+                      className="w-full bg-[#faf9f6]/90 border border-[#e5e1d8] rounded-xl px-3 py-1.5 text-xs outline-none focus:bg-white focus:border-[#c5b358]"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="new-class-hitdie" className="block text-[9px] font-bold uppercase tracking-wider text-[#5a5a40] mb-1">
+                      Hit Die
+                    </label>
+                    <select
+                      id="new-class-hitdie"
+                      value={newClassHitDie}
+                      onChange={e => setNewClassHitDie(parseInt(e.target.value, 10))}
+                      className="w-full bg-[#faf9f6] border border-[#e5e1d8] rounded-xl px-3 py-1.5 text-xs outline-none focus:bg-white focus:border-[#c5b358]"
+                    >
+                      <option value={6}>d6</option>
+                      <option value={8}>d8</option>
+                      <option value={10}>d10</option>
+                      <option value={12}>d12</option>
+                    </select>
+                  </div>
+                </div>
+              )}
+            </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -366,7 +481,8 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
           <button
             id="confirm-level-up-btn"
             onClick={handleConfirm}
-            className="px-5 py-2 bg-[#c5b358] hover:bg-[#b09e4b] text-white font-bold rounded-xl text-xs uppercase tracking-widest transition-all flex items-center gap-1.5 shadow-md hover:shadow-lg cursor-pointer"
+            disabled={isConfirmDisabled}
+            className="px-5 py-2 bg-[#c5b358] hover:bg-[#b09e4b] disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl text-xs uppercase tracking-widest transition-all flex items-center gap-1.5 shadow-md hover:shadow-lg cursor-pointer"
           >
             Confirm Level Up <ArrowRight className="w-3.5 h-3.5" />
           </button>
