@@ -203,7 +203,7 @@ describe('SettingsModal / SettingsPage Test Button', () => {
     const nextState = updateFn(dummyState);
     expect(nextState.combatState.damageEvent).not.toBeNull();
     expect(nextState.combatState.damageEvent).toBeDefined();
-    expect(nextState.combatState.damageEvent.combatantName).toBe('Thorin Ironforge');
+    expect(nextState.combatState.damageEvent.combatantNames).toEqual(['Thorin Ironforge']);
     expect(nextState.combatState.damageEvent.damageAmount).toBe(47);
   });
 
@@ -286,7 +286,7 @@ describe('SettingsModal / SettingsPage Test Button', () => {
     const nextState = updateFn(dummyState);
     expect(nextState.combatState.healEvent).not.toBeNull();
     expect(nextState.combatState.healEvent).toBeDefined();
-    expect(nextState.combatState.healEvent.combatantName).toBe('Seraphina Brightwell');
+    expect(nextState.combatState.healEvent.combatantNames).toEqual(['Seraphina Brightwell']);
     expect(nextState.combatState.healEvent.healAmount).toBe(34);
   });
 

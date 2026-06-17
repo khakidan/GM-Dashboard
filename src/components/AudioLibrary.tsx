@@ -134,7 +134,13 @@ export function AudioLibrary({ storedFiles, addFiles, removeFile }: AudioLibrary
       const audioFiles: File[] = [];
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        if (file.type.match('audio/.*') || file.name.endsWith('.mp3') || file.name.endsWith('.wav')) {
+        if (
+          file.type.match('audio/.*') ||
+          file.name.endsWith('.mp3') ||
+          file.name.endsWith('.wav') ||
+          file.name.endsWith('.ogg') ||
+          file.name.endsWith('.m4a')
+        ) {
           audioFiles.push(file);
         }
       }
@@ -211,7 +217,7 @@ export function AudioLibrary({ storedFiles, addFiles, removeFile }: AudioLibrary
             <input
               type="file"
               ref={ambientInputRef}
-              accept="audio/mp3,audio/mpeg,audio/wav"
+              accept="audio/mpeg,audio/mp3,audio/wav,audio/ogg,audio/ogg;codecs=vorbis,audio/mp4,audio/x-m4a,.mp3,.wav,.ogg,.m4a"
               onChange={(e) => handleFileInputChange(e, 'ambient')}
               className="hidden"
               multiple
@@ -221,7 +227,7 @@ export function AudioLibrary({ storedFiles, addFiles, removeFile }: AudioLibrary
               + Add Files
             </span>
             <span className="text-[9px] text-stone-400 mt-0.5 font-sans">
-              MP3 / WAV files (.mp3, .wav)
+               MP3 · WAV · OGG · M4A
             </span>
           </div>
 
@@ -303,7 +309,7 @@ export function AudioLibrary({ storedFiles, addFiles, removeFile }: AudioLibrary
             <input
               type="file"
               ref={effectInputRef}
-              accept="audio/mp3,audio/mpeg,audio/wav"
+              accept="audio/mpeg,audio/mp3,audio/wav,audio/ogg,audio/ogg;codecs=vorbis,audio/mp4,audio/x-m4a,.mp3,.wav,.ogg,.m4a"
               onChange={(e) => handleFileInputChange(e, 'effect')}
               className="hidden"
               multiple
@@ -313,7 +319,7 @@ export function AudioLibrary({ storedFiles, addFiles, removeFile }: AudioLibrary
               + Add Files
             </span>
             <span className="text-[9px] text-stone-400 mt-0.5 font-sans">
-              MP3 / WAV files (.mp3, .wav)
+              MP3 · WAV · OGG · M4A
             </span>
           </div>
 

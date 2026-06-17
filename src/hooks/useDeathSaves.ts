@@ -2,7 +2,6 @@ import { useCallback } from 'react';
 import { useAppState, getSnapshot } from './useAppState';
 import { useDeathEvent, useUnconsciousEvent } from './useOverlayEvents';
 import { updateDeathSavesDB, updateCharacterDB } from '../services/dbOperations';
-import { playDeathSaveFailSound, playDeathSaveSuccessSound } from '../lib/audioEngine';
 import { toast } from 'sonner';
 import { Combatant } from '../types';
 
@@ -124,10 +123,8 @@ export function useDeathSaves() {
 
       if (result === 'success') {
         successes += (isCritical ? 2 : 1);
-        playDeathSaveSuccessSound();
       } else {
         fails += (isCritical ? 2 : 1);
-        playDeathSaveFailSound();
       }
 
       // Optimistic update

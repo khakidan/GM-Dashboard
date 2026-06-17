@@ -39,8 +39,17 @@ vi.mock('../../context/ThemeContext', () => ({
 
 // Mock useAppState
 const mockUpdateState = vi.fn();
+const mockState = {
+  campaignName: 'Test Campaign',
+  characters: [{ id: '1', name: 'Legend' }],
+  npcs: [],
+  encounters: [],
+  encounterCombatants: []
+};
+
 vi.mock('../useAppState', () => ({
   useAppState: () => ({
+    state: mockState,
     updateState: mockUpdateState,
   }),
 }));
@@ -74,38 +83,6 @@ describe('useSettings', () => {
     cleanup();
   });
 
-  it('isSoundEnabled returns true by default', () => {
-    const { result } = renderHook(() => useSettings(mockProps));
-    expect(result.current.isSoundEnabled).toBe(true);
-  });
-
-  it('isSoundEnabled returns false when STORAGE_KEYS.soundsEnabled is "false" in localStorage', () => {
-    localStorage.setItem(STORAGE_KEYS.soundsEnabled, 'false');
-    const { result } = renderHook(() => useSettings(mockProps));
-    expect(result.current.isSoundEnabled).toBe(false);
-  });
-
-  it('toggleSound updates localStorage and flips the isSoundEnabled value', () => {
-    const { result } = renderHook(() => useSettings(mockProps));
-    expect(result.current.isSoundEnabled).toBe(true);
-
-    act(() => {
-      result.current.toggleSound();
-    });
-
-    expect(result.current.isSoundEnabled).toBe(false);
-    expect(localStorage.getItem(STORAGE_KEYS.soundsEnabled)).toBe('false');
-    expect(toast.success).toHaveBeenCalledWith('Sound effects disabled');
-
-    act(() => {
-      result.current.toggleSound();
-    });
-
-    expect(result.current.isSoundEnabled).toBe(true);
-    expect(localStorage.getItem(STORAGE_KEYS.soundsEnabled)).toBe('true');
-    expect(toast.success).toHaveBeenCalledWith('Sound effects enabled');
-  });
-
   it('handleSignOut clears auth tokens and resets relevant state', () => {
     const { result } = renderHook(() => useSettings(mockProps));
 
@@ -117,6 +94,33 @@ describe('useSettings', () => {
     expect(mockProps.setIsGoogleConnected).toHaveBeenCalledWith(false);
     expect(mockProps.handleSignOut).toHaveBeenCalledTimes(1);
     expect(mockProps.addLog).toHaveBeenCalledWith('Signed out of Google Account.');
+  });
+
+  describe('JSON export functionality', () => {
+    it('handleExportJSON exports valid JSON blob with campaign properties', () => {
+      const mockCreateObjectURL = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:test-url');
+      const mockRevokeObjectURL = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+
+      const mockClick = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+      
+      const { result } = renderHook(() => useSettings(mockProps));
+
+      act(() => {
+        result.current.handleExportJSON();
+      });
+
+      expect(mockCreateObjectURL).toHaveBeenCalled();
+      expect(mockClick).toHaveBeenCalled();
+      
+      const blobCall = mockCreateObjectURL.mock.calls[0][0] as Blob;
+      expect(blobCall.type).toBe('application/json');
+
+      expect(toast.success).toHaveBeenCalledWith('Campaign exported successfully');
+
+      mockCreateObjectURL.mockRestore();
+      mockRevokeObjectURL.mockRestore();
+      mockClick.mockRestore();
+    });
   });
 
   describe('JSON import functionality', () => {

@@ -1,9 +1,8 @@
 // src/components/SettingsPage.tsx
 
-import { Settings, Upload } from 'lucide-react';
+import { Settings, Upload, Download } from 'lucide-react';
 import { useSettings } from '../hooks/useSettings';
 import { VisualSuiteSelector } from './VisualSuiteSelector';
-import { GMAudioSettings } from './GMAudioSettings';
 import { SheetConnectionSettings } from './SheetConnectionSettings';
 import { AuthPortalSettings } from './AuthPortalSettings';
 import { GMTestingTools } from './GMTestingTools';
@@ -27,13 +26,12 @@ export function SettingsPage(props: SettingsPageProps) {
     setManualTokenState,
     showAdvancedAuth,
     setShowAdvancedAuth,
-    isSoundEnabled,
-    toggleSound,
     handleSaveSpreadsheet,
     handleApplyManualToken,
     handleSignOutWithClear,
     handleResetConfiguration,
     handleImportFile,
+    handleExportJSON,
     fireDeathEvent,
     fireDamageEvent,
     fireHealEvent,
@@ -68,8 +66,6 @@ export function SettingsPage(props: SettingsPageProps) {
         {/* Left 2 Columns filled with Core Adjustments */}
         <div className="lg:col-span-2 space-y-6">
           <VisualSuiteSelector theme={theme} setTheme={setTheme} />
-          
-          <GMAudioSettings isSoundEnabled={isSoundEnabled} toggleSound={toggleSound} />
 
           <SheetConnectionSettings
             tempSpreadsheetId={tempSpreadsheetId}
@@ -98,17 +94,27 @@ export function SettingsPage(props: SettingsPageProps) {
             <h3 className="text-md font-bold text-[#2c2c26] font-serif border-b border-[#e5e1d8] pb-1">
               Campaign Backup
             </h3>
-            <p className="text-xs text-[#5a5a40]">Import full campaign states directly from a backup JSON file.</p>
-            <label className="w-full bg-white border border-[#e5e1d8] hover:border-[#c5b358] text-[#5a5a40] py-3 px-4 rounded-xl text-xs font-bold uppercase tracking-widest transition-all cursor-pointer flex items-center justify-center gap-2">
-              <Upload className="w-4 h-4 text-[#c5b358]" />
-              Import JSON Backup
-              <input
-                type="file"
-                accept=".json"
-                onChange={handleFileChange}
-                className="hidden"
-              />
-            </label>
+            <p className="text-xs text-[#5a5a40]">Import or export full campaign states directly from a backup JSON file.</p>
+            <div className="flex gap-2 w-full">
+              <label className="w-1/2 bg-white border border-[#e5e1d8] hover:border-[#c5b358] text-[#5a5a40] py-3 px-2 rounded-xl text-xs font-bold uppercase tracking-widest transition-all cursor-pointer flex items-center justify-center gap-2">
+                <Upload className="w-4 h-4 text-[#c5b358]" />
+                Import
+                <input
+                  type="file"
+                  accept=".json"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+              </label>
+              <button
+                type="button"
+                onClick={handleExportJSON}
+                className="w-1/2 bg-white border border-[#e5e1d8] hover:border-[#c5b358] text-[#5a5a40] py-3 px-2 rounded-xl text-xs font-bold uppercase tracking-widest transition-all cursor-pointer flex items-center justify-center gap-2"
+              >
+                <Download className="w-4 h-4 text-[#c5b358]" />
+                Export
+              </button>
+            </div>
           </div>
         </div>
       </div>

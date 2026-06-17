@@ -21,11 +21,6 @@ vi.mock('../../services/dbOperations', () => ({
   updateCharacterDB: vi.fn(),
 }));
 
-vi.mock('../../lib/audioEngine', () => ({
-  playDeathSaveFailSound: vi.fn(),
-  playDeathSaveSuccessSound: vi.fn(),
-}));
-
 vi.mock('sonner', () => ({
   toast: Object.assign(vi.fn(), {
     error: vi.fn(),

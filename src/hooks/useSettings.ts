@@ -1,6 +1,6 @@
 // src/hooks/useSettings.ts
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { STORAGE_KEYS } from '../lib/constants';
 import { getSpreadsheetId, setSpreadsheetId } from '../services/sheetsService';
@@ -34,7 +34,7 @@ export function useSettings({
   addLog,
 }: UseSettingsProps) {
   const { theme, setTheme } = useTheme();
-  const { updateState } = useAppState();
+  const { state, updateState } = useAppState();
 
   const { fire: fireDeathEvent } = useDeathEvent();
   const { fire: fireDamageEvent } = useDamageEvent();
@@ -46,21 +46,6 @@ export function useSettings({
   const [tempSpreadsheetId, setTempSpreadsheetId] = useState(() => getSpreadsheetId());
   const [manualToken, setManualTokenState] = useState('');
   const [showAdvancedAuth, setShowAdvancedAuth] = useState(false);
-
-  // Sound enabled preference
-  const [isSoundEnabled, setIsSoundEnabled] = useState(() => {
-    if (typeof window === 'undefined' || !window.localStorage) return true;
-    return window.localStorage.getItem(STORAGE_KEYS.soundsEnabled) !== 'false';
-  });
-
-  const toggleSound = () => {
-    const nextVal = !isSoundEnabled;
-    if (typeof window !== 'undefined' && window.localStorage) {
-      window.localStorage.setItem(STORAGE_KEYS.soundsEnabled, nextVal ? 'true' : 'false');
-    }
-    setIsSoundEnabled(nextVal);
-    toast.success(`Sound effects ${nextVal ? 'enabled' : 'disabled'}`);
-  };
 
   const handleSaveSpreadsheet = async () => {
     setSpreadsheetId(tempSpreadsheetId);
@@ -146,6 +131,36 @@ export function useSettings({
     });
   };
 
+  const handleExportJSON = useCallback(() => {
+    const exportData = {
+      version: '1.0',
+      exportDate: new Date().toISOString(),
+      campaignName: state.campaignName,
+      characters: state.characters,
+      npcs: state.npcs,
+      encounters: state.encounters,
+      encounterCombatants: state.encounterCombatants,
+    };
+    
+    const json = JSON.stringify(exportData, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    
+    const date = new Date().toISOString().split('T')[0];
+    const safeName = state.campaignName.replace(/[^a-z0-9]/gi, '-').toLowerCase();
+    link.download = `campaign-${safeName}-${date}.json`;
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    toast.success('Campaign exported successfully');
+  }, [state]);
+
   return {
     theme,
     setTheme,
@@ -155,14 +170,13 @@ export function useSettings({
     setManualTokenState,
     showAdvancedAuth,
     setShowAdvancedAuth,
-    isSoundEnabled,
-    toggleSound,
     handleSaveSpreadsheet,
     handleApplyManualToken,
     handleSignOutWithClear,
     handleResetConfiguration,
     handleImportFile,
     importCampaignDataJson,
+    handleExportJSON,
 
     // Overlaid triggers
     fireDeathEvent,

@@ -8,7 +8,6 @@ import { updateCharacterDB, deleteEncounterCombatantDB, updateEncounterCombatant
 import { Combatant } from '../../../types';
 import { toast } from 'sonner';
 import { useDeathEvent, useDamageEvent, useHealEvent, useUnconsciousEvent, useRageEvent, useInitiativeEvent } from '../../../hooks/useOverlayEvents';
-import { playTurnStartSound } from '../../../lib/audioEngine';
 import { getExpiredConditions } from '../../../lib/combatLogic';
 import { useDeathSaves } from '../../../hooks/useDeathSaves';
 
@@ -398,8 +397,6 @@ export function useCombatSync() {
       };
     });
 
-    playTurnStartSound();
-    
     updateEncounterStateDB(currentState.combatState.activeEncounterId ?? '', nextRound, nextActiveId).catch(err => {
       console.warn("Failed to write updated turn state to sheet", err);
     });
