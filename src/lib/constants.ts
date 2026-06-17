@@ -57,7 +57,6 @@ export const STORAGE_KEYS = {
   appState: 'gm_dashboard_state',
   lastActiveTab: 'gm_last_active_tab',
   sidebarOpen: 'gm_sidebar_open',
-  soundsEnabled: 'gm_sounds_enabled',
   writeRetryQueue: 'gm_write_retry_queue',
   visualStyle: 'gm_visual_style',
   googleAccessToken: 'GM_GOOGLE_ACCESS_TOKEN',

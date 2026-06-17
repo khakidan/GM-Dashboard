@@ -121,6 +121,137 @@ describe('useSettings', () => {
       mockRevokeObjectURL.mockRestore();
       mockClick.mockRestore();
     });
+
+    it('The exported JSON contains a version field', async () => {
+      const mockCreateObjectURL = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:test-url');
+      const mockRevokeObjectURL = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+      const mockClick = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+
+      const { result } = renderHook(() => useSettings(mockProps));
+
+      act(() => {
+        result.current.handleExportJSON();
+      });
+
+      const blobCall = mockCreateObjectURL.mock.calls[0][0] as Blob;
+      const text = await blobCall.text();
+      const parsed = JSON.parse(text);
+      expect(parsed).toHaveProperty('version');
+      expect(parsed.version).toBe('1.0');
+
+      mockCreateObjectURL.mockRestore();
+      mockRevokeObjectURL.mockRestore();
+      mockClick.mockRestore();
+    });
+
+    it('The exported JSON campaignName matches state.campaignName', async () => {
+      const mockCreateObjectURL = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:test-url');
+      const mockRevokeObjectURL = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+      const mockClick = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+
+      const { result } = renderHook(() => useSettings(mockProps));
+
+      act(() => {
+        result.current.handleExportJSON();
+      });
+
+      const blobCall = mockCreateObjectURL.mock.calls[0][0] as Blob;
+      const text = await blobCall.text();
+      const parsed = JSON.parse(text);
+      expect(parsed.campaignName).toBe(mockState.campaignName);
+
+      mockCreateObjectURL.mockRestore();
+      mockRevokeObjectURL.mockRestore();
+      mockClick.mockRestore();
+    });
+
+    it('The exported JSON characters array matches state.characters', async () => {
+      const mockCreateObjectURL = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:test-url');
+      const mockRevokeObjectURL = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+      const mockClick = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+
+      const { result } = renderHook(() => useSettings(mockProps));
+
+      act(() => {
+        result.current.handleExportJSON();
+      });
+
+      const blobCall = mockCreateObjectURL.mock.calls[0][0] as Blob;
+      const text = await blobCall.text();
+      const parsed = JSON.parse(text);
+      expect(parsed.characters).toEqual(mockState.characters);
+
+      mockCreateObjectURL.mockRestore();
+      mockRevokeObjectURL.mockRestore();
+      mockClick.mockRestore();
+    });
+
+    it('URL.createObjectURL is called with a Blob', () => {
+      const mockCreateObjectURL = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:test-url');
+      const mockRevokeObjectURL = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+      const mockClick = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+
+      const { result } = renderHook(() => useSettings(mockProps));
+
+      act(() => {
+        result.current.handleExportJSON();
+      });
+
+      expect(mockCreateObjectURL).toHaveBeenCalledWith(expect.any(Blob));
+
+      mockCreateObjectURL.mockRestore();
+      mockRevokeObjectURL.mockRestore();
+      mockClick.mockRestore();
+    });
+
+    it('URL.revokeObjectURL is called after the download link is clicked', () => {
+      const mockCreateObjectURL = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:test-url');
+      const mockRevokeObjectURL = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+      const mockClick = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+
+      const { result } = renderHook(() => useSettings(mockProps));
+
+      act(() => {
+        result.current.handleExportJSON();
+      });
+
+      expect(mockRevokeObjectURL).toHaveBeenCalledWith('blob:test-url');
+
+      mockCreateObjectURL.mockRestore();
+      mockRevokeObjectURL.mockRestore();
+      mockClick.mockRestore();
+    });
+
+    it('The generated download filename follows the pattern campaign-{safeName}-{YYYY-MM-DD}.json', () => {
+      const mockCreateObjectURL = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:test-url');
+      const mockRevokeObjectURL = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+      const mockClick = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+
+      const mockAppendChild = vi.spyOn(document.body, 'appendChild');
+
+      const { result } = renderHook(() => useSettings(mockProps));
+
+      act(() => {
+        result.current.handleExportJSON();
+      });
+
+      const expectedDate = new Date().toISOString().split('T')[0];
+      const expectedFilename = `campaign-test-campaign-${expectedDate}.json`;
+      
+      const linkCall = mockAppendChild.mock.calls.find(call => {
+        const node = call[0] as any;
+        return node && node.tagName === 'A';
+      });
+      const link = linkCall ? linkCall[0] as HTMLAnchorElement : null;
+
+      expect(link).not.toBeNull();
+      expect(link?.download).toBe(expectedFilename);
+
+      mockCreateObjectURL.mockRestore();
+      mockRevokeObjectURL.mockRestore();
+      mockClick.mockRestore();
+      mockAppendChild.mockRestore();
+    });
   });
 
   describe('JSON import functionality', () => {
