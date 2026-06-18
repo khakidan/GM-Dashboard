@@ -67,7 +67,43 @@ export const STORAGE_KEYS = {
   effectVolume: 'gm_effect_volume',
   soundboardLayout: 'gm_soundboard_layout',
   instructionsDismissed: 'gm_instructions_dismissed',
+  moodPresets: 'gm_mood_presets',
 } as const;
+
+export const MOODS = [
+  { 
+    id: 'sweet', 
+    label: 'Sweet', 
+    emoji: '🌸',
+    color: 'pink'
+  },
+  { 
+    id: 'adventuring', 
+    label: 'Adventuring', 
+    emoji: '⚔️',
+    color: 'amber'
+  },
+  { 
+    id: 'tense', 
+    label: 'Tense', 
+    emoji: '⚠️',
+    color: 'orange'
+  },
+  { 
+    id: 'scary', 
+    label: 'Scary', 
+    emoji: '👻',
+    color: 'purple'
+  },
+  { 
+    id: 'combat', 
+    label: 'Combat', 
+    emoji: '🔥',
+    color: 'red'
+  },
+] as const;
+
+export type MoodId = typeof MOODS[number]['id'];
 
 export const TIMERS = {
   // AudioLibrary preview duration

@@ -126,4 +126,85 @@ describe('CommandPalette', () => {
       expect(cls).toContain('data-[selected=\'true\']:bg-amber-50');
     }
   });
+
+  describe('Mood-based preset commands', () => {
+    it('shows the five mood commands in the Audio group', () => {
+      const assignments = {
+        sweet: ['track-1'],
+        adventuring: [],
+        tense: [],
+        scary: [],
+        combat: []
+      };
+      
+      render(
+        <CommandPalette 
+          isOpen={true} 
+          onClose={() => {}} 
+          assignments={assignments}
+        />
+      );
+
+      expect(screen.getByText(/Sweet Music/i)).toBeDefined();
+      expect(screen.getByText(/Adventuring Music/i)).toBeDefined();
+      expect(screen.getByText(/Tense Music/i)).toBeDefined();
+      expect(screen.getByText(/Scary Music/i)).toBeDefined();
+      expect(screen.getByText(/Combat Music/i)).toBeDefined();
+    });
+
+    it('shows track counts or empty status descriptions', () => {
+      const assignments = {
+        sweet: ['track-1', 'track-2'],
+        adventuring: [],
+        tense: [],
+        scary: [],
+        combat: []
+      };
+
+      render(
+        <CommandPalette 
+          isOpen={true} 
+          onClose={() => {}} 
+          assignments={assignments}
+        />
+      );
+
+      expect(screen.getByText('2 tracks')).toBeDefined();
+      expect(screen.queryAllByText('No tracks assigned').length).toBe(4);
+    });
+
+    it('displays active mood indicator when mood is active', () => {
+      render(
+        <CommandPalette 
+          isOpen={true} 
+          onClose={() => {}} 
+          activeMood="sweet"
+        />
+      );
+
+      expect(screen.getByText(/● Sweet Music/i)).toBeDefined();
+      expect(screen.queryByText(/● Adventuring Music/i)).toBeNull();
+    });
+
+    it('calls activateMood on select', () => {
+      const mockActivateMood = vi.fn();
+      const mockPlayAmbient = vi.fn();
+      const mockOnClose = vi.fn();
+
+      render(
+        <CommandPalette 
+          isOpen={true} 
+          onClose={mockOnClose} 
+          activateMood={mockActivateMood}
+          playAmbient={mockPlayAmbient}
+        />
+      );
+
+      const sweetCommand = screen.getByText(/Sweet Music/i);
+      fireEvent.click(sweetCommand);
+
+      expect(mockActivateMood).toHaveBeenCalledWith('sweet', mockPlayAmbient);
+      expect(mockOnClose).toHaveBeenCalled();
+    });
+  });
 });

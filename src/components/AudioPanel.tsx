@@ -8,6 +8,7 @@ import { StoredAudioFile } from '../lib/audioFileStore';
 import { AmbientPlayer } from './AmbientPlayer';
 import { Soundboard } from './Soundboard';
 import { AudioLibrary } from './AudioLibrary';
+import { MoodId } from '../lib/constants';
 
 interface AudioPanelProps {
   currentAmbientId: string | null;
@@ -22,6 +23,13 @@ interface AudioPanelProps {
   setEffectVolume: (volume: number) => void;
   addFiles: (files: FileList | File[], category: 'ambient' | 'effect') => Promise<void>;
   removeFile: (fileId: string) => Promise<void>;
+  // Mood props
+  assignments?: Record<MoodId, string[]>;
+  activeMood?: MoodId | null;
+  activateMood?: (moodId: MoodId, playAmbient: (fileId: string) => void) => void;
+  unassignTrack?: (fileId: string) => void;
+  assignTrackToMood?: (fileId: string, moodId: MoodId) => void;
+  getMoodForTrack?: (fileId: string) => MoodId | null;
 }
 
 type AudioTab = 'ambient' | 'soundboard' | 'library';
@@ -39,6 +47,12 @@ export function AudioPanel({
   setEffectVolume,
   addFiles,
   removeFile,
+  assignments = { sweet: [], adventuring: [], tense: [], scary: [], combat: [] },
+  activeMood = null,
+  activateMood,
+  unassignTrack,
+  assignTrackToMood,
+  getMoodForTrack,
 }: AudioPanelProps) {
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<AudioTab>('ambient');
@@ -176,6 +190,9 @@ export function AudioPanel({
                 stopAmbient={stopAmbient}
                 setAmbientVolume={setAmbientVolume}
                 onSwitchTab={(tab) => setActiveTab(tab)}
+                assignments={assignments}
+                activeMood={activeMood}
+                activateMood={activateMood}
               />
             )}
             {activeTab === 'soundboard' && (
@@ -190,6 +207,10 @@ export function AudioPanel({
                 storedFiles={storedFiles}
                 addFiles={addFiles}
                 removeFile={removeFile}
+                assignments={assignments}
+                getMoodForTrack={getMoodForTrack}
+                assignTrackToMood={assignTrackToMood}
+                unassignTrack={unassignTrack}
               />
             )}
           </div>

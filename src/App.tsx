@@ -13,30 +13,10 @@ import { HealOverlay } from './components/HealOverlay';
 import { UnconsciousOverlay } from './components/UnconsciousOverlay';
 import { RageOverlay } from './components/RageOverlay';
 import { InitiativeOverlay } from './components/InitiativeOverlay';
-import { CommandPalette } from './components/CommandPalette';
 
 function AppContent() {
   const { theme } = useTheme();
   const { state } = useAppState();
-  const [isPaletteOpen, setIsPaletteOpen] = useState(false);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        setIsPaletteOpen(true);
-      }
-    };
-    const handleOpenPalette = () => {
-      setIsPaletteOpen(true);
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('open-command-palette', handleOpenPalette);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('open-command-palette', handleOpenPalette);
-    };
-  }, []);
 
   const deathEvent = state.combatState.deathEvent;
   const damageEvent = state.combatState.damageEvent;
@@ -88,7 +68,6 @@ function AppContent() {
           <Route path="/auth-relay" element={<AuthRelay />} />
         </Routes>
       </HashRouter>
-      <CommandPalette isOpen={isPaletteOpen} onClose={() => setIsPaletteOpen(false)} />
     </div>
   );
 }

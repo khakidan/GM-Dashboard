@@ -13,10 +13,12 @@ import { SyncingOverlay } from './SyncingOverlay';
 import { GMLoadingScreen } from './GMLoadingScreen';
 import { GMDashboardSidebar } from './GMDashboardSidebar';
 import { GMTabContent } from './GMTabContent';
-import { STORAGE_KEYS, WRITE_QUEUE } from '../lib/constants';
+import { STORAGE_KEYS, WRITE_QUEUE, MOODS } from '../lib/constants';
 import { useAudioEngine } from '../hooks/useAudioEngine';
+import { useMoodPresets } from '../hooks/useMoodPresets';
 import { AudioPanel } from './AudioPanel';
 import { DiceRoller } from './DiceRoller';
+import { CommandPalette } from './CommandPalette';
 
 const VALID_TABS = [
   'party',
@@ -134,6 +136,59 @@ export function GMDashboard() {
   });
 
   const audioEngine = useAudioEngine();
+  const moodPresets = useMoodPresets();
+
+  const [isPaletteOpen, setIsPaletteOpen] = useState(false);
+
+  // Keyboard shortcut listener for opening the command palette (Ctrl+K or Cmd+K)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setIsPaletteOpen(true);
+      }
+    };
+    const handleOpenPalette = () => {
+      setIsPaletteOpen(true);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('open-command-palette', handleOpenPalette);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('open-command-palette', handleOpenPalette);
+    };
+  }, []);
+
+  // Keyboard Shortcut Listeners for Mood Presets (Alt + 1..5)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.altKey && !e.ctrlKey && !e.metaKey) {
+        // Ignore if typing in input/textarea/select/editable
+        const activeEl = document.activeElement;
+        const tag = activeEl?.tagName.toLowerCase();
+        if (
+          tag === 'input' || 
+          tag === 'textarea' || 
+          tag === 'select' || 
+          activeEl?.getAttribute('contenteditable') === 'true'
+        ) {
+          return;
+        }
+
+        const char = e.key;
+        if (char >= '1' && char <= '5') {
+          e.preventDefault();
+          const index = parseInt(char, 10) - 1;
+          const mood = MOODS[index];
+          if (mood) {
+            moodPresets.activateMood(mood.id, audioEngine.playAmbient);
+          }
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [moodPresets.activateMood, audioEngine.playAmbient]);
 
   if (!state.hasInitialSynced) {
     const isAuthenticated = hasToken();
@@ -213,9 +268,18 @@ export function GMDashboard() {
           zIndex: 50,
         }}
       >
-        <AudioPanel {...audioEngine} />
+        <AudioPanel {...audioEngine} {...moodPresets} />
         <DiceRoller />
       </div>
+
+      <CommandPalette 
+        isOpen={isPaletteOpen} 
+        onClose={() => setIsPaletteOpen(false)} 
+        {...moodPresets}
+        storedFiles={audioEngine.storedFiles}
+        playAmbient={audioEngine.playAmbient}
+        currentAmbientId={audioEngine.currentAmbientId}
+      />
 
       <SyncingOverlay
         isSyncing={isSyncing}

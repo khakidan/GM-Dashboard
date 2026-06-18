@@ -18,19 +18,38 @@ import {
   Moon, 
   Zap, 
   Heart, 
-  Sparkles 
+  Sparkles,
+  Music
 } from 'lucide-react';
 import { updateCharacterDB } from '../services/dbOperations';
 import { useDeathEvent, useDamageEvent, useHealEvent } from '../hooks/useOverlayEvents';
+import { StoredAudioFile } from '../lib/audioFileStore';
+import { MOODS, MoodId } from '../lib/constants';
 
 const COMMAND_ITEM_CLASS = "w-full px-3 py-2.5 rounded-lg flex items-center justify-between text-xs font-semibold font-sans transition-all cursor-pointer text-stone-300 hover:bg-amber-50 hover:text-gray-900 border-l-2 border-transparent hover:border-amber-400 data-[selected='true']:bg-amber-50 data-[selected='true']:text-gray-900 data-[selected='true']:border-amber-400 data-[selected=true]:bg-amber-50 data-[selected=true]:text-gray-900 data-[selected=true]:border-amber-400";
 
 interface CommandPaletteProps {
   isOpen: boolean;
   onClose: () => void;
+  // Audio state & actions
+  assignments?: Record<MoodId, string[]>;
+  activeMood?: MoodId | null;
+  activateMood?: (moodId: MoodId, playAmbient: (fileId: string) => void) => void;
+  storedFiles?: StoredAudioFile[];
+  playAmbient?: (fileId: string) => Promise<void>;
+  currentAmbientId?: string | null;
 }
 
-export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
+export function CommandPalette({ 
+  isOpen, 
+  onClose,
+  assignments = { sweet: [], adventuring: [], tense: [], scary: [], combat: [] },
+  activeMood = null,
+  activateMood,
+  storedFiles = [],
+  playAmbient,
+  currentAmbientId = null,
+}: CommandPaletteProps) {
   const { state, updateState } = useAppState();
   const { fire: fireDeathEvent } = useDeathEvent();
   const { fire: fireDamageEvent } = useDamageEvent();
@@ -403,6 +422,64 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                   <span>Roll Custom...</span>
                 </div>
               </Command.Item>
+            </Command.Group>
+
+            <Command.Group heading="── Audio ──" className="px-2 py-1.5 [&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:font-sans [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-[#c5b358]/50">
+              {MOODS.map((mood) => {
+                const tracks = assignments[mood.id] || [];
+                const isActive = activeMood === mood.id;
+                const countString = tracks.length > 0 
+                  ? `${tracks.length} track${tracks.length > 1 ? 's' : ''}` 
+                  : 'No tracks assigned';
+
+                return (
+                  <Command.Item
+                    key={mood.id}
+                    id={`cmd-mood-${mood.id}`}
+                    onSelect={() => {
+                      if (activateMood && playAmbient) {
+                        activateMood(mood.id, playAmbient);
+                      }
+                      onClose();
+                    }}
+                    className={COMMAND_ITEM_CLASS}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm">{mood.emoji}</span>
+                      <span className="font-semibold">
+                        {isActive ? '● ' : ''}{mood.label} Music
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-stone-400">
+                      {countString}
+                    </span>
+                  </Command.Item>
+                );
+              })}
+
+              {/* Individual ambient tracks */}
+              {storedFiles.filter(f => f.category === 'ambient').map((file) => {
+                const isCurrent = currentAmbientId === file.id;
+                return (
+                  <Command.Item
+                    key={file.id}
+                    id={`cmd-ambient-track-${file.id}`}
+                    onSelect={() => {
+                      if (playAmbient) {
+                        playAmbient(file.id);
+                      }
+                      onClose();
+                    }}
+                    className={COMMAND_ITEM_CLASS}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Music className="w-4 h-4 text-[#c5b358]/70" />
+                      <span>{isCurrent ? '● ' : ''}{file.fileName}</span>
+                    </div>
+                    <span className="text-[10px] text-stone-400">Track</span>
+                  </Command.Item>
+                );
+              })}
             </Command.Group>
 
             <Command.Group heading="── Party ──" className="px-2 py-1.5 [&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:font-sans [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-[#c5b358]/50">

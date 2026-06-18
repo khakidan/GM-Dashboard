@@ -3,6 +3,7 @@
 import React from 'react';
 import { Play, Pause, Volume2, Music, Square } from 'lucide-react';
 import { StoredAudioFile } from '../lib/audioFileStore';
+import { MOODS, MoodId } from '../lib/constants';
 
 interface AmbientPlayerProps {
   currentAmbientId: string | null;
@@ -13,7 +14,35 @@ interface AmbientPlayerProps {
   stopAmbient: () => Promise<void>;
   setAmbientVolume: (volume: number) => void;
   onSwitchTab?: (tab: 'ambient' | 'soundboard' | 'library') => void;
+  assignments?: Record<MoodId, string[]>;
+  activeMood?: MoodId | null;
+  getMoodForTrack?: (fileId: string) => MoodId | null;
+  activateMood?: (moodId: MoodId, playAmbient: (fileId: string) => void) => void;
+  setActiveMood?: (moodId: MoodId | null) => void;
 }
+
+const moodClasses: Record<MoodId, { active: string; hasTracks: string }> = {
+  sweet: {
+    active: 'bg-pink-600 text-white border-pink-600 shadow-sm',
+    hasTracks: 'border-pink-300 text-pink-700 bg-pink-50/30 hover:bg-pink-100 hover:text-pink-850',
+  },
+  adventuring: {
+    active: 'bg-amber-600 text-white border-amber-600 shadow-sm',
+    hasTracks: 'border-amber-300 text-amber-700 bg-amber-50/30 hover:bg-amber-100 hover:text-amber-850',
+  },
+  tense: {
+    active: 'bg-orange-600 text-white border-orange-600 shadow-sm',
+    hasTracks: 'border-orange-300 text-orange-700 bg-orange-50/30 hover:bg-orange-100 hover:text-orange-850',
+  },
+  scary: {
+    active: 'bg-purple-600 text-white border-purple-600 shadow-sm',
+    hasTracks: 'border-purple-300 text-purple-700 bg-purple-50/30 hover:bg-purple-100 hover:text-purple-850',
+  },
+  combat: {
+    active: 'bg-red-600 text-white border-red-600 shadow-sm',
+    hasTracks: 'border-red-300 text-red-700 bg-red-50/30 hover:bg-red-100 hover:text-red-850',
+  },
+};
 
 export function AmbientPlayer({
   currentAmbientId,
@@ -24,14 +53,25 @@ export function AmbientPlayer({
   stopAmbient,
   setAmbientVolume,
   onSwitchTab,
+  assignments = { sweet: [], adventuring: [], tense: [], scary: [], combat: [] },
+  activeMood = null,
+  getMoodForTrack,
+  activateMood = () => {},
+  setActiveMood,
 }: AmbientPlayerProps) {
   const ambientTracks = storedFiles.filter((file) => file.category === 'ambient');
 
   const handleTrackClick = async (trackId: string) => {
     if (currentAmbientId === trackId && isAmbientPlaying) {
       await stopAmbient();
+      if (setActiveMood) {
+        setActiveMood(null);
+      }
     } else {
       await playAmbient(trackId);
+      if (setActiveMood && getMoodForTrack) {
+        setActiveMood(getMoodForTrack(trackId));
+      }
     }
   };
 
@@ -58,6 +98,37 @@ export function AmbientPlayer({
             FADE OUT
           </button>
         )}
+      </div>
+
+      {/* Mood Presets System */}
+      <div id="mood-presets-grid" className="grid grid-cols-5 gap-1.5 mb-4">
+        {MOODS.map((mood) => {
+          const tracks = assignments[mood.id] || [];
+          const hasTracks = tracks.length > 0;
+          const isActive = activeMood === mood.id;
+
+          let btnClass = '';
+          if (isActive) {
+            btnClass = moodClasses[mood.id].active;
+          } else if (hasTracks) {
+            btnClass = moodClasses[mood.id].hasTracks;
+          } else {
+            btnClass = 'border-stone-200 text-stone-400 hover:text-stone-600 hover:border-stone-300 bg-stone-50/10 hover:bg-stone-50/50 opacity-70';
+          }
+
+          return (
+            <button
+              key={mood.id}
+              id={`btn-mood-${mood.id}`}
+              onClick={() => activateMood(mood.id, playAmbient)}
+              className={`flex flex-col items-center justify-center gap-0.5 py-1.5 px-1 rounded-lg border text-[10px] sm:text-xs font-sans font-bold transition-all cursor-pointer ${btnClass}`}
+              title={hasTracks ? `${tracks.length} track(s) assigned` : 'No tracks assigned'}
+            >
+              <span className="text-sm">{mood.emoji}</span>
+              <span className="truncate">{mood.label}</span>
+            </button>
+          );
+        })}
       </div>
 
       {ambientTracks.length === 0 ? (
