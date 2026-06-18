@@ -38,7 +38,7 @@ interface CommandPaletteProps {
 
   // Mood Presets Props
   activeMood: MoodId | null;
-  assignments: Record<MoodId, string[]>;
+  assignments: Record<MoodId, string | null>;
   activateMood: (moodId: MoodId, playAmbient: (fileId: string) => void) => void;
 }
 
@@ -475,10 +475,14 @@ export function CommandPalette({
             <Command.Group heading="── Audio ──" className="px-2 py-1.5 [&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:font-sans [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-[#c5b358]/50">
               {/* Mood Presets Commands */}
               {MOODS.map((m) => {
-                const tracksCount = (assignments[m.id] || []).length;
-                const description = tracksCount === 0
-                  ? `${m.label} Music · No tracks assigned`
-                  : `${m.label} Music · ${tracksCount} track${tracksCount === 1 ? '' : 's'}`;
+                const assignedTrackId = assignments[m.id];
+                const track = assignedTrackId ? ambientFiles.find(f => f.id === assignedTrackId) : null;
+                
+                let description = `${m.label} Music · No track assigned`;
+                if (track) {
+                  const truncName = track.name.length > 20 ? track.name.substring(0, 17) + '...' : track.name;
+                  description = `${m.label} Music · ${truncName}`;
+                }
                 const isActive = activeMood === m.id;
 
                 return (

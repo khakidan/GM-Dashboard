@@ -18,7 +18,7 @@ interface AmbientPlayerProps {
   // Mood Presets Props
   activeMood?: MoodId | null;
   setActiveMood?: (mood: MoodId | null) => void;
-  assignments?: Record<MoodId, string[]>;
+  assignments?: Record<MoodId, string | null>;
   activateMood?: (moodId: MoodId, playAmbient: (fileId: string) => void) => void;
   getMoodForTrack?: (fileId: string) => MoodId | null;
 }
@@ -62,11 +62,11 @@ export function AmbientPlayer({
   activeMood = null,
   setActiveMood = () => {},
   assignments = {
-    sweet: [],
-    adventuring: [],
-    tense: [],
-    scary: [],
-    combat: [],
+    sweet: null,
+    adventuring: null,
+    tense: null,
+    scary: null,
+    combat: null,
   },
   activateMood = () => {},
   getMoodForTrack = () => null,
@@ -123,9 +123,10 @@ export function AmbientPlayer({
       {/* Mood Presets Row */}
       <div className="grid grid-cols-5 gap-1.5 mb-4" id="mood-presets-grid">
         {MOODS.map((m) => {
-          const hasTracks = (assignments[m.id] || []).length > 0;
+          const hasTracks = assignments[m.id] !== null;
           const isActive = activeMood === m.id;
           const buttonClass = `flex flex-col sm:flex-row items-center justify-center gap-1 py-2 px-1 rounded-lg border text-[10px] sm:text-xs font-semibold transition-all cursor-pointer ${getMoodButtonStyles(m.id, isActive, hasTracks)}`;
+
           
           return (
             <button

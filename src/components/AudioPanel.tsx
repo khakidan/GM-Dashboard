@@ -23,15 +23,17 @@ interface AudioPanelProps {
   setEffectVolume: (volume: number) => void;
   addFiles: (files: FileList | File[], category: 'ambient' | 'effect') => Promise<void>;
   removeFile: (fileId: string) => Promise<void>;
+  clearAllFiles: (category: 'ambient' | 'effect' | 'all') => Promise<void>;
 
   // Mood Presets Props
   activeMood: MoodId | null;
   setActiveMood: (mood: MoodId | null) => void;
-  assignments: Record<MoodId, string[]>;
+  assignments: Record<MoodId, string | null>;
   assignTrackToMood: (fileId: string, moodId: MoodId) => void;
   unassignTrack: (fileId: string) => void;
   getMoodForTrack: (fileId: string) => MoodId | null;
   activateMood: (moodId: MoodId, playAmbient: (fileId: string) => void) => void;
+  resetAllMoods: () => void;
 }
 
 type AudioTab = 'ambient' | 'soundboard' | 'library';
@@ -49,6 +51,7 @@ export function AudioPanel({
   setEffectVolume,
   addFiles,
   removeFile,
+  clearAllFiles,
   activeMood,
   setActiveMood,
   assignments,
@@ -56,6 +59,7 @@ export function AudioPanel({
   unassignTrack,
   getMoodForTrack,
   activateMood,
+  resetAllMoods,
 }: AudioPanelProps) {
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<AudioTab>('ambient');
@@ -97,7 +101,7 @@ export function AudioPanel({
       id="audio-panel-container"
       className={cn(
         "relative flex flex-col bg-white rounded-xl shadow-2xl border border-[#e5e1d8] text-stone-900 overflow-visible transition-all font-sans",
-        "w-48 h-11"
+        "min-w-48 h-11"
       )}
     >
       {/* Header bar / Collapsed state bar */}
@@ -140,7 +144,7 @@ export function AudioPanel({
 
       {/* Expanded Main Tabs Layout */}
       {isExpanded && (
-        <div className="absolute top-full mt-2 left-0 w-80 sm:w-96 flex flex-col bg-white rounded-xl shadow-2xl border border-[#e5e1d8] overflow-hidden z-50" id="audio-panel-expanded-content">
+        <div className="absolute top-full mt-2 left-0 min-w-[560px] flex flex-col bg-white rounded-xl shadow-2xl border border-[#e5e1d8] overflow-hidden z-50 max-w-[90vw]" id="audio-panel-expanded-content">
           {/* Inner Tab switching bar */}
           <div className="flex border-b border-stone-200 bg-[#faf9f6]/40 px-2.5 pt-1.5 shrink-0 select-none gap-1" id="audio-panel-tabs">
             <button
@@ -182,7 +186,7 @@ export function AudioPanel({
           </div>
 
           {/* Active component render viewport */}
-          <div className="p-4 max-h-[340px] overflow-y-auto" id="audio-tab-content-container">
+          <div className="p-4 max-h-[440px] h-[440px] overflow-y-auto" id="audio-tab-content-container">
             {activeTab === 'ambient' && (
               <AmbientPlayer
                 currentAmbientId={currentAmbientId}
@@ -212,9 +216,12 @@ export function AudioPanel({
                 storedFiles={storedFiles}
                 addFiles={addFiles}
                 removeFile={removeFile}
+                clearAllFiles={clearAllFiles}
                 assignTrackToMood={assignTrackToMood}
                 unassignTrack={unassignTrack}
                 getMoodForTrack={getMoodForTrack}
+                resetAllMoods={resetAllMoods}
+                assignments={assignments}
               />
             )}
           </div>

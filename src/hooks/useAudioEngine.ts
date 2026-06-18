@@ -352,6 +352,26 @@ export function useAudioEngine() {
     await refreshFiles();
   }
 
+  async function clearAllFiles(category: 'ambient' | 'effect' | 'all') {
+    const filesToRemove = globalStoredFiles.filter(f => 
+      category === 'all' || f.category === category
+    );
+    
+    for (const file of filesToRemove) {
+      if (globalCurrentAmbientId === file.id) {
+        await stopAmbient();
+      }
+      await deleteAudioFile(file.id);
+      globalEffectCache.delete(file.id);
+    }
+    
+    await refreshFiles();
+    
+    if (category === 'all') {
+      resetAudioEngineState();
+    }
+  }
+
   return {
     // state
     currentAmbientId: globalCurrentAmbientId,
@@ -369,6 +389,7 @@ export function useAudioEngine() {
     // files
     addFiles,
     removeFile,
+    clearAllFiles,
     refreshFiles,
   };
 }
