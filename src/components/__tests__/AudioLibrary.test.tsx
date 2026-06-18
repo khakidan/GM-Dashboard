@@ -16,16 +16,20 @@ describe('AudioLibrary', () => {
 
   const sampleAmbientFile = {
     id: 'f-ambient-1',
+    name: 'rain',
     fileName: 'rain.mp3',
     category: 'ambient' as const,
     blob: createMockFile('rain.mp3', 'audio/mpeg', 2048),
+    addedAt: 12345,
   };
 
   const sampleEffectFile = {
     id: 'f-effect-1',
+    name: 'sword',
     fileName: 'sword.wav',
     category: 'effect' as const,
     blob: createMockFile('sword.wav', 'audio/wav', 1536),
+    addedAt: 12345,
   };
 
   beforeEach(() => {
