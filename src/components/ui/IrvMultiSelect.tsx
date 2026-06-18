@@ -62,7 +62,11 @@ export function IrvMultiSelect({
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      if (containerRef.current && !containerRef.current.contains(
+        // Safe: event.target is always a 
+        // DOM Node in browser click handlers
+        event.target as Node
+      )) {
         setIsOpen(false);
       }
     }

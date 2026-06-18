@@ -1,13 +1,16 @@
 import { batchUpdateValues } from './sheetsService';
 import { toast } from 'sonner';
-import { STORAGE_KEYS } from '../lib/constants';
+import { STORAGE_KEYS, TIMERS } from '../lib/constants';
 
-const queue = new Map<string, { range: string; values: any[][] }>();
+type WriteValue = string | number | boolean | null;
+type WriteGrid = WriteValue[][];
+
+const queue = new Map<string, { range: string; values: WriteGrid }>();
 let flushTimer: ReturnType<typeof setTimeout> | null = null;
 
 const RETRY_STORAGE_KEY = STORAGE_KEYS.writeRetryQueue;
 
-function loadPersistedWrites(): Array<{range: string, values: any[][]}> {
+function loadPersistedWrites(): Array<{range: string, values: WriteGrid}> {
   try {
     const raw = localStorage.getItem(RETRY_STORAGE_KEY);
     if (!raw) return [];
@@ -19,9 +22,9 @@ function loadPersistedWrites(): Array<{range: string, values: any[][]}> {
   }
 }
 
-function persistFailedWrites(writes: Array<{range: string, values: any[][]}>) {
+function persistFailedWrites(writes: Array<{range: string, values: WriteGrid}>) {
   const existing = loadPersistedWrites();
-  const mergedMap = new Map<string, {range: string, values: any[][]}>();
+  const mergedMap = new Map<string, {range: string, values: WriteGrid}>();
   
   for (const item of existing) {
     if (item && item.range) mergedMap.set(item.range, item);
@@ -44,7 +47,7 @@ function clearPersistedWrites() {
   localStorage.removeItem(RETRY_STORAGE_KEY);
 }
 
-export function queueWrite(range: string, values: any[][]): void {
+export function queueWrite(range: string, values: WriteGrid): void {
   queue.set(range, { range, values });
   
   if (flushTimer) {
@@ -53,7 +56,7 @@ export function queueWrite(range: string, values: any[][]): void {
   
   flushTimer = setTimeout(() => {
     void flushQueue();
-  }, 2000);
+  }, TIMERS.writeQueuePollingMs);
 }
 
 export async function flushQueue(): Promise<void> {

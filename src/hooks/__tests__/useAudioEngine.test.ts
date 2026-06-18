@@ -5,6 +5,7 @@ import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useAudioEngine, resetAudioEngineState } from '../useAudioEngine';
 import { closeDB, resetDB } from '../../lib/audioFileStore';
+import { AUDIO } from '../../lib/constants';
 
 // Ensure URL.createObjectURL is mocked
 URL.createObjectURL = vi.fn().mockImplementation(() => 'mock://object-url');
@@ -70,6 +71,7 @@ if (typeof window !== 'undefined') {
 
 describe('useAudioEngine', () => {
   beforeEach(async () => {
+    vi.useRealTimers();
     resetAudioEngineState();
     // Allow any pending background DB mounts to complete so they can be closed cleanly
     await new Promise<void>((resolve) => setTimeout(resolve, 50));
@@ -84,6 +86,8 @@ describe('useAudioEngine', () => {
   });
 
   afterEach(async () => {
+    vi.clearAllTimers();
+    vi.useRealTimers();
     resetAudioEngineState();
     // Allow any pending background DB mounts to complete so they can be closed cleanly
     await new Promise<void>((resolve) => setTimeout(resolve, 50));
@@ -221,6 +225,7 @@ describe('useAudioEngine', () => {
   });
 
   it('crossfades between tracks: sets incoming gain to 0, ramps up, and ramps outgoing down', async () => {
+    vi.useRealTimers();
     createdGainNodes.length = 0;
     createdAudios.length = 0;
 
@@ -254,6 +259,9 @@ describe('useAudioEngine', () => {
     deckA.gain.linearRampToValueAtTime.mockClear();
     deckB.gain.linearRampToValueAtTime.mockClear();
     
+    // Setup fake timers surgically for the crossfade timeout
+    vi.useFakeTimers();
+
     // Play Track 2, should crossfade simultaneously
     await act(async () => {
       await result.current.playAmbient(file2Id);
@@ -267,12 +275,15 @@ describe('useAudioEngine', () => {
     expect(deckA.gain.linearRampToValueAtTime).toHaveBeenCalledWith(result.current.ambientVolume, expect.any(Number));
     
     // Fast forward timeouts to check pause on outgoing deck
-    await act(async () => {
-      await new Promise(r => setTimeout(r, 5500)); // wait for crossfade duration
+    act(() => {
+      vi.advanceTimersByTime(AUDIO.crossfadeDurationSec * 1000 + 100);
     });
     
     // Expect outgoing deck audio to be paused (Deck B is the second element)
     expect(createdAudios[1].pause).toHaveBeenCalled();
+
+    // Reset back to real timers
+    vi.useRealTimers();
   }, 10000);
 
   it('Calling playAmbient twice in quick succession does not leave more than two Audio elements active simultaneously', async () => {

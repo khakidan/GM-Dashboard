@@ -1,4 +1,4 @@
-import { STORAGE_KEYS } from '../lib/constants';
+import { STORAGE_KEYS, TIMERS } from '../lib/constants';
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -56,7 +56,7 @@ export function DiceRoller() {
   useEffect(() => {
     const interval = setInterval(() => {
       setTimeTick(prev => prev + 1);
-    }, 15000);
+    }, TIMERS.diceRollerTickMs);
     return () => clearInterval(interval);
   }, []);
 
@@ -78,7 +78,7 @@ export function DiceRoller() {
       // Auto-dismiss error after 4s
       setTimeout(() => {
         setErrorMsg(prev => prev === (err?.message || "Invalid dice notation") ? null : prev);
-      }, 4000);
+      }, TIMERS.diceRollerSettleMs);
     }
   };
 

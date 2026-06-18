@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Upload, Play, Pause, Trash2, X, Music, Volume2, HelpCircle } from 'lucide-react';
 import { StoredAudioFile } from '../lib/audioFileStore';
-import { STORAGE_KEYS } from '../lib/constants';
+import { STORAGE_KEYS, TIMERS } from '../lib/constants';
 import { SoundboardSlot } from './Soundboard';
 
 interface AudioLibraryProps {
@@ -15,7 +15,7 @@ interface AudioLibraryProps {
 export function AudioLibrary({ storedFiles, addFiles, removeFile }: AudioLibraryProps) {
   const [instructionsDismissed, setInstructionsDismissed] = useState<boolean>(() => {
     try {
-      const stored = localStorage.getItem('gm_instructions_dismissed');
+      const stored = localStorage.getItem(STORAGE_KEYS.instructionsDismissed);
       return stored === 'true';
     } catch {
       return false;
@@ -69,7 +69,7 @@ export function AudioLibrary({ storedFiles, addFiles, removeFile }: AudioLibrary
       previewTimerRef.current = setTimeout(() => {
         stopPreview();
         URL.revokeObjectURL(url);
-      }, 3000);
+      }, TIMERS.audioPreviewMs);
     } catch (err) {
       console.error('[Audio Library] Failed to setup preview playback:', err);
       stopPreview();
@@ -79,7 +79,7 @@ export function AudioLibrary({ storedFiles, addFiles, removeFile }: AudioLibrary
   // Dismiss instructions
   const handleDismissInstructions = () => {
     setInstructionsDismissed(true);
-    localStorage.setItem('gm_instructions_dismissed', 'true');
+    localStorage.setItem(STORAGE_KEYS.instructionsDismissed, 'true');
   };
 
   // Cleanup preview audio on unmount

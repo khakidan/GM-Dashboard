@@ -15,7 +15,10 @@ import {
   mapEncounterCombatantRowToEC,
 } from './sheetAdapters';
 
-export function parseStatuses(values: any[]): Record<string, string> {
+type SheetRow = (string | number | null | undefined)[];
+type SheetData = SheetRow[];
+
+export function parseStatuses(values: SheetData): Record<string, string> {
   const statuses: Record<string, string> = {};
   values.forEach((row, i) => {
     const result = StatusRowSchema.safeParse(row);
@@ -29,7 +32,7 @@ export function parseStatuses(values: any[]): Record<string, string> {
   return statuses;
 }
 
-export function parseDifficulties(values: any[]): Record<string, string> {
+export function parseDifficulties(values: SheetData): Record<string, string> {
   const difficulties: Record<string, string> = {};
   values.forEach((row, i) => {
     const result = DifficultyRowSchema.safeParse(row);
@@ -43,7 +46,7 @@ export function parseDifficulties(values: any[]): Record<string, string> {
   return difficulties;
 }
 
-export function parseNPCs(values: any[]): NPC[] {
+export function parseNPCs(values: SheetData): NPC[] {
   return values
     .map((row, i) => {
       const result = NpcRowSchema.safeParse(row);
@@ -56,7 +59,7 @@ export function parseNPCs(values: any[]): NPC[] {
     .filter((npc): npc is NPC => npc !== null);
 }
 
-export function parseEncounters(values: any[], difficulties: Record<string, string>): Encounter[] {
+export function parseEncounters(values: SheetData, difficulties: Record<string, string>): Encounter[] {
   return values
     .map((row, i) => {
       const result = EncounterRowSchema.safeParse(row);
@@ -69,7 +72,7 @@ export function parseEncounters(values: any[], difficulties: Record<string, stri
     .filter((enc): enc is Encounter => enc !== null);
 }
 
-export function parseEncounterCombatants(values: any[]): EncounterCombatant[] {
+export function parseEncounterCombatants(values: SheetData): EncounterCombatant[] {
   return values
     .map((row, i) => {
       const result = EncounterCombatantRowSchema.safeParse(row);
@@ -82,7 +85,7 @@ export function parseEncounterCombatants(values: any[]): EncounterCombatant[] {
     .filter((ec): ec is EncounterCombatant => ec !== null);
 }
 
-export function parseCharacters(values: any[], statuses: Record<string, string>): Character[] {
+export function parseCharacters(values: SheetData, statuses: Record<string, string>): Character[] {
   return values
     .map((row, i) => {
       const result = CharacterRowSchema.safeParse(row);

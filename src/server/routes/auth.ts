@@ -44,7 +44,6 @@ router.post('/google-token', authLimiter, async (req, res) => {
       });
     }
 
-    console.log(`[Server] Auth Request Received: ${refresh_token ? 'Refresh' : 'Exchange'}`);
 
     const params = new URLSearchParams();
     params.append('client_id', clientId); // ✅ B.2 fix: clientId is non-null here
@@ -71,7 +70,6 @@ router.post('/google-token', authLimiter, async (req, res) => {
       return res.status(googleRes.status).json(data);
     }
 
-    console.log('✅ [Server] Token operation successful.');
     res.json(data);
   } catch (error: unknown) {
     console.error('❌ [Server] Token exchange exception', error);

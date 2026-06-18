@@ -372,7 +372,16 @@ export function CombatantCardHeader({
                 <select
                   id={`damage-type-select-${c.id}`}
                   value={selectedDamageType || ''}
-                  onChange={e => setSelectedDamageType((e.target.value as DamageType) || null)}
+                  onChange={e => {
+                    const raw = e.target.value;
+                    const isValidDamageType = (v: string): v is DamageType =>
+                      (DAMAGE_TYPE_OPTIONS as readonly string[]).includes(v);
+                    if (isValidDamageType(raw)) {
+                      setSelectedDamageType(raw);
+                    } else {
+                      setSelectedDamageType(null);
+                    }
+                  }}
                   disabled={isSyncing}
                   className="w-28 h-8 bg-[#faf9f6]/80 border border-[#e5e1d8] rounded px-1 text-xs font-bold text-[#5a5a40] outline-none cursor-pointer focus:border-[#c5b358] appearance-auto"
                 >

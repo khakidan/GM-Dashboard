@@ -76,8 +76,8 @@ export const EncounterCard: React.FC<EncounterCardProps> = ({
       setLocation(enc.location);
       setDifficultyId(enc.difficultyId);
       
-      const errorObj = err as Record<string, unknown> | null;
-      if (errorObj?.message === "UNAUTHENTICATED" || errorObj?.error === "UNAUTHENTICATED") {
+      const isUnauthenticated = err instanceof Error && err.message === "UNAUTHENTICATED";
+      if (isUnauthenticated) {
         toast.error('Session expired — please sign in again.', {
           description: 'Your Google session timed out. Use the Connect & Sync button to reconnect.',
           duration: 8000,

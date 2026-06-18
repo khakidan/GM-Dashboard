@@ -1,4 +1,4 @@
-import { STORAGE_KEYS } from '../lib/constants';
+import { STORAGE_KEYS, TIMERS } from '../lib/constants';
 import { useState, useEffect } from 'react';
 import { Copy, Check, LogIn, AlertCircle, Info, RefreshCcw } from 'lucide-react';
 import { signInWithRedirect, signInWithToken } from '../services/googleAuth';
@@ -36,7 +36,7 @@ export function AuthRelay() {
       if (checkTokens()) {
         clearInterval(interval);
       }
-    }, 500);
+    }, TIMERS.authRelayPollingMs);
 
     // Also listen for storage events (if multiple tabs are used)
     const handleStorage = (e: StorageEvent) => {

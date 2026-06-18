@@ -4,7 +4,8 @@ import {
   DEATH_SAVES, 
   RECHARGE_DIE_SIDES,
   STORAGE_KEYS,
-  SHEET_RANGES
+  SHEET_RANGES,
+  TIMERS
 } from '../constants';
 
 describe('constants', () => {
@@ -39,5 +40,21 @@ describe('constants', () => {
     values.forEach(val => {
       expect(val).toContain('!');
     });
+  });
+
+  it('TIMERS.audioPreviewMs equals 3000', () => {
+    expect(TIMERS.audioPreviewMs).toBe(3000);
+  });
+
+  it('All TIMERS values are positive numbers', () => {
+    const values = Object.values(TIMERS);
+    values.forEach(val => {
+      expect(val).toBeGreaterThan(0);
+      expect(typeof val).toBe('number');
+    });
+  });
+
+  it('STORAGE_KEYS.instructionsDismissed equals "gm_instructions_dismissed"', () => {
+    expect(STORAGE_KEYS.instructionsDismissed).toBe('gm_instructions_dismissed');
   });
 });

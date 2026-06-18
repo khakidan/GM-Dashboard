@@ -3,6 +3,12 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 export type VisualStyle = 'default' | 'dnd' | 'sleek-modern';
 
+const VALID_VISUAL_STYLES: VisualStyle[] = ['default', 'dnd', 'sleek-modern'];
+
+function isVisualStyle(v: unknown): v is VisualStyle {
+  return typeof v === 'string' && (VALID_VISUAL_STYLES as string[]).includes(v);
+}
+
 interface ThemeContextType {
   theme: VisualStyle;
   setTheme: (theme: VisualStyle) => void;
@@ -13,7 +19,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<VisualStyle>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.visualStyle);
-    return (saved as VisualStyle) || 'default';
+    return isVisualStyle(saved) ? saved : 'default';
   });
 
   const setTheme = (newTheme: VisualStyle) => {

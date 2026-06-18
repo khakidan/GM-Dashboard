@@ -2,9 +2,43 @@ import { STORAGE_KEYS } from '../lib/constants';
 // src/services/googleAuth.ts
 
 // Google Auth Token and Client Management Service
+interface GoogleAccountsId {
+  initialize: (config: {
+    client_id: string;
+    callback: (response: { 
+      credential: string 
+    }) => void;
+  }) => void;
+  prompt: () => void;
+  renderButton: (
+    element: HTMLElement,
+    config: object
+  ) => void;
+}
+
+interface GoogleOAuthClient {
+  requestAccessToken: () => void;
+}
+
+interface GoogleAccounts {
+  accounts: {
+    id?: GoogleAccountsId;
+    oauth2: {
+      initTokenClient: (config: {
+        client_id: string;
+        scope: string;
+        callback: (response: {
+          access_token?: string;
+          error?: string;
+        }) => void;
+      }) => GoogleOAuthClient;
+    };
+  };
+}
+
 declare global {
   interface Window {
-    google?: any;
+    google?: GoogleAccounts;
   }
 }
 
@@ -110,7 +144,7 @@ export async function signInWithToken() {
   window.location.href = authUrl;
 }
 
-let tokenClient: any;
+let tokenClient: GoogleOAuthClient | null = null;
 let accessToken: string | null = null;
 let refreshToken: string | null = null;
 
@@ -274,14 +308,19 @@ async function setupClient(resolve: () => void, reject: (err: Error) => void) {
       throw new Error('Missing Google Client ID in environment variables.');
     }
 
-    tokenClient = window.google.accounts.oauth2.initTokenClient({
+    const googleApis = window.google;
+    if (!googleApis?.accounts?.oauth2) {
+      throw new Error('Google Identity Services script not loaded.');
+    }
+
+    tokenClient = googleApis.accounts.oauth2.initTokenClient({
       client_id: clientId,
       scope: 'https://www.googleapis.com/auth/spreadsheets',
-      callback: (tokenResponse: any) => {
+      callback: (tokenResponse: { access_token?: string; error?: string }) => {
         if (tokenResponse.error !== undefined) {
-          reject(tokenResponse);
+          reject(new Error(tokenResponse.error));
         }
-        accessToken = tokenResponse.access_token;
+        accessToken = tokenResponse.access_token || null;
         localStorage.setItem(STORAGE_KEYS.googleAccessToken, accessToken!);
         resolve();
       },

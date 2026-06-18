@@ -66,6 +66,20 @@ export const STORAGE_KEYS = {
   ambientVolume: 'gm_ambient_volume',
   effectVolume: 'gm_effect_volume',
   soundboardLayout: 'gm_soundboard_layout',
+  instructionsDismissed: 'gm_instructions_dismissed',
+} as const;
+
+export const TIMERS = {
+  // AudioLibrary preview duration
+  audioPreviewMs: 3000,
+  // AuthRelay polling and timeout
+  authRelayPollingMs: 500,
+  authRelayTimeoutMs: 2000,
+  // DiceRoller animation bounds
+  diceRollerTickMs: 15000,
+  diceRollerSettleMs: 4000,
+  // Write queue polling
+  writeQueuePollingMs: 2000,
 } as const;
 
 export const AUDIO = {
