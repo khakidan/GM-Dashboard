@@ -392,9 +392,11 @@ export async function addEncounterCombatantDB(
         '', // conditionTimers
         -1, // npcCurrentHp
         0,  // npcTempHp
+        '', // npcCurrentConditions
+        0,  // npcTempAcMod
       ];
 
-      await appendSheetData('Encounter_Combatants!A:I', [rowData]);
+      await appendSheetData('Encounter_Combatants!A:K', [rowData]);
       created.push({
         id: finalId,
         encounterId,
@@ -405,6 +407,8 @@ export async function addEncounterCombatantDB(
         conditionTimers: {},
         npcCurrentHp: -1,
         npcTempHp: 0,
+        npcCurrentConditions: '',
+        npcTempAcMod: 0,
       });
     }
     return created;
@@ -650,10 +654,26 @@ export async function updateEncounterDB(
       throw new Error(`Encounter ${encounterId} not found`);
     }
     const a1Row = rowIdx + 1;
-    // ✅ updateSheetData is now a static import — no dynamic import needed
-    await updateSheetData(`Encounters!B${a1Row}:D${a1Row}`, [
-      [sanitizeString(name), sanitizeString(location), difficultyId.toString()],
-    ]);
+    
+    // Fetch the existing row to see npcDefinitions (index 4), currentRound (index 5), activeTurnId (index 6)
+    const data = await fetchSheetData(`Encounters!A${a1Row}:G${a1Row}`);
+    const existingRow = data.values?.[0] || [];
+    
+    const npcDefinitions = existingRow[4] !== undefined ? String(existingRow[4]) : '';
+    const currentRound = existingRow[5] !== undefined ? castInt(existingRow[5], 0) : 0;
+    const activeTurnId = existingRow[6] !== undefined ? String(existingRow[6]) : '';
+
+    const rowData = [
+      encounterId,
+      sanitizeString(name),
+      sanitizeString(location),
+      difficultyId,
+      npcDefinitions,
+      currentRound,
+      activeTurnId,
+    ];
+
+    await updateSheetData(`Encounters!A${a1Row}:G${a1Row}`, [rowData]);
   } catch (err) {
     console.error('[DB] updateEncounterDB failed:', err);
     throw err;

@@ -173,6 +173,26 @@ describe('sheetAdapters', () => {
       const character = mapCharacterRowToCharacter(shortRow, 5, mockStatuses);
       expect(character.class).toBe('');
     });
+
+    it('mapCharacterRowToCharacter with a full 22-element row maps class, hitDiceConfig, and hitDiceUsed to their correct values', () => {
+      const data: CharacterRowData = [
+        'char-1', 'Alice', 'Thor', 15, 20, 0, 20, '', 14, 1, 1, 'Notes', '', '', '', 0, 0, 0, 0, 'Wizard', '6d6', '{"d6":1}'
+      ];
+      const character = mapCharacterRowToCharacter(data, 7, mockStatuses);
+      expect(character.class).toBe('Wizard');
+      expect(character.hitDiceConfig).toBe('6d6');
+      expect(character.hitDiceUsed).toBe('{"d6":1}');
+    });
+
+    it('mapCharacterRowToCharacter with a 20-element row (missing last two columns) returns empty string for hitDiceConfig and {} default for hitDiceUsed', () => {
+      const data = [
+        'char-1', 'Alice', 'Thor', 15, 20, 0, 20, '', 14, 1, 1, 'Notes', '', '', '', 0, 0, 0, 0, 'Wizard'
+      ] as any;
+      const character = mapCharacterRowToCharacter(data, 8, mockStatuses);
+      expect(character.class).toBe('Wizard');
+      expect(character.hitDiceConfig).toBe('');
+      expect(character.hitDiceUsed).toBe('{}');
+    });
   });
 
   describe('mapNpcRowToNpc', () => {

@@ -179,6 +179,28 @@ describe('sheetSchemas', () => {
         expect(resultAbsent.data[21]).toBe('{}');
       }
     });
+
+    it('A 22-element row for Characters parses index 19 as class, index 20 as hitDiceConfig, index 21 as hitDiceUsed', () => {
+      const row: SheetRow = ['char-1', 'Alice', 'Thor', 15, 20, 0, 20, '', 14, 1, 1, 'Notes', '', '', '', 0, 0, 0, 0, 'Barbarian', '7d8', '{"d8":2}'];
+      const result = CharacterRowSchema.safeParse(row);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data[19]).toBe('Barbarian');
+        expect(result.data[20]).toBe('7d8');
+        expect(result.data[21]).toBe('{"d8":2}');
+      }
+    });
+
+    it('A row shorter than 22 elements returns empty string defaults for class, hitDiceConfig, hitDiceUsed (not undefined or errors)', () => {
+      const row: SheetRow = ['char-1', 'Alice', 'Thor', 15, 20, 0, 20, '', 14, 1, 1, 'Notes', '', '', '', 0, 0, 0, 0];
+      const result = CharacterRowSchema.safeParse(row);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data[19]).toBe('');
+        expect(result.data[20]).toBe('');
+        expect(result.data[21]).toBe('{}'); // default from schema is '{}' for hitDiceUsed, others empty string
+      }
+    });
   });
 
   describe('NpcRowSchema', () => {

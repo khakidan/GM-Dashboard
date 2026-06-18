@@ -22,6 +22,7 @@ import {
   deleteNpcDB,
   addEncounterCombatantDB,
   updateNpcInstanceHpDB,
+  updateEncounterDB,
 } from '../dbOperations';
 import { SheetGrid, SheetRow } from '../sheetsService';
 import { queueWrite } from '../writeQueue';
@@ -490,9 +491,9 @@ describe('updateNpcFullDB', () => {
     vi.clearAllMocks();
   });
 
-  it('collects all NPC fields and calls queueWrite with the correct 11-column row', async () => {
+  it('collects all NPC fields and calls queueWrite with the correct 14-column row and rechargeAbilities as JSON', async () => {
     vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({
-      values: [['101', 'Old Name', '10', '10', '0', '10', '', 'Notes']] as SheetGrid,
+      values: [['101', 'Old Name', '10', '10', '0', '10', '', 'Notes', '', '', '', '0', '0', '']] as SheetGrid,
     });
 
     const npc = {
@@ -507,14 +508,67 @@ describe('updateNpcFullDB', () => {
       resistances: 'Fire',
       immunities: 'Poison',
       vulnerabilities: 'Cold',
+      legendaryActions: 2,
+      legendaryResistances: 3,
+      rechargeAbilities: [{ name: 'Fire Breath', recharge: '5-6' }],
     };
 
-    await updateNpcFullDB(npc);
+    await updateNpcFullDB(npc as any);
+
+    expect(queueWrite).toHaveBeenCalledWith('NPCs!A2:N2', [[
+      '101',
+      'New Name',
+      15,
+      30,
+      5,
+      20,
+      'Stunned',
+      'Updated notes',
+      'Fire',
+      'Poison',
+      'Cold',
+      2,
+      3,
+      '[{"name":"Fire Breath","recharge":"5-6"}]'
+    ]]);
   });
 
   it('throws error when NPC is not found', async () => {
     vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({ values: [] as SheetGrid });
     await expect(updateNpcFullDB({ id: '999' } as any)).rejects.toThrow('NPC 999 not found');
+  });
+});
+
+describe('updateEncounterDB', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('updateEncounterDB builds a row array with currentRound at index 5 and activeTurnId at index 6 writing range A:G', async () => {
+    vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({
+      values: [
+        ['Encounter_ID', 'Encounter_Name', 'Location', 'Difficulty', 'NPC_Definitions', 'Current_Round', 'Active_Turn_ID'],
+        ['enc-1', 'Old Name', 'Old Location', '1', 'npc-1:2', '4', 'ec-12'],
+      ] as SheetGrid,
+    });
+
+    // Mock fetch results of the write target row: Encounters!A3:G3
+    vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({
+      values: [['enc-1', 'Old Name', 'Old Location', '1', 'npc-1:2', '4', 'ec-12']] as SheetGrid,
+    });
+
+    await updateEncounterDB('enc-1', 'New Ambush', 'Dark Woods', 3);
+
+    expect(sheetsService.fetchSheetData).toHaveBeenCalledWith('Encounters!A3:G3');
+    expect(sheetsService.updateSheetData).toHaveBeenCalledWith('Encounters!A3:G3', [[
+      'enc-1',
+      'New Ambush',
+      'Dark Woods',
+      3,
+      'npc-1:2',
+      4,
+      'ec-12'
+    ]]);
   });
 });
 
@@ -664,18 +718,20 @@ describe('addEncounterCombatantDB', () => {
       conditionTimers: {},
       npcCurrentHp: -1,
       npcTempHp: 0,
+      npcCurrentConditions: '',
+      npcTempAcMod: 0,
     });
     expect(result[1].id).toBe('6');
     expect(result[2].id).toBe('7');
     
-    expect(sheetsService.appendSheetData).toHaveBeenNthCalledWith(1, 'Encounter_Combatants!A:I', [[
-      '5', 'enc-1', '', 'npc-5', 1, 0, '', -1, 0
+    expect(sheetsService.appendSheetData).toHaveBeenNthCalledWith(1, 'Encounter_Combatants!A:K', [[
+      '5', 'enc-1', '', 'npc-5', 1, 0, '', -1, 0, '', 0
     ]]);
-    expect(sheetsService.appendSheetData).toHaveBeenNthCalledWith(2, 'Encounter_Combatants!A:I', [[
-      '6', 'enc-1', '', 'npc-5', 1, 0, '', -1, 0
+    expect(sheetsService.appendSheetData).toHaveBeenNthCalledWith(2, 'Encounter_Combatants!A:K', [[
+      '6', 'enc-1', '', 'npc-5', 1, 0, '', -1, 0, '', 0
     ]]);
-    expect(sheetsService.appendSheetData).toHaveBeenNthCalledWith(3, 'Encounter_Combatants!A:I', [[
-      '7', 'enc-1', '', 'npc-5', 1, 0, '', -1, 0
+    expect(sheetsService.appendSheetData).toHaveBeenNthCalledWith(3, 'Encounter_Combatants!A:K', [[
+      '7', 'enc-1', '', 'npc-5', 1, 0, '', -1, 0, '', 0
     ]]);
   });
 
@@ -689,8 +745,8 @@ describe('addEncounterCombatantDB', () => {
     expect(result.length).toBe(1);
     expect(result[0].id).toBe('3');
     expect(sheetsService.appendSheetData).toHaveBeenCalledTimes(1);
-    expect(sheetsService.appendSheetData).toHaveBeenCalledWith('Encounter_Combatants!A:I', [[
-      '3', 'enc-1', 'pc-1', '', 1, 0, '', -1, 0
+    expect(sheetsService.appendSheetData).toHaveBeenCalledWith('Encounter_Combatants!A:K', [[
+      '3', 'enc-1', 'pc-1', '', 1, 0, '', -1, 0, '', 0
     ]]);
   });
 });
