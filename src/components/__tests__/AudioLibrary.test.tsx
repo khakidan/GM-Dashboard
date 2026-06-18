@@ -78,6 +78,9 @@ describe('AudioLibrary', () => {
       const { container } = render(
         <AudioLibrary storedFiles={[]} addFiles={mockAddFiles} removeFile={mockRemoveFile} />
       );
+      
+      const effectTabBtns = screen.getAllByRole('button', { name: /Sound Effects/i });
+      fireEvent.click(effectTabBtns[0]);
 
       const effectInput = container.querySelector('#dropzone-effect input[type="file"]') as HTMLInputElement;
       expect(effectInput).not.toBeNull();
@@ -105,6 +108,9 @@ describe('AudioLibrary', () => {
       const { container } = render(
         <AudioLibrary storedFiles={[]} addFiles={mockAddFiles} removeFile={mockRemoveFile} />
       );
+      const effectTabBtns = screen.getAllByRole('button', { name: /Sound Effects/i });
+      fireEvent.click(effectTabBtns[0]);
+      
       const effectInput = container.querySelector('#dropzone-effect input[type="file"]') as HTMLInputElement;
       const accept = effectInput.getAttribute('accept');
       expect(accept).toContain('.mp3');
@@ -136,6 +142,9 @@ describe('AudioLibrary', () => {
       const { container } = render(
         <AudioLibrary storedFiles={[]} addFiles={mockAddFiles} removeFile={mockRemoveFile} />
       );
+      const effectTabBtns = screen.getAllByRole('button', { name: /Sound Effects/i });
+      fireEvent.click(effectTabBtns[0]);
+      
       const dropzone = container.querySelector('#dropzone-effect') as HTMLElement;
       expect(dropzone).not.toBeNull();
 
@@ -185,6 +194,9 @@ describe('AudioLibrary', () => {
       const { container } = render(
         <AudioLibrary storedFiles={[]} addFiles={mockAddFiles} removeFile={mockRemoveFile} />
       );
+      const effectTabBtns = screen.getAllByRole('button', { name: /Sound Effects/i });
+      fireEvent.click(effectTabBtns[0]);
+      
       const dropzone = container.querySelector('#dropzone-effect') as HTMLElement;
       expect(dropzone).not.toBeNull();
 
@@ -211,7 +223,10 @@ describe('AudioLibrary', () => {
       const { container } = render(
         <AudioLibrary storedFiles={[sampleEffectFile]} addFiles={mockAddFiles} removeFile={mockRemoveFile} />
       );
-      const listEffects = container.querySelector('#list-effects');
+      const effectTabBtns = screen.getAllByRole('button', { name: /Sound Effects/i });
+      fireEvent.click(effectTabBtns[0]);
+      
+      const listEffects = container.querySelector('#list-effect');
       expect(listEffects?.textContent).toContain('sword.wav');
     });
 
@@ -235,15 +250,18 @@ describe('AudioLibrary', () => {
         <AudioLibrary storedFiles={[]} addFiles={mockAddFiles} removeFile={mockRemoveFile} />
       );
       const listAmbient = container.querySelector('#list-ambient');
-      expect(listAmbient?.textContent).toContain('No tracks uploaded yet');
+      expect(listAmbient?.textContent).toContain('No ambient tracks loaded yet');
     });
 
     it('When no effect files exist the empty state message is shown', () => {
       const { container } = render(
         <AudioLibrary storedFiles={[]} addFiles={mockAddFiles} removeFile={mockRemoveFile} />
       );
-      const listEffects = container.querySelector('#list-effects');
-      expect(listEffects?.textContent).toContain('No effects uploaded yet');
+      const effectTabBtns = screen.getAllByRole('button', { name: /Sound Effects/i });
+      fireEvent.click(effectTabBtns[0]);
+      
+      const listEffects = container.querySelector('#list-effect');
+      expect(listEffects?.textContent).toContain('No sound effects loaded yet');
     });
   });
 
@@ -263,6 +281,9 @@ describe('AudioLibrary', () => {
       localStorage.setItem(STORAGE_KEYS.soundboardLayout, JSON.stringify(initialLayout));
 
       render(<AudioLibrary storedFiles={[sampleEffectFile]} addFiles={mockAddFiles} removeFile={mockRemoveFile} />);
+      const effectTabBtns = screen.getAllByRole('button', { name: /Sound Effects/i });
+      fireEvent.click(effectTabBtns[0]);
+      
       const deleteButtons = screen.getAllByTitle('Delete File');
       
       await act(async () => {
@@ -282,6 +303,7 @@ describe('AudioLibrary', () => {
       localStorage.setItem(STORAGE_KEYS.soundboardLayout, JSON.stringify(initialLayout));
 
       render(<AudioLibrary storedFiles={[sampleAmbientFile]} addFiles={mockAddFiles} removeFile={mockRemoveFile} />);
+      
       const deleteButtons = screen.getAllByTitle('Delete File');
       
       await act(async () => {
@@ -302,6 +324,9 @@ describe('AudioLibrary', () => {
 
     it('Clicking the preview button on a file begins playback for that file', () => {
       render(<AudioLibrary storedFiles={[sampleEffectFile]} addFiles={mockAddFiles} removeFile={mockRemoveFile} />);
+      const effectTabBtns = screen.getAllByRole('button', { name: /Sound Effects/i });
+      fireEvent.click(effectTabBtns[0]);
+      
       const previewButton = screen.getByTitle('Preview 3s');
       
       fireEvent.click(previewButton);
@@ -312,6 +337,9 @@ describe('AudioLibrary', () => {
 
     it('Clicking the preview button on the currently previewing file stops it', () => {
       render(<AudioLibrary storedFiles={[sampleEffectFile]} addFiles={mockAddFiles} removeFile={mockRemoveFile} />);
+      const effectTabBtns = screen.getAllByRole('button', { name: /Sound Effects/i });
+      fireEvent.click(effectTabBtns[0]);
+      
       const previewButton = screen.getByTitle('Preview 3s');
       
       fireEvent.click(previewButton);
@@ -322,6 +350,9 @@ describe('AudioLibrary', () => {
 
     it('Preview automatically stops after 3000ms (use vi.useFakeTimers())', () => {
       render(<AudioLibrary storedFiles={[sampleEffectFile]} addFiles={mockAddFiles} removeFile={mockRemoveFile} />);
+      const effectTabBtns = screen.getAllByRole('button', { name: /Sound Effects/i });
+      fireEvent.click(effectTabBtns[0]);
+      
       const previewButton = screen.getByTitle('Preview 3s');
       
       fireEvent.click(previewButton);
@@ -337,6 +368,9 @@ describe('AudioLibrary', () => {
       render(
         <AudioLibrary storedFiles={[sampleEffectFile]} addFiles={mockAddFiles} removeFile={mockRemoveFile} />
       );
+      const effectTabBtns = screen.getAllByRole('button', { name: /Sound Effects/i });
+      fireEvent.click(effectTabBtns[0]);
+      
       const previewButton = screen.getByTitle('Preview 3s');
       
       await act(async () => {
@@ -349,6 +383,88 @@ describe('AudioLibrary', () => {
       });
 
       expect(previewButton.innerHTML).toContain('lucide-play'); // Reverts to play icon
+    });
+  });
+
+  describe('SUB-TABS AND CLEAR ACTIONS', () => {
+    it('Defaults to ambient tab and shows ambient count and clear button if files are present', () => {
+      const { container } = render(
+        <AudioLibrary storedFiles={[sampleAmbientFile]} addFiles={mockAddFiles} removeFile={mockRemoveFile} />
+      );
+      const ambientSection = container.querySelector('#library-ambient-section');
+      expect(ambientSection).not.toBeNull();
+      
+      const effectSection = container.querySelector('#library-effect-section');
+      expect(effectSection).toBeNull();
+      
+      const clearBtn = screen.getByTitle('Clear all ambient tracks');
+      expect(clearBtn).not.toBeNull();
+    });
+
+    it('Switches to the effect sub-tab and shows relevant clear button', () => {
+      const { container } = render(
+        <AudioLibrary storedFiles={[sampleEffectFile]} addFiles={mockAddFiles} removeFile={mockRemoveFile} />
+      );
+      
+      const effectTabBtns = screen.getAllByRole('button', { name: /Sound Effects/i });
+      fireEvent.click(effectTabBtns[0]);
+      
+      const effectSection = container.querySelector('#library-effect-section');
+      expect(effectSection).not.toBeNull();
+      
+      const clearBtn = screen.getByTitle('Clear all sound effects');
+      expect(clearBtn).not.toBeNull();
+    });
+
+    it('Shows confirmation UI when Clear All is clicked and cancels correctly', () => {
+      render(
+        <AudioLibrary storedFiles={[sampleAmbientFile]} addFiles={mockAddFiles} removeFile={mockRemoveFile} />
+      );
+      const clearBtn = screen.getByTitle('Clear all ambient tracks');
+      fireEvent.click(clearBtn);
+      
+      const confirmRemoveBtn = screen.getByText('Remove all');
+      const cancelBtn = screen.getByText('Cancel');
+      
+      expect(confirmRemoveBtn).not.toBeNull();
+      
+      // cancel
+      fireEvent.click(cancelBtn);
+      expect(screen.queryByText('Remove all')).toBeNull();
+    });
+
+    it('Calls clearAllFiles with appropriate category upon confirming Clear All', async () => {
+      const mockClearAll = vi.fn().mockResolvedValue(undefined);
+      render(
+        <AudioLibrary storedFiles={[sampleAmbientFile]} addFiles={mockAddFiles} removeFile={mockRemoveFile} clearAllFiles={mockClearAll} />
+      );
+      
+      const clearBtn = screen.getByTitle('Clear all ambient tracks');
+      fireEvent.click(clearBtn);
+      
+      const confirmRemoveBtn = screen.getByText('Remove all');
+      
+      await act(async () => {
+         fireEvent.click(confirmRemoveBtn);
+      });
+      
+      expect(mockClearAll).toHaveBeenCalledWith('ambient');
+    });
+
+    it('Shows reset moods confirmation UI and calls resetAllMoods upon confirming', () => {
+      const mockResetMoods = vi.fn();
+      render(
+        <AudioLibrary storedFiles={[sampleAmbientFile]} addFiles={mockAddFiles} removeFile={mockRemoveFile} resetAllMoods={mockResetMoods} />
+      );
+      
+      const resetBtn = screen.getByRole('button', { name: /Reset mood assignments/i });
+      fireEvent.click(resetBtn);
+      
+      const confirmResetBtn = screen.getByText('Reset moods');
+      
+      fireEvent.click(confirmResetBtn);
+      
+      expect(mockResetMoods).toHaveBeenCalledTimes(1);
     });
   });
 

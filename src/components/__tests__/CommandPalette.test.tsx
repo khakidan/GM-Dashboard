@@ -68,11 +68,11 @@ const defaultProps = {
   currentAmbientId: null,
   activeMood: null,
   assignments: {
-    sweet: [],
-    adventuring: [],
-    tense: [],
-    scary: [],
-    combat: [],
+    sweet: null,
+    adventuring: null,
+    tense: null,
+    scary: null,
+    combat: null,
   },
   activateMood: vi.fn(),
 };
@@ -255,31 +255,39 @@ describe('CommandPalette', () => {
 
   it('renders all 5 mood commands in the Audio command group with proper counts', () => {
     const mockAssignments = {
-      sweet: ['track-1'],
-      adventuring: ['track-2', 'track-3'],
-      tense: [],
-      scary: [],
-      combat: [],
+      sweet: 'track-1',
+      adventuring: 'track-2',
+      tense: null,
+      scary: null,
+      combat: null,
     };
+    
+    // Create some matching dummy files to show the file name logic works
+    const mockFiles = [
+      { id: 'track-1', name: 'gentle_wind', fileName: 'gentle_wind.mp3', blob: new Blob([]), addedAt: 0, category: 'ambient' as const },
+      { id: 'track-2', name: 'forest_hike', fileName: 'forest_hike.mp3', blob: new Blob([]), addedAt: 0, category: 'ambient' as const }
+    ];
+
     render(
       <CommandPalette 
         {...defaultProps} 
         assignments={mockAssignments}
+        ambientFiles={mockFiles}
         activeMood="sweet"
       />
     );
 
     expect(screen.getByText('🌸')).toBeDefined();
     expect(screen.getByText('Sweet Music')).toBeDefined();
-    expect(screen.getByText('Sweet Music · 1 track')).toBeDefined();
+    expect(screen.getByText('Sweet Music · gentle_wind')).toBeDefined();
 
     expect(screen.getByText('⚔️')).toBeDefined();
     expect(screen.getByText('Adventuring Music')).toBeDefined();
-    expect(screen.getByText('Adventuring Music · 2 tracks')).toBeDefined();
+    expect(screen.getByText('Adventuring Music · forest_hike')).toBeDefined();
 
     expect(screen.getByText('⚠️')).toBeDefined();
     expect(screen.getByText('Tense Music')).toBeDefined();
-    expect(screen.getByText('Tense Music · No tracks assigned')).toBeDefined();
+    expect(screen.getByText('Tense Music · No track assigned')).toBeDefined();
   });
 
   it('calls activateMood on selecting a mood command', () => {
