@@ -114,6 +114,32 @@ export function ShortcutCheatSheet({ isOpen, onClose }: ShortcutCheatSheetProps)
           </div>
         </div>
 
+        <div className="mt-4">
+          <h4 className="font-serif font-bold text-sm text-[#c5b358] border-b border-[#f5f5f0] pb-1 uppercase tracking-wider mb-2">Audio Moods</h4>
+          <div className="grid grid-cols-2 gap-x-8 gap-y-2.5">
+            <div className="flex items-center justify-between text-sm">
+              <span className="flex items-center gap-1.5 font-mono text-xs font-bold bg-[#faf9f6]/80 border border-[#e5e1d8] px-2 py-0.5 rounded text-[#2c2c26]">Alt+1</span>
+              <span className="text-[#5a5a40] text-xs">Sweet music</span>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="flex items-center gap-1.5 font-mono text-xs font-bold bg-[#faf9f6]/80 border border-[#e5e1d8] px-2 py-0.5 rounded text-[#2c2c26]">Alt+2</span>
+              <span className="text-[#5a5a40] text-xs">Adventuring music</span>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="flex items-center gap-1.5 font-mono text-xs font-bold bg-[#faf9f6]/80 border border-[#e5e1d8] px-2 py-0.5 rounded text-[#2c2c26]">Alt+3</span>
+              <span className="text-[#5a5a40] text-xs">Tense music</span>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="flex items-center gap-1.5 font-mono text-xs font-bold bg-[#faf9f6]/80 border border-[#e5e1d8] px-2 py-0.5 rounded text-[#2c2c26]">Alt+4</span>
+              <span className="text-[#5a5a40] text-xs">Scary music</span>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="flex items-center gap-1.5 font-mono text-xs font-bold bg-[#faf9f6]/80 border border-[#e5e1d8] px-2 py-0.5 rounded text-[#2c2c26]">Alt+5</span>
+              <span className="text-[#5a5a40] text-xs">Combat music</span>
+            </div>
+          </div>
+        </div>
+
         <div className="mt-6 pt-4 border-t border-[#f5f5f0] flex justify-end">
           <button 
             onClick={onClose}
