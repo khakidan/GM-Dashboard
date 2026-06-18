@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ChevronDown, ChevronUp, Music, Volume2, HardDrive, Play, HelpCircle } from 'lucide-react';
+import { ChevronDown, ChevronUp, Music, Volume2, HardDrive, Play, HelpCircle, X } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { StoredAudioFile } from '../lib/audioFileStore';
 import { AmbientPlayer } from './AmbientPlayer';
@@ -34,6 +34,10 @@ interface AudioPanelProps {
   getMoodForTrack: (fileId: string) => MoodId | null;
   activateMood: (moodId: MoodId, playAmbient: (fileId: string) => void) => void;
   resetAllMoods: () => void;
+
+  // New Modal Props
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
 type AudioTab = 'ambient' | 'soundboard' | 'library';
@@ -60,11 +64,12 @@ export function AudioPanel({
   getMoodForTrack,
   activateMood,
   resetAllMoods,
+  isOpen = false,
+  onClose = () => {},
 }: AudioPanelProps) {
-  const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<AudioTab>('ambient');
 
-  // Handle M Key Shortcut to toggle panel
+  // Handle Esc to close Modal
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Don't trigger when user is typing in forms
@@ -79,154 +84,140 @@ export function AudioPanel({
         return;
       }
 
-      if (e.key === 'm' || e.key === 'M') {
-        e.preventDefault();
-        setIsExpanded((prev) => !prev);
+      if (e.key === 'Escape') {
+        onClose();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [onClose]);
 
-  const handleToggleExpand = () => {
-    setIsExpanded((prev) => !prev);
-  };
+  // Remove handleToggleExpand and closePanel as we use onClose directly
 
   const currentTrack = storedFiles.find((f) => f.id === currentAmbientId);
   const currentTrackName = currentTrack ? currentTrack.name : 'No track';
 
   return (
-    <div
-      id="audio-panel-container"
-      className={cn(
-        "relative flex flex-col bg-white rounded-xl shadow-2xl border border-[#e5e1d8] text-stone-900 overflow-visible transition-all font-sans",
-        "min-w-48 h-11"
-      )}
-    >
-      {/* Header bar / Collapsed state bar */}
-      <div
-        id="audio-panel-header"
-        onClick={handleToggleExpand}
-        className="h-11 w-full bg-[#faf9f6]/95 rounded-xl border-b border-[#e5e1d8] flex items-center justify-between px-3.5 cursor-pointer hover:bg-[#f5f5f0] transition-colors select-none"
-      >
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="text-xs shrink-0 font-bold uppercase tracking-wider text-[#2c2c26] flex items-center gap-1.5 font-sans" id="audio-panel-label">
-            <span role="img" aria-label="music" className="text-sm">🎵</span> AUDIO
-          </span>
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-auto">
+          {/* Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={onClose}
+          />
 
-          {!isExpanded && (
-            <span
-              id="audio-current-track-label"
-              className="text-[11px] text-stone-500 truncate font-medium font-sans border-l border-stone-200 pl-2 leading-none"
-              title={currentTrackName}
-            >
-              {currentTrackName}
-            </span>
-          )}
+          {/* Modal */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+            transition={{ duration: 0.2 }}
+            className="relative w-[680px] max-w-[90vw] max-h-[85vh] flex flex-col bg-white rounded-xl shadow-2xl overflow-hidden font-sans border border-[#e5e1d8]"
+            id="audio-panel-expanded-content"
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-5 pt-4 pb-2">
+              <h2 className="text-xl font-bold font-serif text-[#2c2c26] flex items-center gap-2">
+                <span role="img" aria-label="music">🎵</span> Audio
+              </h2>
+              <button
+                onClick={onClose}
+                  className="p-1.5 rounded-full text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors"
+                  title="Close (Esc)"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
 
-          {!isExpanded && isAmbientPlaying && (
-            <span className="relative flex h-1.5 w-1.5 shrink-0" id="audio-active-pulsar">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#10b981] opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#10b981]"></span>
-            </span>
-          )}
-        </div>
+              {/* Inner Tab switching bar */}
+              <div className="flex border-b border-stone-200 bg-[#faf9f6]/40 px-5 pt-1.5 shrink-0 select-none gap-2" id="audio-panel-tabs">
+                <button
+                  id="tab-ambient"
+                  onClick={() => setActiveTab('ambient')}
+                  className={cn(
+                    "px-3 py-2 text-xs font-bold uppercase tracking-wider border-b-2 transition-all cursor-pointer font-sans rounded-t-md",
+                    activeTab === 'ambient'
+                      ? "border-[#c5b358] text-[#2c2c26] bg-white border-t border-x border-stone-200/50"
+                      : "border-transparent text-stone-400 hover:text-stone-700"
+                  )}
+                >
+                  Ambient
+                </button>
+                <button
+                  id="tab-soundboard"
+                  onClick={() => setActiveTab('soundboard')}
+                  className={cn(
+                    "px-3 py-2 text-xs font-bold uppercase tracking-wider border-b-2 transition-all cursor-pointer font-sans rounded-t-md",
+                    activeTab === 'soundboard'
+                      ? "border-[#c5b358] text-[#2c2c26] bg-white border-t border-x border-stone-200/50"
+                      : "border-transparent text-stone-400 hover:text-stone-700"
+                  )}
+                >
+                  Soundboard
+                </button>
+                <button
+                  id="tab-library"
+                  onClick={() => setActiveTab('library')}
+                  className={cn(
+                    "px-3 py-2 text-xs font-bold uppercase tracking-wider border-b-2 transition-all cursor-pointer font-sans rounded-t-md",
+                    activeTab === 'library'
+                      ? "border-[#c5b358] text-[#2c2c26] bg-white border-t border-x border-stone-200/50"
+                      : "border-transparent text-stone-400 hover:text-stone-700"
+                  )}
+                >
+                  Library
+                </button>
+              </div>
 
-        <div className="text-stone-500 shrink-0">
-          {isExpanded ? (
-            <ChevronDown className="w-4.5 h-4.5 shrink-0" id="chevron-collapse" />
-          ) : (
-            <ChevronUp className="w-4.5 h-4.5 shrink-0" id="chevron-expand" />
-          )}
-        </div>
-      </div>
-
-      {/* Expanded Main Tabs Layout */}
-      {isExpanded && (
-        <div className="absolute top-full mt-2 left-0 min-w-[560px] flex flex-col bg-white rounded-xl shadow-2xl border border-[#e5e1d8] overflow-hidden z-50 max-w-[90vw]" id="audio-panel-expanded-content">
-          {/* Inner Tab switching bar */}
-          <div className="flex border-b border-stone-200 bg-[#faf9f6]/40 px-2.5 pt-1.5 shrink-0 select-none gap-1" id="audio-panel-tabs">
-            <button
-              id="tab-ambient"
-              onClick={() => setActiveTab('ambient')}
-              className={cn(
-                "px-2.5 py-1.5 text-[10.5px] font-bold uppercase tracking-wider border-b-2 transition-all cursor-pointer font-sans rounded-t-md",
-                activeTab === 'ambient'
-                  ? "border-[#c5b358] text-[#2c2c26] bg-white border-t border-x border-stone-200/50"
-                  : "border-transparent text-stone-400 hover:text-stone-700"
-              )}
-            >
-              Ambient
-            </button>
-            <button
-              id="tab-soundboard"
-              onClick={() => setActiveTab('soundboard')}
-              className={cn(
-                "px-2.5 py-1.5 text-[10.5px] font-bold uppercase tracking-wider border-b-2 transition-all cursor-pointer font-sans rounded-t-md",
-                activeTab === 'soundboard'
-                  ? "border-[#c5b358] text-[#2c2c26] bg-white border-t border-x border-stone-200/50"
-                  : "border-transparent text-stone-400 hover:text-stone-700"
-              )}
-            >
-              Soundboard
-            </button>
-            <button
-              id="tab-library"
-              onClick={() => setActiveTab('library')}
-              className={cn(
-                "px-2.5 py-1.5 text-[10.5px] font-bold uppercase tracking-wider border-b-2 transition-all cursor-pointer font-sans rounded-t-md",
-                activeTab === 'library'
-                  ? "border-[#c5b358] text-[#2c2c26] bg-white border-t border-x border-stone-200/50"
-                  : "border-transparent text-stone-400 hover:text-stone-700"
-              )}
-            >
-              Library
-            </button>
+              {/* Active component render viewport */}
+              <div className="p-5 flex-1 overflow-y-auto" id="audio-tab-content-container">
+                {activeTab === 'ambient' && (
+                  <AmbientPlayer
+                    currentAmbientId={currentAmbientId}
+                    isAmbientPlaying={isAmbientPlaying}
+                    ambientVolume={ambientVolume}
+                    storedFiles={storedFiles}
+                    playAmbient={playAmbient}
+                    stopAmbient={stopAmbient}
+                    setAmbientVolume={setAmbientVolume}
+                    onSwitchTab={(tab) => setActiveTab(tab)}
+                    activeMood={activeMood}
+                    setActiveMood={setActiveMood}
+                    assignments={assignments}
+                    activateMood={activateMood}
+                    getMoodForTrack={getMoodForTrack}
+                  />
+                )}
+                {activeTab === 'soundboard' && (
+                  <Soundboard
+                    storedFiles={storedFiles}
+                    playEffect={playEffect}
+                    onSwitchTab={(tab) => setActiveTab(tab)}
+                  />
+                )}
+                {activeTab === 'library' && (
+                  <AudioLibrary
+                    storedFiles={storedFiles}
+                    addFiles={addFiles}
+                    removeFile={removeFile}
+                    clearAllFiles={clearAllFiles}
+                    assignTrackToMood={assignTrackToMood}
+                    unassignTrack={unassignTrack}
+                    getMoodForTrack={getMoodForTrack}
+                    resetAllMoods={resetAllMoods}
+                    assignments={assignments}
+                  />
+                )}
+              </div>
+            </motion.div>
           </div>
-
-          {/* Active component render viewport */}
-          <div className="p-4 max-h-[440px] h-[440px] overflow-y-auto" id="audio-tab-content-container">
-            {activeTab === 'ambient' && (
-              <AmbientPlayer
-                currentAmbientId={currentAmbientId}
-                isAmbientPlaying={isAmbientPlaying}
-                ambientVolume={ambientVolume}
-                storedFiles={storedFiles}
-                playAmbient={playAmbient}
-                stopAmbient={stopAmbient}
-                setAmbientVolume={setAmbientVolume}
-                onSwitchTab={(tab) => setActiveTab(tab)}
-                activeMood={activeMood}
-                setActiveMood={setActiveMood}
-                assignments={assignments}
-                activateMood={activateMood}
-                getMoodForTrack={getMoodForTrack}
-              />
-            )}
-            {activeTab === 'soundboard' && (
-              <Soundboard
-                storedFiles={storedFiles}
-                playEffect={playEffect}
-                onSwitchTab={(tab) => setActiveTab(tab)}
-              />
-            )}
-            {activeTab === 'library' && (
-              <AudioLibrary
-                storedFiles={storedFiles}
-                addFiles={addFiles}
-                removeFile={removeFile}
-                clearAllFiles={clearAllFiles}
-                assignTrackToMood={assignTrackToMood}
-                unassignTrack={unassignTrack}
-                getMoodForTrack={getMoodForTrack}
-                resetAllMoods={resetAllMoods}
-                assignments={assignments}
-              />
-            )}
-          </div>
-        </div>
-      )}
-    </div>
+        )}
+      </AnimatePresence>
   );
 }

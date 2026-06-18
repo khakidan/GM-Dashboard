@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, cleanup } from '@testing-library/react';
+import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import { GMDashboard } from '../GMDashboard';
 import { STORAGE_KEYS } from '../../lib/constants';
 
@@ -75,6 +75,14 @@ vi.mock('../../components/CommandPalette', () => ({
   CommandPalette: () => <div data-testid="command-palette" />
 }));
 
+vi.mock('../../components/AudioPanel', () => ({
+  AudioPanel: ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => (
+    <div data-testid="audio-panel-mock">
+      {isOpen ? 'isOpen: true' : 'isOpen: false'}
+    </div>
+  )
+}));
+
 const LAST_TAB_KEY = STORAGE_KEYS.lastActiveTab;
 
 describe('GMDashboard', () => {
@@ -102,6 +110,40 @@ describe('GMDashboard', () => {
   it('When localStorage is empty, the app defaults to party', () => {
     const { getByTestId } = render(<GMDashboard />);
     expect(getByTestId('gm-tab-content').textContent).toBe('party');
+  });
+
+  it('The AUDIO button no longer has a dropdown chevron', () => {
+    render(<GMDashboard />);
+    const audioBtn = screen.getByText(/AUDIO/);
+    // Explicitly check for absence of chevron character (▼ or ▲) or Lucide icons if applicable
+    expect(audioBtn.innerHTML).not.toContain('▼');
+    expect(audioBtn.innerHTML).not.toContain('Chevron');
+  });
+
+  it('Clicking AUDIO sets isAudioPanelOpen to true', () => {
+    render(<GMDashboard />);
+    
+    expect(screen.queryByTestId('audio-panel-mock')).toBeNull();
+    
+    // Click button
+    const audioBtn = screen.getByText(/AUDIO/);
+    fireEvent.click(audioBtn);
+    
+    expect(screen.getByTestId('audio-panel-mock').textContent).toContain('isOpen: true');
+  });
+
+  it('Pressing M toggles isAudioPanelOpen', () => {
+    render(<GMDashboard />);
+    
+    expect(screen.queryByTestId('audio-panel-mock')).toBeNull();
+    
+    // Press M
+    fireEvent.keyDown(window, { key: 'm', code: 'KeyM' });
+    expect(screen.getByTestId('audio-panel-mock').textContent).toContain('isOpen: true');
+    
+    // Press M again
+    fireEvent.keyDown(window, { key: 'm', code: 'KeyM' });
+    expect(screen.queryByTestId('audio-panel-mock')).toBeNull();
   });
 });
 

@@ -1,7 +1,7 @@
 // src/components/AmbientPlayer.tsx
 
 import React from 'react';
-import { Play, Pause, Volume2, Music, Square } from 'lucide-react';
+import { Play, Pause, Volume, Volume2, Music, Square } from 'lucide-react';
 import { StoredAudioFile } from '../lib/audioFileStore';
 import { MOODS, MoodId } from '../lib/constants';
 
@@ -86,9 +86,11 @@ export function AmbientPlayer({
 
   const handleTrackClick = async (trackId: string) => {
     if (currentAmbientId === trackId && isAmbientPlaying) {
+      // Just stopping shouldn't affect mood if we want to allow re-trigger
       await stopAmbient();
       setActiveMood(null);
     } else {
+      // Crossfade logic internally inside audioEngine
       await playAmbient(trackId);
       const trackMoodId = getMoodForTrack(trackId);
       setActiveMood(trackMoodId);
@@ -121,13 +123,12 @@ export function AmbientPlayer({
       </div>
 
       {/* Mood Presets Row */}
-      <div className="grid grid-cols-5 gap-1.5 mb-4" id="mood-presets-grid">
+      <div className="grid grid-cols-5 gap-2 mb-5" id="mood-presets-grid">
         {MOODS.map((m) => {
           const hasTracks = assignments[m.id] !== null;
           const isActive = activeMood === m.id;
-          const buttonClass = `flex flex-col sm:flex-row items-center justify-center gap-1 py-2 px-1 rounded-lg border text-[10px] sm:text-xs font-semibold transition-all cursor-pointer ${getMoodButtonStyles(m.id, isActive, hasTracks)}`;
+          const buttonClass = `flex flex-row items-center justify-center gap-1.5 py-2.5 px-2 rounded-lg border text-sm font-semibold transition-all cursor-pointer ${getMoodButtonStyles(m.id, isActive, hasTracks)}`;
 
-          
           return (
             <button
               key={m.id}
@@ -137,7 +138,7 @@ export function AmbientPlayer({
               title={hasTracks ? `Mood: ${m.label}` : `No tracks assigned to ${m.label}`}
             >
               <span>{m.emoji}</span>
-              <span className="font-sans text-center truncate">{m.label}</span>
+              <span className="font-sans text-center">{m.label}</span>
             </button>
           );
         })}
@@ -159,7 +160,7 @@ export function AmbientPlayer({
         </div>
       ) : (
         <div className="flex-1 flex flex-col gap-4">
-          <div className="flex-1 overflow-y-auto max-h-[160px] pr-1 flex flex-col gap-1.5">
+          <div className="flex-1 overflow-y-auto pr-1 flex flex-col gap-2">
             {ambientTracks.map((track) => {
               const isCurrent = currentAmbientId === track.id;
               const isPlaying = isCurrent && isAmbientPlaying;
@@ -169,29 +170,29 @@ export function AmbientPlayer({
                   key={track.id}
                   id={`ambient-track-${track.id}`}
                   onClick={() => handleTrackClick(track.id)}
-                  className={`flex items-center justify-between p-2.5 rounded-lg border cursor-pointer transition-all ${
+                  className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all ${
                     isCurrent
                       ? 'bg-[#c5b358]/5 border-[#c5b358]/40 shadow-sm'
                       : 'bg-[#faf9f6]/60 border-[#e5e1d8]/40 hover:bg-stone-50'
                   }`}
                 >
-                  <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="flex items-center gap-3 min-w-0">
                     <button
                       id={`play-btn-${track.id}`}
-                      className={`w-7 h-7 flex items-center justify-center rounded-full border transition-colors shrink-0 ${
+                      className={`w-8 h-8 flex items-center justify-center rounded-full border transition-colors shrink-0 ${
                         isPlaying
                           ? 'bg-[#10b981]/10 border-[#10b981]/30 text-[#10b981]'
                           : 'bg-white border-stone-200 text-stone-500 hover:text-stone-700 hover:border-stone-400'
                       }`}
                     >
                       {isPlaying ? (
-                        <Pause className="w-3.5 h-3.5 fill-current" />
+                        <Pause className="w-4 h-4 fill-current" />
                       ) : (
-                        <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
+                        <Play className="w-4 h-4 fill-current ml-0.5" />
                       )}
                     </button>
                     <span
-                      className={`text-xs font-sans font-medium truncate ${
+                      className={`text-sm font-sans font-medium ${
                         isCurrent ? 'text-stone-900 font-bold' : 'text-stone-700'
                       }`}
                     >
@@ -201,11 +202,11 @@ export function AmbientPlayer({
 
                   {isPlaying && (
                     <div className="flex items-center gap-1.5 pr-1" id={`pulse-indicator-${track.id}`}>
-                      <span className="relative flex h-2 w-2">
+                      <span className="relative flex h-2.5 w-2.5">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#10b981] opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-[#10b981]"></span>
+                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#10b981]"></span>
                       </span>
-                      <span className="text-[10px] font-mono text-[#10b981] font-bold uppercase tracking-wider">LOOPING</span>
+                      <span className="text-xs font-mono text-[#10b981] font-bold uppercase tracking-wider">LOOPING</span>
                     </div>
                   )}
                 </div>
@@ -213,9 +214,9 @@ export function AmbientPlayer({
             })}
           </div>
 
-          <div className="bg-[#faf9f6] border border-[#e5e1d8]/60 rounded-xl p-3 flex items-center gap-3">
-            <Volume2 className="w-4 h-4 text-stone-500 shrink-0" />
-            <div className="flex-1 flex items-center gap-2">
+          <div className="bg-[#faf9f6] border border-[#e5e1d8]/60 rounded-xl p-4 flex items-center gap-3 shrink-0">
+            <Volume className="w-5 h-5 text-stone-400 shrink-0" />
+            <div className="flex-1 flex items-center gap-3">
               <input
                 id="ambient-volume-slider"
                 type="range"
@@ -226,10 +227,11 @@ export function AmbientPlayer({
                 className="w-full accent-[#c5b358]"
                 style={{ cursor: 'pointer' }}
               />
-              <span className="text-[10px] font-mono font-bold text-stone-500 w-8 text-right">
+              <span className="text-xs font-mono font-bold text-stone-500 w-10 text-right">
                 {Math.round(ambientVolume * 100)}%
               </span>
             </div>
+            <Volume2 className="w-5 h-5 text-stone-500 shrink-0" />
           </div>
         </div>
       )}

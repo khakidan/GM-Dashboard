@@ -59,54 +59,50 @@ describe('AudioPanel', () => {
     vi.clearAllMocks();
   });
 
-  it('renders in collapsed state by default', () => {
-    render(<AudioPanel {...defaultProps} />);
-    
-    // Header should be screen visible
-    expect(screen.getByText(/AUDIO/)).toBeDefined();
-    // Tabs should not be visible as it is collapsed
+  it('AudioPanel does not render when isOpen is false', () => {
+    const { container } = render(<AudioPanel {...defaultProps} isOpen={false} />);
+    expect(container.textContent).toBe('');
     expect(screen.queryByText('Ambient')).toBeNull();
   });
 
-  it('shows "No track" when isAmbientPlaying is false', () => {
-    render(<AudioPanel {...defaultProps} currentAmbientId={null} isAmbientPlaying={false} />);
-    expect(screen.getByText('No track')).toBeDefined();
-  });
-
-  it('shows current track name when playing', () => {
-    render(<AudioPanel {...defaultProps} currentAmbientId="f-1" isAmbientPlaying={true} />);
-    expect(screen.getByText('Witch Mountain')).toBeDefined();
-  });
-
-  it('clicking the header toggles expanded state', () => {
-    render(<AudioPanel {...defaultProps} />);
-    
-    // Header click
-    const header = screen.getByText(/AUDIO/);
-    fireEvent.click(header);
-    
-    // Tabs should now be visible
+  it('AudioPanel renders as a modal when isOpen is true', () => {
+    render(<AudioPanel {...defaultProps} isOpen={true} />);
+    // The three tabs (Ambient, Soundboard, Library) are all present
     expect(screen.getByText('Ambient')).toBeDefined();
     expect(screen.getByText('Soundboard')).toBeDefined();
     expect(screen.getByText('Library')).toBeDefined();
 
-    // Click header again to collapse
-    fireEvent.click(header);
-    expect(screen.queryByText('Ambient')).toBeNull();
+    // The modal does not have position fixed top-right (no audio-panel-container style)
+    const modalContent = document.getElementById('audio-panel-expanded-content');
+    expect(modalContent?.className).not.toContain('top-right');
   });
 
-  it('M key toggles open/closed', () => {
-    render(<AudioPanel {...defaultProps} />);
+  it('Clicking the backdrop calls onClose', () => {
+    const onClose = vi.fn();
+    render(<AudioPanel {...defaultProps} isOpen={true} onClose={onClose} />);
     
-    // Initially closed
-    expect(screen.queryByText('Ambient')).toBeNull();
+    // Backdrop is the first element with fixed inset-0
+    const backdrop = document.querySelector('.bg-black\\/50') || screen.getByText('Audio Panel').parentElement?.parentElement?.firstChild;
+    if (backdrop) fireEvent.click(backdrop as Element);
+    
+    expect(onClose).toHaveBeenCalled();
+  });
 
-    // Fire keydown M
-    fireEvent.keyDown(window, { key: 'm', code: 'KeyM' });
-    expect(screen.getByText('Ambient')).toBeDefined();
+  it('Clicking the X button calls onClose', () => {
+    const onClose = vi.fn();
+    render(<AudioPanel {...defaultProps} isOpen={true} onClose={onClose} />);
+    
+    const closeBtn = screen.getByTitle('Close (Esc)');
+    fireEvent.click(closeBtn);
+    
+    expect(onClose).toHaveBeenCalled();
+  });
 
-    // Fire keydown M again to close
-    fireEvent.keyDown(window, { key: 'M', code: 'KeyM' });
-    expect(screen.queryByText('Ambient')).toBeNull();
+  it('Pressing Escape calls onClose', () => {
+    const onClose = vi.fn();
+    render(<AudioPanel {...defaultProps} isOpen={true} onClose={onClose} />);
+    
+    fireEvent.keyDown(window, { key: 'Escape', code: 'Escape' });
+    expect(onClose).toHaveBeenCalled();
   });
 });

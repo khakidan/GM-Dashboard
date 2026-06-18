@@ -166,7 +166,7 @@ export function Soundboard({ storedFiles, playEffect, onSwitchTab }: SoundboardP
       )}
 
       {/* Grid of 12 Buttons */}
-      <div id="soundboard-grid" className="grid grid-cols-3 gap-2.5 flex-1 select-none">
+      <div id="soundboard-grid" className="grid grid-cols-3 gap-3 flex-1 select-none">
         {slots.map((slotIndex) => {
           const slot = layout.find((s) => s.slotIndex === slotIndex);
           const isFlashing = flashingSlots[slotIndex];
@@ -177,7 +177,7 @@ export function Soundboard({ storedFiles, playEffect, onSwitchTab }: SoundboardP
               id={`soundboard-btn-${slotIndex}`}
               onClick={() => handleSlotClick(slotIndex)}
               onContextMenu={(e) => handleSlotContextMenu(e, slotIndex)}
-              className={`h-14 relative rounded-xl border font-sans font-medium text-xs flex flex-col items-center justify-center p-1.5 transition-all outline-none focus:ring-2 focus:ring-[#c5b358]/50 ${
+              className={`h-24 relative rounded-xl border font-sans font-medium text-sm flex flex-col items-center justify-center p-3 transition-all outline-none focus:ring-2 focus:ring-[#c5b358]/50 ${
                 slot
                   ? isFlashing
                     ? 'bg-[#c5b358] border-[#c5b358] text-white shadow-md animate-ping-once'
@@ -191,15 +191,15 @@ export function Soundboard({ storedFiles, playEffect, onSwitchTab }: SoundboardP
             >
               {slot ? (
                 <>
-                  <span className="font-bold truncate max-w-full text-center tracking-tight">
+                  <span className="font-bold break-words whitespace-normal max-w-full text-center leading-tight">
                     {slot.label}
                   </span>
-                  <span className="text-[9px] text-[#a08b2c]/65 font-mono uppercase tracking-widest mt-0.5">FX</span>
+                  <span className="text-[10px] text-[#a08b2c]/65 font-mono uppercase tracking-widest mt-1">FX</span>
                 </>
               ) : (
-                <div className="flex flex-col items-center gap-0.5">
-                  <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-                  <span className="text-[10px] text-stone-400">Add Sound</span>
+                <div className="flex flex-col items-center gap-1">
+                  <Plus className="w-5 h-5 stroke-[2.5]" />
+                  <span className="text-[11px] text-stone-400 font-bold uppercase tracking-wide">Add Sound</span>
                 </div>
               )}
             </button>
