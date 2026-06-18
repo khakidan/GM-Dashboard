@@ -37,6 +37,9 @@ export function PartyTab() {
     if (appState.openDialog === 'newPlayer') {
       setIsNewPlayerDialogOpen(true);
       updateState(prev => ({ ...prev, openDialog: null }));
+    } else if (appState.openDialog === 'shortRest') {
+      setIsShortRestOpen(true);
+      updateState(prev => ({ ...prev, openDialog: null }));
     }
   }, [appState.openDialog, updateState]);
 

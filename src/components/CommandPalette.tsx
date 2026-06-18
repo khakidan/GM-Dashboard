@@ -22,8 +22,9 @@ import {
   Music
 } from 'lucide-react';
 import { updateCharacterDB } from '../services/dbOperations';
-import { useDeathEvent, useDamageEvent, useHealEvent } from '../hooks/useOverlayEvents';
+import { useDeathEvent, useDamageEvent, useHealEvent, useInitiativeEvent } from '../hooks/useOverlayEvents';
 import { StoredAudioFile } from '../lib/audioFileStore';
+import { cn } from '../lib/utils';
 import { MOODS, MoodId } from '../lib/constants';
 
 const COMMAND_ITEM_CLASS = "w-full px-3 py-2.5 rounded-lg flex items-center justify-between text-xs font-semibold font-sans transition-all cursor-pointer text-stone-300 hover:bg-amber-50 hover:text-gray-900 border-l-2 border-transparent hover:border-amber-400 data-[selected='true']:bg-amber-50 data-[selected='true']:text-gray-900 data-[selected='true']:border-amber-400 data-[selected=true]:bg-amber-50 data-[selected=true]:text-gray-900 data-[selected=true]:border-amber-400";
@@ -31,29 +32,31 @@ const COMMAND_ITEM_CLASS = "w-full px-3 py-2.5 rounded-lg flex items-center just
 interface CommandPaletteProps {
   isOpen: boolean;
   onClose: () => void;
-  // Audio state & actions
-  assignments?: Record<MoodId, string[]>;
-  activeMood?: MoodId | null;
-  activateMood?: (moodId: MoodId, playAmbient: (fileId: string) => void) => void;
-  storedFiles?: StoredAudioFile[];
-  playAmbient?: (fileId: string) => Promise<void>;
-  currentAmbientId?: string | null;
+  ambientFiles: StoredAudioFile[];
+  onPlayAmbient: (fileId: string) => void;
+  currentAmbientId: string | null;
+
+  // Mood Presets Props
+  activeMood: MoodId | null;
+  assignments: Record<MoodId, string[]>;
+  activateMood: (moodId: MoodId, playAmbient: (fileId: string) => void) => void;
 }
 
 export function CommandPalette({ 
   isOpen, 
   onClose,
-  assignments = { sweet: [], adventuring: [], tense: [], scary: [], combat: [] },
-  activeMood = null,
-  activateMood,
-  storedFiles = [],
-  playAmbient,
-  currentAmbientId = null,
+  ambientFiles,
+  onPlayAmbient,
+  currentAmbientId,
+  activeMood,
+  assignments,
+  activateMood
 }: CommandPaletteProps) {
   const { state, updateState } = useAppState();
   const { fire: fireDeathEvent } = useDeathEvent();
   const { fire: fireDamageEvent } = useDamageEvent();
   const { fire: fireHealEvent } = useHealEvent();
+  const { fire: fireInitiativeEvent } = useInitiativeEvent();
 
   // Escape to close
   useEffect(() => {
@@ -330,48 +333,63 @@ export function CommandPalette({
               </Command.Item>
             </Command.Group>
 
-            {state.combatState.activeEncounterId && (
-              <Command.Group heading="── Combat ──" className="px-2 py-1.5 [&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:font-sans [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-[#c5b358]/50">
-                <Command.Item
-                  id="cmd-next-turn"
-                  onSelect={() => {
-                    window.dispatchEvent(new CustomEvent('gm-cmd-next-turn'));
+            <Command.Group heading="── Combat ──" className="px-2 py-1.5 [&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:font-sans [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-[#c5b358]/50">
+              {state.combatState.activeEncounterId && (
+                <>
+                  <Command.Item
+                    id="cmd-next-turn"
+                    onSelect={() => {
+                      window.dispatchEvent(new CustomEvent('gm-cmd-next-turn'));
+                      onClose();
+                    }}
+                    className={COMMAND_ITEM_CLASS}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Play className="w-4 h-4 text-[#c5b358]" />
+                      <span>Next Turn</span>
+                    </div>
+                    <kbd className="px-1.5 py-0.5 text-[10px] font-sans font-bold bg-[#1a1a14]/65 border border-[#3f3f37] rounded-md text-stone-400">N</kbd>
+                  </Command.Item>
+                  <Command.Item
+                    id="cmd-roll-npc-initiative"
+                    onSelect={() => {
+                      window.dispatchEvent(new CustomEvent('gm-cmd-roll-npc-init'));
+                      onClose();
+                    }}
+                    className={COMMAND_ITEM_CLASS}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Dices className="w-4 h-4 text-[#c5b358]" />
+                      <span>Roll NPC Initiative</span>
+                    </div>
+                  </Command.Item>
+                </>
+              )}
+              <Command.Item
+                id="cmd-call-for-initiative"
+                disabled={!state.combatState.activeEncounterId}
+                onSelect={() => {
+                  if (state.combatState.activeEncounterId) {
+                    fireInitiativeEvent(true);
                     onClose();
-                  }}
-                  className={COMMAND_ITEM_CLASS}
-                >
-                  <div className="flex items-center gap-3">
-                    <Play className="w-4 h-4 text-[#c5b358]" />
-                    <span>Next Turn</span>
-                  </div>
-                  <kbd className="px-1.5 py-0.5 text-[10px] font-sans font-bold bg-[#1a1a14]/65 border border-[#3f3f37] rounded-md text-stone-400">N</kbd>
-                </Command.Item>
-                <Command.Item
-                  id="cmd-roll-npc-initiative"
-                  onSelect={() => {
-                    window.dispatchEvent(new CustomEvent('gm-cmd-roll-npc-init'));
-                    onClose();
-                  }}
-                  className={COMMAND_ITEM_CLASS}
-                >
-                  <div className="flex items-center gap-3">
-                    <Dices className="w-4 h-4 text-[#c5b358]" />
-                    <span>Roll NPC Initiative</span>
-                  </div>
-                </Command.Item>
-                <Command.Item
-                  id="cmd-call-for-initiative"
-                  onSelect={() => {
-                    window.dispatchEvent(new CustomEvent('gm-cmd-call-initiative'));
-                    onClose();
-                  }}
-                  className={COMMAND_ITEM_CLASS}
-                >
-                  <div className="flex items-center gap-3">
-                    <AlertCircle className="w-4 h-4 text-[#c5b358]" />
-                    <span>Call for Initiative</span>
-                  </div>
-                </Command.Item>
+                  }
+                }}
+                className={cn(
+                  COMMAND_ITEM_CLASS,
+                  !state.combatState.activeEncounterId && "opacity-55 cursor-not-allowed hover:bg-transparent hover:text-stone-500 hover:border-transparent pointer-events-none"
+                )}
+                title={!state.combatState.activeEncounterId ? "Start an encounter first" : undefined}
+              >
+                <div className="flex items-center gap-3">
+                  <Swords className="w-4 h-4 text-[#c5b358]" />
+                  <span>Call for Initiative</span>
+                </div>
+                {!state.combatState.activeEncounterId && (
+                  <span className="text-[10px] text-stone-500 italic mr-2" title="Start an encounter first">Start an encounter first</span>
+                )}
+                <kbd className="px-1.5 py-0.5 text-[10px] font-sans font-bold bg-[#1a1a14]/65 border border-[#3f3f37] rounded-md text-stone-400">C</kbd>
+              </Command.Item>
+              {state.combatState.activeEncounterId && (
                 <Command.Item
                   id="cmd-open-tools"
                   onSelect={() => {
@@ -385,8 +403,8 @@ export function CommandPalette({
                     <span>Open Tools</span>
                   </div>
                 </Command.Item>
-              </Command.Group>
-            )}
+              )}
+            </Command.Group>
 
             <Command.Group heading="── Dice ──" className="px-2 py-1.5 [&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:font-sans [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-[#c5b358]/50">
               {[4, 6, 8, 10, 12, 20, 100].map(sides => (
@@ -424,64 +442,6 @@ export function CommandPalette({
               </Command.Item>
             </Command.Group>
 
-            <Command.Group heading="── Audio ──" className="px-2 py-1.5 [&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:font-sans [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-[#c5b358]/50">
-              {MOODS.map((mood) => {
-                const tracks = assignments[mood.id] || [];
-                const isActive = activeMood === mood.id;
-                const countString = tracks.length > 0 
-                  ? `${tracks.length} track${tracks.length > 1 ? 's' : ''}` 
-                  : 'No tracks assigned';
-
-                return (
-                  <Command.Item
-                    key={mood.id}
-                    id={`cmd-mood-${mood.id}`}
-                    onSelect={() => {
-                      if (activateMood && playAmbient) {
-                        activateMood(mood.id, playAmbient);
-                      }
-                      onClose();
-                    }}
-                    className={COMMAND_ITEM_CLASS}
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm">{mood.emoji}</span>
-                      <span className="font-semibold">
-                        {isActive ? '● ' : ''}{mood.label} Music
-                      </span>
-                    </div>
-                    <span className="text-[10px] text-stone-400">
-                      {countString}
-                    </span>
-                  </Command.Item>
-                );
-              })}
-
-              {/* Individual ambient tracks */}
-              {storedFiles.filter(f => f.category === 'ambient').map((file) => {
-                const isCurrent = currentAmbientId === file.id;
-                return (
-                  <Command.Item
-                    key={file.id}
-                    id={`cmd-ambient-track-${file.id}`}
-                    onSelect={() => {
-                      if (playAmbient) {
-                        playAmbient(file.id);
-                      }
-                      onClose();
-                    }}
-                    className={COMMAND_ITEM_CLASS}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Music className="w-4 h-4 text-[#c5b358]/70" />
-                      <span>{isCurrent ? '● ' : ''}{file.fileName}</span>
-                    </div>
-                    <span className="text-[10px] text-stone-400">Track</span>
-                  </Command.Item>
-                );
-              })}
-            </Command.Group>
-
             <Command.Group heading="── Party ──" className="px-2 py-1.5 [&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:font-sans [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-[#c5b358]/50">
               <Command.Item
                 id="cmd-long-rest"
@@ -496,6 +456,94 @@ export function CommandPalette({
                   <span>Long Rest</span>
                 </div>
               </Command.Item>
+              <Command.Item
+                id="cmd-short-rest"
+                onSelect={() => {
+                  window.dispatchEvent(new CustomEvent('gm-change-tab', { detail: 'party' }));
+                  updateState(prev => ({ ...prev, openDialog: 'shortRest' }));
+                  onClose();
+                }}
+                className={COMMAND_ITEM_CLASS}
+              >
+                <div className="flex items-center gap-3">
+                  <Moon className="w-4 h-4 text-[#c5b358]" />
+                  <span>Short Rest</span>
+                </div>
+              </Command.Item>
+            </Command.Group>
+
+            <Command.Group heading="── Audio ──" className="px-2 py-1.5 [&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:font-sans [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-[#c5b358]/50">
+              {/* Mood Presets Commands */}
+              {MOODS.map((m) => {
+                const tracksCount = (assignments[m.id] || []).length;
+                const description = tracksCount === 0
+                  ? `${m.label} Music · No tracks assigned`
+                  : `${m.label} Music · ${tracksCount} track${tracksCount === 1 ? '' : 's'}`;
+                const isActive = activeMood === m.id;
+
+                return (
+                  <Command.Item
+                    key={`cmd-mood-${m.id}`}
+                    id={`cmd-mood-${m.id}`}
+                    onSelect={() => {
+                      activateMood(m.id, onPlayAmbient);
+                      onClose();
+                    }}
+                    className={COMMAND_ITEM_CLASS}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-base leading-none">{m.emoji}</span>
+                      <div className="flex flex-col">
+                        <span className="font-sans font-bold">{m.label} Music</span>
+                        <span className="text-[10px] text-stone-500 font-sans mt-0.5">{description}</span>
+                      </div>
+                    </div>
+                    {isActive && (
+                      <span className="flex items-center mr-2 text-green-500 font-bold" data-testid="active-indicator">
+                        ●
+                      </span>
+                    )}
+                  </Command.Item>
+                );
+              })}
+
+              {ambientFiles.length === 0 ? (
+                <Command.Item
+                  id="cmd-audio-empty"
+                  disabled={true}
+                  className="w-full px-3 py-2.5 rounded-lg flex items-center justify-between text-xs font-semibold font-sans transition-all text-stone-500 pointer-events-none"
+                >
+                  <div className="flex flex-col">
+                    <span className="font-sans font-bold">No ambient tracks loaded</span>
+                    <span className="text-[10px] text-stone-500 font-sans mt-0.5">Add tracks in the Audio panel → Library tab</span>
+                  </div>
+                </Command.Item>
+              ) : (
+                ambientFiles.map(file => (
+                  <Command.Item
+                    key={file.id}
+                    id={`cmd-play-ambient-${file.id}`}
+                    onSelect={() => {
+                      onPlayAmbient(file.id);
+                      onClose();
+                    }}
+                    className={COMMAND_ITEM_CLASS}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Music className="w-4 h-4 text-[#c5b358]" />
+                      <div className="flex flex-col">
+                        <span className="font-sans font-bold">{file.name}</span>
+                        <span className="text-[10px] text-stone-500 font-sans mt-0.5">Ambient track</span>
+                      </div>
+                    </div>
+                    {file.id === currentAmbientId && (
+                      <span className="flex items-center mr-2" data-testid="active-indicator">
+                        <span className="w-2 h-2 rounded-full bg-green-500" />
+                      </span>
+                    )}
+                  </Command.Item>
+                ))
+              )}
             </Command.Group>
 
             <Command.Group heading="── Settings ──" className="px-2 py-1.5 [&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:font-sans [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-[#c5b358]/50">

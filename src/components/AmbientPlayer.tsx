@@ -14,34 +14,40 @@ interface AmbientPlayerProps {
   stopAmbient: () => Promise<void>;
   setAmbientVolume: (volume: number) => void;
   onSwitchTab?: (tab: 'ambient' | 'soundboard' | 'library') => void;
-  assignments?: Record<MoodId, string[]>;
+
+  // Mood Presets Props
   activeMood?: MoodId | null;
-  getMoodForTrack?: (fileId: string) => MoodId | null;
+  setActiveMood?: (mood: MoodId | null) => void;
+  assignments?: Record<MoodId, string[]>;
   activateMood?: (moodId: MoodId, playAmbient: (fileId: string) => void) => void;
-  setActiveMood?: (moodId: MoodId | null) => void;
+  getMoodForTrack?: (fileId: string) => MoodId | null;
 }
 
-const moodClasses: Record<MoodId, { active: string; hasTracks: string }> = {
-  sweet: {
-    active: 'bg-pink-600 text-white border-pink-600 shadow-sm',
-    hasTracks: 'border-pink-300 text-pink-700 bg-pink-50/30 hover:bg-pink-100 hover:text-pink-850',
-  },
-  adventuring: {
-    active: 'bg-amber-600 text-white border-amber-600 shadow-sm',
-    hasTracks: 'border-amber-300 text-amber-700 bg-amber-50/30 hover:bg-amber-100 hover:text-amber-850',
-  },
-  tense: {
-    active: 'bg-orange-600 text-white border-orange-600 shadow-sm',
-    hasTracks: 'border-orange-300 text-orange-700 bg-orange-50/30 hover:bg-orange-100 hover:text-orange-850',
-  },
-  scary: {
-    active: 'bg-purple-600 text-white border-purple-600 shadow-sm',
-    hasTracks: 'border-purple-300 text-purple-700 bg-purple-50/30 hover:bg-purple-100 hover:text-purple-850',
-  },
-  combat: {
-    active: 'bg-red-600 text-white border-red-600 shadow-sm',
-    hasTracks: 'border-red-300 text-red-700 bg-red-50/30 hover:bg-red-100 hover:text-red-850',
-  },
+const getMoodButtonStyles = (moodId: MoodId, isActive: boolean, hasTracks: boolean) => {
+  const isSweet = moodId === 'sweet';
+  const isAdventuring = moodId === 'adventuring';
+  const isTense = moodId === 'tense';
+  const isScary = moodId === 'scary';
+  const isCombat = moodId === 'combat';
+
+  if (isActive) {
+    if (isSweet) return 'bg-pink-500 text-white border-pink-500';
+    if (isAdventuring) return 'bg-amber-500 text-white border-amber-500';
+    if (isTense) return 'bg-orange-500 text-white border-orange-500';
+    if (isScary) return 'bg-purple-600 text-white border-purple-600';
+    if (isCombat) return 'bg-red-600 text-white border-red-600';
+  }
+
+  if (hasTracks) {
+    if (isSweet) return 'bg-white border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400';
+    if (isAdventuring) return 'bg-white border-amber-300 text-amber-600 hover:bg-amber-50 hover:border-amber-400';
+    if (isTense) return 'bg-white border-orange-300 text-orange-600 hover:bg-orange-50 hover:border-orange-400';
+    if (isScary) return 'bg-white border-purple-300 text-purple-600 hover:bg-purple-50 hover:border-purple-400';
+    if (isCombat) return 'bg-white border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400';
+  }
+
+  // Inactive with no tracks: gray outlined, slightly muted
+  return 'bg-white border-stone-200 text-stone-400 opacity-60 hover:text-stone-500 hover:border-stone-300 hover:opacity-80';
 };
 
 export function AmbientPlayer({
@@ -53,25 +59,39 @@ export function AmbientPlayer({
   stopAmbient,
   setAmbientVolume,
   onSwitchTab,
-  assignments = { sweet: [], adventuring: [], tense: [], scary: [], combat: [] },
   activeMood = null,
-  getMoodForTrack,
+  setActiveMood = () => {},
+  assignments = {
+    sweet: [],
+    adventuring: [],
+    tense: [],
+    scary: [],
+    combat: [],
+  },
   activateMood = () => {},
-  setActiveMood,
+  getMoodForTrack = () => null,
 }: AmbientPlayerProps) {
   const ambientTracks = storedFiles.filter((file) => file.category === 'ambient');
+
+  React.useEffect(() => {
+    if (currentAmbientId && isAmbientPlaying) {
+      const mood = getMoodForTrack(currentAmbientId);
+      if (mood) {
+        setActiveMood(mood);
+      }
+    } else if (!isAmbientPlaying) {
+      setActiveMood(null);
+    }
+  }, [currentAmbientId, isAmbientPlaying, getMoodForTrack, setActiveMood]);
 
   const handleTrackClick = async (trackId: string) => {
     if (currentAmbientId === trackId && isAmbientPlaying) {
       await stopAmbient();
-      if (setActiveMood) {
-        setActiveMood(null);
-      }
+      setActiveMood(null);
     } else {
       await playAmbient(trackId);
-      if (setActiveMood && getMoodForTrack) {
-        setActiveMood(getMoodForTrack(trackId));
-      }
+      const trackMoodId = getMoodForTrack(trackId);
+      setActiveMood(trackMoodId);
     }
   };
 
@@ -100,32 +120,23 @@ export function AmbientPlayer({
         )}
       </div>
 
-      {/* Mood Presets System */}
-      <div id="mood-presets-grid" className="grid grid-cols-5 gap-1.5 mb-4">
-        {MOODS.map((mood) => {
-          const tracks = assignments[mood.id] || [];
-          const hasTracks = tracks.length > 0;
-          const isActive = activeMood === mood.id;
-
-          let btnClass = '';
-          if (isActive) {
-            btnClass = moodClasses[mood.id].active;
-          } else if (hasTracks) {
-            btnClass = moodClasses[mood.id].hasTracks;
-          } else {
-            btnClass = 'border-stone-200 text-stone-400 hover:text-stone-600 hover:border-stone-300 bg-stone-50/10 hover:bg-stone-50/50 opacity-70';
-          }
-
+      {/* Mood Presets Row */}
+      <div className="grid grid-cols-5 gap-1.5 mb-4" id="mood-presets-grid">
+        {MOODS.map((m) => {
+          const hasTracks = (assignments[m.id] || []).length > 0;
+          const isActive = activeMood === m.id;
+          const buttonClass = `flex flex-col sm:flex-row items-center justify-center gap-1 py-2 px-1 rounded-lg border text-[10px] sm:text-xs font-semibold transition-all cursor-pointer ${getMoodButtonStyles(m.id, isActive, hasTracks)}`;
+          
           return (
             <button
-              key={mood.id}
-              id={`btn-mood-${mood.id}`}
-              onClick={() => activateMood(mood.id, playAmbient)}
-              className={`flex flex-col items-center justify-center gap-0.5 py-1.5 px-1 rounded-lg border text-[10px] sm:text-xs font-sans font-bold transition-all cursor-pointer ${btnClass}`}
-              title={hasTracks ? `${tracks.length} track(s) assigned` : 'No tracks assigned'}
+              key={m.id}
+              id={`mood-btn-${m.id}`}
+              onClick={() => activateMood(m.id, playAmbient)}
+              className={buttonClass}
+              title={hasTracks ? `Mood: ${m.label}` : `No tracks assigned to ${m.label}`}
             >
-              <span className="text-sm">{mood.emoji}</span>
-              <span className="truncate">{mood.label}</span>
+              <span>{m.emoji}</span>
+              <span className="font-sans text-center truncate">{m.label}</span>
             </button>
           );
         })}

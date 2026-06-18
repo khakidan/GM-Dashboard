@@ -38,6 +38,19 @@ const defaultProps = {
   setEffectVolume: vi.fn(),
   addFiles: vi.fn(),
   removeFile: vi.fn(),
+  activeMood: null,
+  setActiveMood: vi.fn(),
+  assignments: {
+    sweet: [],
+    adventuring: [],
+    tense: [],
+    scary: [],
+    combat: [],
+  },
+  assignTrackToMood: vi.fn(),
+  unassignTrack: vi.fn(),
+  getMoodForTrack: vi.fn(() => null),
+  activateMood: vi.fn(),
 };
 
 describe('AudioPanel', () => {

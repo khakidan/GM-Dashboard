@@ -1,13 +1,15 @@
-import { useState, useEffect, useCallback } from 'react';
-import { toast } from 'sonner';
-import { MOODS, MoodId, STORAGE_KEYS } from '../lib/constants';
+// src/hooks/useMoodPresets.ts
 
-const defaultAssignments: Record<MoodId, string[]> = {
+import { useState, useEffect } from 'react';
+import { STORAGE_KEYS, MOODS, MoodId } from '../lib/constants';
+import { toast } from 'sonner';
+
+const DEFAULT_ASSIGNMENTS: Record<MoodId, string[]> = {
   sweet: [],
   adventuring: [],
   tense: [],
   scary: [],
-  combat: [],
+  combat: []
 };
 
 function loadFromLocalStorage(): Record<MoodId, string[]> {
@@ -15,92 +17,88 @@ function loadFromLocalStorage(): Record<MoodId, string[]> {
     const stored = localStorage.getItem(STORAGE_KEYS.moodPresets);
     if (stored) {
       const parsed = JSON.parse(stored);
-      const loaded = { ...defaultAssignments };
+      // Ensure all moods exist in the loaded object
+      const assignments = { ...DEFAULT_ASSIGNMENTS };
       for (const m of MOODS) {
         if (Array.isArray(parsed[m.id])) {
-          loaded[m.id] = parsed[m.id];
+          assignments[m.id] = parsed[m.id];
         }
       }
-      return loaded;
+      return assignments;
     }
-  } catch (e) {
-    console.error('Failed to load mood presets from localStorage:', e);
+  } catch (err) {
+    console.error('Failed to load mood presets from localStorage', err);
   }
-  return defaultAssignments;
+  return { ...DEFAULT_ASSIGNMENTS };
 }
 
 export function useMoodPresets() {
-  const [assignments, setAssignments] = useState<Record<MoodId, string[]>>(() =>
-    loadFromLocalStorage()
-  );
-
+  const [assignments, setAssignments] = useState<Record<MoodId, string[]>>(() => loadFromLocalStorage());
   const [activeMood, setActiveMood] = useState<MoodId | null>(null);
 
-  // Synchronize to localStorage on change
+  // Save to localStorage when assignments change
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEYS.moodPresets, JSON.stringify(assignments));
-    } catch (e) {
-      console.error('Failed to save mood presets to localStorage:', e);
-    }
+    localStorage.setItem(STORAGE_KEYS.moodPresets, JSON.stringify(assignments));
   }, [assignments]);
 
-  const assignTrackToMood = useCallback((fileId: string, moodId: MoodId) => {
-    setAssignments((prev) => {
-      const next: Record<MoodId, string[]> = { ...prev };
-      // Remove from all other moods first
-      for (const key of Object.keys(next) as MoodId[]) {
-        next[key] = next[key].filter((id) => id !== fileId);
-      }
-      // Add to new mood if not already present
-      if (!next[moodId].includes(fileId)) {
-        next[moodId] = [...next[moodId], fileId];
-      }
-      return next;
-    });
-  }, []);
-
-  const unassignTrack = useCallback((fileId: string) => {
-    setAssignments((prev) => {
-      const next: Record<MoodId, string[]> = { ...prev };
-      for (const key of Object.keys(next) as MoodId[]) {
-        next[key] = next[key].filter((id) => id !== fileId);
-      }
-      return next;
-    });
-  }, []);
-
-  const getMoodForTrack = useCallback(
-    (fileId: string): MoodId | null => {
-      for (const key of Object.keys(assignments) as MoodId[]) {
-        if (assignments[key].includes(fileId)) {
-          return key;
+  const assignTrackToMood = (fileId: string, moodId: MoodId) => {
+    setAssignments(prev => {
+      const updated = { ...prev };
+      // Remove fileId from any existing mood assignment
+      for (const key of MOODS) {
+        if (updated[key.id]) {
+          updated[key.id] = updated[key.id].filter(id => id !== fileId);
         }
       }
-      return null;
-    },
-    [assignments]
-  );
-
-  const activateMood = useCallback(
-    (moodId: MoodId, playAmbient: (fileId: string) => void) => {
-      const tracks = assignments[moodId];
-      if (!tracks || tracks.length === 0) {
-        const moodObj = MOODS.find((m) => m.id === moodId);
-        const label = moodObj ? moodObj.label : moodId;
-        toast(`No tracks assigned to ${label}. Open the Audio Library to assign one.`);
-        return;
+      // Add to new mood assignment
+      if (!updated[moodId]) {
+        updated[moodId] = [];
       }
-      setActiveMood(moodId);
-      playAmbient(tracks[0]);
-    },
-    [assignments]
-  );
+      if (!updated[moodId].includes(fileId)) {
+        updated[moodId] = [...updated[moodId], fileId];
+      }
+      return updated;
+    });
+  };
+
+  const unassignTrack = (fileId: string) => {
+    setAssignments(prev => {
+      const updated = { ...prev };
+      for (const key of MOODS) {
+        if (updated[key.id]) {
+          updated[key.id] = updated[key.id].filter(id => id !== fileId);
+        }
+      }
+      return updated;
+    });
+  };
+
+  const getMoodForTrack = (fileId: string): MoodId | null => {
+    for (const key of MOODS) {
+      if (assignments[key.id]?.includes(fileId)) {
+        return key.id;
+      }
+    }
+    return null;
+  };
+
+  const activateMood = (moodId: MoodId, playAmbient: (fileId: string) => void) => {
+    const tracks = assignments[moodId] || [];
+    if (tracks.length === 0) {
+      const moodLabel = MOODS.find(m => m.id === moodId)?.label || moodId;
+      toast(`No tracks assigned to ${moodLabel}. Open the Audio Library to assign one.`);
+      return;
+    }
+    // Activate a mood — plays its first assigned track via playAmbient
+    const firstTrackId = tracks[0];
+    playAmbient(firstTrackId);
+    setActiveMood(moodId);
+  };
 
   return {
     assignments,
     activeMood,
-    setActiveMood,
+    setActiveMood, // expose to synchronize active mood visually when clicked
     assignTrackToMood,
     unassignTrack,
     getMoodForTrack,

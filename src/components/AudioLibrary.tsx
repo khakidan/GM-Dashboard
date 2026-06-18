@@ -10,20 +10,18 @@ interface AudioLibraryProps {
   storedFiles: StoredAudioFile[];
   addFiles: (files: FileList | File[], category: 'ambient' | 'effect') => Promise<void>;
   removeFile: (fileId: string) => Promise<void>;
-  assignments?: Record<MoodId, string[]>;
-  getMoodForTrack?: (fileId: string) => MoodId | null;
   assignTrackToMood?: (fileId: string, moodId: MoodId) => void;
   unassignTrack?: (fileId: string) => void;
+  getMoodForTrack?: (fileId: string) => MoodId | null;
 }
 
 export function AudioLibrary({ 
   storedFiles, 
   addFiles, 
   removeFile,
-  assignments = { sweet: [], adventuring: [], tense: [], scary: [], combat: [] },
-  getMoodForTrack,
-  assignTrackToMood,
-  unassignTrack,
+  assignTrackToMood = () => {},
+  unassignTrack = () => {},
+  getMoodForTrack = () => null,
 }: AudioLibraryProps) {
   const [instructionsDismissed, setInstructionsDismissed] = useState<boolean>(() => {
     try {
@@ -33,9 +31,6 @@ export function AudioLibrary({
       return false;
     }
   });
-
-  // Track picker open per file ID
-  const [openPickerFileId, setOpenPickerFileId] = useState<string | null>(null);
 
   // Drag over styling state
   const [dragOverCategory, setDragOverCategory] = useState<'ambient' | 'effect' | null>(null);
@@ -48,6 +43,20 @@ export function AudioLibrary({
   const [previewingFileId, setPreviewingFileId] = useState<string | null>(null);
   const previewAudioRef = useRef<HTMLAudioElement | null>(null);
   const previewTimerRef = useRef<any>(null);
+
+  // Active Picker state
+  const [activePickerFileId, setActivePickerFileId] = useState<string | null>(null);
+
+  // Close picker on click away
+  useEffect(() => {
+    const handleOutsideClick = () => {
+      setActivePickerFileId(null);
+    };
+    window.addEventListener('click', handleOutsideClick);
+    return () => {
+      window.removeEventListener('click', handleOutsideClick);
+    };
+  }, []);
 
   // Stop any active preview
   const stopPreview = () => {
@@ -180,6 +189,104 @@ export function AudioLibrary({
     }
   };
 
+  const renderFileRow = (file: StoredAudioFile) => {
+    const currentMood = getMoodForTrack(file.id);
+    const moodObj = currentMood ? MOODS.find((m) => m.id === currentMood) : null;
+
+    return (
+      <div
+        key={file.id}
+        className="group flex items-center justify-between p-2 bg-[#faf9f6]/50 border border-stone-200/40 rounded-lg text-xs"
+      >
+        <div className="flex items-center gap-2 min-w-0 flex-1 pr-2 relative">
+          <button
+            onClick={() => handlePlayPreview(file)}
+            className={`w-6 h-6 flex items-center justify-center rounded-full border shrink-0 ${
+              previewingFileId === file.id
+                ? 'bg-[#c5b358]/10 text-[#c5b358] border-[#c5b358]/30'
+                : 'bg-white border-stone-200 text-stone-500 hover:text-stone-700'
+            }`}
+            title="Preview 3s"
+          >
+            {previewingFileId === file.id ? (
+              <Pause className="w-2.5 h-2.5 fill-current" />
+            ) : (
+              <Play className="w-2.5 h-2.5 fill-current ml-0.5" />
+            )}
+          </button>
+
+          {/* Mood Selector Trigger/Badge Button */}
+          <div className="relative shrink-0">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setActivePickerFileId(activePickerFileId === file.id ? null : file.id);
+              }}
+              className={`w-6 h-6 flex items-center justify-center rounded-md border text-xs transition-colors shrink-0 ${
+                currentMood
+                  ? 'bg-amber-55 border-amber-200/60 text-stone-700'
+                  : 'bg-stone-50/50 border-stone-200/50 text-stone-400 opacity-0 group-hover:opacity-100'
+              } hover:border-[#c5b358] hover:bg-amber-50/50 cursor-pointer`}
+              title={currentMood ? `Mood: ${moodObj?.label}` : 'Assign Mood'}
+              style={{ opacity: currentMood ? 1 : undefined }}
+            >
+              {currentMood ? moodObj?.emoji : '➕'}
+            </button>
+
+            {activePickerFileId === file.id && (
+              <div
+                className="absolute left-0 top-7 z-50 bg-white border border-stone-250 rounded-lg shadow-lg p-1.5 flex gap-1 animate-in fade-in slide-in-from-top-1 duration-100"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {MOODS.map((m) => (
+                  <button
+                    key={m.id}
+                    onClick={() => {
+                      assignTrackToMood(file.id, m.id);
+                      setActivePickerFileId(null);
+                    }}
+                    className="w-6 h-6 flex items-center justify-center rounded hover:bg-stone-100 cursor-pointer text-xs"
+                    title={m.label}
+                  >
+                    {m.emoji}
+                  </button>
+                ))}
+                {currentMood && (
+                  <button
+                    onClick={() => {
+                      unassignTrack(file.id);
+                      setActivePickerFileId(null);
+                    }}
+                    className="w-6 h-6 flex items-center justify-center rounded hover:bg-red-50 text-red-550 cursor-pointer text-[10px]"
+                    title="Remove Assignment"
+                  >
+                    ❌
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="min-w-0 flex-1">
+            <p className="truncate font-sans font-medium text-stone-700 leading-tight">
+              {file.fileName}
+            </p>
+            <p className="text-[9.5px] font-mono text-stone-400 mt-0.5">
+              {(file.blob.size / 1024).toFixed(1)} KB
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={() => handleRemoveFile(file.id)}
+          className="p-1 px-1.5 hover:bg-red-50 text-stone-400 hover:text-red-655 rounded-md transition-colors"
+          title="Delete File"
+        >
+          <Trash2 className="w-3.5 h-3.5" />
+        </button>
+      </div>
+    );
+  };
+
   return (
     <div id="audio-library-panel" className="flex flex-col h-full text-stone-800">
       {/* Import Instructions Box */}
@@ -253,122 +360,7 @@ export function AudioLibrary({
                 No tracks uploaded yet.
               </span>
             ) : (
-              ambientTracks.map((file) => (
-                <div
-                  key={file.id}
-                  className="flex items-center justify-between p-2 bg-[#faf9f6]/50 border border-stone-200/40 rounded-lg text-xs"
-                >
-                  <div className="flex items-center gap-2 min-w-0 flex-1 pr-2">
-                    <button
-                      onClick={() => handlePlayPreview(file)}
-                      className={`w-6 h-6 flex items-center justify-center rounded-full border shrink-0 ${
-                        previewingFileId === file.id
-                          ? 'bg-[#c5b358]/10 text-[#c5b358] border-[#c5b358]/30'
-                          : 'bg-white border-stone-200 text-stone-500 hover:text-stone-700'
-                      }`}
-                      title="Preview 3s"
-                    >
-                      {previewingFileId === file.id ? (
-                        <Pause className="w-2.5 h-2.5 fill-current" />
-                      ) : (
-                        <Play className="w-2.5 h-2.5 fill-current ml-0.5" />
-                      )}
-                    </button>
-
-                    {/* Mood badge/picker */}
-                    <div className="relative shrink-0 flex items-center">
-                      {(() => {
-                        const moodId = getMoodForTrack?.(file.id) || null;
-                        const assignedMood = MOODS.find((m) => m.id === moodId) || null;
-                        return (
-                          <>
-                            <button
-                              id={`mood-badge-${file.id}`}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setOpenPickerFileId(openPickerFileId === file.id ? null : file.id);
-                              }}
-                              className={`w-6 h-6 flex items-center justify-center rounded-full text-xs transition-colors border cursor-pointer ${
-                                assignedMood
-                                  ? 'bg-[#c5b358]/10 border-[#c5b358]/30 hover:bg-[#c5b358]/20 text-stone-850'
-                                  : 'bg-transparent border-dashed border-stone-200 text-stone-350 hover:border-stone-400 hover:text-stone-550'
-                              }`}
-                              title={assignedMood ? `Assigned to ${assignedMood.label}` : 'Assign mood preset'}
-                            >
-                              {assignedMood ? assignedMood.emoji : '＋'}
-                            </button>
-
-                            {openPickerFileId === file.id && (
-                              <>
-                                <div
-                                  id={`mood-picker-backdrop-${file.id}`}
-                                  className="fixed inset-0 z-40"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setOpenPickerFileId(null);
-                                  }}
-                                />
-                                <div
-                                  id={`mood-picker-${file.id}`}
-                                  className="absolute left-full ml-1 top-0 bg-white border border-stone-200 rounded-lg shadow-lg py-1 z-50 w-36 font-sans text-xs text-left"
-                                >
-                                  <div className="px-2 py-0.5 text-[9px] font-bold text-stone-400 uppercase border-b border-stone-100">
-                                    Assign Ambient Mood
-                                  </div>
-                                  {MOODS.map((m) => (
-                                    <button
-                                      key={m.id}
-                                      id={`picker-option-${file.id}-${m.id}`}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        assignTrackToMood?.(file.id, m.id);
-                                        setOpenPickerFileId(null);
-                                      }}
-                                      className="w-full text-left px-2 py-1 hover:bg-stone-50 flex items-center gap-1.5 text-stone-700 cursor-pointer text-xs"
-                                    >
-                                      <span>{m.emoji}</span>
-                                      <span>{m.label}</span>
-                                    </button>
-                                  ))}
-                                  {assignedMood && (
-                                    <button
-                                      id={`picker-option-${file.id}-remove`}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        unassignTrack?.(file.id);
-                                        setOpenPickerFileId(null);
-                                      }}
-                                      className="w-full text-left px-2 py-1 hover:bg-red-50 text-red-650 border-t border-stone-100 font-semibold cursor-pointer text-xs"
-                                    >
-                                      Remove
-                                    </button>
-                                  )}
-                                </div>
-                              </>
-                            )}
-                          </>
-                        );
-                      })()}
-                    </div>
-
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate font-sans font-medium text-stone-700 leading-tight">
-                        {file.fileName}
-                      </p>
-                      <p className="text-[9.5px] font-mono text-stone-400 mt-0.5">
-                        {(file.blob.size / 1024).toFixed(1)} KB
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => handleRemoveFile(file.id)}
-                    className="p-1 px-1.5 hover:bg-red-50 text-stone-400 hover:text-red-655 rounded-md transition-colors"
-                    title="Delete File"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              ))
+              ambientTracks.map((file) => renderFileRow(file))
             )}
           </div>
         </div>
@@ -422,122 +414,7 @@ export function AudioLibrary({
                 No effects uploaded yet.
               </span>
             ) : (
-              effectFiles.map((file) => (
-                <div
-                  key={file.id}
-                  className="flex items-center justify-between p-2 bg-[#faf9f6]/50 border border-stone-200/40 rounded-lg text-xs"
-                >
-                  <div className="flex items-center gap-2 min-w-0 flex-1 pr-2">
-                    <button
-                      onClick={() => handlePlayPreview(file)}
-                      className={`w-6 h-6 flex items-center justify-center rounded-full border shrink-0 ${
-                        previewingFileId === file.id
-                          ? 'bg-[#c5b358]/10 text-[#c5b358] border-[#c5b358]/30'
-                          : 'bg-white border-stone-200 text-stone-500 hover:text-stone-700'
-                      }`}
-                      title="Preview 3s"
-                    >
-                      {previewingFileId === file.id ? (
-                        <Pause className="w-2.5 h-2.5 fill-current" />
-                      ) : (
-                        <Play className="w-2.5 h-2.5 fill-current ml-0.5" />
-                      )}
-                    </button>
-
-                    {/* Mood badge/picker */}
-                    <div className="relative shrink-0 flex items-center">
-                      {(() => {
-                        const moodId = getMoodForTrack?.(file.id) || null;
-                        const assignedMood = MOODS.find((m) => m.id === moodId) || null;
-                        return (
-                          <>
-                            <button
-                              id={`mood-badge-${file.id}`}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setOpenPickerFileId(openPickerFileId === file.id ? null : file.id);
-                              }}
-                              className={`w-6 h-6 flex items-center justify-center rounded-full text-xs transition-colors border cursor-pointer ${
-                                assignedMood
-                                  ? 'bg-[#c5b358]/10 border-[#c5b358]/30 hover:bg-[#c5b358]/20 text-stone-850'
-                                  : 'bg-transparent border-dashed border-stone-200 text-stone-300 hover:border-stone-400 hover:text-stone-550'
-                              }`}
-                              title={assignedMood ? `Assigned to ${assignedMood.label}` : 'Assign mood preset'}
-                            >
-                              {assignedMood ? assignedMood.emoji : '＋'}
-                            </button>
-
-                            {openPickerFileId === file.id && (
-                              <>
-                                <div
-                                  id={`mood-picker-backdrop-${file.id}`}
-                                  className="fixed inset-0 z-40"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setOpenPickerFileId(null);
-                                  }}
-                                />
-                                <div
-                                  id={`mood-picker-${file.id}`}
-                                  className="absolute left-full ml-1 top-0 bg-white border border-stone-200 rounded-lg shadow-lg py-1 z-50 w-36 font-sans text-xs text-left"
-                                >
-                                  <div className="px-2 py-0.5 text-[9px] font-bold text-stone-400 uppercase border-b border-stone-100">
-                                    Assign Ambient Mood
-                                  </div>
-                                  {MOODS.map((m) => (
-                                    <button
-                                      key={m.id}
-                                      id={`picker-option-${file.id}-${m.id}`}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        assignTrackToMood?.(file.id, m.id);
-                                        setOpenPickerFileId(null);
-                                      }}
-                                      className="w-full text-left px-2 py-1 hover:bg-stone-50 flex items-center gap-1.5 text-stone-700 cursor-pointer text-xs"
-                                    >
-                                      <span>{m.emoji}</span>
-                                      <span>{m.label}</span>
-                                    </button>
-                                  ))}
-                                  {assignedMood && (
-                                    <button
-                                      id={`picker-option-${file.id}-remove`}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        unassignTrack?.(file.id);
-                                        setOpenPickerFileId(null);
-                                      }}
-                                      className="w-full text-left px-2 py-1 hover:bg-red-50 text-red-650 border-t border-stone-100 font-semibold cursor-pointer text-xs"
-                                    >
-                                      Remove
-                                    </button>
-                                  )}
-                                </div>
-                              </>
-                            )}
-                          </>
-                        );
-                      })()}
-                    </div>
-
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate font-sans font-medium text-stone-700 leading-tight">
-                        {file.fileName}
-                      </p>
-                      <p className="text-[9.5px] font-mono text-stone-400 mt-0.5">
-                        {(file.blob.size / 1024).toFixed(1)} KB
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => handleRemoveFile(file.id)}
-                    className="p-1 px-1.5 hover:bg-red-50 text-stone-400 hover:text-red-655 rounded-md transition-colors"
-                    title="Delete File"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              ))
+              effectFiles.map((file) => renderFileRow(file))
             )}
           </div>
         </div>

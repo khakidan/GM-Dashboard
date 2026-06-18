@@ -23,13 +23,15 @@ interface AudioPanelProps {
   setEffectVolume: (volume: number) => void;
   addFiles: (files: FileList | File[], category: 'ambient' | 'effect') => Promise<void>;
   removeFile: (fileId: string) => Promise<void>;
-  // Mood props
-  assignments?: Record<MoodId, string[]>;
-  activeMood?: MoodId | null;
-  activateMood?: (moodId: MoodId, playAmbient: (fileId: string) => void) => void;
-  unassignTrack?: (fileId: string) => void;
-  assignTrackToMood?: (fileId: string, moodId: MoodId) => void;
-  getMoodForTrack?: (fileId: string) => MoodId | null;
+
+  // Mood Presets Props
+  activeMood: MoodId | null;
+  setActiveMood: (mood: MoodId | null) => void;
+  assignments: Record<MoodId, string[]>;
+  assignTrackToMood: (fileId: string, moodId: MoodId) => void;
+  unassignTrack: (fileId: string) => void;
+  getMoodForTrack: (fileId: string) => MoodId | null;
+  activateMood: (moodId: MoodId, playAmbient: (fileId: string) => void) => void;
 }
 
 type AudioTab = 'ambient' | 'soundboard' | 'library';
@@ -47,12 +49,13 @@ export function AudioPanel({
   setEffectVolume,
   addFiles,
   removeFile,
-  assignments = { sweet: [], adventuring: [], tense: [], scary: [], combat: [] },
-  activeMood = null,
-  activateMood,
-  unassignTrack,
+  activeMood,
+  setActiveMood,
+  assignments,
   assignTrackToMood,
+  unassignTrack,
   getMoodForTrack,
+  activateMood,
 }: AudioPanelProps) {
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<AudioTab>('ambient');
@@ -190,9 +193,11 @@ export function AudioPanel({
                 stopAmbient={stopAmbient}
                 setAmbientVolume={setAmbientVolume}
                 onSwitchTab={(tab) => setActiveTab(tab)}
-                assignments={assignments}
                 activeMood={activeMood}
+                setActiveMood={setActiveMood}
+                assignments={assignments}
                 activateMood={activateMood}
+                getMoodForTrack={getMoodForTrack}
               />
             )}
             {activeTab === 'soundboard' && (
@@ -207,10 +212,9 @@ export function AudioPanel({
                 storedFiles={storedFiles}
                 addFiles={addFiles}
                 removeFile={removeFile}
-                assignments={assignments}
-                getMoodForTrack={getMoodForTrack}
                 assignTrackToMood={assignTrackToMood}
                 unassignTrack={unassignTrack}
+                getMoodForTrack={getMoodForTrack}
               />
             )}
           </div>

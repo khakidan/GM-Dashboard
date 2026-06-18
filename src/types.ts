@@ -160,7 +160,7 @@ export interface AppState {
   difficulties: Record<string, string>;
   statuses: Record<string, string>;
   combatState: CombatState;
-  openDialog?: 'newPlayer' | 'newNpc' | 'newEncounter' | null;
+  openDialog?: 'newPlayer' | 'newNpc' | 'newEncounter' | 'shortRest' | null;
 }
 
 export type DamageType =

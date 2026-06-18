@@ -13,12 +13,12 @@ import { SyncingOverlay } from './SyncingOverlay';
 import { GMLoadingScreen } from './GMLoadingScreen';
 import { GMDashboardSidebar } from './GMDashboardSidebar';
 import { GMTabContent } from './GMTabContent';
-import { STORAGE_KEYS, WRITE_QUEUE, MOODS } from '../lib/constants';
+import { STORAGE_KEYS, WRITE_QUEUE } from '../lib/constants';
 import { useAudioEngine } from '../hooks/useAudioEngine';
-import { useMoodPresets } from '../hooks/useMoodPresets';
 import { AudioPanel } from './AudioPanel';
 import { DiceRoller } from './DiceRoller';
 import { CommandPalette } from './CommandPalette';
+import { useMoodPresets } from '../hooks/useMoodPresets';
 
 const VALID_TABS = [
   'party',
@@ -137,15 +137,46 @@ export function GMDashboard() {
 
   const audioEngine = useAudioEngine();
   const moodPresets = useMoodPresets();
-
   const [isPaletteOpen, setIsPaletteOpen] = useState(false);
 
-  // Keyboard shortcut listener for opening the command palette (Ctrl+K or Cmd+K)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         setIsPaletteOpen(true);
+        return;
+      }
+
+      // Check if user is typing in forms
+      const activeEl = document.activeElement;
+      if (
+        activeEl &&
+        (activeEl.tagName === 'INPUT' ||
+          activeEl.tagName === 'TEXTAREA' ||
+          activeEl.tagName === 'SELECT' ||
+          activeEl.getAttribute('contenteditable') === 'true')
+      ) {
+        return;
+      }
+
+      // Alt + 1-5 for Mood Presets matching Sweet, Adventuring, Tense, Scary, Combat
+      if (e.altKey && !e.ctrlKey && !e.metaKey) {
+        if (e.key === '1') {
+          e.preventDefault();
+          moodPresets.activateMood('sweet', audioEngine.playAmbient);
+        } else if (e.key === '2') {
+          e.preventDefault();
+          moodPresets.activateMood('adventuring', audioEngine.playAmbient);
+        } else if (e.key === '3') {
+          e.preventDefault();
+          moodPresets.activateMood('tense', audioEngine.playAmbient);
+        } else if (e.key === '4') {
+          e.preventDefault();
+          moodPresets.activateMood('scary', audioEngine.playAmbient);
+        } else if (e.key === '5') {
+          e.preventDefault();
+          moodPresets.activateMood('combat', audioEngine.playAmbient);
+        }
       }
     };
     const handleOpenPalette = () => {
@@ -157,38 +188,7 @@ export function GMDashboard() {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('open-command-palette', handleOpenPalette);
     };
-  }, []);
-
-  // Keyboard Shortcut Listeners for Mood Presets (Alt + 1..5)
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.altKey && !e.ctrlKey && !e.metaKey) {
-        // Ignore if typing in input/textarea/select/editable
-        const activeEl = document.activeElement;
-        const tag = activeEl?.tagName.toLowerCase();
-        if (
-          tag === 'input' || 
-          tag === 'textarea' || 
-          tag === 'select' || 
-          activeEl?.getAttribute('contenteditable') === 'true'
-        ) {
-          return;
-        }
-
-        const char = e.key;
-        if (char >= '1' && char <= '5') {
-          e.preventDefault();
-          const index = parseInt(char, 10) - 1;
-          const mood = MOODS[index];
-          if (mood) {
-            moodPresets.activateMood(mood.id, audioEngine.playAmbient);
-          }
-        }
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [moodPresets.activateMood, audioEngine.playAmbient]);
+  }, [moodPresets, audioEngine.playAmbient]);
 
   if (!state.hasInitialSynced) {
     const isAuthenticated = hasToken();
@@ -272,15 +272,6 @@ export function GMDashboard() {
         <DiceRoller />
       </div>
 
-      <CommandPalette 
-        isOpen={isPaletteOpen} 
-        onClose={() => setIsPaletteOpen(false)} 
-        {...moodPresets}
-        storedFiles={audioEngine.storedFiles}
-        playAmbient={audioEngine.playAmbient}
-        currentAmbientId={audioEngine.currentAmbientId}
-      />
-
       <SyncingOverlay
         isSyncing={isSyncing}
         syncLogs={syncLogs}
@@ -290,6 +281,17 @@ export function GMDashboard() {
         setSyncError={setSyncError}
         setIsSyncing={setIsSyncing}
         addLog={addLog}
+      />
+
+      <CommandPalette
+        isOpen={isPaletteOpen}
+        onClose={() => setIsPaletteOpen(false)}
+        ambientFiles={audioEngine.storedFiles.filter(f => f.category === 'ambient')}
+        onPlayAmbient={audioEngine.playAmbient}
+        currentAmbientId={audioEngine.currentAmbientId}
+        activeMood={moodPresets.activeMood}
+        assignments={moodPresets.assignments}
+        activateMood={moodPresets.activateMood}
       />
     </div>
   );
