@@ -13,10 +13,13 @@ import { HealOverlay } from './components/HealOverlay';
 import { UnconsciousOverlay } from './components/UnconsciousOverlay';
 import { RageOverlay } from './components/RageOverlay';
 import { InitiativeOverlay } from './components/InitiativeOverlay';
+import { useCampaign } from './hooks/useCampaign';
+import { CampaignSelector } from './components/CampaignSelector';
 
 function AppContent() {
   const { theme } = useTheme();
   const { state } = useAppState();
+  const campaignState = useCampaign();
 
   const deathEvent = state.combatState.deathEvent;
   const damageEvent = state.combatState.damageEvent;
@@ -63,7 +66,25 @@ function AppContent() {
       )}
       <HashRouter>
         <Routes>
-          <Route path="/" element={<GMDashboard />} />
+          <Route path="/" element={
+            !campaignState.activeCampaign ? (
+              <CampaignSelector
+                campaigns={campaignState.campaigns}
+                isLoading={campaignState.isLoading}
+                error={campaignState.error}
+                onCreateCampaign={campaignState.createCampaign}
+                onConnectCampaign={campaignState.connectCampaign}
+                onOpenCampaign={campaignState.openCampaign}
+                onDeleteCampaign={campaignState.deleteCampaign}
+                onClearError={campaignState.clearError}
+              />
+            ) : (
+              <GMDashboard
+                campaign={campaignState.activeCampaign}
+                onCloseCampaign={campaignState.closeCampaign}
+              />
+            )
+          } />
           <Route path="/player-view" element={<PlayerView />} />
           <Route path="/auth-relay" element={<AuthRelay />} />
         </Routes>

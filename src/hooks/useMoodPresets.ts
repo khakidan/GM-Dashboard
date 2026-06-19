@@ -1,7 +1,7 @@
 // src/hooks/useMoodPresets.ts
 
 import { useState, useEffect } from 'react';
-import { STORAGE_KEYS, MOODS, MoodId } from '../lib/constants';
+import { STORAGE_KEYS, MOODS, MoodId, campaignKey } from '../lib/constants';
 import { toast } from 'sonner';
 
 const DEFAULT_ASSIGNMENTS: Record<MoodId, string | null> = {
@@ -12,9 +12,10 @@ const DEFAULT_ASSIGNMENTS: Record<MoodId, string | null> = {
   combat: null
 };
 
-function loadFromLocalStorage(): Record<MoodId, string | null> {
+function loadFromLocalStorage(campaignId: string): Record<MoodId, string | null> {
   try {
-    const stored = localStorage.getItem(STORAGE_KEYS.moodPresets);
+    const key = campaignKey(STORAGE_KEYS.moodPresets, campaignId);
+    const stored = localStorage.getItem(key);
     if (stored) {
       const parsed = JSON.parse(stored);
       // Ensure all moods exist in the loaded object
@@ -34,14 +35,23 @@ function loadFromLocalStorage(): Record<MoodId, string | null> {
   return { ...DEFAULT_ASSIGNMENTS };
 }
 
-export function useMoodPresets() {
-  const [assignments, setAssignments] = useState<Record<MoodId, string | null>>(() => loadFromLocalStorage());
+export function useMoodPresets(campaignId: string = 'default') {
+  const [assignments, setAssignments] = useState<Record<MoodId, string | null>>(() => 
+    loadFromLocalStorage(campaignId)
+  );
   const [activeMood, setActiveMood] = useState<MoodId | null>(null);
+
+  // Sync state if campaignId changes
+  useEffect(() => {
+    setAssignments(loadFromLocalStorage(campaignId));
+    setActiveMood(null);
+  }, [campaignId]);
 
   // Save to localStorage when assignments change
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.moodPresets, JSON.stringify(assignments));
-  }, [assignments]);
+    const key = campaignKey(STORAGE_KEYS.moodPresets, campaignId);
+    localStorage.setItem(key, JSON.stringify(assignments));
+  }, [assignments, campaignId]);
 
   const assignTrackToMood = (fileId: string, moodId: MoodId) => {
     setAssignments(prev => {

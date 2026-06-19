@@ -132,10 +132,24 @@ async function googleFetch(url: string, options: RequestInit = {}): Promise<Resp
   throw lastError;
 }
 
-export async function fetchSheetData(range: string) {
-  const sid = getSpreadsheetId();
+export async function fetchSheetData(range: string): Promise<any>;
+export async function fetchSheetData(spreadsheetId: string, range: string): Promise<any>;
+export async function fetchSheetData(
+  arg1: string,
+  arg2?: string
+): Promise<any> {
+  let spreadsheetId: string;
+  let range: string;
+  if (arg2 === undefined) {
+    spreadsheetId = getSpreadsheetId();
+    range = arg1;
+  } else {
+    spreadsheetId = arg1;
+    range = arg2;
+  }
+
   const response = await googleFetch(
-    `https://sheets.googleapis.com/v4/spreadsheets/${sid}/values/${range}?valueRenderOption=UNFORMATTED_VALUE`
+    `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?valueRenderOption=UNFORMATTED_VALUE`
   );
 
   if (!response.ok) {
@@ -147,14 +161,31 @@ export async function fetchSheetData(range: string) {
   return await response.json();
 }
 
-export function updateSheetData(range: string, values: SheetGrid) {
-  return withSheetToast(_updateSheetData(range, values));
+export function updateSheetData(range: string, values: SheetGrid): any;
+export function updateSheetData(spreadsheetId: string, range: string, values: SheetGrid): any;
+export function updateSheetData(
+  arg1: string,
+  arg2: any,
+  arg3?: any
+): any {
+  let spreadsheetId: string;
+  let range: string;
+  let values: SheetGrid;
+  if (arg3 === undefined) {
+    spreadsheetId = getSpreadsheetId();
+    range = arg1;
+    values = arg2;
+  } else {
+    spreadsheetId = arg1;
+    range = arg2;
+    values = arg3;
+  }
+  return withSheetToast(_updateSheetData(spreadsheetId, range, values));
 }
 
-async function _updateSheetData(range: string, values: SheetGrid) {
-  const sid = getSpreadsheetId();
+async function _updateSheetData(spreadsheetId: string, range: string, values: SheetGrid) {
   const response = await googleFetch(
-    `https://sheets.googleapis.com/v4/spreadsheets/${sid}/values/${range}?valueInputOption=USER_ENTERED`,
+    `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?valueInputOption=USER_ENTERED`,
     {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -171,14 +202,31 @@ async function _updateSheetData(range: string, values: SheetGrid) {
   return await response.json();
 }
 
-export function appendSheetData(range: string, values: SheetGrid) {
-  return withSheetToast(_appendSheetData(range, values));
+export function appendSheetData(range: string, values: SheetGrid): any;
+export function appendSheetData(spreadsheetId: string, range: string, values: SheetGrid): any;
+export function appendSheetData(
+  arg1: string,
+  arg2: any,
+  arg3?: any
+): any {
+  let spreadsheetId: string;
+  let range: string;
+  let values: SheetGrid;
+  if (arg3 === undefined) {
+    spreadsheetId = getSpreadsheetId();
+    range = arg1;
+    values = arg2;
+  } else {
+    spreadsheetId = arg1;
+    range = arg2;
+    values = arg3;
+  }
+  return withSheetToast(_appendSheetData(spreadsheetId, range, values));
 }
 
-async function _appendSheetData(range: string, values: SheetGrid) {
-  const sid = getSpreadsheetId();
+async function _appendSheetData(spreadsheetId: string, range: string, values: SheetGrid) {
   const response = await googleFetch(
-    `https://sheets.googleapis.com/v4/spreadsheets/${sid}/values/${range}:append?valueInputOption=USER_ENTERED`,
+    `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}:append?valueInputOption=USER_ENTERED`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -195,7 +243,26 @@ async function _appendSheetData(range: string, values: SheetGrid) {
   return await response.json();
 }
 
-export async function deleteSheetRow(sheetId: number, rowIndex: number) {
+export async function deleteSheetRow(sheetId: number, rowIndex: number): Promise<any>;
+export async function deleteSheetRow(spreadsheetId: string, sheetId: number, rowIndex: number): Promise<any>;
+export async function deleteSheetRow(
+  arg1: string | number,
+  arg2: number,
+  arg3?: number
+): Promise<any> {
+  let spreadsheetId: string;
+  let sheetId: number;
+  let rowIndex: number;
+  if (arg3 === undefined) {
+    spreadsheetId = getSpreadsheetId();
+    sheetId = arg1 as number;
+    rowIndex = arg2;
+  } else {
+    spreadsheetId = arg1 as string;
+    sheetId = arg2;
+    rowIndex = arg3;
+  }
+
   const requests: BatchRequest[] = [
     {
       deleteDimension: {
@@ -208,12 +275,16 @@ export async function deleteSheetRow(sheetId: number, rowIndex: number) {
       },
     },
   ];
-  return await batchUpdateSpreadsheet(requests);
+  return await batchUpdateSpreadsheet(spreadsheetId, requests);
 }
 
-export async function fetchSpreadsheetMetadata() {
-  const sid = getSpreadsheetId();
-  const response = await googleFetch(`https://sheets.googleapis.com/v4/spreadsheets/${sid}`);
+export async function fetchSpreadsheetMetadata(): Promise<any>;
+export async function fetchSpreadsheetMetadata(spreadsheetId: string): Promise<any>;
+export async function fetchSpreadsheetMetadata(
+  arg1?: string
+): Promise<any> {
+  const spreadsheetId = arg1 || getSpreadsheetId();
+  const response = await googleFetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}`);
 
   if (!response.ok) {
     if (response.status === 401) throw new Error('UNAUTHENTICATED');
@@ -226,10 +297,27 @@ export async function fetchSpreadsheetMetadata() {
 
 export async function batchUpdateValues(
   data: Array<{ range: string; values: SheetGrid }>
+): Promise<void>;
+export async function batchUpdateValues(
+  spreadsheetId: string,
+  data: Array<{ range: string; values: SheetGrid }>
+): Promise<void>;
+export async function batchUpdateValues(
+  arg1: string | Array<{ range: string; values: SheetGrid }>,
+  arg2?: Array<{ range: string; values: SheetGrid }>
 ): Promise<void> {
-  const sid = getSpreadsheetId();
+  let spreadsheetId: string;
+  let data: Array<{ range: string; values: SheetGrid }>;
+  if (arg2 === undefined) {
+    spreadsheetId = getSpreadsheetId();
+    data = arg1 as Array<{ range: string; values: SheetGrid }>;
+  } else {
+    spreadsheetId = arg1 as string;
+    data = arg2;
+  }
+
   const response = await googleFetch(
-    `https://sheets.googleapis.com/v4/spreadsheets/${sid}/values:batchUpdate`,
+    `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values:batchUpdate`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -246,14 +334,27 @@ export async function batchUpdateValues(
   await response.json();
 }
 
-export function batchUpdateSpreadsheet(requests: BatchRequest[]) {
-  return withSheetToast(_batchUpdateSpreadsheet(requests));
+export function batchUpdateSpreadsheet(requests: BatchRequest[]): any;
+export function batchUpdateSpreadsheet(spreadsheetId: string, requests: BatchRequest[]): any;
+export function batchUpdateSpreadsheet(
+  arg1: string | BatchRequest[],
+  arg2?: BatchRequest[]
+): any {
+  let spreadsheetId: string;
+  let requests: BatchRequest[];
+  if (arg2 === undefined) {
+    spreadsheetId = getSpreadsheetId();
+    requests = arg1 as BatchRequest[];
+  } else {
+    spreadsheetId = arg1 as string;
+    requests = arg2;
+  }
+  return withSheetToast(_batchUpdateSpreadsheet(spreadsheetId, requests));
 }
 
-async function _batchUpdateSpreadsheet(requests: BatchRequest[]) {
-  const sid = getSpreadsheetId();
+async function _batchUpdateSpreadsheet(spreadsheetId: string, requests: BatchRequest[]) {
   const response = await googleFetch(
-    `https://sheets.googleapis.com/v4/spreadsheets/${sid}:batchUpdate`,
+    `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}:batchUpdate`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -277,9 +378,12 @@ export interface SheetMetadataEntry {
   };
 }
 
-export async function initializeDatabaseSchema() {
+export async function initializeDatabaseSchema(): Promise<boolean>;
+export async function initializeDatabaseSchema(spreadsheetId: string): Promise<boolean>;
+export async function initializeDatabaseSchema(arg1?: string) {
+  const spreadsheetId = arg1 || getSpreadsheetId();
   try {
-    const metadata = await fetchSpreadsheetMetadata();
+    const metadata = await fetchSpreadsheetMetadata(spreadsheetId);
     const existingSheets = metadata.sheets.map((s: SheetMetadataEntry) => s.properties.title);
 
     const requiredSheets = [
@@ -315,18 +419,19 @@ export async function initializeDatabaseSchema() {
       const createRequests = missingSheets.map(sheet => ({
         addSheet: { properties: { title: sheet.title } },
       }));
-      await _batchUpdateSpreadsheet(createRequests);
+      await _batchUpdateSpreadsheet(spreadsheetId, createRequests);
       await new Promise(r => setTimeout(r, 1000));
     }
 
     for (const sheet of requiredSheets) {
       try {
-        const data = await fetchSheetData(`${sheet.title}!A1:Z1`);
+        const data = await fetchSheetData(spreadsheetId, `${sheet.title}!A1:Z1`);
         if (!data.values || data.values.length === 0 || data.values[0].join(',') !== sheet.headers.join(',')) {
-          await _updateSheetData(`${sheet.title}!A1:Z1`, [sheet.headers]);
+          await _updateSheetData(spreadsheetId, `${sheet.title}!A1:Z1`, [sheet.headers]);
         }
       } catch (e) {
         await _updateSheetData(
+          spreadsheetId,
           `${sheet.title}!A1:${String.fromCharCode(65 + sheet.headers.length - 1)}1`,
           [sheet.headers]
         );

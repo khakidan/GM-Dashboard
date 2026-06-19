@@ -5,7 +5,7 @@ import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import { Soundboard } from '../Soundboard';
 import { StoredAudioFile } from '../../lib/audioFileStore';
-import { STORAGE_KEYS } from '../../lib/constants';
+import { STORAGE_KEYS, campaignKey } from '../../lib/constants';
 
 const mockStoredFiles: StoredAudioFile[] = [
   {
@@ -22,6 +22,7 @@ const defaultProps = {
   storedFiles: mockStoredFiles,
   playEffect: vi.fn(),
   onSwitchTab: vi.fn(),
+  campaignId: 'abc',
 };
 
 describe('Soundboard', () => {
@@ -37,8 +38,6 @@ describe('Soundboard', () => {
   it('renders 12 slots', () => {
     render(<Soundboard {...defaultProps} />);
     const buttons = screen.getAllByRole('button');
-    // Header doesn't have an action button by default except slots. Let's make sure we have 12 grid slots
-    // Buttons inside the 3x4 grid:
     const slots = buttons.filter(b => b.id && b.id.startsWith('soundboard-btn-'));
     expect(slots.length).toBe(12);
   });
@@ -49,11 +48,26 @@ describe('Soundboard', () => {
     expect(addSoundTexts.length).toBe(12);
   });
 
+  it('namespaces soundboard layout between abc and xyz campaigns', () => {
+    const layoutAbc = [{ slotIndex: 0, fileId: 'fx-1', label: 'Roar ABC' }];
+    const layoutXyz = [{ slotIndex: 0, fileId: 'fx-1', label: 'Roar XYZ' }];
+
+    localStorage.setItem(campaignKey(STORAGE_KEYS.soundboardLayout, 'abc'), JSON.stringify(layoutAbc));
+    localStorage.setItem(campaignKey(STORAGE_KEYS.soundboardLayout, 'xyz'), JSON.stringify(layoutXyz));
+
+    const { unmount } = render(<Soundboard {...defaultProps} campaignId="abc" />);
+    expect(screen.getByText('Roar ABC')).toBeDefined();
+    unmount();
+
+    render(<Soundboard {...defaultProps} campaignId="xyz" />);
+    expect(screen.getByText('Roar XYZ')).toBeDefined();
+  });
+
   it('assigned slots show the button label', () => {
     const layout = [
       { slotIndex: 2, fileId: 'fx-1', label: 'Dragon Roar' }
     ];
-    localStorage.setItem(STORAGE_KEYS.soundboardLayout, JSON.stringify(layout));
+    localStorage.setItem(campaignKey(STORAGE_KEYS.soundboardLayout, 'abc'), JSON.stringify(layout));
 
     render(<Soundboard {...defaultProps} />);
     
@@ -68,7 +82,7 @@ describe('Soundboard', () => {
     const layout = [
       { slotIndex: 5, fileId: 'fx-1', label: 'Dragon Roar' }
     ];
-    localStorage.setItem(STORAGE_KEYS.soundboardLayout, JSON.stringify(layout));
+    localStorage.setItem(campaignKey(STORAGE_KEYS.soundboardLayout, 'abc'), JSON.stringify(layout));
 
     render(<Soundboard {...defaultProps} playEffect={playEffectMock} />);
     
@@ -83,7 +97,7 @@ describe('Soundboard', () => {
       { slotIndex: 0, fileId: 'fx-1', label: 'Roar' },
       { slotIndex: 1, fileId: 'fx-1', label: 'Splash' }
     ];
-    localStorage.setItem(STORAGE_KEYS.soundboardLayout, JSON.stringify(layout));
+    localStorage.setItem(campaignKey(STORAGE_KEYS.soundboardLayout, 'abc'), JSON.stringify(layout));
 
     render(<Soundboard {...defaultProps} />);
     

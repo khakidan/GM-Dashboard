@@ -5,10 +5,16 @@ import {
   RECHARGE_DIE_SIDES,
   STORAGE_KEYS,
   SHEET_RANGES,
-  TIMERS
+  TIMERS,
+  campaignKey
 } from '../constants';
 
 describe('constants', () => {
+  it('campaignKey computes names correctly', () => {
+    expect(campaignKey('gm_mood_presets', 'abc')).toBe('gm_mood_presets_abc');
+    expect(campaignKey('gm_mood_presets', '')).toBe('gm_mood_presets_');
+  });
+
   it('OVERLAY_DURATIONS.death equals 10000', () => {
     expect(OVERLAY_DURATIONS.death).toBe(10000);
   });

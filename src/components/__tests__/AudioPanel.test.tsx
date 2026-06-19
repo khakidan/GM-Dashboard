@@ -41,16 +41,18 @@ const defaultProps = {
   activeMood: null,
   setActiveMood: vi.fn(),
   assignments: {
-    sweet: [],
-    adventuring: [],
-    tense: [],
-    scary: [],
-    combat: [],
+    sweet: '',
+    adventuring: '',
+    tense: '',
+    scary: '',
+    combat: '',
   },
   assignTrackToMood: vi.fn(),
   unassignTrack: vi.fn(),
   getMoodForTrack: vi.fn(() => null),
   activateMood: vi.fn(),
+  clearAllFiles: vi.fn(),
+  resetAllMoods: vi.fn(),
 };
 
 describe('AudioPanel', () => {

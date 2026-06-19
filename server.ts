@@ -5,6 +5,7 @@ import { createServer as createViteServer } from "vite";
 import morgan from "morgan";
 import healthRouter from './src/server/routes/health';
 import authRouter from './src/server/routes/auth';
+import campaignsRouter from './src/server/routes/campaigns';
 
 const REQUIRED_ENV = [
   'VITE_GOOGLE_CLIENT_ID',
@@ -34,6 +35,7 @@ async function startServer() {
   app.use(express.urlencoded({ limit: '50mb', extended: true }));
   app.use('/api', healthRouter);
   app.use('/api/auth', authRouter);
+  app.use('/api/campaigns', campaignsRouter);
 
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {

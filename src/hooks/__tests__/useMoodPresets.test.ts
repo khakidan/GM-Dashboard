@@ -2,7 +2,7 @@
 
 import { renderHook, act } from '@testing-library/react';
 import { useMoodPresets } from '../useMoodPresets';
-import { STORAGE_KEYS, MOODS } from '../../lib/constants';
+import { STORAGE_KEYS, MOODS, campaignKey } from '../../lib/constants';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 
 // Mock sonner toast
@@ -23,10 +23,24 @@ describe('useMoodPresets', () => {
   });
 
   it('initially loads empty defaults when localStorage is empty', () => {
-    const { result } = renderHook(() => useMoodPresets());
+    const { result } = renderHook(() => useMoodPresets('abc'));
     expect(result.current.assignments.sweet).toBeNull();
     expect(result.current.assignments.combat).toBeNull();
     expect(result.current.activeMood).toBeNull();
+  });
+
+  it('proves namespacing for abc vs xyz', () => {
+    const savedAbc = { sweet: 'track-abc' };
+    const savedXyz = { sweet: 'track-xyz' };
+
+    localStorage.setItem(campaignKey(STORAGE_KEYS.moodPresets, 'abc'), JSON.stringify(savedAbc));
+    localStorage.setItem(campaignKey(STORAGE_KEYS.moodPresets, 'xyz'), JSON.stringify(savedXyz));
+
+    const { result: abcResult } = renderHook(() => useMoodPresets('abc'));
+    const { result: xyzResult } = renderHook(() => useMoodPresets('xyz'));
+
+    expect(abcResult.current.assignments.sweet).toBe('track-abc');
+    expect(xyzResult.current.assignments.sweet).toBe('track-xyz');
   });
 
   it('loads saved assignments from localStorage on construction', () => {
@@ -37,7 +51,7 @@ describe('useMoodPresets', () => {
       scary: null,
       combat: 'track-combat-3'
     };
-    localStorage.setItem(STORAGE_KEYS.moodPresets, JSON.stringify(saved));
+    localStorage.setItem(campaignKey(STORAGE_KEYS.moodPresets, 'default'), JSON.stringify(saved));
 
     const { result } = renderHook(() => useMoodPresets());
     expect(result.current.assignments.sweet).toBe('track-sweet-1');
@@ -49,7 +63,7 @@ describe('useMoodPresets', () => {
       sweet: ['track-sweet-1', 'track-sweet-2'],
       combat: []
     };
-    localStorage.setItem(STORAGE_KEYS.moodPresets, JSON.stringify(saved));
+    localStorage.setItem(campaignKey(STORAGE_KEYS.moodPresets, 'default'), JSON.stringify(saved));
 
     const { result } = renderHook(() => useMoodPresets());
     expect(result.current.assignments.sweet).toBe('track-sweet-1');
@@ -57,7 +71,7 @@ describe('useMoodPresets', () => {
   });
 
   it('assignTrackToMood assigns a track to the correct mood and persists it', () => {
-    const { result } = renderHook(() => useMoodPresets());
+    const { result } = renderHook(() => useMoodPresets('abc'));
     
     act(() => {
       result.current.assignTrackToMood('file-1', 'sweet');
@@ -66,12 +80,12 @@ describe('useMoodPresets', () => {
     expect(result.current.assignments.sweet).toBe('file-1');
     
     // Check persistence
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.moodPresets) || '{}');
+    const saved = JSON.parse(localStorage.getItem(campaignKey(STORAGE_KEYS.moodPresets, 'abc')) || '{}');
     expect(saved.sweet).toBe('file-1');
   });
 
   it('assigning a track to a mood that already has one replaces the old track', () => {
-    const { result } = renderHook(() => useMoodPresets());
+    const { result } = renderHook(() => useMoodPresets('abc'));
 
     act(() => {
       result.current.assignTrackToMood('file-1', 'sweet');
@@ -85,7 +99,7 @@ describe('useMoodPresets', () => {
   });
 
   it('assigning a track to a new mood removes it from its previous mood', () => {
-    const { result } = renderHook(() => useMoodPresets());
+    const { result } = renderHook(() => useMoodPresets('abc'));
 
     act(() => {
       result.current.assignTrackToMood('file-1', 'sweet');
@@ -100,7 +114,7 @@ describe('useMoodPresets', () => {
   });
 
   it('unassignTrack removes the track from its current mood', () => {
-    const { result } = renderHook(() => useMoodPresets());
+    const { result } = renderHook(() => useMoodPresets('abc'));
 
     act(() => {
       result.current.assignTrackToMood('file-1', 'scary');
@@ -114,7 +128,7 @@ describe('useMoodPresets', () => {
   });
 
   it('getMoodForTrack returns the correct mood or null', () => {
-    const { result } = renderHook(() => useMoodPresets());
+    const { result } = renderHook(() => useMoodPresets('abc'));
 
     expect(result.current.getMoodForTrack('file-1')).toBeNull();
 
@@ -126,7 +140,7 @@ describe('useMoodPresets', () => {
 
   it('activateMood with an assigned track calls playAmbient with the assigned fileId', () => {
     const playAmbient = vi.fn();
-    const { result } = renderHook(() => useMoodPresets());
+    const { result } = renderHook(() => useMoodPresets('abc'));
 
     act(() => {
       result.current.assignTrackToMood('file-1', 'combat');
@@ -142,7 +156,7 @@ describe('useMoodPresets', () => {
 
   it('activateMood with no tracks assigned does not call playAmbient and displays a toast', () => {
     const playAmbient = vi.fn();
-    const { result } = renderHook(() => useMoodPresets());
+    const { result } = renderHook(() => useMoodPresets('abc'));
 
     act(() => {
       result.current.activateMood('tense', playAmbient);
@@ -153,7 +167,7 @@ describe('useMoodPresets', () => {
   });
 
   it('resetAllMoods sets all five moods to null', () => {
-    const { result } = renderHook(() => useMoodPresets());
+    const { result } = renderHook(() => useMoodPresets('abc'));
 
     act(() => {
       result.current.assignTrackToMood('file-1', 'sweet');
@@ -176,4 +190,3 @@ describe('useMoodPresets', () => {
     expect(result.current.activeMood).toBeNull();
   });
 });
-

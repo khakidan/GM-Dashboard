@@ -11,12 +11,26 @@ export interface StoredAudioFile {
 
 let dbPromise: Promise<IDBDatabase> | null = null;
 let activeDB: IDBDatabase | null = null;
+let currentCampaignId: string | null = null;
 
-export function getDB(): Promise<IDBDatabase> {
-  if (dbPromise) return dbPromise;
+export function getDbName(campaignId: string): string {
+  return `gm_audio_files_${campaignId}`;
+}
+
+export function getDB(campaignId: string): Promise<IDBDatabase> {
+  if (dbPromise && currentCampaignId === campaignId) return dbPromise;
+
+  // If we change campaigns, close the active connection first
+  if (activeDB && currentCampaignId !== campaignId) {
+    activeDB.close();
+    activeDB = null;
+    dbPromise = null;
+  }
+
+  currentCampaignId = campaignId;
 
   dbPromise = new Promise((resolve, reject) => {
-    const request = indexedDB.open('gm-audio-store', 1);
+    const request = indexedDB.open(getDbName(campaignId), 1);
 
     request.onupgradeneeded = () => {
       const db = request.result;
@@ -48,6 +62,7 @@ export async function closeDB(): Promise<void> {
     activeDB = null;
   }
   dbPromise = null;
+  currentCampaignId = null;
 }
 
 // Resets DB connection mainly for testing purposes
@@ -57,13 +72,15 @@ export function resetDB() {
     activeDB = null;
   }
   dbPromise = null;
+  currentCampaignId = null;
 }
 
 export async function saveAudioFile(
+  campaignId: string,
   file: File,
   category: 'ambient' | 'effect'
 ): Promise<StoredAudioFile> {
-  const db = await getDB();
+  const db = await getDB(campaignId);
   const id = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
     ? crypto.randomUUID()
     : Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
@@ -93,8 +110,11 @@ export async function saveAudioFile(
   });
 }
 
-export async function getAllAudioFiles(): Promise<StoredAudioFile[]> {
-  const db = await getDB();
+// Alias for saveAudioFile
+export const addAudioFile = saveAudioFile;
+
+export async function getAllAudioFiles(campaignId: string): Promise<StoredAudioFile[]> {
+  const db = await getDB(campaignId);
   return new Promise((resolve, reject) => {
     const transaction = db.transaction('audio-files', 'readonly');
     const store = transaction.objectStore('audio-files');
@@ -112,8 +132,8 @@ export async function getAllAudioFiles(): Promise<StoredAudioFile[]> {
   });
 }
 
-export async function getAudioFile(id: string): Promise<StoredAudioFile | null> {
-  const db = await getDB();
+export async function getAudioFile(campaignId: string, id: string): Promise<StoredAudioFile | null> {
+  const db = await getDB(campaignId);
   return new Promise((resolve, reject) => {
     const transaction = db.transaction('audio-files', 'readonly');
     const store = transaction.objectStore('audio-files');
@@ -129,8 +149,8 @@ export async function getAudioFile(id: string): Promise<StoredAudioFile | null> 
   });
 }
 
-export async function deleteAudioFile(id: string): Promise<void> {
-  const db = await getDB();
+export async function deleteAudioFile(campaignId: string, id: string): Promise<void> {
+  const db = await getDB(campaignId);
   return new Promise((resolve, reject) => {
     const transaction = db.transaction('audio-files', 'readwrite');
     const store = transaction.objectStore('audio-files');
@@ -147,10 +167,30 @@ export async function deleteAudioFile(id: string): Promise<void> {
 }
 
 export async function getAudioFilesByCategory(
+  campaignId: string,
   category: 'ambient' | 'effect'
 ): Promise<StoredAudioFile[]> {
-  const all = await getAllAudioFiles();
+  const all = await getAllAudioFiles(campaignId);
   return all.filter((file) => file.category === category);
+}
+
+export async function clearAllAudioFiles(
+  campaignId: string,
+  category: 'ambient' | 'effect' | 'all'
+): Promise<void> {
+  const db = await getDB(campaignId);
+  const files = await getAllAudioFiles(campaignId);
+  const toDelete = files.filter(f => category === 'all' || f.category === category);
+
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction('audio-files', 'readwrite');
+    const store = transaction.objectStore('audio-files');
+    for (const file of toDelete) {
+      store.delete(file.id);
+    }
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => reject(transaction.error);
+  });
 }
 
 export function createObjectURL(blob: Blob): string {

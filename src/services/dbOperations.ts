@@ -1,8 +1,66 @@
 // src/services/dbOperations.ts
 
-import { getSpreadsheetId, fetchSheetData, updateSheetData, batchUpdateSpreadsheet, appendSheetData, fetchSpreadsheetMetadata, SheetGrid, BatchRequest, SheetMetadataEntry } from './sheetsService';
-import { queueWrite } from './writeQueue';
+import * as sheetsService from './sheetsService';
+import { SheetGrid, BatchRequest, SheetMetadataEntry } from './sheetsService';
+import * as writeQueue from './writeQueue';
 import { Character, Encounter, NPC, EncounterCombatant } from '../types';
+import { STORAGE_KEYS } from '../lib/constants';
+
+// Local proxy wrappers to protect backward compatibility for test spies
+function queueWrite(spreadsheetId: string | undefined, range: string, values: any) {
+  if (spreadsheetId) {
+    writeQueue.queueWrite(spreadsheetId, range, values);
+  } else {
+    writeQueue.queueWrite(range, values);
+  }
+}
+
+async function fetchSheetData(spreadsheetId: string | undefined, range: string) {
+  if (spreadsheetId) return sheetsService.fetchSheetData(spreadsheetId, range);
+  return sheetsService.fetchSheetData(range);
+}
+async function updateSheetData(spreadsheetId: string | undefined, range: string, values: SheetGrid) {
+  if (spreadsheetId) return sheetsService.updateSheetData(spreadsheetId, range, values);
+  return sheetsService.updateSheetData(range, values);
+}
+async function appendSheetData(spreadsheetId: string | undefined, range: string, values: SheetGrid) {
+  if (spreadsheetId) return sheetsService.appendSheetData(spreadsheetId, range, values);
+  return sheetsService.appendSheetData(range, values);
+}
+async function deleteSheetRow(spreadsheetId: string | undefined, sheetId: number, rowIndex: number) {
+  if (spreadsheetId) return sheetsService.deleteSheetRow(spreadsheetId, sheetId, rowIndex);
+  return sheetsService.deleteSheetRow(sheetId, rowIndex);
+}
+async function fetchSpreadsheetMetadata(spreadsheetId: string | undefined) {
+  if (spreadsheetId) return sheetsService.fetchSpreadsheetMetadata(spreadsheetId);
+  return sheetsService.fetchSpreadsheetMetadata();
+}
+async function batchUpdateSpreadsheet(spreadsheetId: string | undefined, requests: BatchRequest[]) {
+  if (spreadsheetId) return sheetsService.batchUpdateSpreadsheet(spreadsheetId, requests);
+  return sheetsService.batchUpdateSpreadsheet(requests);
+}
+
+function resolveSpreadsheetId(spreadsheetId: string | undefined): string {
+  if (spreadsheetId && typeof spreadsheetId === 'string' && spreadsheetId.trim().length > 0) {
+    return spreadsheetId.trim();
+  }
+  let getSpId = '';
+  try {
+    const fn = (sheetsService as any).getSpreadsheetId;
+    if (typeof fn === 'function') {
+      getSpId = fn();
+    }
+  } catch {
+    // Fallback for mock environments
+  }
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem(STORAGE_KEYS.activeCampaignSpreadsheetId) ||
+           localStorage.getItem(STORAGE_KEYS.spreadsheetId) ||
+           getSpId ||
+           import.meta.env.VITE_SPREADSHEET_ID || '';
+  }
+  return getSpId || process.env.SPREADSHEET_ID || '';
+}
 
 export function castInt(val: unknown, fallback: number = 0): number {
   if (val === null || val === undefined) return fallback;
@@ -15,9 +73,30 @@ export function sanitizeString(val: unknown): string {
   return String(val).trim();
 }
 
-export async function getNextId(sheetName: string, idColumnIndex: number = 0): Promise<number> {
+export async function getNextId(sheetName: string, idColumnIndex?: number): Promise<number>;
+export async function getNextId(spreadsheetId: string | undefined, sheetName: string, idColumnIndex?: number): Promise<number>;
+export async function getNextId(
+  arg1: string | undefined,
+  arg2?: string | number,
+  arg3?: number
+): Promise<number> {
+  let spreadsheetId: string | undefined;
+  let sheetName: string;
+  let idColumnIndex = 0;
+
+  if (typeof arg2 === 'string') {
+    spreadsheetId = arg1;
+    sheetName = arg2;
+    idColumnIndex = arg3 ?? 0;
+  } else {
+    spreadsheetId = undefined;
+    sheetName = arg1 as string;
+    idColumnIndex = typeof arg2 === 'number' ? arg2 : 0;
+  }
+
   try {
-    const data = await fetchSheetData(`${sheetName}!A2:Z`);
+    const resolvedId = resolveSpreadsheetId(spreadsheetId);
+    const data = await fetchSheetData(resolvedId, `${sheetName}!A2:Z`);
     const rows = data.values || [];
     let maxId = 0;
     for (const row of rows) {
@@ -34,11 +113,13 @@ export async function getNextId(sheetName: string, idColumnIndex: number = 0): P
 }
 
 async function findRowIndexById(
+  spreadsheetId: string | undefined,
   sheetName: string,
   idVal: string,
   idColumnIndex: number = 0
 ): Promise<number | null> {
-  const data = await fetchSheetData(`${sheetName}!A2:Z`);
+  const resolvedId = resolveSpreadsheetId(spreadsheetId);
+  const data = await fetchSheetData(resolvedId, `${sheetName}!A2:Z`);
   const rows = data.values || [];
   for (let i = 0; i < rows.length; i++) {
     if (
@@ -52,8 +133,9 @@ async function findRowIndexById(
   return null;
 }
 
-async function getSheetIds(): Promise<Record<string, number>> {
-  const metadata = await fetchSpreadsheetMetadata();
+async function getSheetIds(spreadsheetId: string | undefined): Promise<Record<string, number>> {
+  const resolvedId = resolveSpreadsheetId(spreadsheetId);
+  const metadata = await fetchSpreadsheetMetadata(resolvedId);
   const res: Record<string, number> = {};
   metadata.sheets.forEach((s: SheetMetadataEntry) => {
     res[s.properties.title] = s.properties.sheetId;
@@ -64,19 +146,15 @@ async function getSheetIds(): Promise<Record<string, number>> {
 // ✅ Shared helper — consolidates the duplicated logic from deleteCharacterFully
 // and deleteEncounterFully. Both functions delete one row from a primary sheet
 // and then cascade-delete matching rows from Encounter_Combatants.
-//
-// primarySheet     — e.g. 'Characters' or 'Encounters'
-// primaryId        — the ID value to find and delete
-// ecColumnIndex    — which column in Encounter_Combatants holds the foreign key
-//                    (1 = Encounter_ID, 2 = Player_ID)
-// ids              — sheet name → numeric sheetId map (from getSheetIds)
 async function buildCascadeDeleteRequests(
+  spreadsheetId: string | undefined,
   primarySheet: string,
   primaryId: string,
   ecColumnIndex: number,
   ids: Record<string, number>
 ): Promise<BatchRequest[] | null> {
-  const rowIdx = await findRowIndexById(primarySheet, primaryId);
+  const resolvedId = resolveSpreadsheetId(spreadsheetId);
+  const rowIdx = await findRowIndexById(resolvedId, primarySheet, primaryId);
   if (rowIdx === null) return null;
 
   const requests: BatchRequest[] = [
@@ -92,11 +170,9 @@ async function buildCascadeDeleteRequests(
     },
   ];
 
-  const ecData = await fetchSheetData('Encounter_Combatants!A2:Z');
+  const ecData = await fetchSheetData(resolvedId, 'Encounter_Combatants!A2:Z');
   const ecRows = ecData.values || [];
 
-  // Collect matching row indices in reverse order so deletions don't shift
-  // the indices of rows we haven't deleted yet.
   const toDelete = ecRows
     .map((row: unknown[], i: number) => ({ row, i }))
     .filter(
@@ -122,13 +198,29 @@ async function buildCascadeDeleteRequests(
   return requests;
 }
 
-export async function deleteCharacterFully(playerId: string) {
+export async function deleteCharacterFully(playerId: string): Promise<void>;
+export async function deleteCharacterFully(spreadsheetId: string | undefined, playerId: string): Promise<void>;
+export async function deleteCharacterFully(
+  arg1: string | undefined,
+  arg2?: string
+): Promise<void> {
+  let spreadsheetId: string | undefined;
+  let playerId: string;
+  if (arg2 === undefined) {
+    spreadsheetId = undefined;
+    playerId = arg1 as string;
+  } else {
+    spreadsheetId = arg1;
+    playerId = arg2;
+  }
+
   try {
-    const ids = await getSheetIds();
+    const resolvedId = resolveSpreadsheetId(spreadsheetId);
+    const ids = await getSheetIds(resolvedId);
     // Player_ID is column index 2 in Encounter_Combatants
-    const requests = await buildCascadeDeleteRequests('Characters', playerId, 2, ids);
+    const requests = await buildCascadeDeleteRequests(resolvedId, 'Characters', playerId, 2, ids);
     if (requests && requests.length > 0) {
-      await batchUpdateSpreadsheet(requests);
+      await batchUpdateSpreadsheet(resolvedId, requests);
     }
   } catch (err) {
     console.error('[DB] deleteCharacterFully failed:', err);
@@ -136,13 +228,29 @@ export async function deleteCharacterFully(playerId: string) {
   }
 }
 
-export async function deleteEncounterFully(encounterId: string) {
+export async function deleteEncounterFully(encounterId: string): Promise<void>;
+export async function deleteEncounterFully(spreadsheetId: string | undefined, encounterId: string): Promise<void>;
+export async function deleteEncounterFully(
+  arg1: string | undefined,
+  arg2?: string
+): Promise<void> {
+  let spreadsheetId: string | undefined;
+  let encounterId: string;
+  if (arg2 === undefined) {
+    spreadsheetId = undefined;
+    encounterId = arg1 as string;
+  } else {
+    spreadsheetId = arg1;
+    encounterId = arg2;
+  }
+
   try {
-    const ids = await getSheetIds();
+    const resolvedId = resolveSpreadsheetId(spreadsheetId);
+    const ids = await getSheetIds(resolvedId);
     // Encounter_ID is column index 1 in Encounter_Combatants
-    const requests = await buildCascadeDeleteRequests('Encounters', encounterId, 1, ids);
+    const requests = await buildCascadeDeleteRequests(resolvedId, 'Encounters', encounterId, 1, ids);
     if (requests && requests.length > 0) {
-      await batchUpdateSpreadsheet(requests);
+      await batchUpdateSpreadsheet(resolvedId, requests);
     }
   } catch (err) {
     console.error('[DB] deleteEncounterFully failed:', err);
@@ -150,9 +258,25 @@ export async function deleteEncounterFully(encounterId: string) {
   }
 }
 
-export async function addCharacterDB(character: Partial<Character>) {
+export async function addCharacterDB(character: Partial<Character>): Promise<Partial<Character> & { id: string }>;
+export async function addCharacterDB(spreadsheetId: string | undefined, character: Partial<Character>): Promise<Partial<Character> & { id: string }>;
+export async function addCharacterDB(
+  arg1: string | undefined | Partial<Character>,
+  arg2?: Partial<Character>
+) {
+  let spreadsheetId: string | undefined;
+  let character: Partial<Character>;
+  if (arg2 === undefined && typeof arg1 === 'object' && arg1 !== null) {
+    spreadsheetId = undefined;
+    character = arg1 as Partial<Character>;
+  } else {
+    spreadsheetId = arg1 as string | undefined;
+    character = arg2 as Partial<Character>;
+  }
+
   try {
-    const nextIdVal = await getNextId('Characters');
+    const resolvedId = resolveSpreadsheetId(spreadsheetId);
+    const nextIdVal = await getNextId(resolvedId, 'Characters');
     const finalId = `pc-${nextIdVal}`;
 
     const rowData = [
@@ -180,7 +304,7 @@ export async function addCharacterDB(character: Partial<Character>) {
       sanitizeString(character.hitDiceUsed || '{}'),
     ];
 
-    await appendSheetData('Characters!A:V', [rowData]);
+    await appendSheetData(resolvedId, 'Characters!A:V', [rowData]);
     return {
       ...character,
       id: finalId,
@@ -198,12 +322,29 @@ export async function addCharacterDB(character: Partial<Character>) {
   }
 }
 
+export async function updateCharacterDB(character: Partial<Character>, fullState: Character): Promise<void>;
+export async function updateCharacterDB(spreadsheetId: string | undefined, character: Partial<Character>, fullState: Character): Promise<void>;
 export async function updateCharacterDB(
-  character: Partial<Character>,
-  fullState: Character
-) {
+  arg1: any,
+  arg2: any,
+  arg3?: any
+): Promise<void> {
+  let spreadsheetId: string | undefined;
+  let character: Partial<Character>;
+  let fullState: Character;
+  if (arg3 === undefined) {
+    spreadsheetId = undefined;
+    character = arg1;
+    fullState = arg2;
+  } else {
+    spreadsheetId = arg1;
+    character = arg2;
+    fullState = arg3;
+  }
+
   try {
-    const charRowIdx = await findRowIndexById('Characters', fullState.id);
+    const resolvedId = resolveSpreadsheetId(spreadsheetId);
+    const charRowIdx = await findRowIndexById(resolvedId, 'Characters', fullState.id);
     if (charRowIdx === null) {
       throw new Error('Character not found');
     }
@@ -234,8 +375,7 @@ export async function updateCharacterDB(
     ];
 
     const a1Row = charRowIdx + 1;
-    // ✅ queueWrite replaces updateSheetData to prevent API quotas inside combat loops
-    queueWrite(`Characters!A${a1Row}:V${a1Row}`, [rowData]);
+    queueWrite(resolvedId, `Characters!A${a1Row}:V${a1Row}`, [rowData]);
   } catch (err) {
     console.error('[DB] updateCharacterDB failed:', err);
     throw err;
@@ -247,15 +387,80 @@ export async function addNpcDB(
   npcHp: number,
   npcAc: number,
   npcNotes: string,
-  resistances: string = '',
-  immunities: string = '',
-  vulnerabilities: string = '',
-  legendaryActions: number = 0,
-  legendaryResistances: number = 0,
-  rechargeAbilities: Array<{ name: string; rechargeOn: number }> = []
+  resistances?: string,
+  immunities?: string,
+  vulnerabilities?: string,
+  legendaryActions?: number,
+  legendaryResistances?: number,
+  rechargeAbilities?: Array<{ name: string; rechargeOn: number }>
+): Promise<any>;
+export async function addNpcDB(
+  spreadsheetId: string | undefined,
+  npcName: string,
+  npcHp: number,
+  npcAc: number,
+  npcNotes: string,
+  resistances?: string,
+  immunities?: string,
+  vulnerabilities?: string,
+  legendaryActions?: number,
+  legendaryResistances?: number,
+  rechargeAbilities?: Array<{ name: string; rechargeOn: number }>
+): Promise<any>;
+export async function addNpcDB(
+  arg1: any,
+  arg2: any,
+  arg3?: any,
+  arg4?: any,
+  arg5?: any,
+  arg6?: any,
+  arg7?: any,
+  arg8?: any,
+  arg9?: any,
+  arg10?: any,
+  arg11?: any
 ) {
+  let spreadsheetId: string | undefined;
+  let npcName: string;
+  let npcHp: number;
+  let npcAc: number;
+  let npcNotes: string;
+  let resistances = '';
+  let immunities = '';
+  let vulnerabilities = '';
+  let legendaryActions = 0;
+  let legendaryResistances = 0;
+  let rechargeAbilities: any[] = [];
+
+  if (typeof arg2 === 'number') {
+    spreadsheetId = undefined;
+    npcName = arg1;
+    npcHp = arg2;
+    npcAc = arg3;
+    npcNotes = arg4;
+    resistances = arg5 ?? '';
+    immunities = arg6 ?? '';
+    vulnerabilities = arg7 ?? '';
+    legendaryActions = arg8 ?? 0;
+    legendaryResistances = arg9 ?? 0;
+    rechargeAbilities = arg10 ?? [];
+  } else {
+    spreadsheetId = arg1;
+    npcName = arg2;
+    npcHp = arg3;
+    npcAc = arg4;
+    npcNotes = arg5;
+    resistances = arg6 ?? '';
+    immunities = arg7 ?? '';
+    vulnerabilities = arg8 ?? '';
+    legendaryActions = arg9 ?? 0;
+    legendaryResistances = arg10 ?? 0;
+    rechargeAbilities = arg11 ?? [];
+  }
+
   try {
-    const nextIdVal = await getNextId('NPCs');
+    const resolvedId = resolveSpreadsheetId(spreadsheetId);
+    const nextIdVal = await getNextId(resolvedId, 'NPCs');
     const finalId = nextIdVal.toString();
 
     const rowData = [
@@ -264,7 +469,7 @@ export async function addNpcDB(
       castInt(npcAc, 10),
       castInt(npcHp, 1),
       0,                  // Temp HP
-      castInt(npcHp, 1),  // Current HP (starts at max)
+      castInt(npcHp, 1),  // Current HP
       '',                 // Condition
       sanitizeString(npcNotes),
       sanitizeString(resistances),
@@ -275,7 +480,7 @@ export async function addNpcDB(
       JSON.stringify(rechargeAbilities ?? []),
     ];
 
-    await appendSheetData('NPCs!A:N', [rowData]);
+    await appendSheetData(resolvedId, 'NPCs!A:N', [rowData]);
     return {
       id: finalId,
       name: npcName,
@@ -298,9 +503,25 @@ export async function addNpcDB(
   }
 }
 
-export async function updateNpcFullDB(npc: NPC) {
+export async function updateNpcFullDB(npc: NPC): Promise<void>;
+export async function updateNpcFullDB(spreadsheetId: string | undefined, npc: NPC): Promise<void>;
+export async function updateNpcFullDB(
+  arg1: any,
+  arg2?: any
+) {
+  let spreadsheetId: string | undefined;
+  let npc: NPC;
+  if (arg2 === undefined) {
+    spreadsheetId = undefined;
+    npc = arg1;
+  } else {
+    spreadsheetId = arg1;
+    npc = arg2;
+  }
+
   try {
-    const rowIdx = await findRowIndexById('NPCs', npc.id);
+    const resolvedId = resolveSpreadsheetId(spreadsheetId);
+    const rowIdx = await findRowIndexById(resolvedId, 'NPCs', npc.id);
     if (rowIdx === null) {
       throw new Error(`NPC ${npc.id} not found`);
     }
@@ -322,27 +543,40 @@ export async function updateNpcFullDB(npc: NPC) {
       JSON.stringify(npc.rechargeAbilities ?? []),
     ];
 
-    // Using queueWrite to be consistent with updateCharacterDB
-    queueWrite(`NPCs!A${a1Row}:N${a1Row}`, [rowData]);
+    queueWrite(resolvedId, `NPCs!A${a1Row}:N${a1Row}`, [rowData]);
   } catch (err) {
     console.error('[DB] updateNpcFullDB failed:', err);
     throw err;
   }
 }
 
-export async function deleteNpcDB(npcId: string) {
+export async function deleteNpcDB(npcId: string): Promise<void>;
+export async function deleteNpcDB(spreadsheetId: string | undefined, npcId: string): Promise<void>;
+export async function deleteNpcDB(
+  arg1: any,
+  arg2?: any
+) {
+  let spreadsheetId: string | undefined;
+  let npcId: string;
+  if (arg2 === undefined) {
+    spreadsheetId = undefined;
+    npcId = arg1;
+  } else {
+    spreadsheetId = arg1;
+    npcId = arg2;
+  }
+
   try {
-    const ids = await getSheetIds();
-    const rowIdx = await findRowIndexById('NPCs', npcId);
+    const resolvedId = resolveSpreadsheetId(spreadsheetId);
+    const ids = await getSheetIds(resolvedId);
+    const rowIdx = await findRowIndexById(resolvedId, 'NPCs', npcId);
     if (rowIdx === null) {
       throw new Error(`NPC ${npcId} not found`);
     }
 
-    // NPCs also appear in Encounter_Combatants. ID is column index 3 (NPC_ID)
-    // Encounter combatants: 0=ID, 1=Encounter_ID, 2=Player_ID, 3=NPC_ID
-    const requests = await buildCascadeDeleteRequests('NPCs', npcId, 3, ids);
+    const requests = await buildCascadeDeleteRequests(resolvedId, 'NPCs', npcId, 3, ids);
     if (requests && requests.length > 0) {
-      await batchUpdateSpreadsheet(requests);
+      await batchUpdateSpreadsheet(resolvedId, requests);
     }
   } catch (err) {
     console.error('[DB] deleteNpcDB failed:', err);
@@ -350,17 +584,34 @@ export async function deleteNpcDB(npcId: string) {
   }
 }
 
+export async function resetNpcHpDB(npcId: string, maxHp: number): Promise<void>;
+export async function resetNpcHpDB(spreadsheetId: string | undefined, npcId: string, maxHp: number): Promise<void>;
 export async function resetNpcHpDB(
-  npcId: string,
-  maxHp: number
-): Promise<void> {
+  arg1: any,
+  arg2: any,
+  arg3?: any
+) {
+  let spreadsheetId: string | undefined;
+  let npcId: string;
+  let maxHp: number;
+  if (arg3 === undefined) {
+    spreadsheetId = undefined;
+    npcId = arg1;
+    maxHp = arg2;
+  } else {
+    spreadsheetId = arg1;
+    npcId = arg2;
+    maxHp = arg3;
+  }
+
   try {
-    const rowIdx = await findRowIndexById('NPCs', npcId);
+    const resolvedId = resolveSpreadsheetId(spreadsheetId);
+    const rowIdx = await findRowIndexById(resolvedId, 'NPCs', npcId);
     if (rowIdx === null) {
       throw new Error(`NPC ${npcId} not found`);
     }
     const a1Row = rowIdx + 1;
-    await updateSheetData(`NPCs!F${a1Row}`, [[maxHp.toString()]]);
+    await updateSheetData(resolvedId, `NPCs!F${a1Row}`, [[maxHp.toString()]]);
   } catch (err) {
     console.error('[DB] resetNpcHpDB failed:', err);
     throw err;
@@ -372,12 +623,46 @@ export async function addEncounterCombatantDB(
   playerId: string | null,
   npcId: string | null,
   quantity: number
-): Promise<EncounterCombatant[]> {
+): Promise<EncounterCombatant[]>;
+export async function addEncounterCombatantDB(
+  spreadsheetId: string | undefined,
+  encounterId: string,
+  playerId: string | null,
+  npcId: string | null,
+  quantity: number
+): Promise<EncounterCombatant[]>;
+export async function addEncounterCombatantDB(
+  arg1: any,
+  arg2: any,
+  arg3?: any,
+  arg4?: any,
+  arg5?: any
+) {
+  let spreadsheetId: string | undefined;
+  let encounterId: string;
+  let playerId: string | null;
+  let npcId: string | null;
+  let quantity: number;
+
+  if (arg5 === undefined) {
+    spreadsheetId = undefined;
+    encounterId = arg1;
+    playerId = arg2;
+    npcId = arg3;
+    quantity = arg4;
+  } else {
+    spreadsheetId = arg1;
+    encounterId = arg2;
+    playerId = arg3;
+    npcId = arg4;
+    quantity = arg5;
+  }
+
   try {
-    const startIdVal = await getNextId('Encounter_Combatants');
+    const resolvedId = resolveSpreadsheetId(spreadsheetId);
+    const startIdVal = await getNextId(resolvedId, 'Encounter_Combatants');
     const created: EncounterCombatant[] = [];
     
-    // For PCs or other cases, if q <= 0, we still want to make at least 1 record
     const count = quantity <= 0 ? 1 : quantity;
 
     for (let i = 0; i < count; i++) {
@@ -387,16 +672,16 @@ export async function addEncounterCombatantDB(
         encounterId,
         playerId || '',
         npcId || '',
-        1,  // Quantity is always 1 when expanded per instance
-        0,  // initiative
-        '', // conditionTimers
-        -1, // npcCurrentHp
-        0,  // npcTempHp
-        '', // npcCurrentConditions
-        0,  // npcTempAcMod
+        1,
+        0,
+        '',
+        -1,
+        0,
+        '',
+        0,
       ];
 
-      await appendSheetData('Encounter_Combatants!A:K', [rowData]);
+      await appendSheetData(resolvedId, 'Encounter_Combatants!A:K', [rowData]);
       created.push({
         id: finalId,
         encounterId,
@@ -418,71 +703,141 @@ export async function addEncounterCombatantDB(
   }
 }
 
+export async function updateEncounterCombatantQuantityDB(ecId: string, newQty: number): Promise<void>;
+export async function updateEncounterCombatantQuantityDB(spreadsheetId: string | undefined, ecId: string, newQty: number): Promise<void>;
 export async function updateEncounterCombatantQuantityDB(
-  ecId: string,
-  newQty: number
+  arg1: any,
+  arg2: any,
+  arg3?: any
 ) {
+  let spreadsheetId: string | undefined;
+  let ecId: string;
+  let newQty: number;
+  if (arg3 === undefined) {
+    spreadsheetId = undefined;
+    ecId = arg1;
+    newQty = arg2;
+  } else {
+    spreadsheetId = arg1;
+    ecId = arg2;
+    newQty = arg3;
+  }
+
   try {
-    const rowIdx = await findRowIndexById('Encounter_Combatants', ecId);
+    const resolvedId = resolveSpreadsheetId(spreadsheetId);
+    const rowIdx = await findRowIndexById(resolvedId, 'Encounter_Combatants', ecId);
     if (rowIdx === null) {
       throw new Error(`Encounter Combatant ${ecId} not found`);
     }
     const a1Row = rowIdx + 1;
-    // ✅ updateSheetData is now a static import — no dynamic import needed
-    await updateSheetData(`Encounter_Combatants!E${a1Row}`, [[newQty.toString()]]);
+    await updateSheetData(resolvedId, `Encounter_Combatants!E${a1Row}`, [[newQty.toString()]]);
   } catch (err) {
     console.error('[DB] updateEncounterCombatantQuantityDB failed:', err);
     throw err;
   }
 }
 
+export async function updateInitiativeDB(ecId: string, initiative: number): Promise<void>;
+export async function updateInitiativeDB(spreadsheetId: string | undefined, ecId: string, initiative: number): Promise<void>;
 export async function updateInitiativeDB(
-  ecId: string,
-  initiative: number
-): Promise<void> {
+  arg1: any,
+  arg2: any,
+  arg3?: any
+) {
+  let spreadsheetId: string | undefined;
+  let ecId: string;
+  let initiative: number;
+  if (arg3 === undefined) {
+    spreadsheetId = undefined;
+    ecId = arg1;
+    initiative = arg2;
+  } else {
+    spreadsheetId = arg1;
+    ecId = arg2;
+    initiative = arg3;
+  }
+
   try {
-    const rowIdx = await findRowIndexById('Encounter_Combatants', ecId);
+    const resolvedId = resolveSpreadsheetId(spreadsheetId);
+    const rowIdx = await findRowIndexById(resolvedId, 'Encounter_Combatants', ecId);
     if (rowIdx === null) {
       throw new Error(`Encounter Combatant ${ecId} not found`);
     }
     const a1Row = rowIdx + 1;
-    await updateSheetData(`Encounter_Combatants!F${a1Row}`, [[initiative.toString()]]);
+    await updateSheetData(resolvedId, `Encounter_Combatants!F${a1Row}`, [[initiative.toString()]]);
   } catch (err) {
     console.error('[DB] updateInitiativeDB failed:', err);
     throw err;
   }
 }
 
+export async function updateConditionTimersDB(ecId: string, timers: Record<string, number>): Promise<void>;
+export async function updateConditionTimersDB(spreadsheetId: string | undefined, ecId: string, timers: Record<string, number>): Promise<void>;
 export async function updateConditionTimersDB(
-  ecId: string,
-  timers: Record<string, number>
-): Promise<void> {
+  arg1: any,
+  arg2: any,
+  arg3?: any
+) {
+  let spreadsheetId: string | undefined;
+  let ecId: string;
+  let timers: Record<string, number>;
+  if (arg3 === undefined) {
+    spreadsheetId = undefined;
+    ecId = arg1;
+    timers = arg2;
+  } else {
+    spreadsheetId = arg1;
+    ecId = arg2;
+    timers = arg3;
+  }
+
   try {
-    const rowIdx = await findRowIndexById('Encounter_Combatants', ecId);
+    const resolvedId = resolveSpreadsheetId(spreadsheetId);
+    const rowIdx = await findRowIndexById(resolvedId, 'Encounter_Combatants', ecId);
     if (rowIdx === null) {
       throw new Error(`Encounter Combatant ${ecId} not found`);
     }
     const a1Row = rowIdx + 1;
     const jsonStr = JSON.stringify(timers);
-    await updateSheetData(`Encounter_Combatants!G${a1Row}`, [[jsonStr]]);
+    await updateSheetData(resolvedId, `Encounter_Combatants!G${a1Row}`, [[jsonStr]]);
   } catch (err) {
     console.error('[DB] updateConditionTimersDB failed:', err);
     throw err;
   }
 }
 
+export async function updateNpcInstanceHpDB(ecId: string, currentHp: number, tempHp: number): Promise<void>;
+export async function updateNpcInstanceHpDB(spreadsheetId: string | undefined, ecId: string, currentHp: number, tempHp: number): Promise<void>;
 export async function updateNpcInstanceHpDB(
-  ecId: string,
-  currentHp: number,
-  tempHp: number
-): Promise<void> {
+  arg1: any,
+  arg2: any,
+  arg3: any,
+  arg4?: any
+) {
+  let spreadsheetId: string | undefined;
+  let ecId: string;
+  let currentHp: number;
+  let tempHp: number;
+  if (arg4 === undefined) {
+    spreadsheetId = undefined;
+    ecId = arg1;
+    currentHp = arg2;
+    tempHp = arg3;
+  } else {
+    spreadsheetId = arg1;
+    ecId = arg2;
+    currentHp = arg3;
+    tempHp = arg4;
+  }
+
   try {
-    const rowIdx = await findRowIndexById('Encounter_Combatants', ecId);
+    const resolvedId = resolveSpreadsheetId(spreadsheetId);
+    const rowIdx = await findRowIndexById(resolvedId, 'Encounter_Combatants', ecId);
     if (rowIdx === null) {
       throw new Error(`Encounter Combatant ${ecId} not found`);
     }
     const a1Row = rowIdx + 1;
-    await updateSheetData(`Encounter_Combatants!H${a1Row}:I${a1Row}`, [
+    await updateSheetData(resolvedId, `Encounter_Combatants!H${a1Row}:I${a1Row}`, [
       [currentHp.toString(), tempHp.toString()],
     ]);
   } catch (err) {
@@ -491,17 +846,34 @@ export async function updateNpcInstanceHpDB(
   }
 }
 
+export async function updateNpcInstanceConditionsDB(ecId: string, conditions: string): Promise<void>;
+export async function updateNpcInstanceConditionsDB(spreadsheetId: string | undefined, ecId: string, conditions: string): Promise<void>;
 export async function updateNpcInstanceConditionsDB(
-  ecId: string,
-  conditions: string
-): Promise<void> {
+  arg1: any,
+  arg2: any,
+  arg3?: any
+) {
+  let spreadsheetId: string | undefined;
+  let ecId: string;
+  let conditions: string;
+  if (arg3 === undefined) {
+    spreadsheetId = undefined;
+    ecId = arg1;
+    conditions = arg2;
+  } else {
+    spreadsheetId = arg1;
+    ecId = arg2;
+    conditions = arg3;
+  }
+
   try {
-    const rowIdx = await findRowIndexById('Encounter_Combatants', ecId);
+    const resolvedId = resolveSpreadsheetId(spreadsheetId);
+    const rowIdx = await findRowIndexById(resolvedId, 'Encounter_Combatants', ecId);
     if (rowIdx === null) {
       throw new Error(`Encounter Combatant ${ecId} not found`);
     }
     const a1Row = rowIdx + 1;
-    await updateSheetData(`Encounter_Combatants!J${a1Row}`, [
+    await updateSheetData(resolvedId, `Encounter_Combatants!J${a1Row}`, [
       [conditions],
     ]);
   } catch (err) {
@@ -510,18 +882,35 @@ export async function updateNpcInstanceConditionsDB(
   }
 }
 
+export async function updateNpcInstanceAcModDB(ecId: string, acMod: number): Promise<void>;
+export async function updateNpcInstanceAcModDB(spreadsheetId: string | undefined, ecId: string, acMod: number): Promise<void>;
 export async function updateNpcInstanceAcModDB(
-  ecId: string,
-  acMod: number
-): Promise<void> {
+  arg1: any,
+  arg2: any,
+  arg3?: any
+) {
+  let spreadsheetId: string | undefined;
+  let ecId: string;
+  let acMod: number;
+  if (arg3 === undefined) {
+    spreadsheetId = undefined;
+    ecId = arg1;
+    acMod = arg2;
+  } else {
+    spreadsheetId = arg1;
+    ecId = arg2;
+    acMod = arg3;
+  }
+
   try {
-    const rowIdx = await findRowIndexById('Encounter_Combatants', ecId);
+    const resolvedId = resolveSpreadsheetId(spreadsheetId);
+    const rowIdx = await findRowIndexById(resolvedId, 'Encounter_Combatants', ecId);
     if (rowIdx === null) {
       throw new Error(`Encounter Combatant ${ecId} not found`);
     }
 
     const a1Row = rowIdx + 1;
-    await updateSheetData(`Encounter_Combatants!K${a1Row}`, [
+    await updateSheetData(resolvedId, `Encounter_Combatants!K${a1Row}`, [
       [acMod.toString()],
     ]);
   } catch (err) {
@@ -530,20 +919,39 @@ export async function updateNpcInstanceAcModDB(
   }
 }
 
+export async function updateDeathSavesDB(characterId: string, fails: number, successes: number): Promise<void>;
+export async function updateDeathSavesDB(spreadsheetId: string | undefined, characterId: string, fails: number, successes: number): Promise<void>;
 export async function updateDeathSavesDB(
-  characterId: string,
-  fails: number,
-  successes: number
+  arg1: any,
+  arg2: any,
+  arg3: any,
+  arg4?: any
 ): Promise<void> {
+  let spreadsheetId: string | undefined;
+  let characterId: string;
+  let fails: number;
+  let successes: number;
+  if (arg4 === undefined) {
+    spreadsheetId = undefined;
+    characterId = arg1;
+    fails = arg2;
+    successes = arg3;
+  } else {
+    spreadsheetId = arg1;
+    characterId = arg2;
+    fails = arg3;
+    successes = arg4;
+  }
+
   try {
-    const rowIdx = await findRowIndexById('Characters', characterId);
+    const resolvedId = resolveSpreadsheetId(spreadsheetId);
+    const rowIdx = await findRowIndexById(resolvedId, 'Characters', characterId);
     if (rowIdx === null) {
       throw new Error(`Character ${characterId} not found`);
     }
 
     const a1Row = rowIdx + 1;
-    // Writes to column R (Death_Saves_Fails) and S (Death_Saves_Successes)
-    await updateSheetData(`Characters!R${a1Row}:S${a1Row}`, [
+    await updateSheetData(resolvedId, `Characters!R${a1Row}:S${a1Row}`, [
       [fails.toString(), successes.toString()],
     ]);
   } catch (err) {
@@ -552,13 +960,29 @@ export async function updateDeathSavesDB(
   }
 }
 
-export async function deleteEncounterCombatantDB(ecId: string) {
+export async function deleteEncounterCombatantDB(ecId: string): Promise<void>;
+export async function deleteEncounterCombatantDB(spreadsheetId: string | undefined, ecId: string): Promise<void>;
+export async function deleteEncounterCombatantDB(
+  arg1: any,
+  arg2?: any
+) {
+  let spreadsheetId: string | undefined;
+  let ecId: string;
+  if (arg2 === undefined) {
+    spreadsheetId = undefined;
+    ecId = arg1;
+  } else {
+    spreadsheetId = arg1;
+    ecId = arg2;
+  }
+
   try {
-    const ids = await getSheetIds();
-    const rowIdx = await findRowIndexById('Encounter_Combatants', ecId);
+    const resolvedId = resolveSpreadsheetId(spreadsheetId);
+    const ids = await getSheetIds(resolvedId);
+    const rowIdx = await findRowIndexById(resolvedId, 'Encounter_Combatants', ecId);
     if (rowIdx === null) return;
 
-    await batchUpdateSpreadsheet([
+    await batchUpdateSpreadsheet(resolvedId, [
       {
         deleteDimension: {
           range: {
@@ -580,10 +1004,45 @@ export async function addEncounterDB(
   name: string,
   location: string,
   difficultyId: number,
-  numberOfNpcs: number = 0
+  numberOfNpcs?: number
+): Promise<any>;
+export async function addEncounterDB(
+  spreadsheetId: string | undefined,
+  name: string,
+  location: string,
+  difficultyId: number,
+  numberOfNpcs?: number
+): Promise<any>;
+export async function addEncounterDB(
+  arg1: any,
+  arg2: any,
+  arg3: any,
+  arg4?: any,
+  arg5?: any
 ) {
+  let spreadsheetId: string | undefined;
+  let name: string;
+  let location: string;
+  let difficultyId: number;
+  let numberOfNpcs = 0;
+
+  if (typeof arg3 === 'number') {
+    spreadsheetId = undefined;
+    name = arg1;
+    location = arg2;
+    difficultyId = arg3;
+    numberOfNpcs = arg4 ?? 0;
+  } else {
+    spreadsheetId = arg1;
+    name = arg2;
+    location = arg3;
+    difficultyId = arg4;
+    numberOfNpcs = arg5 ?? 0;
+  }
+
   try {
-    const nextIdVal = await getNextId('Encounters');
+    const resolvedId = resolveSpreadsheetId(spreadsheetId);
+    const nextIdVal = await getNextId(resolvedId, 'Encounters');
     const finalId = nextIdVal.toString();
 
     const rowData = [
@@ -596,7 +1055,7 @@ export async function addEncounterDB(
       '',
     ];
 
-    await appendSheetData('Encounters!A:G', [rowData]);
+    await appendSheetData(resolvedId, 'Encounters!A:G', [rowData]);
     return { id: finalId, name, location, difficultyId, numberOfNpcs, currentRound: 0, activeTurnId: '' };
   } catch (err) {
     console.error('[DB] addEncounterDB failed:', err);
@@ -608,14 +1067,43 @@ export async function updateEncounterStateDB(
   encounterId: string,
   currentRound: number,
   activeTurnId: string
-): Promise<void> {
+): Promise<void>;
+export async function updateEncounterStateDB(
+  spreadsheetId: string | undefined,
+  encounterId: string,
+  currentRound: number,
+  activeTurnId: string
+): Promise<void>;
+export async function updateEncounterStateDB(
+  arg1: any,
+  arg2: any,
+  arg3: any,
+  arg4?: any
+) {
+  let spreadsheetId: string | undefined;
+  let encounterId: string;
+  let currentRound: number;
+  let activeTurnId: string;
+  if (arg4 === undefined) {
+    spreadsheetId = undefined;
+    encounterId = arg1;
+    currentRound = arg2;
+    activeTurnId = arg3;
+  } else {
+    spreadsheetId = arg1;
+    encounterId = arg2;
+    currentRound = arg3;
+    activeTurnId = arg4;
+  }
+
   try {
-    const rowIdx = await findRowIndexById('Encounters', encounterId);
+    const resolvedId = resolveSpreadsheetId(spreadsheetId);
+    const rowIdx = await findRowIndexById(resolvedId, 'Encounters', encounterId);
     if (rowIdx === null) {
       throw new Error(`Encounter ${encounterId} not found`);
     }
     const a1Row = rowIdx + 1;
-    await updateSheetData(`Encounters!F${a1Row}:G${a1Row}`, [
+    await updateSheetData(resolvedId, `Encounters!F${a1Row}:G${a1Row}`, [
       [currentRound.toString(), sanitizeString(activeTurnId)],
     ]);
   } catch (err) {
@@ -624,16 +1112,30 @@ export async function updateEncounterStateDB(
   }
 }
 
+export async function clearEncounterStateDB(encounterId: string): Promise<void>;
+export async function clearEncounterStateDB(spreadsheetId: string | undefined, encounterId: string): Promise<void>;
 export async function clearEncounterStateDB(
-  encounterId: string
-): Promise<void> {
+  arg1: any,
+  arg2?: any
+) {
+  let spreadsheetId: string | undefined;
+  let encounterId: string;
+  if (arg2 === undefined) {
+    spreadsheetId = undefined;
+    encounterId = arg1;
+  } else {
+    spreadsheetId = arg1;
+    encounterId = arg2;
+  }
+
   try {
-    const rowIdx = await findRowIndexById('Encounters', encounterId);
+    const resolvedId = resolveSpreadsheetId(spreadsheetId);
+    const rowIdx = await findRowIndexById(resolvedId, 'Encounters', encounterId);
     if (rowIdx === null) {
       throw new Error(`Encounter ${encounterId} not found`);
     }
     const a1Row = rowIdx + 1;
-    await updateSheetData(`Encounters!F${a1Row}:G${a1Row}`, [
+    await updateSheetData(resolvedId, `Encounters!F${a1Row}:G${a1Row}`, [
       ['0', ''],
     ]);
   } catch (err) {
@@ -642,21 +1144,44 @@ export async function clearEncounterStateDB(
   }
 }
 
+export async function updateEncounterDB(encounterId: string, name: string, location: string, difficultyId: number): Promise<void>;
+export async function updateEncounterDB(spreadsheetId: string | undefined, encounterId: string, name: string, location: string, difficultyId: number): Promise<void>;
 export async function updateEncounterDB(
-  encounterId: string,
-  name: string,
-  location: string,
-  difficultyId: number
+  arg1: any,
+  arg2: any,
+  arg3: any,
+  arg4: any,
+  arg5?: any
 ) {
+  let spreadsheetId: string | undefined;
+  let encounterId: string;
+  let name: string;
+  let location: string;
+  let difficultyId: number;
+
+  if (arg5 === undefined) {
+    spreadsheetId = undefined;
+    encounterId = arg1;
+    name = arg2;
+    location = arg3;
+    difficultyId = arg4;
+  } else {
+    spreadsheetId = arg1;
+    encounterId = arg2;
+    name = arg3;
+    location = arg4;
+    difficultyId = arg5;
+  }
+
   try {
-    const rowIdx = await findRowIndexById('Encounters', encounterId);
+    const resolvedId = resolveSpreadsheetId(spreadsheetId);
+    const rowIdx = await findRowIndexById(resolvedId, 'Encounters', encounterId);
     if (rowIdx === null) {
       throw new Error(`Encounter ${encounterId} not found`);
     }
     const a1Row = rowIdx + 1;
     
-    // Fetch the existing row to see npcDefinitions (index 4), currentRound (index 5), activeTurnId (index 6)
-    const data = await fetchSheetData(`Encounters!A${a1Row}:G${a1Row}`);
+    const data = await fetchSheetData(resolvedId, `Encounters!A${a1Row}:G${a1Row}`);
     const existingRow = data.values?.[0] || [];
     
     const npcDefinitions = existingRow[4] !== undefined ? String(existingRow[4]) : '';
@@ -673,7 +1198,7 @@ export async function updateEncounterDB(
       activeTurnId,
     ];
 
-    await updateSheetData(`Encounters!A${a1Row}:G${a1Row}`, [rowData]);
+    await updateSheetData(resolvedId, `Encounters!A${a1Row}:G${a1Row}`, [rowData]);
   } catch (err) {
     console.error('[DB] updateEncounterDB failed:', err);
     throw err;

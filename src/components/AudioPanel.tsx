@@ -38,6 +38,7 @@ interface AudioPanelProps {
   // New Modal Props
   isOpen?: boolean;
   onClose?: () => void;
+  campaignId?: string;
 }
 
 type AudioTab = 'ambient' | 'soundboard' | 'library';
@@ -66,6 +67,7 @@ export function AudioPanel({
   resetAllMoods,
   isOpen = false,
   onClose = () => {},
+  campaignId,
 }: AudioPanelProps) {
   const [activeTab, setActiveTab] = useState<AudioTab>('ambient');
 
@@ -199,6 +201,7 @@ export function AudioPanel({
                     storedFiles={storedFiles}
                     playEffect={playEffect}
                     onSwitchTab={(tab) => setActiveTab(tab)}
+                    campaignId={campaignId}
                   />
                 )}
                 {activeTab === 'library' && (

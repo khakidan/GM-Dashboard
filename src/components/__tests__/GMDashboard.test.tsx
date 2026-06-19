@@ -7,8 +7,14 @@ vi.mock('../GMTabContent', () => ({
   GMTabContent: ({ activeTab }: { activeTab: string }) => <div data-testid="gm-tab-content">{activeTab}</div>
 }));
 
+let mockActiveEncounterId: string | null = null;
+
 vi.mock('../GMDashboardSidebar', () => ({
-  GMDashboardSidebar: () => <div data-testid="sidebar" />
+  GMDashboardSidebar: ({ onCloseCampaign }: { onCloseCampaign?: () => void }) => (
+    <div data-testid="sidebar">
+      <button data-testid="sidebar-all-campaigns-btn" onClick={onCloseCampaign}>All Campaigns</button>
+    </div>
+  )
 }));
 
 vi.mock('../../hooks/useAppState', () => ({
@@ -16,7 +22,7 @@ vi.mock('../../hooks/useAppState', () => ({
     state: {
       hasInitialSynced: true,
       combatState: {
-        activeEncounterId: null
+        activeEncounterId: mockActiveEncounterId
       }
     }
   })
@@ -87,6 +93,7 @@ const LAST_TAB_KEY = STORAGE_KEYS.lastActiveTab;
 
 describe('GMDashboard', () => {
   beforeEach(() => {
+    mockActiveEncounterId = null;
     localStorage.clear();
     vi.clearAllMocks();
   });
@@ -144,6 +151,63 @@ describe('GMDashboard', () => {
     // Press M again
     fireEvent.keyDown(window, { key: 'm', code: 'KeyM' });
     expect(screen.queryByTestId('audio-panel-mock')).toBeNull();
+  });
+
+  const mockCampaign = {
+    id: 'camp-xyz',
+    name: 'Tomb of Annihilation',
+    spreadsheetId: 'sheet-toa',
+    spreadsheetUrl: 'url-toa',
+    createdAt: '2026-01-01',
+    lastOpenedAt: '2026-01-01'
+  };
+
+  it('renders active campaign name in header if provided', () => {
+    render(<GMDashboard campaign={mockCampaign} />);
+    expect(screen.getByText('Tomb of Annihilation')).toBeDefined();
+    expect(screen.getByText('GM Dashboard')).toBeDefined();
+  });
+
+  it('calls onCloseCampaign directly if no encounter is active when back button is clicked', () => {
+    const onClose = vi.fn();
+    render(<GMDashboard campaign={mockCampaign} onCloseCampaign={onClose} />);
+    
+    const backBtn = screen.getByTestId('sidebar-all-campaigns-btn');
+    fireEvent.click(backBtn);
+    
+    expect(onClose).toHaveBeenCalled();
+    expect(screen.queryByText('Leave Campaign?')).toBeNull();
+  });
+
+  it('shows leaving confirmation prompt when back button is clicked with active encounter', () => {
+    mockActiveEncounterId = 'active-enc-123';
+    const onClose = vi.fn();
+    render(<GMDashboard campaign={mockCampaign} onCloseCampaign={onClose} />);
+    
+    const backBtn = screen.getByTestId('sidebar-all-campaigns-btn');
+    fireEvent.click(backBtn);
+    
+    // onCloseCampaign should NOT be called directly
+    expect(onClose).not.toHaveBeenCalled();
+    
+    // Leaving confirmation popup should be visible
+    expect(screen.getByText('Leave Campaign?')).toBeDefined();
+    expect(screen.getByText('An encounter is in progress. Leave this campaign?')).toBeDefined();
+    
+    // Click stay should dismiss but not trigger onCloseCampaign
+    const stayBtn = screen.getByText('Stay');
+    fireEvent.click(stayBtn);
+    expect(screen.queryByText('Leave Campaign?')).toBeNull();
+    expect(onClose).not.toHaveBeenCalled();
+    
+    // Try again
+    fireEvent.click(backBtn);
+    expect(screen.getByText('Leave Campaign?')).toBeDefined();
+    
+    // Click leave should call onCloseCampaign
+    const leaveBtn = screen.getByText('Leave');
+    fireEvent.click(leaveBtn);
+    expect(onClose).toHaveBeenCalled();
   });
 });
 

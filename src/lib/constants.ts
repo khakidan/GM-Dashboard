@@ -68,7 +68,20 @@ export const STORAGE_KEYS = {
   soundboardLayout: 'gm_soundboard_layout',
   instructionsDismissed: 'gm_instructions_dismissed',
   moodPresets: 'gm_mood_presets',
+  campaigns: 'gm_campaigns',
+  activeCampaignId: 'gm_active_campaign_id',
+  activeCampaignSpreadsheetId: 'gm_active_campaign_spreadsheet_id',
 } as const;
+
+// Returns a campaign-scoped storage key.
+// campaignKey('gm_mood_presets', 'abc123')
+// → 'gm_mood_presets_abc123'
+export function campaignKey(
+  baseKey: string,
+  campaignId: string
+): string {
+  return `${baseKey}_${campaignId}`;
+}
 
 export const MOODS = [
   { 

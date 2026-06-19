@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { VolumeX, Plus, Edit2, Play, Trash2, X, Music, AlertCircle } from 'lucide-react';
 import { StoredAudioFile } from '../lib/audioFileStore';
-import { STORAGE_KEYS } from '../lib/constants';
+import { STORAGE_KEYS, campaignKey } from '../lib/constants';
 
 export interface SoundboardSlot {
   slotIndex: number;    // 0-11
@@ -15,20 +15,25 @@ interface SoundboardProps {
   storedFiles: StoredAudioFile[];
   playEffect: (fileId: string) => Promise<void>;
   onSwitchTab?: (tab: 'ambient' | 'soundboard' | 'library') => void;
+  campaignId?: string;
 }
 
-export function Soundboard({ storedFiles, playEffect, onSwitchTab }: SoundboardProps) {
+export function Soundboard({ storedFiles, playEffect, onSwitchTab, campaignId }: SoundboardProps) {
   const effectFiles = storedFiles.filter((f) => f.category === 'effect');
 
   // Load layout from localStorage
-  const [layout, setLayout] = useState<SoundboardSlot[]>(() => {
+  const [layout, setLayout] = useState<SoundboardSlot[]>([]);
+
+  // Reload layout when campaignId changes
+  useEffect(() => {
+    const key = campaignKey(STORAGE_KEYS.soundboardLayout, campaignId || 'default');
     try {
-      const stored = localStorage.getItem(STORAGE_KEYS.soundboardLayout);
-      return stored ? JSON.parse(stored) : [];
+      const stored = localStorage.getItem(key);
+      setLayout(stored ? JSON.parse(stored) : []);
     } catch {
-      return [];
+      setLayout([]);
     }
-  });
+  }, [campaignId]);
 
   // Keep track of which slots are flashing
   const [flashingSlots, setFlashingSlots] = useState<Record<number, boolean>>({});
@@ -44,8 +49,9 @@ export function Soundboard({ storedFiles, playEffect, onSwitchTab }: SoundboardP
 
   // Save layout to localStorage on update
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.soundboardLayout, JSON.stringify(layout));
-  }, [layout]);
+    const key = campaignKey(STORAGE_KEYS.soundboardLayout, campaignId || 'default');
+    localStorage.setItem(key, JSON.stringify(layout));
+  }, [layout, campaignId]);
 
   // Handle click on slot
   const handleSlotClick = async (slotIndex: number) => {

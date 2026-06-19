@@ -93,14 +93,17 @@ function initAmbient() {
 
 // Global flag to kick off first load
 let initialLoadStarted = false;
-async function initFiles() {
-  if (initialLoadStarted) return;
+let activeCampaignId: string | null = null;
+
+async function initFiles(campaignId: string) {
+  if (initialLoadStarted && activeCampaignId === campaignId) return;
   initialLoadStarted = true;
-  await refreshFiles();
+  activeCampaignId = campaignId;
+  await refreshFiles(campaignId);
 }
 
-async function refreshFiles() {
-  globalStoredFiles = await getAllAudioFiles();
+async function refreshFiles(campaignId: string) {
+  globalStoredFiles = await getAllAudioFiles(campaignId);
   notifyListeners();
 }
 
@@ -111,6 +114,7 @@ export function resetAudioEngineState() {
   globalEffectVolume = AUDIO.effectDefaultVolume;
   globalStoredFiles = [];
   initialLoadStarted = false;
+  activeCampaignId = null;
   globalEffectCache.clear();
   
   const cleanupDeck = (deck: { current: AudioDeck | null }) => {
@@ -131,7 +135,7 @@ export function resetAudioEngineState() {
   globalAudioContext = null;
 }
 
-export function useAudioEngine() {
+export function useAudioEngine(campaignId: string = 'default') {
   const [, setTick] = useState(0);
 
   useEffect(() => {
@@ -143,8 +147,15 @@ export function useAudioEngine() {
   }, []);
 
   useEffect(() => {
-    initFiles();
-  }, []);
+    if (activeCampaignId !== null && campaignId !== activeCampaignId) {
+      activeCampaignId = campaignId;
+      stopAmbient().then(() => {
+        refreshFiles(campaignId);
+      });
+    } else {
+      initFiles(campaignId);
+    }
+  }, [campaignId]);
 
   // Play Ambient FileId (using HTML5 Streaming + Web Audio Gain fading)
   async function playAmbient(fileId: string) {
@@ -338,18 +349,18 @@ export function useAudioEngine() {
   async function addFiles(files: FileList | File[], category: 'ambient' | 'effect') {
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      await saveAudioFile(file, category);
+      await saveAudioFile(campaignId, file, category);
     }
-    await refreshFiles();
+    await refreshFiles(campaignId);
   }
 
   async function removeFile(fileId: string) {
     if (globalCurrentAmbientId === fileId) {
       await stopAmbient();
     }
-    await deleteAudioFile(fileId);
+    await deleteAudioFile(campaignId, fileId);
     globalEffectCache.delete(fileId);
-    await refreshFiles();
+    await refreshFiles(campaignId);
   }
 
   async function clearAllFiles(category: 'ambient' | 'effect' | 'all') {
@@ -361,11 +372,11 @@ export function useAudioEngine() {
       if (globalCurrentAmbientId === file.id) {
         await stopAmbient();
       }
-      await deleteAudioFile(file.id);
+      await deleteAudioFile(campaignId, file.id);
       globalEffectCache.delete(file.id);
     }
     
-    await refreshFiles();
+    await refreshFiles(campaignId);
     
     if (category === 'all') {
       resetAudioEngineState();
@@ -390,6 +401,6 @@ export function useAudioEngine() {
     addFiles,
     removeFile,
     clearAllFiles,
-    refreshFiles,
+    refreshFiles: () => refreshFiles(campaignId),
   };
 }

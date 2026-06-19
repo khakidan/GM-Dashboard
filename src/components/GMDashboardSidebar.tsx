@@ -10,6 +10,7 @@ import {
   Skull,
   Settings,
   Search,
+  ArrowLeft,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { hasToken } from '../services/googleAuth';
@@ -27,6 +28,7 @@ export interface GMDashboardSidebarProps {
   syncError?: string | null;
   onSyncWithSheets?: (forcePrompt?: boolean) => void;
   activeEncounterId: string | null;
+  onCloseCampaign?: () => void;
 }
 
 export function GMDashboardSidebar({
@@ -42,6 +44,7 @@ export function GMDashboardSidebar({
   syncError = null,
   onSyncWithSheets,
   activeEncounterId,
+  onCloseCampaign,
 }: GMDashboardSidebarProps) {
   return (
     <aside className={cn(
@@ -189,6 +192,19 @@ export function GMDashboardSidebar({
           {activeTab === 'settings' && isOpen && <div className="w-2 h-2 rounded-full bg-[#c5b358] shrink-0"></div>}
           <Settings className="w-5 h-5 shrink-0" />
           {isOpen && <span className="font-bold font-sans line-clamp-1">Settings</span>}
+        </button>
+
+        <button
+          id="sidebar-all-campaigns-btn"
+          onClick={onCloseCampaign}
+          className={cn(
+            'w-full text-left p-3 flex items-center transition-colors rounded-lg cursor-pointer hover:bg-[#3f3f37]/50 opacity-70 mt-6',
+            isOpen ? 'gap-3' : 'justify-center'
+          )}
+          title="All Campaigns"
+        >
+          <ArrowLeft className="w-5 h-5 shrink-0" />
+          {isOpen && <span className="font-bold font-sans line-clamp-1">All Campaigns</span>}
         </button>
       </nav>
 

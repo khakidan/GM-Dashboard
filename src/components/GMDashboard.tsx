@@ -36,12 +36,28 @@ function isTab(value: unknown): value is Tab {
 
 const LAST_TAB_KEY = STORAGE_KEYS.lastActiveTab;
 
-export function GMDashboard() {
+import { Campaign } from '../hooks/useCampaign';
+
+export interface GMDashboardProps {
+  campaign?: Campaign;
+  onCloseCampaign?: () => void;
+}
+
+export function GMDashboard({ campaign, onCloseCampaign }: GMDashboardProps = {}) {
   const { state } = useAppState();
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>(() => {
     const stored = localStorage.getItem(LAST_TAB_KEY);
     return isTab(stored) ? stored : 'party';
   });
+
+  const handleBackToCampaigns = useCallback(() => {
+    if (state.combatState.activeEncounterId) {
+      setShowLeaveConfirm(true);
+    } else {
+      onCloseCampaign?.();
+    }
+  }, [state.combatState.activeEncounterId, onCloseCampaign]);
 
   useEffect(() => {
     if (activeTab === 'combat' && !state.combatState.activeEncounterId) {
@@ -135,8 +151,9 @@ export function GMDashboard() {
     onAuthSuccess: () => handleSyncWithSheets(false),
   });
 
-  const audioEngine = useAudioEngine();
-  const moodPresets = useMoodPresets();
+  const campaignId = campaign?.id ?? 'default';
+  const audioEngine = useAudioEngine(campaignId);
+  const moodPresets = useMoodPresets(campaignId);
   const [isPaletteOpen, setIsPaletteOpen] = useState(false);
   const [isAudioPanelOpen, setIsAudioPanelOpen] = useState(false);
 
@@ -248,17 +265,23 @@ export function GMDashboard() {
         syncError={syncError}
         onSyncWithSheets={handleSyncWithSheets}
         activeEncounterId={state.combatState.activeEncounterId}
+        onCloseCampaign={handleBackToCampaigns}
       />
 
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
         <header className="h-16 lg:h-20 shrink-0 border-b border-[#e5e1d8] px-4 lg:px-8 flex items-center justify-between bg-white/80 lg:bg-white/50 backdrop-blur-md sticky top-0 z-10 transition-all">
           <div className="flex-1 max-w-lg mr-4 group flex items-center gap-2">
-            <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-2 -ml-2 text-[#5a5a40] hover:bg-black/5 rounded cursor-pointer">
+            <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-2 -ml-2 text-[#5a5a40] hover:bg-black/5 rounded cursor-pointer" id="header-sidebar-menu-btn">
               <Menu className="w-6 h-6" />
             </button>
-            <h2 className="text-lg lg:text-xl font-bold text-[#2c2c26] px-2 py-1">
-              GM Encounter Dashboard
-            </h2>
+            <div>
+              <h2 id="header-campaign-title" className="text-lg lg:text-xl font-bold text-[#2c2c26] px-2 leading-tight">
+                {campaign ? campaign.name : "GM Encounter Dashboard"}
+              </h2>
+              <p id="header-campaign-subtitle" className="text-xs text-[#5a5a40] px-2 font-sans font-medium uppercase tracking-wider">
+                GM Dashboard
+              </p>
+            </div>
           </div>
         </header>
 
@@ -316,7 +339,7 @@ export function GMDashboard() {
         </div>
         
         {isAudioPanelOpen && (
-          <AudioPanel {...audioEngine} {...moodPresets} isOpen={isAudioPanelOpen} onClose={() => setIsAudioPanelOpen(false)} />
+          <AudioPanel {...audioEngine} {...moodPresets} campaignId={campaignId} isOpen={isAudioPanelOpen} onClose={() => setIsAudioPanelOpen(false)} />
         )}
         <DiceRoller />
       </div>
@@ -342,6 +365,36 @@ export function GMDashboard() {
         assignments={moodPresets.assignments}
         activateMood={moodPresets.activateMood}
       />
+
+      {showLeaveConfirm && (
+        <div id="leave-campaign-confirm-overlay" className="fixed inset-0 bg-[#2c2c26]/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 select-none animate-fade-in font-serif">
+          <div className="bg-[#fdfaf5] border-2 border-[#c5b358] rounded-2xl p-6 max-w-sm w-full shadow-2xl text-center">
+            <h3 className="text-xl font-bold text-[#2c2c26] mb-3">Leave Campaign?</h3>
+            <p className="text-sm font-sans text-[#5a5a40] mb-6">
+              An encounter is in progress. Leave this campaign?
+            </p>
+            <div className="flex justify-center gap-3 font-sans">
+              <button
+                id="leave-campaign-stay-btn"
+                onClick={() => setShowLeaveConfirm(false)}
+                className="px-5 py-2.5 bg-stone-200 hover:bg-stone-300 font-bold text-stone-800 rounded-lg text-sm transition-colors cursor-pointer"
+              >
+                Stay
+              </button>
+              <button
+                id="leave-campaign-leave-btn"
+                onClick={() => {
+                  setShowLeaveConfirm(false);
+                  onCloseCampaign?.();
+                }}
+                className="px-5 py-2.5 bg-red-600 hover:bg-red-700 font-bold text-white rounded-lg text-sm transition-colors cursor-pointer animate-pulse"
+              >
+                Leave
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

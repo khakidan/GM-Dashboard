@@ -79,7 +79,7 @@ describe('useAudioEngine', () => {
     resetDB();
     // Delete database to start clean
     await new Promise<void>((resolve) => {
-      const req = indexedDB.deleteDatabase('gm-audio-store');
+      const req = indexedDB.deleteDatabase('gm_audio_files_default');
       req.onsuccess = () => resolve();
     });
     localStorage.clear();
@@ -98,7 +98,7 @@ describe('useAudioEngine', () => {
   it('storedFiles is populated from IndexedDB on mount', async () => {
     const file = new File(['audio'], '13_Cave_of_Time.mp3', { type: 'audio/mp3' });
     const { saveAudioFile } = await import('../../lib/audioFileStore');
-    const stored = await saveAudioFile(file, 'ambient');
+    const stored = await saveAudioFile('default', file, 'ambient');
 
     const { result } = renderHook(() => useAudioEngine());
 

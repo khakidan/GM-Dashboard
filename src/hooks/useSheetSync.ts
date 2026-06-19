@@ -9,6 +9,7 @@ import {
 } from '../services/sheetsService';
 import { clearRetryQueue } from '../services/writeQueue';
 import { Character, Encounter, NPC, EncounterCombatant } from '../types';
+import { STORAGE_KEYS } from '../lib/constants';
 import {
   parseStatuses,
   parseDifficulties,
@@ -36,7 +37,11 @@ export function useSheetSync({ setIsGoogleConnected, onActiveTabChange }: UseShe
 
   const handleSyncWithSheets = async (isManual = true) => {
     let hadError = false;
-    const sid = getSpreadsheetId();
+    const sid = localStorage.getItem(STORAGE_KEYS.activeCampaignSpreadsheetId) ||
+                localStorage.getItem(STORAGE_KEYS.spreadsheetId) ||
+                getSpreadsheetId() ||
+                import.meta.env.VITE_SPREADSHEET_ID || '';
+
     if (isManual) {
       setSyncLogs([]);
       setIsSyncing(true);
@@ -51,36 +56,36 @@ export function useSheetSync({ setIsGoogleConnected, onActiveTabChange }: UseShe
 
     try {
       addLog('Step 1: Validating authentication...');
-      await initializeDatabaseSchema();
+      await initializeDatabaseSchema(sid);
       addLog('Authentication valid. Schema verified.');
 
       // 1. Fetch Statuses
       addLog('Step 2: Fetching status definitions...');
-      const statusRes = await fetchSheetData('Status!A2:B');
+      const statusRes = await fetchSheetData(sid, 'Status!A2:B');
       const statuses = parseStatuses(statusRes.values || []);
       addLog(`Status types loaded: ${Object.keys(statuses).length}`);
 
       // 2. Fetch Difficulties
       addLog('Step 3: Fetching difficulty levels...');
-      const diffRes = await fetchSheetData('Difficulty_Level!A2:B');
+      const diffRes = await fetchSheetData(sid, 'Difficulty_Level!A2:B');
       const difficulties = parseDifficulties(diffRes.values || []);
       addLog(`Difficulty settings loaded: ${Object.keys(difficulties).length}`);
 
       // 3. Fetch NPCs
       addLog('Step 4: Loading NPC library...');
-      const npcRes = await fetchSheetData('NPCs!A2:N');
+      const npcRes = await fetchSheetData(sid, 'NPCs!A2:N');
       const parsedNPCs = parseNPCs(npcRes.values || []);
       addLog(`NPC entries loaded: ${parsedNPCs.length}`);
 
       // 4. Fetch Characters
       addLog('Step 5: Fetching character roster...');
-      const charactersResponse = await fetchSheetData('Characters!A2:V');
+      const charactersResponse = await fetchSheetData(sid, 'Characters!A2:V');
       const characterRows = charactersResponse.values || [];
       addLog(`Character rows found: ${characterRows.length}`);
 
       // 5. Fetch Encounters
       addLog('Step 6: Loading encounter log...');
-      const encountersResponse = await fetchSheetData('Encounters!A2:G');
+      const encountersResponse = await fetchSheetData(sid, 'Encounters!A2:G');
       const parsedEncounters = parseEncounters(encountersResponse.values || [], difficulties);
       addLog(`Encounters found: ${parsedEncounters.length}`);
 
@@ -88,7 +93,7 @@ export function useSheetSync({ setIsGoogleConnected, onActiveTabChange }: UseShe
       addLog('Step 7: Synching active combatants...');
       let parsedEncounterCombatants: EncounterCombatant[] = [];
       try {
-        const ecResponse = await fetchSheetData('Encounter_Combatants!A2:K');
+        const ecResponse = await fetchSheetData(sid, 'Encounter_Combatants!A2:K');
         parsedEncounterCombatants = parseEncounterCombatants(ecResponse.values || []);
         addLog(`Combatant links loaded: ${parsedEncounterCombatants.length}`);
       } catch (err) {
