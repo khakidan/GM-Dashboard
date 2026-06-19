@@ -8,24 +8,68 @@ describe('GMDashboardSidebar', () => {
     cleanup();
   });
 
-  it('renders a button for each of the tabs', () => {
-    render(
+  it('renders with a fixed w-16 width class and no dynamic width classes', () => {
+    const { container } = render(
       <GMDashboardSidebar
         activeTab="party"
         onTabChange={vi.fn()}
-        isOpen={true}
-        onToggle={vi.fn()}
         campaignName="Test Campaign"
         isSyncing={false}
         activeEncounterId="enc-123"
       />
     );
 
-    expect(screen.getByText('Party Roster')).toBeDefined();
-    expect(screen.getByText('NPC Library')).toBeDefined();
-    expect(screen.getByText('Encounters')).toBeDefined();
-    expect(screen.getByText('Active Combat')).toBeDefined();
-    expect(screen.getByText('Settings')).toBeDefined();
+    const aside = container.querySelector('aside');
+    expect(aside).toBeDefined();
+    expect(aside?.className).toContain('w-16');
+    expect(aside?.className).not.toContain('w-64');
+    expect(aside?.className).not.toContain('w-20');
+  });
+
+  it('renders without any toggle, hamburger, or close buttons', () => {
+    const { container } = render(
+      <GMDashboardSidebar
+        activeTab="party"
+        onTabChange={vi.fn()}
+        campaignName="Test Campaign"
+        isSyncing={false}
+        activeEncounterId="enc-123"
+      />
+    );
+
+    const toggleBtn = container.querySelector('#sidebar-toggle-btn');
+    expect(toggleBtn).toBeNull();
+  });
+
+  it('renders nav icons with appropriate aria-label and tooltip elements', () => {
+    const { container } = render(
+      <GMDashboardSidebar
+        activeTab="party"
+        onTabChange={vi.fn()}
+        campaignName="Test Campaign"
+        isSyncing={false}
+        activeEncounterId="enc-123"
+      />
+    );
+
+    // Each button has an aria-label
+    expect(screen.getByRole('button', { name: 'Party Roster' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'NPC Library' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Active Combat' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Settings' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'All Campaigns' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Search' })).toBeDefined();
+
+    // Tooltips render correctly and are hidden by default (has opacity-0 class)
+    const tooltips = container.querySelectorAll('.opacity-0');
+    expect(tooltips.length).toBeGreaterThan(0);
+
+    const tooltipTexts = Array.from(tooltips).map(el => el.textContent?.trim());
+    expect(tooltipTexts).toContain('Party Roster');
+    expect(tooltipTexts).toContain('NPC Library');
+    expect(tooltipTexts).toContain('Active Combat');
+    expect(tooltipTexts).toContain('Settings');
+    expect(tooltipTexts).toContain('All Campaigns');
   });
 
   it('the active tab button has a visually distinct active state class', () => {
@@ -33,19 +77,17 @@ describe('GMDashboardSidebar', () => {
       <GMDashboardSidebar
         activeTab="party"
         onTabChange={vi.fn()}
-        isOpen={true}
-        onToggle={vi.fn()}
         campaignName="Test Campaign"
         isSyncing={false}
         activeEncounterId="enc-123"
       />
     );
 
-    const partyButton = screen.getByTitle('Party Roster');
+    const partyButton = screen.getByRole('button', { name: 'Party Roster' });
     expect(partyButton.className).toContain('text-white');
     expect(partyButton.className).toContain('bg-[#3f3f37]');
 
-    const npcButton = screen.getByTitle('NPC Library');
+    const npcButton = screen.getByRole('button', { name: 'NPC Library' });
     expect(npcButton.className).not.toContain('bg-[#3f3f37] text-white');
   });
 
@@ -55,17 +97,16 @@ describe('GMDashboardSidebar', () => {
       <GMDashboardSidebar
         activeTab="party"
         onTabChange={handleTabChange}
-        isOpen={true}
-        onToggle={vi.fn()}
         campaignName="Test Campaign"
         isSyncing={false}
         activeEncounterId="enc-123"
       />
     );
 
-    const npcButton = screen.getByTitle('NPC Library');
+    const npcButton = screen.getByRole('button', { name: 'NPC Library' });
     fireEvent.click(npcButton);
 
     expect(handleTabChange).toHaveBeenCalledWith('npc-library');
   });
 });
+

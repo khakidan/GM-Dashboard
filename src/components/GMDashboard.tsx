@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAppState } from '../hooks/useAppState';
 import { getQueueSize } from '../services/writeQueue';
-import { Menu } from 'lucide-react';
 import { hasToken } from '../services/googleAuth';
 import { useGoogleAuth } from '../hooks/useGoogleAuth';
 import { useSheetSync } from '../hooks/useSheetSync';
@@ -84,11 +83,6 @@ export function GMDashboard({ campaign, onCloseCampaign }: GMDashboardProps = {}
     };
   }, [handleTabChange]);
 
-  const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
-    const stored = localStorage.getItem(STORAGE_KEYS.sidebarOpen);
-    return stored !== null ? stored === 'true' : false;
-  });
-
   const [isOnline, setIsOnline] = useState(() => typeof window !== 'undefined' ? window.navigator.onLine : true);
   const [queuedWrites, setQueuedWrites] = useState(0);
 
@@ -114,14 +108,6 @@ export function GMDashboard({ campaign, onCloseCampaign }: GMDashboardProps = {}
 
     return () => clearInterval(interval);
   }, []);
-
-  const setSidebarOpen = (value: boolean | ((prev: boolean) => boolean)) => {
-    setIsSidebarOpen(prev => {
-      const next = typeof value === 'function' ? value(prev) : value;
-      localStorage.setItem(STORAGE_KEYS.sidebarOpen, String(next));
-      return next;
-    });
-  };
 
   const {
     handleSyncWithSheets,
@@ -245,18 +231,9 @@ export function GMDashboard({ campaign, onCloseCampaign }: GMDashboardProps = {}
 
   return (
     <div className="w-full h-[100dvh] bg-[#fdfaf5] flex overflow-hidden font-serif select-none relative">
-      {isSidebarOpen && (
-        <div
-          className="lg:hidden fixed inset-0 bg-[#2c2c26]/60 backdrop-blur-sm z-30"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
       <GMDashboardSidebar
         activeTab={activeTab}
         onTabChange={handleTabChange}
-        isOpen={isSidebarOpen}
-        onToggle={setSidebarOpen}
         campaignName={state.campaignName}
         isSyncing={isSyncing}
         isOnline={isOnline}
@@ -271,9 +248,6 @@ export function GMDashboard({ campaign, onCloseCampaign }: GMDashboardProps = {}
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
         <header className="h-16 lg:h-20 shrink-0 border-b border-[#e5e1d8] px-4 lg:px-8 flex items-center justify-between bg-white/80 lg:bg-white/50 backdrop-blur-md sticky top-0 z-10 transition-all">
           <div className="flex-1 max-w-lg mr-4 group flex items-center gap-2">
-            <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-2 -ml-2 text-[#5a5a40] hover:bg-black/5 rounded cursor-pointer" id="header-sidebar-menu-btn">
-              <Menu className="w-6 h-6" />
-            </button>
             <div>
               <h2 id="header-campaign-title" className="text-lg lg:text-xl font-bold text-[#2c2c26] px-2 leading-tight">
                 {campaign ? campaign.name : "GM Encounter Dashboard"}
