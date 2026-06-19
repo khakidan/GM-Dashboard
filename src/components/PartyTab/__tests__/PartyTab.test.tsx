@@ -1,3 +1,4 @@
+import '@testing-library/jest-dom/vitest';
 // src/components/PartyTab/__tests__/PartyTab.test.tsx
 
 import React from 'react';
@@ -79,7 +80,7 @@ describe('PartyTab Dialog Integration', () => {
     const { rerender } = render(<PartyTab />);
 
     // Short Rest dialog header should be rendered
-    expect(screen.getByRole('heading', { name: /Short Rest/i })).toBeDefined();
+    expect(screen.getByRole('heading', { name: /Short Rest/i })).toBeInTheDocument();
 
     // The effect should have updated the state to consume/clear the openDialog field
     expect(mockUpdateState).toHaveBeenCalled();

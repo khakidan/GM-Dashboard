@@ -1,3 +1,4 @@
+import '@testing-library/jest-dom/vitest';
 import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
@@ -18,8 +19,8 @@ describe('GMLoadingScreen', () => {
       />
     );
 
-    expect(screen.getByText('My Epic Campaign')).toBeDefined();
-    expect(screen.getByText('Loading from Google Sheets...')).toBeDefined();
+    expect(screen.getByText('My Epic Campaign')).toBeInTheDocument();
+    expect(screen.getByText('Loading from Google Sheets...')).toBeInTheDocument();
     expect(screen.queryByText('Sign In With Google')).toBeNull();
   });
 
@@ -34,7 +35,7 @@ describe('GMLoadingScreen', () => {
       />
     );
 
-    expect(screen.getByText('My Epic Campaign')).toBeDefined();
+    expect(screen.getByText('My Epic Campaign')).toBeInTheDocument();
     expect(screen.queryByText('Loading from Google Sheets...')).toBeNull();
     
     const signInButton = screen.getByText('Sign In With Google');

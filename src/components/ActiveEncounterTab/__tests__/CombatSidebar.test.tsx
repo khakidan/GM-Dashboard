@@ -1,3 +1,4 @@
+import '@testing-library/jest-dom/vitest';
 // ─── PROTECTED TEST FILE ───────────────────────────
 // Do not delete, rename, or remove test cases from 
 // this file without an explicit instruction to do so.
@@ -40,8 +41,8 @@ describe('CombatSidebar', () => {
 
   it('The NPC and Player type toggle buttons are rendered', () => {
     render(<CombatSidebar {...defaultProps} />);
-    expect(screen.getByRole('button', { name: 'NPC' })).toBeDefined();
-    expect(screen.getByRole('button', { name: 'Player' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'NPC' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Player' })).toBeInTheDocument();
   });
 
   it('Switching to Player type hides the quantity input', () => {
@@ -56,7 +57,7 @@ describe('CombatSidebar', () => {
     const npcBtn = screen.getByRole('button', { name: 'NPC' });
     fireEvent.click(npcBtn);
     // NPC is default anyway, so it should be visible
-    expect(screen.getByText('Quantity')).toBeDefined();
+    expect(screen.getByText('Quantity')).toBeInTheDocument();
   });
 
   it('Submitting the preset form with no selection does not call onAddPreset', async () => {
@@ -126,7 +127,7 @@ describe('CombatSidebar', () => {
     const submitBtn = screen.getByRole('button', { name: '+ Add NPC' });
     fireEvent.click(submitBtn);
 
-    expect(screen.getByRole('button', { name: 'Adding...' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Adding...' })).toBeInTheDocument();
     
     resolveAdd();
   });

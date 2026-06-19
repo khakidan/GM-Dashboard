@@ -1,3 +1,4 @@
+import '@testing-library/jest-dom/vitest';
 // ─── PROTECTED TEST FILE ───────────────────────────
 // Do not delete, rename, or remove test cases from 
 // this file without an explicit instruction to do so.
@@ -26,8 +27,8 @@ describe('IrvMultiSelect', () => {
       />
     );
 
-    expect(screen.getByText('fire')).toBeDefined();
-    expect(screen.getByText('poison')).toBeDefined();
+    expect(screen.getByText('fire')).toBeInTheDocument();
+    expect(screen.getByText('poison')).toBeInTheDocument();
     expect(screen.queryByText('cold')).toBeNull();
   });
 
@@ -65,7 +66,7 @@ describe('IrvMultiSelect', () => {
     fireEvent.focus(input);
     fireEvent.change(input, { target: { value: 'co' } });
 
-    expect(screen.getByText('cold')).toBeDefined();
+    expect(screen.getByText('cold')).toBeInTheDocument();
     expect(screen.queryByText('fire')).toBeNull();
     expect(screen.queryByText('acid')).toBeNull();
   });
@@ -108,9 +109,9 @@ describe('IrvMultiSelect', () => {
     
     // 'fire' is in the options but should be filtered out because it's selected
     expect(screen.queryByRole('button', { name: /^fire$/i })).toBeNull();
-    expect(screen.getByText('cold')).toBeDefined();
-    expect(screen.getByText('poison')).toBeDefined();
-    expect(screen.getByText('acid')).toBeDefined();
+    expect(screen.getByText('cold')).toBeInTheDocument();
+    expect(screen.getByText('poison')).toBeInTheDocument();
+    expect(screen.getByText('acid')).toBeInTheDocument();
   });
 
   it('pressing Escape closes the dropdown without changing selection', async () => {
@@ -127,7 +128,7 @@ describe('IrvMultiSelect', () => {
     fireEvent.focus(input);
     fireEvent.change(input, { target: { value: 'fire' } });
 
-    expect(screen.getByText('fire')).toBeDefined();
+    expect(screen.getByText('fire')).toBeInTheDocument();
 
     fireEvent.keyDown(input, { key: 'Escape' });
 

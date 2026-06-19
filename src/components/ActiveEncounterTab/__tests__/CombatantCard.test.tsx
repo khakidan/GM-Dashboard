@@ -1,3 +1,4 @@
+import '@testing-library/jest-dom/vitest';
 // ─── PROTECTED TEST FILE ───────────────────────────
 // Do not delete, rename, or remove test cases from 
 // this file without an explicit instruction to do so.
@@ -119,8 +120,8 @@ describe('CombatantCard', () => {
 
   it('The combatant name and AC are rendered', () => {
     render(<CombatantCard {...defaultProps} />);
-    expect(screen.getByText('Goblin')).toBeDefined();
-    expect(screen.getByText('(AC 15)')).toBeDefined();
+    expect(screen.getByText('Goblin')).toBeInTheDocument();
+    expect(screen.getByText('(AC 15)')).toBeInTheDocument();
   });
 
   describe('Selectable State', () => {
@@ -147,12 +148,12 @@ describe('CombatantCard', () => {
 
   it('The current HP value is displayed', () => {
     render(<CombatantCard {...defaultProps} />);
-    expect(screen.getByText('15')).toBeDefined();
+    expect(screen.getByText('15')).toBeInTheDocument();
   });
 
   it('The Active badge is shown when isActive is true', () => {
     const { rerender } = render(<CombatantCard {...defaultProps} isActive={true} />);
-    expect(screen.getByText('Active')).toBeDefined();
+    expect(screen.getByText('Active')).toBeInTheDocument();
 
     rerender(<CombatantCard {...defaultProps} isActive={false} />);
     expect(screen.queryByText('Active')).toBeNull();
@@ -170,7 +171,7 @@ describe('CombatantCard', () => {
   it('The conditions section is visible when the card is expanded', () => {
     render(<CombatantCard {...defaultProps} isExpanded={true} />);
     // The text 'Conditions' and input are rendered
-    expect(screen.getByText('Conditions')).toBeDefined();
+    expect(screen.getByText('Conditions')).toBeInTheDocument();
   });
 
   it('Clicking the Remove button calls the onRemove prop with the combatant id', () => {
@@ -205,27 +206,27 @@ describe('CombatantCard', () => {
   describe('Mechanical Badges', () => {
     it('SPD 0 badge renders when combatant has grappled condition', () => {
       render(<CombatantCard {...defaultProps} c={{...defaultCombatant, conditions: 'grappled'}} />);
-      expect(screen.getByText('SPD 0')).toBeDefined();
+      expect(screen.getByText('SPD 0')).toBeInTheDocument();
     });
 
     it('NO ACT badge renders when combatant has stunned condition', () => {
       render(<CombatantCard {...defaultProps} c={{...defaultCombatant, conditions: 'stunned'}} />);
-      expect(screen.getByText('NO ACT')).toBeDefined();
+      expect(screen.getByText('NO ACT')).toBeInTheDocument();
     });
 
     it('DISADV badge renders when combatant has poisoned condition', () => {
       render(<CombatantCard {...defaultProps} c={{...defaultCombatant, conditions: 'poisoned'}} />);
-      expect(screen.getByText('DISADV')).toBeDefined();
+      expect(screen.getByText('DISADV')).toBeInTheDocument();
     });
 
     it('VULN badge renders when combatant has restrained condition', () => {
       render(<CombatantCard {...defaultProps} c={{...defaultCombatant, conditions: 'restrained'}} />);
-      expect(screen.getByText('VULN')).toBeDefined();
+      expect(screen.getByText('VULN')).toBeInTheDocument();
     });
 
     it('AUTO CRIT badge renders when combatant has paralyzed condition', () => {
       render(<CombatantCard {...defaultProps} c={{...defaultCombatant, conditions: 'paralyzed'}} />);
-      expect(screen.getByText('AUTO CRIT')).toBeDefined();
+      expect(screen.getByText('AUTO CRIT')).toBeInTheDocument();
     });
 
     it('No badges render when combatant has no conditions', () => {
@@ -241,8 +242,8 @@ describe('CombatantCard', () => {
   describe('Combat Mechanics Panel', () => {
     it('Combat Mechanics panel renders when combatant has paralyzed condition', () => {
       render(<CombatantCard {...defaultProps} isExpanded={true} c={{...defaultCombatant, conditions: 'paralyzed'}} />);
-      expect(screen.getByText('Combat Mechanics')).toBeDefined();
-      expect(screen.getByText('Speed: Locked')).toBeDefined();
+      expect(screen.getByText('Combat Mechanics')).toBeInTheDocument();
+      expect(screen.getByText('Speed: Locked')).toBeInTheDocument();
     });
 
     it('Panel does not render when conditions string is empty', () => {
@@ -252,27 +253,27 @@ describe('CombatantCard', () => {
 
     it('Auto-crit row appears when combatant has unconscious condition', () => {
       render(<CombatantCard {...defaultProps} isExpanded={true} c={{...defaultCombatant, conditions: 'unconscious'}} />);
-      expect(screen.getByText(/Melee hits: Auto-crit/i)).toBeDefined();
+      expect(screen.getByText(/Melee hits: Auto-crit/i)).toBeInTheDocument();
     });
   });
 
   describe('Indicator Dots', () => {
     it('Red dot renders when combatant has an official condition', () => {
       render(<CombatantCard {...defaultProps} c={{...defaultCombatant, conditions: 'poisoned'}} />);
-      expect(screen.getByTitle('Active conditions')).toBeDefined();
+      expect(screen.getByTitle('Active conditions')).toBeInTheDocument();
       expect(screen.queryByTitle('Active effects')).toBeNull();
     });
 
     it('Blue dot renders when combatant has an effect', () => {
       render(<CombatantCard {...defaultProps} c={{...defaultCombatant, conditions: 'hasted'}} />);
-      expect(screen.getByTitle('Active effects')).toBeDefined();
+      expect(screen.getByTitle('Active effects')).toBeInTheDocument();
       expect(screen.queryByTitle('Active conditions')).toBeNull();
     });
 
     it('Both dots render when combatant has both a condition and an effect', () => {
       render(<CombatantCard {...defaultProps} c={{...defaultCombatant, conditions: 'poisoned, hasted'}} />);
-      expect(screen.getByTitle('Active conditions')).toBeDefined();
-      expect(screen.getByTitle('Active effects')).toBeDefined();
+      expect(screen.getByTitle('Active conditions')).toBeInTheDocument();
+      expect(screen.getByTitle('Active effects')).toBeInTheDocument();
     });
 
     it('Neither dot renders when conditions string is empty', () => {
@@ -423,8 +424,8 @@ describe('CombatantCard', () => {
         rechargeAbilities: [{ name: 'Breath Weapon', rechargeOn: 5, isCharged: true }]
       };
       render(<CombatantCard {...defaultProps} isExpanded={true} c={npc} />);
-      expect(screen.getByText('Breath Weapon')).toBeDefined();
-      expect(screen.getByText('READY')).toBeDefined();
+      expect(screen.getByText('Breath Weapon')).toBeInTheDocument();
+      expect(screen.getByText('READY')).toBeInTheDocument();
       expect(screen.queryByText('SPENT')).toBeNull();
       expect(screen.queryByRole('button', { name: /Roll Recharge/i })).toBeNull();
     });
@@ -436,10 +437,10 @@ describe('CombatantCard', () => {
         rechargeAbilities: [{ name: 'Breath Weapon', rechargeOn: 5, isCharged: false }]
       };
       render(<CombatantCard {...defaultProps} isExpanded={true} c={npc} />);
-      expect(screen.getByText('Breath Weapon')).toBeDefined();
-      expect(screen.getByText('SPENT')).toBeDefined();
+      expect(screen.getByText('Breath Weapon')).toBeInTheDocument();
+      expect(screen.getByText('SPENT')).toBeInTheDocument();
       expect(screen.queryByText('READY')).toBeNull();
-      expect(screen.getByRole('button', { name: /Roll Recharge/i })).toBeDefined();
+      expect(screen.getByRole('button', { name: /Roll Recharge/i })).toBeInTheDocument();
     });
 
     it('Clicking Roll Recharge calls rollDice with a 1d6', async () => {
@@ -532,8 +533,8 @@ describe('CombatantCard', () => {
       const { container } = render(<CombatantCard {...defaultProps} isExpanded={true} onUpdateCombatant={onUpdateCombatant} c={npc} />);
       
       // Header and status text are correct
-      expect(screen.getByText('Legendary Resistances')).toBeDefined();
-      expect(screen.getByText('2 / 3 remaining')).toBeDefined();
+      expect(screen.getByText('Legendary Resistances')).toBeInTheDocument();
+      expect(screen.getByText('2 / 3 remaining')).toBeInTheDocument();
 
       // Pips: 2 are filled (clickable), 1 is empty (disabled)
       const pip0 = container.querySelector('#btn-resistance-pip-0-c1');
@@ -580,8 +581,8 @@ describe('CombatantCard', () => {
 
       const { container } = render(<CombatantCard {...defaultProps} isExpanded={true} onUpdateCombatant={onUpdateCombatant} c={npc} />);
 
-      expect(screen.getByText('Legendary Actions')).toBeDefined();
-      expect(screen.getByText('3 / 3 remaining')).toBeDefined();
+      expect(screen.getByText('Legendary Actions')).toBeInTheDocument();
+      expect(screen.getByText('3 / 3 remaining')).toBeInTheDocument();
 
       const pip0 = container.querySelector('#btn-action-pip-0-c1');
       expect(pip0).not.toBeNull();

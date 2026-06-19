@@ -1,3 +1,4 @@
+import '@testing-library/jest-dom/vitest';
 // src/components/__tests__/AmbientPlayer.test.tsx
 
 import React from 'react';
@@ -52,14 +53,14 @@ describe('AmbientPlayer', () => {
 
   it('shows empty state when no ambient files', () => {
     render(<AmbientPlayer {...defaultProps} storedFiles={[]} />);
-    expect(screen.getByText(/No ambient tracks loaded/)).toBeDefined();
-    expect(screen.getByText('Open Library')).toBeDefined();
+    expect(screen.getByText(/No ambient tracks loaded/)).toBeInTheDocument();
+    expect(screen.getByText('Open Library')).toBeInTheDocument();
   });
 
   it('renders a button/item for each ambient file in storedFiles', () => {
     render(<AmbientPlayer {...defaultProps} />);
-    expect(screen.getByText('Forest Rain')).toBeDefined();
-    expect(screen.getByText('Dungeon Ambience')).toBeDefined();
+    expect(screen.getByText('Forest Rain')).toBeInTheDocument();
+    expect(screen.getByText('Dungeon Ambience')).toBeInTheDocument();
     // Should NOT show sound effects
     expect(screen.queryByText('Sword Clash')).toBeNull();
   });
@@ -84,6 +85,6 @@ describe('AmbientPlayer', () => {
     );
     
     // Looping status micro-animation should exist
-    expect(screen.getByText('LOOPING')).toBeDefined();
+    expect(screen.getByText('LOOPING')).toBeInTheDocument();
   });
 });

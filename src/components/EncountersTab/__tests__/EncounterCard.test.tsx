@@ -1,3 +1,4 @@
+import '@testing-library/jest-dom/vitest';
 // ─── PROTECTED TEST FILE ───────────────────────────
 // Do not delete, rename, or remove test cases from 
 // this file without an explicit instruction to do so.
@@ -75,9 +76,9 @@ describe('EncounterCard', () => {
     const { container } = render(<EncounterCard {...defaultProps} />);
     
     // Check for inputs
-    expect(screen.getByDisplayValue('Goblin Ambush')).toBeDefined();
-    expect(screen.getByDisplayValue('Forest Path')).toBeDefined();
-    expect(screen.getByText('5')).toBeDefined(); // NPC Count (3 + 2)
+    expect(screen.getByDisplayValue('Goblin Ambush')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('Forest Path')).toBeInTheDocument();
+    expect(screen.getByText('5')).toBeInTheDocument(); // NPC Count (3 + 2)
     
     // Toggle button (ChevronDown) should NOT be present
     expect(container.querySelector('.lucide-chevron-down')).toBeNull();

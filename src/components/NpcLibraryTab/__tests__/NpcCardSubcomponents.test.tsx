@@ -1,3 +1,4 @@
+import '@testing-library/jest-dom/vitest';
 import React from 'react';
 import { render, screen, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
@@ -62,8 +63,8 @@ describe('NpcCard Sub-components', () => {
         />
       );
 
-      expect(screen.getByText('fire breath')).toBeDefined();
-      expect(screen.getByText('frost bite')).toBeDefined();
+      expect(screen.getByText('fire breath')).toBeInTheDocument();
+      expect(screen.getByText('frost bite')).toBeInTheDocument();
       expect(screen.queryByText('No recharge abilities')).toBeNull();
     });
 
@@ -80,7 +81,7 @@ describe('NpcCard Sub-components', () => {
       );
 
       // It should display the empty placeholder text
-      expect(screen.getByText(/No recharge abilities/i)).toBeDefined();
+      expect(screen.getByText(/No recharge abilities/i)).toBeInTheDocument();
     });
   });
 });

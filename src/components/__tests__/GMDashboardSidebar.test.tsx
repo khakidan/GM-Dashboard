@@ -1,3 +1,4 @@
+import '@testing-library/jest-dom/vitest';
 import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
@@ -53,12 +54,12 @@ describe('GMDashboardSidebar', () => {
     );
 
     // Each button has an aria-label
-    expect(screen.getByRole('button', { name: 'Party Roster' })).toBeDefined();
-    expect(screen.getByRole('button', { name: 'NPC Library' })).toBeDefined();
-    expect(screen.getByRole('button', { name: 'Active Combat' })).toBeDefined();
-    expect(screen.getByRole('button', { name: 'Settings' })).toBeDefined();
-    expect(screen.getByRole('button', { name: 'All Campaigns' })).toBeDefined();
-    expect(screen.getByRole('button', { name: 'Search' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Party Roster' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'NPC Library' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Active Combat' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Settings' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'All Campaigns' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Search' })).toBeInTheDocument();
 
     // Tooltips render correctly and are hidden by default (has opacity-0 class)
     const tooltips = container.querySelectorAll('.opacity-0');

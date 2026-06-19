@@ -1,3 +1,4 @@
+import '@testing-library/jest-dom/vitest';
 import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
@@ -63,8 +64,8 @@ describe('LongRestDialog', () => {
   it('All active characters are listed with checkboxes checked by default', () => {
     const { container } = render(<LongRestDialog {...defaultProps} />);
 
-    expect(screen.getByText('Caleb')).toBeDefined();
-    expect(screen.getByText('Beau')).toBeDefined();
+    expect(screen.getByText('Caleb')).toBeInTheDocument();
+    expect(screen.getByText('Beau')).toBeInTheDocument();
 
     // Verify checked by default
     const checkbox1 = container.querySelector('#checkbox-char-1') as HTMLInputElement;

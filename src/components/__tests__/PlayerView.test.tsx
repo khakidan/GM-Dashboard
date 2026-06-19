@@ -1,3 +1,4 @@
+import '@testing-library/jest-dom/vitest';
 import { getHealthStatus } from '../../lib/conditions';
 // ─── PROTECTED TEST FILE ───────────────────────────
 // Do not delete, rename, or remove test cases from 
@@ -49,7 +50,7 @@ describe('PlayerView Component', () => {
     } as any);
 
     render(<PlayerView />);
-    expect(screen.getByText(/Waiting for GM to start the encounter/i)).toBeDefined();
+    expect(screen.getByText(/Waiting for GM to start the encounter/i)).toBeInTheDocument();
     expect(screen.queryByText(/Round/i)).toBeNull();
   });
 
@@ -83,8 +84,8 @@ describe('PlayerView Component', () => {
     } as any);
 
     render(<PlayerView />);
-    expect(screen.getByText('Lidda Halfling')).toBeDefined();
-    expect(screen.getByText('Orkish Marauder')).toBeDefined();
+    expect(screen.getByText('Lidda Halfling')).toBeInTheDocument();
+    expect(screen.getByText('Orkish Marauder')).toBeInTheDocument();
   });
 
   // Test 3: The health status label (Healthy, Injured, Bloodied, Defeated) is shown correctly for each combatant based on their HP ratio, using the getHealthStatus function from combatLogic.ts
@@ -124,11 +125,11 @@ describe('PlayerView Component', () => {
     render(<PlayerView />);
 
     // Validate each expected status text on screen
-    expect(screen.getByText('Full')).toBeDefined();
-    expect(screen.getByText('Healthy')).toBeDefined();
-    expect(screen.getByText('Injured')).toBeDefined();
-    expect(screen.getByText('Bloodied')).toBeDefined();
-    expect(screen.getByText('Defeated')).toBeDefined();
+    expect(screen.getByText('Full')).toBeInTheDocument();
+    expect(screen.getByText('Healthy')).toBeInTheDocument();
+    expect(screen.getByText('Injured')).toBeInTheDocument();
+    expect(screen.getByText('Bloodied')).toBeInTheDocument();
+    expect(screen.getByText('Defeated')).toBeInTheDocument();
 
     // Verify calling getHealthStatus from combatLogic matches the output
     expect(getHealthStatus(20, 20).label).toBe('Full');
@@ -207,7 +208,7 @@ describe('PlayerView Component', () => {
     } as any);
 
     render(<PlayerView />);
-    expect(screen.getByText('Poisoned, Charmed')).toBeDefined();
+    expect(screen.getByText('Poisoned, Charmed')).toBeInTheDocument();
   });
 
   // Test 8: When the combatants array is empty, the waiting message is shown
@@ -235,7 +236,7 @@ describe('PlayerView Component', () => {
     } as any);
 
     render(<PlayerView />);
-    expect(screen.getByText(/Waiting for GM to start the encounter/i)).toBeDefined();
+    expect(screen.getByText(/Waiting for GM to start the encounter/i)).toBeInTheDocument();
     expect(screen.queryByText(/Peace reigns.*for now/i)).toBeNull();
   });
 

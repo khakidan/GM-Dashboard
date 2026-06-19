@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Upload, Play, Pause, Trash2, X, Music, Volume2, HelpCircle } from 'lucide-react';
 import { StoredAudioFile } from '../lib/audioFileStore';
-import { STORAGE_KEYS, TIMERS, MOODS, MoodId } from '../lib/constants';
+import { STORAGE_KEYS, TIMERS, MOODS, MoodId, campaignKey } from '../lib/constants';
 import { SoundboardSlot } from './Soundboard';
 import { cn } from '../lib/utils';
 
@@ -17,6 +17,7 @@ interface AudioLibraryProps {
   getMoodForTrack?: (fileId: string) => MoodId | null;
   resetAllMoods?: () => void;
   assignments?: Record<MoodId, string | null>;
+  campaignId?: string;
 }
 
 export function AudioLibrary({ 
@@ -29,6 +30,7 @@ export function AudioLibrary({
   getMoodForTrack = () => null,
   resetAllMoods = () => {},
   assignments = { sweet: null, adventuring: null, tense: null, scary: null, combat: null },
+  campaignId,
 }: AudioLibraryProps) {
   const [instructionsDismissed, setInstructionsDismissed] = useState<boolean>(() => {
     try {
@@ -137,11 +139,12 @@ export function AudioLibrary({
 
     // 2. Scan and edit soundboard layout in localStorage
     try {
-      const rawLayout = localStorage.getItem(STORAGE_KEYS.soundboardLayout);
+      const layoutKey = campaignKey(STORAGE_KEYS.soundboardLayout, campaignId || 'default');
+      const rawLayout = localStorage.getItem(layoutKey);
       if (rawLayout) {
         const layout: SoundboardSlot[] = JSON.parse(rawLayout);
         const updatedLayout = layout.filter((s) => s.fileId !== fileId);
-        localStorage.setItem(STORAGE_KEYS.soundboardLayout, JSON.stringify(updatedLayout));
+        localStorage.setItem(layoutKey, JSON.stringify(updatedLayout));
         
         // Dispatch synthetic change event to alert mounted widgets
         window.dispatchEvent(new Event('storage'));

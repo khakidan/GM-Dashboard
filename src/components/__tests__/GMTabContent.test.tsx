@@ -1,3 +1,4 @@
+import '@testing-library/jest-dom/vitest';
 import React from 'react';
 import { render, screen, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -64,7 +65,7 @@ describe('GMTabContent', () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByDisplayValue('Hero 1')).toBeDefined();
+    expect(screen.getByDisplayValue('Hero 1')).toBeInTheDocument();
     expect(screen.queryByText('Round 1')).toBeNull();
   });
 
@@ -86,8 +87,8 @@ describe('GMTabContent', () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByText('Goblins!')).toBeDefined();
-    expect(screen.getByText('Round 1')).toBeDefined();
+    expect(screen.getByText('Goblins!')).toBeInTheDocument();
+    expect(screen.getByText('Round 1')).toBeInTheDocument();
   });
 
   it('does not render multiple tabs simultaneously', () => {

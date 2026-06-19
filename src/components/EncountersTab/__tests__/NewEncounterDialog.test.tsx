@@ -1,3 +1,4 @@
+import '@testing-library/jest-dom/vitest';
 // ─── PROTECTED TEST FILE ───────────────────────────
 // Do not delete, rename, or remove test cases from 
 // this file without an explicit instruction to do so.
@@ -28,9 +29,9 @@ describe('NewEncounterDialog', () => {
 
   it('renders correctly when open', () => {
     render(<NewEncounterDialog {...defaultProps} />);
-    expect(screen.getByText('Plan New Encounter')).toBeDefined();
-    expect(screen.getByPlaceholderText('e.g. Goblin Ambush')).toBeDefined();
-    expect(screen.getByPlaceholderText('e.g. Whispering Woods')).toBeDefined();
+    expect(screen.getByText('Plan New Encounter')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('e.g. Goblin Ambush')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('e.g. Whispering Woods')).toBeInTheDocument();
   });
 
   it('Confirm button is disabled when name is empty', () => {

@@ -1,3 +1,4 @@
+import '@testing-library/jest-dom/vitest';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import { GMDashboard } from '../GMDashboard';
@@ -164,8 +165,8 @@ describe('GMDashboard', () => {
 
   it('renders active campaign name in header if provided', () => {
     render(<GMDashboard campaign={mockCampaign} />);
-    expect(screen.getByText('Tomb of Annihilation')).toBeDefined();
-    expect(screen.getByText('GM Dashboard')).toBeDefined();
+    expect(screen.getByText('Tomb of Annihilation')).toBeInTheDocument();
+    expect(screen.getByText('GM Dashboard')).toBeInTheDocument();
   });
 
   it('calls onCloseCampaign directly if no encounter is active when back button is clicked', () => {
@@ -191,8 +192,8 @@ describe('GMDashboard', () => {
     expect(onClose).not.toHaveBeenCalled();
     
     // Leaving confirmation popup should be visible
-    expect(screen.getByText('Leave Campaign?')).toBeDefined();
-    expect(screen.getByText('An encounter is in progress. Leave this campaign?')).toBeDefined();
+    expect(screen.getByText('Leave Campaign?')).toBeInTheDocument();
+    expect(screen.getByText('An encounter is in progress. Leave this campaign?')).toBeInTheDocument();
     
     // Click stay should dismiss but not trigger onCloseCampaign
     const stayBtn = screen.getByText('Stay');
@@ -202,7 +203,7 @@ describe('GMDashboard', () => {
     
     // Try again
     fireEvent.click(backBtn);
-    expect(screen.getByText('Leave Campaign?')).toBeDefined();
+    expect(screen.getByText('Leave Campaign?')).toBeInTheDocument();
     
     // Click leave should call onCloseCampaign
     const leaveBtn = screen.getByText('Leave');

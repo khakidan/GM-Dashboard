@@ -1,3 +1,4 @@
+import '@testing-library/jest-dom/vitest';
 import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
@@ -17,10 +18,10 @@ describe('MultiTargetActionPanel', () => {
 
   it('renders correctly with selecting header and count', () => {
     render(<MultiTargetActionPanel {...defaultProps} />);
-    expect(screen.getByText('3')).toBeDefined();
-    expect(screen.getByText('Combatants Selected')).toBeDefined();
-    expect(screen.getByPlaceholderText('Amt')).toBeDefined();
-    expect(screen.getByPlaceholderText('e.g. Paralyzed')).toBeDefined();
+    expect(screen.getByText('3')).toBeInTheDocument();
+    expect(screen.getByText('Combatants Selected')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Amt')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('e.g. Paralyzed')).toBeInTheDocument();
   });
 
   it('buttons are disabled when input fields are empty', () => {

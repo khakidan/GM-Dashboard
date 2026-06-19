@@ -8,11 +8,6 @@ describe('InitiativeOverlay', () => {
     cleanup();
   });
 
-  it('Renders without crashing with no props', () => {
-    const { container } = render(<InitiativeOverlay />);
-    expect(container).toBeDefined();
-  });
-
   it('id="initiative-overlay" is present with fixed position', () => {
     const { container } = render(<InitiativeOverlay />);
     const overlay = container.querySelector('#initiative-overlay');

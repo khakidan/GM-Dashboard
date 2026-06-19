@@ -1,6 +1,7 @@
 // src/server/routes/campaigns.ts
 
 import { Router } from 'express';
+import { sheets_v4 } from 'googleapis';
 
 const router = Router();
 
@@ -107,7 +108,7 @@ router.post('/create', async (req, res) => {
 
     const defaultSheetId = createData.sheets?.[0]?.properties?.sheetId ?? 0;
 
-    const batchRequests: any[] = [];
+    const batchRequests: sheets_v4.Schema$Request[] = [];
     for (const sheet of requiredSheets) {
       batchRequests.push({
         addSheet: {

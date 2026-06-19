@@ -1,3 +1,4 @@
+import '@testing-library/jest-dom/vitest';
 import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
@@ -19,10 +20,10 @@ describe('ShortcutCheatSheet', () => {
     render(
       <ShortcutCheatSheet isOpen={true} onClose={vi.fn()} />
     );
-    expect(screen.getByText('Keyboard Shortcuts')).toBeDefined();
-    expect(screen.getByText('Next turn')).toBeDefined();
-    expect(screen.getByText('Heal mode')).toBeDefined();
-    expect(screen.getByText('Close')).toBeDefined();
+    expect(screen.getByText('Keyboard Shortcuts')).toBeInTheDocument();
+    expect(screen.getByText('Next turn')).toBeInTheDocument();
+    expect(screen.getByText('Heal mode')).toBeInTheDocument();
+    expect(screen.getByText('Close')).toBeInTheDocument();
   });
 
   it('triggers onClose when Close button is clicked', () => {

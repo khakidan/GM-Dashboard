@@ -1,3 +1,4 @@
+import '@testing-library/jest-dom/vitest';
 import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
@@ -24,12 +25,12 @@ describe('CasterAttributionDialog', () => {
   it('renders list of combatant names when open', () => {
     render(<CasterAttributionDialog {...defaultProps} />);
     
-    expect(screen.getByText('Who is concentrating on Hasted?')).toBeDefined();
-    expect(screen.getByText('Bilbo')).toBeDefined();
-    expect(screen.getByText('Gandalf')).toBeDefined();
-    expect(screen.getByText('Goblin')).toBeDefined();
-    expect(screen.getByText('PC')).toBeDefined();
-    expect(screen.getByText('NPC')).toBeDefined();
+    expect(screen.getByText('Who is concentrating on Hasted?')).toBeInTheDocument();
+    expect(screen.getByText('Bilbo')).toBeInTheDocument();
+    expect(screen.getByText('Gandalf')).toBeInTheDocument();
+    expect(screen.getByText('Goblin')).toBeInTheDocument();
+    expect(screen.getByText('PC')).toBeInTheDocument();
+    expect(screen.getByText('NPC')).toBeInTheDocument();
   });
 
   it('does not render when isOpen is false', () => {

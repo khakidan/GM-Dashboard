@@ -15,13 +15,6 @@ afterEach(() => {
 });
 
 describe('DamageOverlay', () => {
-  it('renders without crashing given combatantNames and damageAmount props', () => {
-    const { container } = render(
-      <DamageOverlay combatantNames={["Thorin Ironforge"]} damageAmount={47} />
-    );
-    expect(container).toBeDefined();
-  });
-
   it('id="damage-overlay" is present with fixed position', () => {
     const { container } = render(
       <DamageOverlay combatantNames={["Thorin Ironforge"]} damageAmount={47} />

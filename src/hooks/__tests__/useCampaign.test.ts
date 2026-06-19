@@ -123,6 +123,88 @@ describe('useCampaign & extractSpreadsheetId tests', () => {
       expect(result.current.campaigns.length).toBe(0);
     });
 
+    it('connectCampaign with a valid spreadsheetId successfully fetches validation range, saves, and opens', async () => {
+      vi.mocked(googleAuth.requestAccessToken).mockResolvedValue('mock-token');
+      vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({ values: [['Mock Data']] });
+
+      const { result } = renderHook(() => useCampaign());
+      
+      let connectedCampaign;
+      await act(async () => {
+        connectedCampaign = await result.current.connectCampaign('Connected Campaign', 'connect-sheet-123');
+      });
+
+      expect(sheetsService.fetchSheetData).toHaveBeenCalledWith('connect-sheet-123', 'Characters!A1');
+      expect(connectedCampaign).toBeDefined();
+      expect(connectedCampaign!.spreadsheetId).toBe('connect-sheet-123');
+      expect(connectedCampaign!.name).toBe('Connected Campaign');
+      expect(result.current.campaigns.length).toBe(1);
+      expect(result.current.activeCampaign?.id).toBe(connectedCampaign!.id);
+    });
+
+    it('connectCampaign with a full Google Sheets URL extracts just the spreadsheetId before saving', async () => {
+      vi.mocked(googleAuth.requestAccessToken).mockResolvedValue('mock-token');
+      vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({ values: [['Mock Data']] });
+
+      const { result } = renderHook(() => useCampaign());
+      
+      const fullUrl = 'https://docs.google.com/spreadsheets/d/url-extracted-123/edit#gid=0';
+      let connectedCampaign;
+      await act(async () => {
+        connectedCampaign = await result.current.connectCampaign('Extracted URL Campaign', fullUrl);
+      });
+
+      expect(sheetsService.fetchSheetData).toHaveBeenCalledWith('url-extracted-123', 'Characters!A1');
+      expect(connectedCampaign!.spreadsheetId).toBe('url-extracted-123');
+      expect(result.current.activeCampaign?.id).toBe(connectedCampaign!.id);
+    });
+
+    it('connectCampaign where the validation fetch fails sets error state and does not save the campaign', async () => {
+      vi.mocked(googleAuth.requestAccessToken).mockResolvedValue('mock-token');
+      vi.mocked(sheetsService.fetchSheetData).mockRejectedValueOnce(new Error('Network or 404 error'));
+
+      const { result } = renderHook(() => useCampaign());
+      
+      let connectedCampaign;
+      await act(async () => {
+        connectedCampaign = await result.current.connectCampaign('Failed Campaign', 'bad-sheet-567');
+      });
+
+      expect(connectedCampaign).toBeNull();
+      expect(result.current.error).toContain('Network or 404 error');
+      expect(result.current.campaigns.length).toBe(0);
+      expect(result.current.activeCampaign).toBeNull();
+    });
+
+    it('connectCampaign sets isLoading true during the request and false after', async () => {
+      vi.mocked(googleAuth.requestAccessToken).mockResolvedValue('mock-token');
+      
+      let resolveFetch: any;
+      vi.mocked(sheetsService.fetchSheetData).mockImplementationOnce(() => {
+        return new Promise((resolve) => {
+          resolveFetch = resolve;
+        });
+      });
+
+      const { result } = renderHook(() => useCampaign());
+      
+      expect(result.current.isLoading).toBe(false);
+
+      let connectPromise: any;
+      act(() => {
+        connectPromise = result.current.connectCampaign('Loading Test', 'sheet-123');
+      });
+
+      expect(result.current.isLoading).toBe(true);
+
+      await act(async () => {
+        resolveFetch({ values: [['Data']] });
+        await connectPromise;
+      });
+
+      expect(result.current.isLoading).toBe(false);
+    });
+
     it('safely delete non-active campaigns and prevent active-campaign deletion', () => {
       const campaign1 = {
         id: 'camp-1',

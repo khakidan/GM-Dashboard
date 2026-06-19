@@ -1,3 +1,4 @@
+import '@testing-library/jest-dom/vitest';
 // ─── PROTECTED TEST FILE ───────────────────────────
 // Do not delete, rename, or remove test cases from 
 // this file without an explicit instruction to do so.
@@ -44,7 +45,7 @@ describe('NewPlayerDialog', () => {
   it('renders all required fields', () => {
     const { container } = render(<NewPlayerDialog {...defaultProps} />);
     
-    expect(screen.getByText('Add New Player Character')).toBeDefined();
+    expect(screen.getByText('Add New Player Character')).toBeInTheDocument();
     
     expect(container.querySelector('#new-player-name')).toBeDefined();
     expect(container.querySelector('#new-character-name')).toBeDefined();
@@ -175,7 +176,7 @@ describe('NewPlayerDialog', () => {
     
     fireEvent.change(container.querySelector('#new-character-hitdice')!, { target: { value: 'invalid' } });
     
-    expect(screen.getByText(/Invalid format/)).toBeDefined();
+    expect(screen.getByText(/Invalid format/)).toBeInTheDocument();
     
     const confirmBtn = container.querySelector('#confirm-add-character-btn') as HTMLButtonElement;
     expect(confirmBtn.disabled).toBe(true);

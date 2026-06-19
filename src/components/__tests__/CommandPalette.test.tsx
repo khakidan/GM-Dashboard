@@ -1,3 +1,4 @@
+import '@testing-library/jest-dom/vitest';
 // src/components/__tests__/CommandPalette.test.tsx
 
 import React from 'react';
@@ -95,9 +96,9 @@ describe('CommandPalette', () => {
     render(
       <CommandPalette {...defaultProps} isOpen={true} />
     );
-    expect(screen.getByPlaceholderText(/Type a command or search.../i)).toBeDefined();
-    expect(screen.getByText('Party Roster')).toBeDefined();
-    expect(screen.getByText('Encounters')).toBeDefined();
+    expect(screen.getByPlaceholderText(/Type a command or search.../i)).toBeInTheDocument();
+    expect(screen.getByText('Party Roster')).toBeInTheDocument();
+    expect(screen.getByText('Encounters')).toBeInTheDocument();
   });
 
   it('Next Turn is not visible when no encounter is active', () => {
@@ -113,7 +114,7 @@ describe('CommandPalette', () => {
     render(
       <CommandPalette {...defaultProps} isOpen={true} />
     );
-    expect(screen.getByText('Next Turn')).toBeDefined();
+    expect(screen.getByText('Next Turn')).toBeInTheDocument();
   });
 
   it('allows matching typing in the search input', () => {
@@ -207,8 +208,8 @@ describe('CommandPalette', () => {
         ambientFiles={ambientFiles} 
       />
     );
-    expect(screen.getByText('Forest Rain')).toBeDefined();
-    expect(screen.getByText('Dungeon Ambient')).toBeDefined();
+    expect(screen.getByText('Forest Rain')).toBeInTheDocument();
+    expect(screen.getByText('Dungeon Ambient')).toBeInTheDocument();
   });
 
   it('The currently playing track shows an active indicator', () => {
@@ -222,7 +223,7 @@ describe('CommandPalette', () => {
         currentAmbientId="track-1"
       />
     );
-    expect(screen.getByTestId('active-indicator')).toBeDefined();
+    expect(screen.getByTestId('active-indicator')).toBeInTheDocument();
   });
 
   it('Selecting an ambient track calls onPlayAmbient with the correct fileId', () => {
@@ -249,8 +250,8 @@ describe('CommandPalette', () => {
         ambientFiles={[]} 
       />
     );
-    expect(screen.getByText('No ambient tracks loaded')).toBeDefined();
-    expect(screen.getByText('Add tracks in the Audio panel → Library tab')).toBeDefined();
+    expect(screen.getByText('No ambient tracks loaded')).toBeInTheDocument();
+    expect(screen.getByText('Add tracks in the Audio panel → Library tab')).toBeInTheDocument();
   });
 
   it('renders all 5 mood commands in the Audio command group with proper counts', () => {
@@ -277,17 +278,17 @@ describe('CommandPalette', () => {
       />
     );
 
-    expect(screen.getByText('🌸')).toBeDefined();
-    expect(screen.getByText('Sweet Music')).toBeDefined();
-    expect(screen.getByText('Sweet Music · gentle_wind')).toBeDefined();
+    expect(screen.getByText('🌸')).toBeInTheDocument();
+    expect(screen.getByText('Sweet Music')).toBeInTheDocument();
+    expect(screen.getByText('Sweet Music · gentle_wind')).toBeInTheDocument();
 
-    expect(screen.getByText('⚔️')).toBeDefined();
-    expect(screen.getByText('Adventuring Music')).toBeDefined();
-    expect(screen.getByText('Adventuring Music · forest_hike')).toBeDefined();
+    expect(screen.getByText('⚔️')).toBeInTheDocument();
+    expect(screen.getByText('Adventuring Music')).toBeInTheDocument();
+    expect(screen.getByText('Adventuring Music · forest_hike')).toBeInTheDocument();
 
-    expect(screen.getByText('⚠️')).toBeDefined();
-    expect(screen.getByText('Tense Music')).toBeDefined();
-    expect(screen.getByText('Tense Music · No track assigned')).toBeDefined();
+    expect(screen.getByText('⚠️')).toBeInTheDocument();
+    expect(screen.getByText('Tense Music')).toBeInTheDocument();
+    expect(screen.getByText('Tense Music · No track assigned')).toBeInTheDocument();
   });
 
   it('calls activateMood on selecting a mood command', () => {

@@ -1,3 +1,4 @@
+import '@testing-library/jest-dom/vitest';
 import { vi } from 'vitest';
 import React from 'react';
 
@@ -115,7 +116,7 @@ describe('KeyboardShortcuts integration tests', () => {
     });
 
     // Verify first combatant card is expanded (and notes are visible)
-    expect(screen.getByText('Alyn is beautiful')).toBeDefined();
+    expect(screen.getByText('Alyn is beautiful')).toBeInTheDocument();
   });
 
   it('Pressing 3 selects the third combatant', () => {
@@ -130,7 +131,7 @@ describe('KeyboardShortcuts integration tests', () => {
       fireEvent.keyDown(document, { key: '3' });
     });
 
-    expect(screen.getByText('Goblin is stinky')).toBeDefined();
+    expect(screen.getByText('Goblin is stinky')).toBeInTheDocument();
   });
 
   it('Pressing a number higher than the combatant count does nothing (no error)', () => {
@@ -191,7 +192,7 @@ describe('KeyboardShortcuts integration tests', () => {
     act(() => {
       fireEvent.keyDown(document, { key: '?' });
     });
-    expect(screen.getByText('GM Dashboard quick references')).toBeDefined();
+    expect(screen.getByText('GM Dashboard quick references')).toBeInTheDocument();
 
     // Escape closes cheat sheet and collapses expanded card
     act(() => {
@@ -217,7 +218,7 @@ describe('KeyboardShortcuts integration tests', () => {
     });
 
     // Verify select mode is on (which shows the section header in CombatHeader -> MultiTargetActionPanel)
-    expect(screen.getByText('Combatants Selected')).toBeDefined();
+    expect(screen.getByText('Combatants Selected')).toBeInTheDocument();
 
     // Toggle off with 'S' keypress
     act(() => {
@@ -301,8 +302,8 @@ describe('KeyboardShortcuts integration tests', () => {
       fireEvent.keyDown(document, { key: '?' });
     });
 
-    expect(screen.getByText('Toggle select mode')).toBeDefined();
-    expect(screen.getByText('Broadcast player view')).toBeDefined();
-    expect(screen.getByText('Call for initiative')).toBeDefined();
+    expect(screen.getByText('Toggle select mode')).toBeInTheDocument();
+    expect(screen.getByText('Broadcast player view')).toBeInTheDocument();
+    expect(screen.getByText('Call for initiative')).toBeInTheDocument();
   });
 });

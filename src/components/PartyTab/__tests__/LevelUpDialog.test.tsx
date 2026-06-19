@@ -1,3 +1,4 @@
+import '@testing-library/jest-dom/vitest';
 // ─── PROTECTED TEST FILE ───────────────────────────
 // Do not delete, rename, or remove test cases from 
 // this file without an explicit instruction to do so.
@@ -46,7 +47,7 @@ describe('LevelUpDialog', () => {
     const { container } = render(<LevelUpDialog {...defaultProps} />);
 
     // Name context
-    expect(screen.getByText(/Aethelgard the Valiant/)).toBeDefined();
+    expect(screen.getByText(/Aethelgard the Valiant/)).toBeInTheDocument();
 
     // Inputs should be pre-filled
     const levelInput = container.querySelector('#new-level-input') as HTMLInputElement;

@@ -15,13 +15,6 @@ afterEach(() => {
 });
 
 describe('HealOverlay', () => {
-  it('renders without crashing given combatantNames and healAmount props', () => {
-    const { container } = render(
-      <HealOverlay combatantNames={["Seraphina Brightwell"]} healAmount={34} />
-    );
-    expect(container).toBeDefined();
-  });
-
   it('id="heal-overlay" is present with fixed position', () => {
     const { container } = render(
       <HealOverlay combatantNames={["Seraphina Brightwell"]} healAmount={34} />

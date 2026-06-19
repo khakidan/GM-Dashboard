@@ -15,13 +15,6 @@ afterEach(() => {
 });
 
 describe('UnconsciousOverlay', () => {
-  it('renders without crashing given characterName prop', () => {
-    const { container } = render(
-      <UnconsciousOverlay characterName="Gareth of Stonehaven" />
-    );
-    expect(container).toBeDefined();
-  });
-
   it('id="unconscious-overlay" is present with fixed position', () => {
     const { container } = render(
       <UnconsciousOverlay characterName="Gareth of Stonehaven" />

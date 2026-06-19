@@ -1,3 +1,4 @@
+import '@testing-library/jest-dom/vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { CampaignSelector } from '../CampaignSelector';
@@ -36,16 +37,16 @@ describe('CampaignSelector Component Tests', () => {
 
   it('renders empty state correctly when campaigns list is empty', () => {
     render(<CampaignSelector {...defaultProps} />);
-    expect(screen.getByText('No campaigns yet.')).toBeDefined();
-    expect(screen.getByText('Create New Campaign')).toBeDefined();
-    expect(screen.getByText('Connect Existing Spreadsheet')).toBeDefined();
+    expect(screen.getByText('No campaigns yet.')).toBeInTheDocument();
+    expect(screen.getByText('Create New Campaign')).toBeInTheDocument();
+    expect(screen.getByText('Connect Existing Spreadsheet')).toBeInTheDocument();
   });
 
   it('renders campaigns cards when list contains entries', () => {
     render(<CampaignSelector {...defaultProps} campaigns={campaigns} />);
-    expect(screen.getByText('Curse of Strahd')).toBeDefined();
-    expect(screen.getByText('Open')).toBeDefined();
-    expect(screen.getByText('↗ Open Sheet')).toBeDefined();
+    expect(screen.getByText('Curse of Strahd')).toBeInTheDocument();
+    expect(screen.getByText('Open')).toBeInTheDocument();
+    expect(screen.getByText('↗ Open Sheet')).toBeInTheDocument();
   });
 
   it('handles campaign open button trigger click', () => {
@@ -61,13 +62,13 @@ describe('CampaignSelector Component Tests', () => {
     // Click Create New
     const createBtn = screen.getByText('Create New Campaign');
     fireEvent.click(createBtn);
-    expect(screen.getByLabelText('Campaign Name')).toBeDefined();
+    expect(screen.getByLabelText('Campaign Name')).toBeInTheDocument();
 
     // Click Connect Existing - should collapse Create and open Connect
     const connectBtn = screen.getByText('Connect Existing Spreadsheet');
     fireEvent.click(connectBtn);
-    expect(screen.queryByLabelText('Spreadsheet ID or URL')).toBeDefined();
-    expect(screen.queryByPlaceholderText('e.g. Curse of Strahd')).toBeDefined();
+    expect(screen.queryByLabelText('Spreadsheet ID or URL')).toBeInTheDocument();
+    expect(screen.queryByPlaceholderText('e.g. Curse of Strahd')).toBeInTheDocument();
   });
 
   it('submits create campaign naming correct parameters', async () => {
@@ -92,7 +93,7 @@ describe('CampaignSelector Component Tests', () => {
     const delBtn = screen.getByTitle('Remove Campaign from Dashboard');
     fireEvent.click(delBtn);
 
-    expect(screen.getByText("Remove 'Curse of Strahd'?")).toBeDefined();
+    expect(screen.getByText("Remove 'Curse of Strahd'?")).toBeInTheDocument();
     const confirmRemoveBtn = screen.getByText('Remove');
     fireEvent.click(confirmRemoveBtn);
 

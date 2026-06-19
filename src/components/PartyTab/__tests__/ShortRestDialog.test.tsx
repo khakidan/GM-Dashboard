@@ -1,3 +1,4 @@
+import '@testing-library/jest-dom/vitest';
 import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
@@ -84,8 +85,8 @@ describe('ShortRestDialog', () => {
   it('All active characters are shown', () => {
     render(<ShortRestDialog {...defaultProps} />);
 
-    expect(screen.getByText('Caleb')).toBeDefined();
-    expect(screen.getByText('Beau')).toBeDefined();
+    expect(screen.getByText('Caleb')).toBeInTheDocument();
+    expect(screen.getByText('Beau')).toBeInTheDocument();
   });
 
   it('Unchecked characters are excluded from the onConfirm results', () => {

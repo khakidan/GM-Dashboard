@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, fireEvent, screen, act, cleanup } from '@testing-library/react';
 import { AudioLibrary } from '../AudioLibrary';
-import { STORAGE_KEYS } from '../../lib/constants';
+import { STORAGE_KEYS, campaignKey } from '../../lib/constants';
 
 describe('AudioLibrary', () => {
   const mockAddFiles = vi.fn();
@@ -278,9 +278,9 @@ describe('AudioLibrary', () => {
         { fileId: sampleEffectFile.id, label: 'Sword', color: '#fff', order: 0 },
         { fileId: 'f-effect-99', label: 'Other', color: '#000', order: 1 }
       ];
-      localStorage.setItem(STORAGE_KEYS.soundboardLayout, JSON.stringify(initialLayout));
+      localStorage.setItem(campaignKey(STORAGE_KEYS.soundboardLayout, 'test-camp'), JSON.stringify(initialLayout));
 
-      render(<AudioLibrary storedFiles={[sampleEffectFile]} addFiles={mockAddFiles} removeFile={mockRemoveFile} />);
+      render(<AudioLibrary campaignId="test-camp" storedFiles={[sampleEffectFile]} addFiles={mockAddFiles} removeFile={mockRemoveFile} />);
       const effectTabBtns = screen.getAllByRole('button', { name: /Sound Effects/i });
       fireEvent.click(effectTabBtns[0]);
       
@@ -290,7 +290,7 @@ describe('AudioLibrary', () => {
         fireEvent.click(deleteButtons[0]);
       });
 
-      const updatedLayoutStr = localStorage.getItem(STORAGE_KEYS.soundboardLayout);
+      const updatedLayoutStr = localStorage.getItem(campaignKey(STORAGE_KEYS.soundboardLayout, 'test-camp'));
       const updatedLayout = JSON.parse(updatedLayoutStr!);
       expect(updatedLayout).toHaveLength(1);
       expect(updatedLayout[0].fileId).toBe('f-effect-99');
@@ -300,9 +300,9 @@ describe('AudioLibrary', () => {
       const initialLayout = [
         { fileId: 'f-effect-99', label: 'Other', color: '#000', order: 1 }
       ];
-      localStorage.setItem(STORAGE_KEYS.soundboardLayout, JSON.stringify(initialLayout));
+      localStorage.setItem(campaignKey(STORAGE_KEYS.soundboardLayout, 'test-camp'), JSON.stringify(initialLayout));
 
-      render(<AudioLibrary storedFiles={[sampleAmbientFile]} addFiles={mockAddFiles} removeFile={mockRemoveFile} />);
+      render(<AudioLibrary campaignId="test-camp" storedFiles={[sampleAmbientFile]} addFiles={mockAddFiles} removeFile={mockRemoveFile} />);
       
       const deleteButtons = screen.getAllByTitle('Delete File');
       
@@ -310,7 +310,7 @@ describe('AudioLibrary', () => {
         fireEvent.click(deleteButtons[0]);
       });
 
-      const updatedLayoutStr = localStorage.getItem(STORAGE_KEYS.soundboardLayout);
+      const updatedLayoutStr = localStorage.getItem(campaignKey(STORAGE_KEYS.soundboardLayout, 'test-camp'));
       const updatedLayout = JSON.parse(updatedLayoutStr!);
       expect(updatedLayout).toHaveLength(1);
       expect(updatedLayout[0].fileId).toBe('f-effect-99');

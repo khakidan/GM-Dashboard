@@ -1,3 +1,4 @@
+import '@testing-library/jest-dom/vitest';
 import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
@@ -72,7 +73,7 @@ describe('SettingsModal / SettingsPage Test Button', () => {
     );
 
     // Assert that section header "GM Tools & Testing" is present
-    expect(screen.getByText('GM Tools & Testing')).toBeDefined();
+    expect(screen.getByText('GM Tools & Testing')).toBeInTheDocument();
 
     // Assert that button "Test Death Animation" is present
     const btn = screen.getByRole('button', { name: /Test Death Animation/i });

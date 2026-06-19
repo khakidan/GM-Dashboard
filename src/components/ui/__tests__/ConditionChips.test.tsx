@@ -1,3 +1,4 @@
+import '@testing-library/jest-dom/vitest';
 import React from 'react';
 import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
@@ -16,8 +17,8 @@ describe('ConditionChips', () => {
       />
     );
 
-    expect(screen.getByText('poisoned')).toBeDefined();
-    expect(screen.getByText('hasted')).toBeDefined();
+    expect(screen.getByText('poisoned')).toBeInTheDocument();
+    expect(screen.getByText('hasted')).toBeInTheDocument();
   });
 
   it('adding a concentration effect triggers onConcentrationEffectAdded and does not automatically append concentrating', async () => {

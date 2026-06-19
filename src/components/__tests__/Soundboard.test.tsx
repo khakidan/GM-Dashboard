@@ -1,3 +1,4 @@
+import '@testing-library/jest-dom/vitest';
 // src/components/__tests__/Soundboard.test.tsx
 
 import React from 'react';
@@ -56,11 +57,11 @@ describe('Soundboard', () => {
     localStorage.setItem(campaignKey(STORAGE_KEYS.soundboardLayout, 'xyz'), JSON.stringify(layoutXyz));
 
     const { unmount } = render(<Soundboard {...defaultProps} campaignId="abc" />);
-    expect(screen.getByText('Roar ABC')).toBeDefined();
+    expect(screen.getByText('Roar ABC')).toBeInTheDocument();
     unmount();
 
     render(<Soundboard {...defaultProps} campaignId="xyz" />);
-    expect(screen.getByText('Roar XYZ')).toBeDefined();
+    expect(screen.getByText('Roar XYZ')).toBeInTheDocument();
   });
 
   it('assigned slots show the button label', () => {
@@ -71,7 +72,7 @@ describe('Soundboard', () => {
 
     render(<Soundboard {...defaultProps} />);
     
-    expect(screen.getByText('Dragon Roar')).toBeDefined();
+    expect(screen.getByText('Dragon Roar')).toBeInTheDocument();
     // Only 11 slots are empty now
     const addSoundTexts = screen.getAllByText('Add Sound');
     expect(addSoundTexts.length).toBe(11);
@@ -101,7 +102,7 @@ describe('Soundboard', () => {
 
     render(<Soundboard {...defaultProps} />);
     
-    expect(screen.getByText('Roar')).toBeDefined();
-    expect(screen.getByText('Splash')).toBeDefined();
+    expect(screen.getByText('Roar')).toBeInTheDocument();
+    expect(screen.getByText('Splash')).toBeInTheDocument();
   });
 });

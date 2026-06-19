@@ -1,3 +1,4 @@
+import '@testing-library/jest-dom/vitest';
 // ─── PROTECTED TEST FILE ───────────────────────────
 // Do not delete, rename, or remove test cases from 
 // this file without an explicit instruction to do so.
@@ -54,7 +55,7 @@ describe('NpcLibraryTab', () => {
 
     render(<NpcLibraryTab />);
 
-    expect(screen.getByText(/No NPCs loaded in library/i)).toBeDefined();
+    expect(screen.getByText(/No NPCs loaded in library/i)).toBeInTheDocument();
     expect(screen.queryByText(/Library Content/i)).toBeNull();
   });
 
@@ -113,19 +114,19 @@ describe('NpcLibraryTab', () => {
     render(<NpcLibraryTab />);
 
     // Check goblin info (Collapsed state)
-    expect(screen.getByDisplayValue('Goblin Scout')).toBeDefined();
-    expect(screen.getByText('12')).toBeDefined(); // AC
-    expect(screen.getByText('15/15')).toBeDefined(); // HP
+    expect(screen.getByDisplayValue('Goblin Scout')).toBeInTheDocument();
+    expect(screen.getByText('12')).toBeInTheDocument(); // AC
+    expect(screen.getByText('15/15')).toBeInTheDocument(); // HP
 
     // Check Orc info
-    expect(screen.getByDisplayValue('Orc Warrior')).toBeDefined();
-    expect(screen.getByText('20/30')).toBeDefined(); // HP
+    expect(screen.getByDisplayValue('Orc Warrior')).toBeInTheDocument();
+    expect(screen.getByText('20/30')).toBeInTheDocument(); // HP
 
     // Test Search
     const searchInput = screen.getByPlaceholderText(/Search by name.../i);
     fireEvent.change(searchInput, { target: { value: 'Goblin' } });
     
-    expect(screen.getByDisplayValue('Goblin Scout')).toBeDefined();
+    expect(screen.getByDisplayValue('Goblin Scout')).toBeInTheDocument();
     expect(screen.queryByDisplayValue('Orc Warrior')).toBeNull();
 
     // Test Filter by Resistance
@@ -134,11 +135,11 @@ describe('NpcLibraryTab', () => {
     fireEvent.change(resInput, { target: { value: 'fire' } });
     
     expect(screen.queryByDisplayValue('Goblin Scout')).toBeNull();
-    expect(screen.getByDisplayValue('Orc Warrior')).toBeDefined();
+    expect(screen.getByDisplayValue('Orc Warrior')).toBeInTheDocument();
 
     // Clear filters
     fireEvent.click(screen.getByText(/Clear Filters/i));
-    expect(screen.getByDisplayValue('Goblin Scout')).toBeDefined();
-    expect(screen.getByDisplayValue('Orc Warrior')).toBeDefined();
+    expect(screen.getByDisplayValue('Goblin Scout')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('Orc Warrior')).toBeInTheDocument();
   });
 });

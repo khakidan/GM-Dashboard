@@ -1,3 +1,4 @@
+import '@testing-library/jest-dom/vitest';
 // ─── PROTECTED TEST FILE ───────────────────────────
 // Do not delete, rename, or remove test cases from 
 // this file without an explicit instruction to do so.
@@ -46,8 +47,8 @@ describe('CombatHeader', () => {
         />
       </MemoryRouter>
     );
-    expect(screen.getByText('Test Encounter')).toBeDefined();
-    expect(screen.getByText('Test Loc • Easy')).toBeDefined();
+    expect(screen.getByText('Test Encounter')).toBeInTheDocument();
+    expect(screen.getByText('Test Loc • Easy')).toBeInTheDocument();
   });
 
   describe('Selection Mode', () => {
@@ -57,10 +58,10 @@ describe('CombatHeader', () => {
           <CombatHeader {...defaultProps} isMultiTargetMode={true} selectedCount={2} />
         </MemoryRouter>
       );
-      expect(screen.getByText('Combatants Selected')).toBeDefined();
-      expect(screen.getByText('2')).toBeDefined();
-      expect(screen.getByRole('button', { name: /Delete Selected/i })).toBeDefined();
-      expect(screen.getByRole('button', { name: /Cancel/i })).toBeDefined();
+      expect(screen.getByText('Combatants Selected')).toBeInTheDocument();
+      expect(screen.getByText('2')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Delete Selected/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Cancel/i })).toBeInTheDocument();
     });
 
     it('Delete Selected button is disabled when selectedCount is 0', () => {
@@ -102,7 +103,7 @@ describe('CombatHeader', () => {
         <CombatHeader {...defaultProps} />
       </MemoryRouter>
     );
-    expect(screen.getByText('Round 3')).toBeDefined();
+    expect(screen.getByText('Round 3')).toBeInTheDocument();
   });
 
   it('Clicking the back button calls the onBack prop', () => {
@@ -177,7 +178,7 @@ describe('CombatHeader', () => {
         />
       </MemoryRouter>
     );
-    expect(screen.getByRole('button', { name: /Call for Initiative/i })).toBeDefined();
+    expect(screen.getByRole('button', { name: /Call for Initiative/i })).toBeInTheDocument();
   });
 
   it('Clicking the button sets combatState.initiativeEvent to true and shows a confirmation toast', () => {

@@ -1,3 +1,4 @@
+import '@testing-library/jest-dom/vitest';
 import React from 'react';
 import { render, screen, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
@@ -90,6 +91,6 @@ describe('App Level DeathOverlay Integration', () => {
     expect(overlay).not.toBeNull();
     
     // Character name Boromir is present
-    expect(screen.getByText('Boromir')).toBeDefined();
+    expect(screen.getByText('Boromir')).toBeInTheDocument();
   });
 });

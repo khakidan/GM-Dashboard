@@ -8,11 +8,6 @@ describe('DeathOverlay', () => {
     cleanup();
   });
 
-  it('renders without crashing when given a characterName prop', () => {
-    const { container } = render(<DeathOverlay characterName="Boromir" />);
-    expect(container).toBeDefined();
-  });
-
   it('the character name appears in the rendered output', () => {
     const { container } = render(<DeathOverlay characterName="Legolas" />);
     const nameEl = container.querySelector('#death-overlay-character-name');

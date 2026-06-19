@@ -7,11 +7,6 @@ describe('RageOverlay', () => {
     cleanup();
   });
 
-  it('renders without crashing given a characterName prop', () => {
-    const { container } = render(<RageOverlay characterName="Bjorn" />);
-    expect(container).toBeDefined();
-  });
-
   it('renders the character name', () => {
     const { container } = render(<RageOverlay characterName="Bjorn the Unbroken" />);
     const nameEl = container.querySelector('#rage-overlay-name');

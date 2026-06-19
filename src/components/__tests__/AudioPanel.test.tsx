@@ -1,3 +1,4 @@
+import '@testing-library/jest-dom/vitest';
 // src/components/__tests__/AudioPanel.test.tsx
 
 import React from 'react';
@@ -70,9 +71,9 @@ describe('AudioPanel', () => {
   it('AudioPanel renders as a modal when isOpen is true', () => {
     render(<AudioPanel {...defaultProps} isOpen={true} />);
     // The three tabs (Ambient, Soundboard, Library) are all present
-    expect(screen.getByText('Ambient')).toBeDefined();
-    expect(screen.getByText('Soundboard')).toBeDefined();
-    expect(screen.getByText('Library')).toBeDefined();
+    expect(screen.getByText('Ambient')).toBeInTheDocument();
+    expect(screen.getByText('Soundboard')).toBeInTheDocument();
+    expect(screen.getByText('Library')).toBeInTheDocument();
 
     // The modal does not have position fixed top-right (no audio-panel-container style)
     const modalContent = document.getElementById('audio-panel-expanded-content');
