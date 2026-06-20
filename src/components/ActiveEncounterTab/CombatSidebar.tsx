@@ -24,7 +24,6 @@ interface CombatSidebarProps {
     rechargeAbilities: Array<{ name: string, rechargeOn: number }>
   ) => Promise<void>;
   combatants?: Combatant[];
-  onUpdateCombatant?: (id: string, updates: Partial<Combatant>) => void;
 }
 
 export function CombatSidebar({
@@ -34,8 +33,7 @@ export function CombatSidebar({
   characters,
   onAddPreset,
   onAddNpc,
-  combatants = [],
-  onUpdateCombatant
+  combatants = []
 }: CombatSidebarProps) {
   const [activeTab, setActiveTab] = useState<'library' | 'party' | 'create'>('library');
   const [selectedPreset, setSelectedPreset] = useState<string>('');
@@ -44,6 +42,29 @@ export function CombatSidebar({
   const [createNpcData, setCreateNpcData] = useState<NpcFormData>(DEFAULT_NPC_FORM_DATA);
   const [isCreatingNpc, setIsCreatingNpc] = useState(false);
   const [selectedCharacterIds, setSelectedCharacterIds] = useState<Set<string>>(new Set());
+  const [npcSearch, setNpcSearch] = useState('');
+
+  // Reset npcSearch when closing or switching tabs
+  useEffect(() => {
+    if (!isOpen) {
+      setNpcSearch('');
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (activeTab !== 'library') {
+      setNpcSearch('');
+    }
+  }, [activeTab]);
+
+  const filteredNpcs = npcs.filter(npc =>
+    npc.name.toLowerCase().includes(npcSearch.toLowerCase())
+  );
+
+  const handleClose = () => {
+    setNpcSearch('');
+    onClose();
+  };
 
   const inEncounterIds = new Set(
     combatants
@@ -66,7 +87,7 @@ export function CombatSidebar({
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') handleClose();
     };
     if (isOpen) {
       window.addEventListener('keydown', handleEscape);
@@ -98,7 +119,7 @@ export function CombatSidebar({
     );
     setIsCreatingNpc(false);
     setCreateNpcData(DEFAULT_NPC_FORM_DATA);
-    onClose();
+    handleClose();
   };
 
   return (
@@ -112,7 +133,7 @@ export function CombatSidebar({
             <UserPlus className="w-6 h-6 text-[#c5b358]" />
             <h2 className="text-xl font-bold font-serif uppercase tracking-wider">Add Combatant</h2>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full transition-colors" title="Close">
+          <button onClick={handleClose} className="p-2 hover:bg-white/10 rounded-full transition-colors" title="Close">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -122,7 +143,7 @@ export function CombatSidebar({
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={cn("flex-1 py-4 text-xs font-bold uppercase tracking-widest transition-all", activeTab === tab ? "bg-white text-[#2c2c26]" : "bg-[#f5f5f0] text-[#5a5a40]")}
+              className={cn("flex-1 py-4 text-xs font-bold uppercase tracking-widest transition-all", activeTab === tab ? "bg-white text-[#2c2c26]" : "bg-[#f5f0d5] text-[#5a5a40]")}
             >
               {tab === 'library' ? 'NPC Library' : tab === 'party' ? 'Party Members' : 'Create NPC'}
             </button>
@@ -132,18 +153,30 @@ export function CombatSidebar({
         <div className="p-8 overflow-y-auto scrollbar-thin scrollbar-thumb-[#e5e1d8] flex-1">
           {activeTab === 'library' && (
             <div className="space-y-4">
-              <input type="text" placeholder="Search NPCs..." className="w-full bg-white border border-[#e5e1d8] rounded-xl px-4 py-3 text-sm" />
+              <input
+                type="text"
+                placeholder="Search NPCs..."
+                value={npcSearch}
+                onChange={e => setNpcSearch(e.target.value)}
+                className="w-full bg-white border border-[#e5e1d8] rounded-xl px-4 py-3 text-sm"
+              />
               <div className="border border-[#e5e1d8] rounded-xl h-64 overflow-y-auto">
-                {npcs.map(npc => (
-                  <button
-                    key={npc.id}
-                    onClick={() => setSelectedPreset(npc.id)}
-                    className={cn("w-full text-left p-4 border-b border-[#e5e1d8] hover:bg-[#faf9f6]", selectedPreset === npc.id && "bg-[#f5f0d5] border-[#c5b358]")}
-                  >
-                    <div className="font-bold">{npc.name}</div>
-                    <div className="text-xs text-[#5a5a40]">AC: {npc.ac}  HP: {npc.maxHp}</div>
-                  </button>
-                ))}
+                {filteredNpcs.length === 0 ? (
+                  <div className="text-center py-12 text-sm text-[#5a5a40]">
+                    {npcSearch ? `No NPCs match '${npcSearch}'` : 'NPC Library is empty.'}
+                  </div>
+                ) : (
+                  filteredNpcs.map(npc => (
+                    <button
+                      key={npc.id}
+                      onClick={() => setSelectedPreset(npc.id)}
+                      className={cn("w-full text-left p-4 border-b border-[#e5e1d8] hover:bg-[#faf9f6]", selectedPreset === npc.id && "bg-[#f5f0d5] border-[#c5b358]")}
+                    >
+                      <div className="font-bold">{npc.name}</div>
+                      <div className="text-xs text-[#5a5a40]">AC: {npc.ac}  HP: {npc.maxHp}</div>
+                    </button>
+                  ))
+                )}
               </div>
               <div className="flex items-center gap-4">
                   <label htmlFor="npc-quantity">How many?</label>
@@ -155,7 +188,7 @@ export function CombatSidebar({
                   setIsAddingInLibrary(true);
                   await onAddPreset('npc', selectedPreset, presetQuantity);
                   setIsAddingInLibrary(false);
-                  onClose();
+                  handleClose();
                 }}
                 className="w-full bg-[#c5b358] text-[#2c2c26] py-3 rounded-xl font-bold uppercase"
               >
@@ -196,7 +229,7 @@ export function CombatSidebar({
                         await onAddPreset('pc', id, 1);
                       }
                       setSelectedCharacterIds(new Set());
-                      onClose();
+                      handleClose();
                     }}
                     className="w-full bg-[#c5b358] text-[#2c2c26] py-3 rounded-xl font-bold uppercase disabled:opacity-50"
                   >

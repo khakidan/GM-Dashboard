@@ -163,7 +163,7 @@ describe('CombatHeader', () => {
     );
     
     const btn = screen.getByRole('button', { name: /Tools/i });
-    expect(btn).toBeDefined();
+    expect(btn).toBeInTheDocument();
     fireEvent.click(btn);
     expect(onOpenTools).toHaveBeenCalledTimes(1);
   });
@@ -234,17 +234,17 @@ describe('CombatHeader', () => {
 
       // SELECT button is present with S shortcut badge
       const selectBtn = screen.getByRole('button', { name: /Select/i });
-      expect(selectBtn).toBeDefined();
+      expect(selectBtn).toBeInTheDocument();
       expect(selectBtn.textContent).toContain('S');
 
       // BROADCAST button is present with B badge
       const broadcastLink = screen.getByRole('link', { name: /Broadcast/i });
-      expect(broadcastLink).toBeDefined();
+      expect(broadcastLink).toBeInTheDocument();
       expect(broadcastLink.textContent).toContain('B');
 
       // CALL FOR INITIATIVE button is present with C badge
       const callInitBtn = screen.getByRole('button', { name: /Call for Initiative/i });
-      expect(callInitBtn).toBeDefined();
+      expect(callInitBtn).toBeInTheDocument();
       expect(callInitBtn.textContent).toContain('C');
     });
 
@@ -262,7 +262,7 @@ describe('CombatHeader', () => {
       ];
 
       items.forEach(({ btn }) => {
-        expect(btn).toBeDefined();
+        expect(btn).toBeInTheDocument();
         expect(btn.className).toContain('text-xs');
         expect(btn.className).toContain('font-medium');
         expect(btn.className).toContain('px-2');
@@ -287,7 +287,7 @@ describe('CombatHeader', () => {
 
       // Sibling / Parent hierarchy checks for Row 1
       const row1 = backBtn.closest('.flex-row');
-      expect(row1).toBeDefined();
+      expect(row1).toBeInTheDocument();
       expect(row1?.contains(title)).toBe(true);
 
       // Back to Encounters is positioned after (to the right of) the encounter title in the DOM
@@ -295,12 +295,12 @@ describe('CombatHeader', () => {
 
       // Parent container only has 2 rows (Row 1 and Row 2 with buttons), meaning no dedicated top row for back link
       const p6Container = row1?.parentElement;
-      expect(p6Container).toBeDefined();
+      expect(p6Container).toBeInTheDocument();
       expect(p6Container?.children.length).toBe(2);
 
       // The button row containing NEXT TURN is the second row in the header
       const buttonRow = nextTurnBtn.closest('.flex-row');
-      expect(buttonRow).toBeDefined();
+      expect(buttonRow).toBeInTheDocument();
       expect(p6Container?.children[1]).toBe(buttonRow);
     });
   });

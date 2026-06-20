@@ -200,7 +200,6 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
         onAddPreset={handleAddPreset}
         onAddNpc={handleAddNpc}
         combatants={state.combatState.combatants}
-        onUpdateCombatant={updateCombatant}
       />
 
       <CasterAttributionDialog

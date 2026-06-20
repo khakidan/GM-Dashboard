@@ -128,7 +128,7 @@ describe('CombatantCard', () => {
     it('renders a checkbox when isSelectable is true', () => {
       render(<CombatantCard {...defaultProps} isSelectable={true} />);
       const checkbox = screen.getByRole('checkbox');
-      expect(checkbox).toBeDefined();
+      expect(checkbox).toBeInTheDocument();
     });
 
     it('the checkbox is checked when isSelected is true', () => {
@@ -321,14 +321,14 @@ describe('CombatantCard', () => {
     it('Verify reaction pill renders in AVAILABLE state when reactionUsed is false', () => {
       render(<CombatantCard {...defaultProps} c={{ ...defaultCombatant, reactionUsed: false }} />);
       const button = screen.getByRole('button', { name: /REACTION(?! USED)/i });
-      expect(button).toBeDefined();
+      expect(button).toBeInTheDocument();
       expect(screen.queryByText('REACTION USED')).toBeNull();
     });
 
     it('Verify reaction pill renders in USED state when reactionUsed is true', () => {
       render(<CombatantCard {...defaultProps} c={{ ...defaultCombatant, reactionUsed: true }} />);
       const button = screen.getByRole('button', { name: /REACTION USED/i });
-      expect(button).toBeDefined();
+      expect(button).toBeInTheDocument();
       expect(screen.queryByText(/^REACTION$/)).toBeNull();
     });
 
@@ -353,13 +353,13 @@ describe('CombatantCard', () => {
     it('The collapsed card header contains exactly two direct child flex containers', () => {
       render(<CombatantCard {...defaultProps} />);
       const row = screen.getByTestId('collapsed-card-row');
-      expect(row).toBeDefined();
+      expect(row).toBeInTheDocument();
       
       const leftContainer = screen.getByTestId('left-container');
       const rightContainer = screen.getByTestId('right-container');
       
-      expect(leftContainer).toBeDefined();
-      expect(rightContainer).toBeDefined();
+      expect(leftContainer).toBeInTheDocument();
+      expect(rightContainer).toBeInTheDocument();
       
       // Verify that leftContainer and rightContainer are indeed direct children of row
       expect(row.children.length).toBe(2);
@@ -612,7 +612,7 @@ describe('CombatantCard', () => {
 
       render(<CombatantCard {...defaultProps} c={npc} />);
       const indicator = screen.getByTestId('legendary-actions-indicator');
-      expect(indicator).toBeDefined();
+      expect(indicator).toBeInTheDocument();
       expect(indicator.textContent).toContain('2/3');
     });
 
@@ -647,7 +647,7 @@ describe('CombatantCard', () => {
 
       render(<CombatantCard {...defaultProps} c={npc} />);
       const indicator = screen.getByTestId('legendary-resistances-indicator');
-      expect(indicator).toBeDefined();
+      expect(indicator).toBeInTheDocument();
       expect(indicator.textContent).toContain('1/3');
     });
 
@@ -660,7 +660,7 @@ describe('CombatantCard', () => {
 
       render(<CombatantCard {...defaultProps} c={npc} />);
       const indicator = screen.getByTestId('legendary-resistances-indicator');
-      expect(indicator).toBeDefined();
+      expect(indicator).toBeInTheDocument();
       expect(indicator.className).toContain('bg-gray-100');
       expect(indicator.className).toContain('text-gray-400');
     });
@@ -674,7 +674,7 @@ describe('CombatantCard', () => {
 
       render(<CombatantCard {...defaultProps} c={npc} />);
       const pill = screen.getByTestId('recharge-indicator-fire-breath');
-      expect(pill).toBeDefined();
+      expect(pill).toBeInTheDocument();
       expect(pill.textContent).toContain('Fire Breath');
       expect(pill.className).toContain('bg-emerald-5');
     });
@@ -688,7 +688,7 @@ describe('CombatantCard', () => {
 
       render(<CombatantCard {...defaultProps} c={npc} />);
       const pill = screen.getByTestId('recharge-indicator-cold-breath');
-      expect(pill).toBeDefined();
+      expect(pill).toBeInTheDocument();
       expect(pill.textContent).toContain('Cold Breath');
       expect(pill.className).toContain('bg-red-5');
     });
