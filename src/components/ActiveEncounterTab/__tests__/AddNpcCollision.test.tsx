@@ -63,15 +63,14 @@ describe('ActiveEncounterTab ID Uniqueness', () => {
     fireEvent.click(toolsBtn);
 
     // Select NPC preset
-    const select = screen.getByLabelText(/Select NPC/i);
-    fireEvent.change(select, { target: { value: 'npc1' } });
+    fireEvent.click(screen.getByText('Goblin'));
 
     // Set quantity to 2
-    const qtyInput = screen.getByLabelText(/Quantity/i);
+    const qtyInput = screen.getByLabelText(/How many\?/i);
     fireEvent.change(qtyInput, { target: { value: '2' } });
 
     // Click add
-    const addBtn = screen.getByRole('button', { name: /\+ Add to Encounter/i });
+    const addBtn = screen.getByRole('button', { name: /Add to Encounter/i });
     fireEvent.click(addBtn);
 
     // Verify updateState was called with two distinct combatant IDs
@@ -98,19 +97,22 @@ describe('ActiveEncounterTab ID Uniqueness', () => {
     // Open the sidebar
     const toolsBtn = screen.getByRole('button', { name: /Tools/i });
     fireEvent.click(toolsBtn);
+    
+    // Navigate to Create NPC tab
+    fireEvent.click(screen.getByText('Create NPC'));
 
     // Fill in Quick NPC form
-    const nameInput = screen.getByPlaceholderText(/e.g. Goblin Archer/i);
+    const nameInput = screen.getByPlaceholderText(/e.g. Ancient Red Dragon/i);
     fireEvent.change(nameInput, { target: { value: 'Custom Goblin' } });
 
-    const hpInput = screen.getByLabelText(/^HP$/i);
+    const hpInput = screen.getByLabelText(/Max HP/i);
     fireEvent.change(hpInput, { target: { value: '15' } });
 
-    const acInput = screen.getByLabelText(/^AC$/i);
+    const acInput = screen.getByLabelText(/^AC\b/i);
     fireEvent.change(acInput, { target: { value: '13' } });
 
     // Click add
-    const addBtn = screen.getByRole('button', { name: /\+ Add NPC/i });
+    const addBtn = screen.getByRole('button', { name: /Create & Add to Encounter/i });
     fireEvent.click(addBtn);
 
     await waitFor(() => {

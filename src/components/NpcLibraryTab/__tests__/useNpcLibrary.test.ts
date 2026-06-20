@@ -132,11 +132,25 @@ describe('useNpcLibrary', () => {
         notes: '',
         resistances: '',
         immunities: '',
-        vulnerabilities: ''
+        vulnerabilities: '',
+        legendaryActions: 0,
+        legendaryResistances: 0,
+        rechargeAbilities: [],
       });
     });
 
-    expect(addNpcDB).toHaveBeenCalledWith('New NPC', 20, 15, '', '', '', '');
+    expect(addNpcDB).toHaveBeenCalledWith(
+      'New NPC', 
+      20, 
+      15, 
+      '', 
+      '', 
+      '', 
+      '', 
+      0, 
+      0, 
+      []
+    );
     expect(updateSpy).toHaveBeenCalled();
     expect(toast.success).toHaveBeenCalledWith('New NPC added to NPC Library');
   });

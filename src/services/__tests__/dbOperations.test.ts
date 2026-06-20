@@ -23,6 +23,7 @@ import {
   addEncounterCombatantDB,
   updateNpcInstanceHpDB,
   updateEncounterDB,
+  addNpcDB,
 } from '../dbOperations';
 import { SheetGrid, SheetRow } from '../sheetsService';
 import { queueWrite } from '../writeQueue';
@@ -604,6 +605,50 @@ describe('deleteNpcDB', () => {
   it('throws error when NPC ID is not found', async () => {
     vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({ values: [] as SheetGrid });
     await expect(deleteNpcDB('999')).rejects.toThrow('NPC 999 not found');
+  });
+});
+
+// ─── addNpcDB logic ──────────────────────────────────────────────────────────
+
+describe('addNpcDB', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('builds a 14-column row and appends to NPCs!A:N', async () => {
+    vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({ values: [] as SheetGrid }); // ID 1
+
+    const rechargeAbilities = [{ name: 'Fire Breath', rechargeOn: 5 }];
+    const result = await addNpcDB(
+      'Dragon',
+      100,
+      20,
+      'Big dragon',
+      'fire',
+      'poison',
+      'cold',
+      3,
+      3,
+      rechargeAbilities
+    );
+
+    expect(result.id).toBe('1');
+    expect(sheetsService.appendSheetData).toHaveBeenCalledWith('NPCs!A:N', [[
+      '1',             // ID
+      'Dragon',        // Name
+      20,              // AC
+      100,             // Max HP
+      0,               // Temp HP
+      100,             // Current HP
+      '',              // Condition
+      'Big dragon',    // Notes
+      'fire',          // Resistances
+      'poison',        // Immunities
+      'cold',          // Vulnerabilities
+      3,               // Legendary Actions
+      3,               // Legendary Resistances
+      '[{"name":"Fire Breath","rechargeOn":5}]' // Recharge Abilities (JSON)
+    ]]);
   });
 });
 

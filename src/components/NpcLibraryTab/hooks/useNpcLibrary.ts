@@ -64,7 +64,10 @@ export function useNpcLibrary() {
         newNpcData.notes,
         newNpcData.resistances,
         newNpcData.immunities,
-        newNpcData.vulnerabilities
+        newNpcData.vulnerabilities,
+        newNpcData.legendaryActions,
+        newNpcData.legendaryResistances,
+        newNpcData.rechargeAbilities
       );
       // Replace temp with real
       updateState(prev => ({

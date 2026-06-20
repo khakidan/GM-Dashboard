@@ -21,7 +21,7 @@ export const NpcLegendarySection: React.FC<NpcLegendarySectionProps> = ({
       <div className="text-[10px] uppercase text-[#5a5a40] font-bold tracking-widest mb-2 px-1">Legendary</div>
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="text-[10px] uppercase text-[#5a5a40]/70 font-semibold tracking-wide mb-1 block px-1">
+          <label htmlFor="legendary-actions-input" className="text-[10px] uppercase text-[#5a5a40]/70 font-semibold tracking-wide mb-1 block px-1">
             Legendary Actions
           </label>
           <input
@@ -38,7 +38,7 @@ export const NpcLegendarySection: React.FC<NpcLegendarySectionProps> = ({
           />
         </div>
         <div>
-          <label className="text-[10px] uppercase text-[#5a5a40]/70 font-semibold tracking-wide mb-1 block px-1">
+          <label htmlFor="legendary-resistances-input" className="text-[10px] uppercase text-[#5a5a40]/70 font-semibold tracking-wide mb-1 block px-1">
             Legendary Resistances
           </label>
           <input

@@ -1,10 +1,9 @@
-import React, { useEffect } from 'react';
-import { X, UserPlus, Shield, Heart, Info, Save } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { X, UserPlus, Save } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { NPC } from '../../types';
 import { cn } from '../../lib/utils';
-import { IrvMultiSelect } from '../ui/IrvMultiSelect';
-import { useFormState } from '../../hooks/useFormState';
+import { NpcFormFields, NpcFormData, DEFAULT_NPC_FORM_DATA } from './NpcFormFields';
 
 interface NewNpcDialogProps {
   isOpen: boolean;
@@ -13,39 +12,49 @@ interface NewNpcDialogProps {
 }
 
 export function NewNpcDialog({ isOpen, onClose, onConfirm }: NewNpcDialogProps) {
-  const { values: formData, handleChange, reset } = useFormState({
-    name: '',
-    ac: 10,
-    maxHp: 10,
-    notes: '',
-    resistances: '',
-    immunities: '',
-    vulnerabilities: '',
-  });
+  const [formData, setFormData] = useState<NpcFormData>(DEFAULT_NPC_FORM_DATA);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!isOpen) {
-      reset();
+      setFormData(DEFAULT_NPC_FORM_DATA);
+      setErrors({});
     }
-  }, [isOpen, reset]);
-
-  const isFormValid = formData.name.trim() !== '' && formData.maxHp > 0;
+  }, [isOpen]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isFormValid) return;
+    
+    // ... basic validation logic
+    if (formData.name.trim() === '') return;
+
+    // Validate recharge abilities
+    const newErrors: Record<string, string> = {};
+    formData.rechargeAbilities.forEach(ability => {
+      if (!ability.name.trim()) {
+        newErrors[ability.id] = 'Ability name is required.';
+      }
+    });
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
 
     onConfirm({
       name: formData.name,
-      ac: formData.ac,
-      maxHp: formData.maxHp,
+      ac: Number(formData.ac),
+      maxHp: Number(formData.maxHp),
       tempHp: 0,
-      currentHp: formData.maxHp,
+      currentHp: Number(formData.maxHp),
       conditions: '',
       notes: formData.notes,
       resistances: formData.resistances,
       immunities: formData.immunities,
       vulnerabilities: formData.vulnerabilities,
+      legendaryActions: formData.legendaryActions,
+      legendaryResistances: formData.legendaryResistances,
+      rechargeAbilities: formData.rechargeAbilities.map(r => ({ name: r.name, rechargeOn: r.rechargeOn })),
     });
   };
 
@@ -81,100 +90,10 @@ export function NewNpcDialog({ isOpen, onClose, onConfirm }: NewNpcDialogProps) 
             </div>
 
             <form onSubmit={handleSubmit} className="p-8 space-y-6 overflow-y-auto max-h-[70vh]">
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40] mb-1.5 px-1">
-                    NPC Name <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    id="new-npc-name"
-                    type="text"
-                    required
-                    value={formData.name}
-                    onChange={e => handleChange('name', e.target.value)}
-                    placeholder="e.g. Ancient Red Dragon"
-                    className="w-full bg-white border border-[#e5e1d8] rounded-xl px-4 py-3 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all font-serif italic"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40] mb-1.5 px-1">
-                      AC <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5a5a40] opacity-50" />
-                      <input
-                        id="new-npc-ac"
-                        type="number"
-                        min="0"
-                        required
-                        value={formData.ac}
-                        onFocus={(e) => e.target.select()}
-                        onChange={e => handleChange('ac', parseInt(e.target.value) || 0)}
-                        className="w-full bg-white border border-[#e5e1d8] rounded-xl pl-10 pr-4 py-3 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40] mb-1.5 px-1">
-                      Max HP <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <Heart className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-red-400" />
-                      <input
-                        id="new-npc-maxhp"
-                        type="number"
-                        min="1"
-                        required
-                        value={formData.maxHp}
-                        onFocus={(e) => e.target.select()}
-                        onChange={e => handleChange('maxHp', parseInt(e.target.value) || 0)}
-                        className="w-full bg-white border border-[#e5e1d8] rounded-xl pl-10 pr-4 py-3 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all font-bold"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <IrvMultiSelect
-                  label="Resistances"
-                  value={formData.resistances}
-                  onChange={v => handleChange('resistances', v)}
-                  placeholder="e.g. fire"
-                />
-                <IrvMultiSelect
-                  label="Immunities"
-                  value={formData.immunities}
-                  onChange={v => handleChange('immunities', v)}
-                  placeholder="e.g. poison"
-                />
-                <IrvMultiSelect
-                  label="Vulnerabilities"
-                  value={formData.vulnerabilities}
-                  onChange={v => handleChange('vulnerabilities', v)}
-                  placeholder="e.g. cold"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40] mb-1.5 px-1">
-                  Notes
-                </label>
-                <textarea
-                  id="new-npc-notes"
-                  value={formData.notes}
-                  onChange={e => handleChange('notes', e.target.value)}
-                  placeholder="Special abilities or description..."
-                  rows={3}
-                  className="w-full bg-white border border-[#e5e1d8] rounded-xl px-4 py-3 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all resize-none"
-                />
-              </div>
+              <NpcFormFields data={formData} onChange={setFormData} errors={errors} />
 
               <div className="pt-4 flex gap-4">
                 <button
-                  id="cancel-new-npc-btn"
                   type="button"
                   onClick={onClose}
                   className="flex-1 bg-[#e5e1d8] hover:bg-[#d4cfc1] text-[#2c2c26] py-3.5 rounded-xl font-bold font-sans uppercase tracking-widest text-xs transition-all active:scale-95"
@@ -182,12 +101,8 @@ export function NewNpcDialog({ isOpen, onClose, onConfirm }: NewNpcDialogProps) 
                   Cancel
                 </button>
                 <button
-                  id="confirm-add-npc-btn"
                   type="submit"
-                  disabled={!isFormValid}
-                  className={cn(
-                    "flex-1 bg-[#c5b358] hover:bg-[#b0a04f] text-[#2c2c26] py-3.5 rounded-xl font-bold font-sans uppercase tracking-widest text-xs transition-all flex items-center justify-center gap-2 shadow-md active:scale-95 disabled:opacity-50 disabled:active:scale-100 disabled:cursor-not-allowed",
-                  )}
+                  className="flex-1 bg-[#c5b358] hover:bg-[#b0a04f] text-[#2c2c26] py-3.5 rounded-xl font-bold font-sans uppercase tracking-widest text-xs transition-all flex items-center justify-center gap-2 shadow-md active:scale-95 disabled:opacity-50"
                 >
                   <Save className="w-4 h-4" />
                   Add NPC →

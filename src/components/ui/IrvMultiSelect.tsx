@@ -11,6 +11,7 @@ interface IrvMultiSelectProps {
   onChange: (value: string) => void;
   options?: string[]; // defaults to IRV_OPTIONS
   placeholder?: string;
+  compact?: boolean;
 }
 
 export function IrvMultiSelect({
@@ -19,6 +20,7 @@ export function IrvMultiSelect({
   onChange,
   options = IRV_OPTIONS,
   placeholder = "Search and add...",
+  compact = false,
 }: IrvMultiSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -101,7 +103,7 @@ export function IrvMultiSelect({
 
   return (
     <div className="space-y-1.5" ref={containerRef}>
-      <label className="block text-[10px] text-[#5a5a40] uppercase tracking-wider font-bold mb-1 ml-1">
+      <label className={cn("block text-[#5a5a40] uppercase tracking-wider font-bold mb-1 ml-1", compact ? "text-[10px]" : "text-xs")}>
         {label}
       </label>
       

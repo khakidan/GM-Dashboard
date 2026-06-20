@@ -1,9 +1,9 @@
 import { RECHARGE_THRESHOLDS } from '../../lib/constants';
 import React, { useState, useEffect } from 'react';
-import { X, Library, Plus } from 'lucide-react';
+import { X, Library, Plus, Users, UserPlus } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { NPC as Npc, Character, Combatant } from '../../types';
-import { IrvMultiSelect } from '../ui/IrvMultiSelect';
+import { NpcFormFields, NpcFormData, DEFAULT_NPC_FORM_DATA } from '../NpcLibraryTab/NpcFormFields';
 
 interface CombatSidebarProps {
   isOpen: boolean;
@@ -18,7 +18,10 @@ interface CombatSidebarProps {
     notes: string,
     resistances: string,
     immunities: string,
-    vulnerabilities: string
+    vulnerabilities: string,
+    legendaryActions: number,
+    legendaryResistances: number,
+    rechargeAbilities: Array<{ name: string, rechargeOn: number }>
   ) => Promise<void>;
   combatants?: Combatant[];
   onUpdateCombatant?: (id: string, updates: Partial<Combatant>) => void;
@@ -34,36 +37,32 @@ export function CombatSidebar({
   combatants = [],
   onUpdateCombatant
 }: CombatSidebarProps) {
+  const [activeTab, setActiveTab] = useState<'library' | 'party' | 'create'>('library');
   const [selectedPreset, setSelectedPreset] = useState<string>('');
-  const [presetType, setPresetType] = useState<'pc' | 'npc'>('npc');
   const [presetQuantity, setPresetQuantity] = useState<number>(1);
-  const [isAddingPreset, setIsAddingPreset] = useState(false);
+  const [isAddingInLibrary, setIsAddingInLibrary] = useState(false);
+  const [createNpcData, setCreateNpcData] = useState<NpcFormData>(DEFAULT_NPC_FORM_DATA);
+  const [isCreatingNpc, setIsCreatingNpc] = useState(false);
+  const [selectedCharacterIds, setSelectedCharacterIds] = useState<Set<string>>(new Set());
 
-  const [npcName, setNpcName] = useState('');
-  const [npcHp, setNpcHp] = useState<number | ''>('');
-  const [npcAc, setNpcAc] = useState<number | ''>('');
-  const [npcNotes, setNpcNotes] = useState('');
-  const [npcResistances, setNpcResistances] = useState('');
-  const [npcImmunities, setNpcImmunities] = useState('');
-  const [npcVulnerabilities, setNpcVulnerabilities] = useState('');
-  const [isAddingNpc, setIsAddingNpc] = useState(false);
+  const inEncounterIds = new Set(
+    combatants
+      .map(c => c.characterId)
+      .filter((id): id is string => !!id)
+  );
 
-  const [selectedToolsNpcId, setSelectedToolsNpcId] = useState<string>('');
-  const [abilityName, setAbilityName] = useState<string>('');
-  const [rechargeThreshold, setRechargeThreshold] = useState<number>(RECHARGE_THRESHOLDS.onFiveOrSix);
+  const isInEncounter = (characterId: string) => inEncounterIds.has(characterId);
 
-  const [legendaryActionsMax, setLegendaryActionsMax] = useState<number>(3);
-  const [legendaryResistancesMax, setLegendaryResistancesMax] = useState<number>(3);
-
-  useEffect(() => {
-    if (selectedToolsNpcId) {
-      const npc = combatants.find(c => c.id === selectedToolsNpcId);
-      if (npc) {
-        setLegendaryActionsMax(npc.legendaryActions?.max ?? 3);
-        setLegendaryResistancesMax(npc.legendaryResistances?.max ?? 3);
-      }
+  const toggleCharacterSelection = (characterId: string) => {
+    if (isInEncounter(characterId)) return;
+    const next = new Set(selectedCharacterIds);
+    if (next.has(characterId)) {
+      next.delete(characterId);
+    } else {
+      next.add(characterId);
     }
-  }, [selectedToolsNpcId, combatants]);
+    setSelectedCharacterIds(next);
+  };
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -81,428 +80,146 @@ export function CombatSidebar({
 
   if (!isOpen) return null;
 
-  const handleAddPreset = async (e: React.FormEvent) => {
+  const handleCreateAndAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedPreset) return;
-    setIsAddingPreset(true);
-    await onAddPreset(presetType, selectedPreset, presetQuantity);
-    setIsAddingPreset(false);
-    setSelectedPreset('');
-    setPresetQuantity(1);
-  };
-
-  const handleAddNpc = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!npcName || npcHp === '') return;
-    setIsAddingNpc(true);
+    if (createNpcData.name.trim() === '') return;
+    setIsCreatingNpc(true);
     await onAddNpc(
-      npcName, 
-      npcHp, 
-      npcAc, 
-      npcNotes, 
-      npcResistances, 
-      npcImmunities, 
-      npcVulnerabilities
+      createNpcData.name,
+      Number(createNpcData.maxHp),
+      Number(createNpcData.ac),
+      createNpcData.notes,
+      createNpcData.resistances,
+      createNpcData.immunities,
+      createNpcData.vulnerabilities,
+      createNpcData.legendaryActions,
+      createNpcData.legendaryResistances,
+      createNpcData.rechargeAbilities
     );
-    setIsAddingNpc(false);
-    setNpcName('');
-    setNpcHp('');
-    setNpcAc('');
-    setNpcNotes('');
-    setNpcResistances('');
-    setNpcImmunities('');
-    setNpcVulnerabilities('');
+    setIsCreatingNpc(false);
+    setCreateNpcData(DEFAULT_NPC_FORM_DATA);
+    onClose();
   };
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
       <div 
-        className="bg-[#fdfaf5] w-full max-w-2xl rounded-2xl shadow-2xl border border-[#e5e1d8] overflow-hidden flex flex-col"
+        className="bg-[#fdfaf5] w-full max-w-2xl rounded-2xl shadow-2xl border border-[#e5e1d8] overflow-hidden flex flex-col max-h-[85vh]"
         onClick={e => e.stopPropagation()}
       >
-        <div className="bg-[#2c2c26] p-6 text-[#e5e1d8] flex items-center justify-between">
+        <div className="bg-[#2c2c26] p-6 text-[#e5e1d8] flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
-            <Library className="w-6 h-6 text-[#c5b358]" />
-            <h2 className="text-xl font-bold font-serif uppercase tracking-wider">Combat Tools</h2>
+            <UserPlus className="w-6 h-6 text-[#c5b358]" />
+            <h2 className="text-xl font-bold font-serif uppercase tracking-wider">Add Combatant</h2>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-white/10 rounded-full transition-colors"
-            title="Close"
-          >
+          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full transition-colors" title="Close">
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="p-8 overflow-y-auto max-h-[80vh] scrollbar-thin scrollbar-thumb-[#e5e1d8] scrollbar-track-transparent">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Add from Library Column */}
-            <div className="space-y-6">
-              <div className="flex items-center gap-2 mb-2 border-b border-[#e5e1d8] pb-2">
-                <Library className="w-4 h-4 text-[#c5b358]" />
-                <h3 className="text-sm font-bold text-[#2c2c26] font-serif uppercase tracking-wider">Add from Library</h3>
-              </div>
-              <form onSubmit={handleAddPreset} className="space-y-4 font-sans">
-                <div className="grid grid-cols-2 gap-2 mb-2">
+        <div className="flex border-b border-[#e5e1d8] shrink-0">
+          {(['library', 'party', 'create'] as const).map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={cn("flex-1 py-4 text-xs font-bold uppercase tracking-widest transition-all", activeTab === tab ? "bg-white text-[#2c2c26]" : "bg-[#f5f5f0] text-[#5a5a40]")}
+            >
+              {tab === 'library' ? 'NPC Library' : tab === 'party' ? 'Party Members' : 'Create NPC'}
+            </button>
+          ))}
+        </div>
+
+        <div className="p-8 overflow-y-auto scrollbar-thin scrollbar-thumb-[#e5e1d8] flex-1">
+          {activeTab === 'library' && (
+            <div className="space-y-4">
+              <input type="text" placeholder="Search NPCs..." className="w-full bg-white border border-[#e5e1d8] rounded-xl px-4 py-3 text-sm" />
+              <div className="border border-[#e5e1d8] rounded-xl h-64 overflow-y-auto">
+                {npcs.map(npc => (
                   <button
-                    type="button"
-                    onClick={() => { setPresetType('npc'); setSelectedPreset(''); }}
-                    className={cn('text-[10px] py-1.5 font-bold uppercase rounded-lg border', presetType === 'npc' ? 'bg-[#5a5a40] text-white border-[#5a5a40]' : 'bg-[#f5f5f0] text-[#5a5a40] border-[#e5e1d8]')}
+                    key={npc.id}
+                    onClick={() => setSelectedPreset(npc.id)}
+                    className={cn("w-full text-left p-4 border-b border-[#e5e1d8] hover:bg-[#faf9f6]", selectedPreset === npc.id && "bg-[#f5f0d5] border-[#c5b358]")}
                   >
-                    NPC
+                    <div className="font-bold">{npc.name}</div>
+                    <div className="text-xs text-[#5a5a40]">AC: {npc.ac}  HP: {npc.maxHp}</div>
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => { setPresetType('pc'); setSelectedPreset(''); }}
-                    className={cn('text-[10px] py-1.5 font-bold uppercase rounded-lg border', presetType === 'pc' ? 'bg-[#5a5a40] text-white border-[#5a5a40]' : 'bg-[#f5f5f0] text-[#5a5a40] border-[#e5e1d8]')}
-                  >
-                    Player
-                  </button>
-                </div>
-
-                <div>
-                  <label htmlFor="preset-select" className="block text-[10px] text-[#5a5a40] uppercase tracking-wider font-bold mb-1 ml-1">Select {presetType.toUpperCase()}</label>
-                  <select
-                    id="preset-select"
-                    value={selectedPreset}
-                    onChange={e => setSelectedPreset(e.target.value)}
-                    required
-                    className="w-full bg-[#fdfaf5] border border-[#e5e1d8] rounded-lg px-3 py-2 text-[#2c2c26] text-sm focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all"
-                  >
-                    <option value="">Select...</option>
-                    {presetType === 'npc'
-                      ? npcs.map(n => <option key={n.id} value={n.id}>{n.name}</option>)
-                      : characters.filter(c => c.isActive).map(c => (
-                          <option key={c.id} value={c.id}>{c.characterName} ({c.playerName})</option>
-                        ))
-                    }
-                  </select>
-                </div>
-
-                {presetType === 'npc' && (
-                  <div>
-                    <label htmlFor="preset-quantity" className="block text-[10px] text-[#5a5a40] uppercase tracking-wider font-bold mb-1 ml-1">Quantity</label>
-                    <input
-                      id="preset-quantity"
-                      type="number"
-                      value={presetQuantity}
-                      onChange={e => setPresetQuantity(parseInt(e.target.value) || 1)}
-                      min={1}
-                      className="w-full bg-[#fdfaf5] border border-[#e5e1d8] rounded-lg px-3 py-2 text-[#2c2c26] text-sm focus:bg-white focus:border-[#c5b358] outline-none transition-all"
-                    />
-                  </div>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={isAddingPreset}
-                  className="w-full bg-[#c5b358] hover:bg-[#b0a04f] text-[#2c2c26] font-bold text-[10px] uppercase tracking-widest py-3 rounded-full transition-colors mt-2 disabled:opacity-50 shadow-sm"
-                >
-                  {isAddingPreset ? 'Adding...' : '+ Add to Encounter'}
-                </button>
-              </form>
-            </div>
-
-            {/* Add Custom NPC Column */}
-            <div className="space-y-6">
-              <div className="flex items-center gap-2 mb-2 border-b border-[#e5e1d8] pb-2">
-                <Plus className="w-4 h-4 text-[#c5b358]" />
-                <h3 className="text-sm font-bold text-[#2c2c26] font-serif uppercase tracking-wider">Quick NPC Creator</h3>
+                ))}
               </div>
-              <form onSubmit={handleAddNpc} className="space-y-3 font-sans">
-                <div>
-                  <label className="block text-[10px] text-[#5a5a40] uppercase tracking-wider font-bold mb-1 ml-1">Name</label>
-                  <input
-                    type="text"
-                    value={npcName}
-                    onChange={e => setNpcName(e.target.value)}
-                    placeholder="e.g. Goblin Archer"
-                    required
-                    className="w-full bg-[#fdfaf5] border border-[#e5e1d8] rounded-lg px-3 py-2 text-[#2c2c26] text-sm focus:bg-white focus:border-[#c5b358] outline-none transition-all placeholder:text-[#5a5a40]/30"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label htmlFor="npc-hp" className="block text-[10px] text-[#5a5a40] uppercase tracking-wider font-bold mb-1 ml-1">HP</label>
-                    <input
-                      id="npc-hp"
-                      type="number"
-                      value={npcHp}
-                      onChange={e => setNpcHp(e.target.value ? parseInt(e.target.value) : '')}
-                      required
-                      min={1}
-                      className="w-full bg-[#fdfaf5] border border-[#e5e1d8] rounded-lg px-3 py-2 text-[#2c2c26] text-sm focus:bg-white focus:border-[#c5b358] outline-none transition-all"
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="npc-ac" className="block text-[10px] text-[#5a5a40] uppercase tracking-wider font-bold mb-1 ml-1">AC</label>
-                    <input
-                      id="npc-ac"
-                      type="number"
-                      value={npcAc}
-                      onChange={e => setNpcAc(e.target.value ? parseInt(e.target.value) : '')}
-                      placeholder="10"
-                      className="w-full bg-[#fdfaf5] border border-[#e5e1d8] rounded-lg px-3 py-2 text-[#2c2c26] text-sm focus:bg-white focus:border-[#c5b358] outline-none transition-all placeholder:text-[#5a5a40]/30"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-[10px] text-[#5a5a40] uppercase tracking-wider font-bold mb-1 ml-1">Characteristics</label>
-                  <input
-                    type="text"
-                    value={npcNotes}
-                    onChange={e => setNpcNotes(e.target.value)}
-                    className="w-full bg-[#fdfaf5] border border-[#e5e1d8] rounded-lg px-3 py-2 text-[#2c2c26] text-sm focus:bg-white focus:border-[#c5b358] outline-none transition-all"
-                  />
-                </div>
-                
-                <div className="space-y-3 pt-2 mt-2 border-t border-[#e5e1d8]">
-                  <IrvMultiSelect
-                    label="Resistances"
-                    value={npcResistances}
-                    onChange={setNpcResistances}
-                    placeholder="e.g. fire"
-                  />
-                  <IrvMultiSelect
-                    label="Immunities"
-                    value={npcImmunities}
-                    onChange={setNpcImmunities}
-                    placeholder="e.g. poison"
-                  />
-                  <IrvMultiSelect
-                    label="Vulnerabilities"
-                    value={npcVulnerabilities}
-                    onChange={setNpcVulnerabilities}
-                    placeholder="e.g. cold"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isAddingNpc}
-                  className="w-full bg-[#5a5a40] hover:bg-[#3f3f37] text-white font-bold text-[10px] uppercase tracking-widest py-3 rounded-full transition-colors mt-2 disabled:opacity-50 shadow-sm"
-                >
-                  {isAddingNpc ? 'Adding...' : '+ Add NPC'}
-                </button>
-              </form>
-            </div>
-          </div>
-
-          {/* Setup Recharge Abilities Section */}
-          <div className="pt-8 mt-8 border-t border-[#e5e1d8] space-y-4">
-            <div className="flex items-center gap-2 border-b border-[#e5e1d8] pb-2">
-              <Plus className="w-4 h-4 text-[#c5b358]" />
-              <h3 className="text-sm font-bold text-[#2c2c26] font-serif uppercase tracking-wider">NPC Recharge Abilities Setup</h3>
-            </div>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 font-sans">
-              <div>
-                <label htmlFor="tools-npc-select" className="block text-[10px] text-[#5a5a40] uppercase tracking-wider font-bold mb-1 ml-1">Select Combatant NPC</label>
-                <select
-                  id="tools-npc-select"
-                  value={selectedToolsNpcId}
-                  onChange={e => {
-                    setSelectedToolsNpcId(e.target.value);
-                    setAbilityName('');
-                  }}
-                  className="w-full bg-[#fdfaf5] border border-[#e5e1d8] rounded-lg px-3 py-2 text-[#2c2c26] text-sm focus:bg-white focus:border-[#c5b358] outline-none transition-all"
-                >
-                  <option value="">Select an NPC in combat...</option>
-                  {combatants.filter(c => c.type === 'npc').map(c => (
-                    <option key={c.id} value={c.id}>
-                      {c.name} (HP: {c.currentHp}/{c.maxHp})
-                    </option>
-                  ))}
-                </select>
+              <div className="flex items-center gap-4">
+                  <label htmlFor="npc-quantity">How many?</label>
+                  <input id="npc-quantity" type="number" value={presetQuantity} onChange={e => setPresetQuantity(parseInt(e.target.value) || 1)} min="1" max="20" className="w-16 p-2 border border-[#e5e1d8] rounded-lg" />
               </div>
-
-              {selectedToolsNpcId && (
-                <div id="recharge-setup-details" className="space-y-4 col-span-1 sm:col-span-2 bg-[#faf9f6] p-4 rounded-xl border border-[#e5e1d8] animate-fade-in">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-[#5a5a40] mb-2 font-sans">
-                    Add Recharge Ability to {combatants.find(n => n.id === selectedToolsNpcId)?.name}
-                  </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <label htmlFor="ability-name-input" className="block text-[10px] text-[#5a5a40] uppercase tracking-wider font-bold mb-1 ml-1">Ability Name</label>
-                      <input
-                        id="ability-name-input"
-                        type="text"
-                        value={abilityName}
-                        onChange={e => setAbilityName(e.target.value)}
-                        placeholder="e.g. Fire Breath"
-                        className="w-full bg-white border border-[#e5e1d8] rounded-lg px-3 py-2 text-[#2c2c26] text-sm focus:border-[#c5b358] outline-none transition-all placeholder:text-[#5a5a40]/30"
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="recharge-threshold-select" className="block text-[10px] text-[#5a5a40] uppercase tracking-wider font-bold mb-1 ml-1">Recharge On</label>
-                      <select
-                        id="recharge-threshold-select"
-                        value={rechargeThreshold}
-                        onChange={e => setRechargeThreshold(parseInt(e.target.value))}
-                        className="w-full bg-white border border-[#e5e1d8] rounded-lg px-3 py-2 text-[#2c2c26] text-sm focus:border-[#c5b358] outline-none transition-all"
-                      >
-                        <option value={RECHARGE_THRESHOLDS.onSix}>6 (recharge 6)</option>
-                        <option value={RECHARGE_THRESHOLDS.onFiveOrSix}>5 (recharge 5-6)</option>
-                        <option value={RECHARGE_THRESHOLDS.onFourToSix}>4 (recharge 4-6)</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    id="btn-add-recharge-ability"
-                    onClick={() => {
-                      if (!abilityName.trim()) return;
-                      const targetNpc = combatants.find(n => n.id === selectedToolsNpcId);
-                      if (!targetNpc || !onUpdateCombatant) return;
-
-                      const currentAbilities = targetNpc.rechargeAbilities || [];
-                      const newAbility = {
-                        name: abilityName.trim(),
-                        rechargeOn: rechargeThreshold,
-                        isCharged: true
-                      };
-
-                      onUpdateCombatant(selectedToolsNpcId, {
-                        rechargeAbilities: [...currentAbilities, newAbility]
-                      });
-
-                      setAbilityName('');
-                    }}
-                    className="bg-[#5a5a40] hover:bg-[#3f3f37] text-white font-bold text-[10px] uppercase tracking-widest px-6 py-2.5 rounded-full transition-colors inline-block shadow-sm cursor-pointer"
-                  >
-                    Add Recharge Ability
-                  </button>
-
-                  {/* Setup Legendary Trackers Section */}
-                  {(() => {
-                    const targetNpc = combatants.find(n => n.id === selectedToolsNpcId);
-                    if (!targetNpc) return null;
-                    const isLegendaryActionsEnabled = !!targetNpc.legendaryActions;
-                    const isLegendaryResistancesEnabled = !!targetNpc.legendaryResistances;
-
+              <button
+                disabled={!selectedPreset || isAddingInLibrary}
+                onClick={async () => {
+                  setIsAddingInLibrary(true);
+                  await onAddPreset('npc', selectedPreset, presetQuantity);
+                  setIsAddingInLibrary(false);
+                  onClose();
+                }}
+                className="w-full bg-[#c5b358] text-[#2c2c26] py-3 rounded-xl font-bold uppercase"
+              >
+                Add to Encounter
+              </button>
+            </div>
+          )}
+          {activeTab === 'party' && (
+            <div className="space-y-4">
+              {characters.filter(c => c.statusId === 1 || c.statusName === 'Active').length === 0 ? (
+                <div className="text-sm text-[#5a5a40] py-8 text-center">No active party members. Add players in the Party Roster tab.</div>
+              ) : characters.filter(c => c.statusId === 1 || c.statusName === 'Active').every(c => isInEncounter(c.id)) ? (
+                <div className="text-sm text-[#5a5a40] py-8 text-center">All party members are already in this encounter.</div>
+              ) : (
+                <div className="space-y-2">
+                  {characters.filter(c => c.statusId === 1 || c.statusName === 'Active').map(char => {
+                    const alreadyIn = isInEncounter(char.id);
                     return (
-                      <div id="legendary-setup-container" className="pt-6 mt-6 border-t border-[#e5e1d8] space-y-4">
-                        <h4 className="text-xs font-bold uppercase tracking-wider text-[#5a5a40] mb-2">
-                          Legendary Trackers
-                        </h4>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          {/* Legendary Actions Setup */}
-                          <div className="space-y-3 p-3 bg-white border border-[#e5e1d8] rounded-xl flex flex-col justify-between" id="actions-setup-card">
-                            <div className="flex items-center gap-2">
-                              <input
-                                type="checkbox"
-                                id="checkbox-enable-actions"
-                                checked={isLegendaryActionsEnabled}
-                                onChange={(e) => {
-                                  if (e.target.checked) {
-                                    onUpdateCombatant?.(selectedToolsNpcId, {
-                                      legendaryActions: {
-                                        max: legendaryActionsMax,
-                                        remaining: legendaryActionsMax
-                                      }
-                                    });
-                                  } else {
-                                    onUpdateCombatant?.(selectedToolsNpcId, {
-                                      legendaryActions: undefined
-                                    });
-                                  }
-                                }}
-                                className="w-4 h-4 rounded border-[#e5e1d8] text-[#c5b358] focus:ring-[#c5b358] cursor-pointer"
-                              />
-                              <label htmlFor="checkbox-enable-actions" className="text-sm font-bold text-[#2c2c26] cursor-pointer">
-                                Enable Legendary Actions
-                              </label>
-                            </div>
-                            <div className="flex items-center gap-2 mt-2">
-                              <label htmlFor="input-actions-max" className="text-xs text-[#5a5a40]">Actions Cap:</label>
-                              <input
-                                id="input-actions-max"
-                                type="number"
-                                min={1}
-                                max={10}
-                                value={legendaryActionsMax}
-                                onChange={(e) => {
-                                  const val = Math.max(1, parseInt(e.target.value) || 1);
-                                  setLegendaryActionsMax(val);
-                                  if (isLegendaryActionsEnabled) {
-                                    onUpdateCombatant?.(selectedToolsNpcId, {
-                                      legendaryActions: {
-                                        max: val,
-                                        remaining: targetNpc.legendaryActions ? Math.min(targetNpc.legendaryActions.remaining, val) : val
-                                      }
-                                    });
-                                  }
-                                }}
-                                className="w-16 bg-[#fdfaf5] border border-[#e5e1d8] rounded px-2 py-1 text-[#2c2c26] text-sm focus:border-[#c5b358] outline-none"
-                              />
-                            </div>
-                          </div>
-
-                          {/* Legendary Resistances Setup */}
-                          <div className="space-y-3 p-3 bg-white border border-[#e5e1d8] rounded-xl flex flex-col justify-between" id="resistances-setup-card">
-                            <div className="flex items-center gap-2">
-                              <input
-                                type="checkbox"
-                                id="checkbox-enable-resistances"
-                                checked={isLegendaryResistancesEnabled}
-                                onChange={(e) => {
-                                  if (e.target.checked) {
-                                    onUpdateCombatant?.(selectedToolsNpcId, {
-                                      legendaryResistances: {
-                                        max: legendaryResistancesMax,
-                                        remaining: legendaryResistancesMax
-                                      }
-                                    });
-                                  } else {
-                                    onUpdateCombatant?.(selectedToolsNpcId, {
-                                      legendaryResistances: undefined
-                                    });
-                                  }
-                                }}
-                                className="w-4 h-4 rounded border-[#e5e1d8] text-[#c5b358] focus:ring-[#c5b358] cursor-pointer"
-                              />
-                              <label htmlFor="checkbox-enable-resistances" className="text-sm font-bold text-[#2c2c26] cursor-pointer">
-                                Enable Legendary Resistances
-                              </label>
-                            </div>
-                            <div className="flex items-center gap-2 mt-2">
-                              <label htmlFor="input-resistances-max" className="text-xs text-[#5a5a40]">Resistances Cap:</label>
-                              <input
-                                id="input-resistances-max"
-                                type="number"
-                                min={1}
-                                max={10}
-                                value={legendaryResistancesMax}
-                                onChange={(e) => {
-                                  const val = Math.max(1, parseInt(e.target.value) || 1);
-                                  setLegendaryResistancesMax(val);
-                                  if (isLegendaryResistancesEnabled) {
-                                    onUpdateCombatant?.(selectedToolsNpcId, {
-                                      legendaryResistances: {
-                                        max: val,
-                                        remaining: targetNpc.legendaryResistances ? Math.min(targetNpc.legendaryResistances.remaining, val) : val
-                                      }
-                                    });
-                                  }
-                                }}
-                                className="w-16 bg-[#fdfaf5] border border-[#e5e1d8] rounded px-2 py-1 text-[#2c2c26] text-sm focus:border-[#c5b358] outline-none"
-                              />
-                            </div>
-                          </div>
+                      <div key={char.id} className={cn("flex items-center gap-3 p-3 rounded-xl border border-[#e5e1d8]", alreadyIn ? "opacity-50 bg-[#f5f5f0]" : "bg-white")}>
+                        <input
+                          type="checkbox"
+                          checked={selectedCharacterIds.has(char.id)}
+                          onChange={() => toggleCharacterSelection(char.id)}
+                          disabled={alreadyIn}
+                        />
+                        <div className="flex-1">
+                          <div className="font-bold">{char.characterName}</div>
+                          <div className="text-xs text-[#5a5a40]">Player: {char.playerName} AC: {char.ac} HP: {char.currentHp}/{char.maxHp}</div>
                         </div>
+                        {alreadyIn && <div className="text-[10px] font-bold text-[#5a5a40] uppercase">Already in encounter</div>}
                       </div>
                     );
-                  })()}
+                  })}
+                  <button
+                    disabled={selectedCharacterIds.size === 0}
+                    onClick={async () => {
+                      for (const id of selectedCharacterIds) {
+                        await onAddPreset('pc', id, 1);
+                      }
+                      setSelectedCharacterIds(new Set());
+                      onClose();
+                    }}
+                    className="w-full bg-[#c5b358] text-[#2c2c26] py-3 rounded-xl font-bold uppercase disabled:opacity-50"
+                  >
+                    Add Selected
+                  </button>
                 </div>
               )}
             </div>
-          </div>
-
+          )}
+          {activeTab === 'create' && (
+            <form onSubmit={handleCreateAndAdd} className="space-y-6">
+              <NpcFormFields data={createNpcData} onChange={setCreateNpcData} compact />
+              <button
+                type="submit"
+                disabled={isCreatingNpc}
+                className="w-full bg-[#c5b358] text-[#2c2c26] py-3 rounded-xl font-bold uppercase"
+              >
+                {isCreatingNpc ? 'Creating...' : 'Create & Add to Encounter'}
+              </button>
+            </form>
+          )}
         </div>
       </div>
-      {/* Background click listener */}
-      <div className="absolute inset-0 z-[-1]" onClick={onClose} />
     </div>
   );
 }
