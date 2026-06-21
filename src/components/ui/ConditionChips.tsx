@@ -4,9 +4,8 @@ import { CONDITION_OPTIONS, EFFECT_OPTIONS, CONDITION_IMMUNITY_MAP, CONCENTRATIO
 import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { cn } from '../../lib/utils';
-;
+import { ConditionPopover } from './ConditionPopover';
 import { checkIrvMatch } from '../../lib/combatLogic';
-;
 import { toast } from 'sonner';
 
 interface ConditionChipsProps {
@@ -301,26 +300,31 @@ export function ConditionChips({
         }}
       >
         {chips.map(chip => (
-          <span
+          <ConditionPopover
             key={chip}
-            className={cn(
-              'inline-flex items-center gap-1 px-2 py-0.5 rounded-full',
-              'text-xs font-bold font-sans capitalize',
-              chipClass[getCategory(chip)]
-            )}
+            conditionName={chip}
+            category={getCategory(chip)}
           >
-            {chip}
-            {!disabled && (
-              <button
-                type="button"
-                onClick={e => { e.stopPropagation(); removeChip(chip); }}
-                className="leading-none hover:opacity-60 transition-opacity ml-0.5"
-                aria-label={`Remove ${chip}`}
-              >
-                ×
-              </button>
-            )}
-          </span>
+            <span
+              className={cn(
+                'inline-flex items-center gap-1 px-2 py-0.5 rounded-full',
+                'text-xs font-bold font-sans capitalize',
+                chipClass[getCategory(chip)]
+              )}
+            >
+              {chip}
+              {!disabled && (
+                <button
+                  type="button"
+                  onClick={e => { e.stopPropagation(); removeChip(chip); }}
+                  className="leading-none hover:opacity-60 transition-opacity ml-0.5"
+                  aria-label={`Remove ${chip}`}
+                >
+                  ×
+                </button>
+              )}
+            </span>
+          </ConditionPopover>
         ))}
 
         {!disabled && (

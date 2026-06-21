@@ -42,4 +42,30 @@ describe('ConditionChips', () => {
       expect(onConcentrationEffectAdded).toHaveBeenCalledWith('hasted');
     });
   });
+
+  it('wraps each chip in a ConditionPopover and is able to trigger popover', async () => {
+    render(
+      <ConditionChips
+        value="blinded"
+        onChange={() => {}}
+      />
+    );
+
+    const chip = screen.getByText('blinded');
+    expect(chip).toBeInTheDocument();
+
+    // The container should have the test popover target ID
+    const popoverContainer = chip.closest('[id^="popover-container-"]');
+    expect(popoverContainer).toBeInTheDocument();
+
+    // Initially popover content is hidden
+    expect(screen.queryByTestId('condition-popover-content')).toBeNull();
+
+    // Click to toggle
+    fireEvent.click(chip);
+    
+    // Now rules/summary content is visible on screen
+    expect(screen.getByTestId('condition-popover-content')).toBeInTheDocument();
+    expect(screen.getByText("Can't see. Attacks against you have advantage; yours have disadvantage.")).toBeInTheDocument();
+  });
 });

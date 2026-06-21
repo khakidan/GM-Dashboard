@@ -21,3 +21,9 @@ export {
   effectiveMaxHp,
   getHealthStatus,
 } from '../combatLogic';
+
+export {
+  CONDITION_DESCRIPTIONS,
+  getConditionDescription,
+} from '../conditionDescriptions';
+export type { ConditionDescription } from '../conditionDescriptions';
