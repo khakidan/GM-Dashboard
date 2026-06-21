@@ -481,7 +481,7 @@ export function CombatantCardHeader({
           {pools.map(pool => (
             <div key={pool.name} className="inline-flex items-center gap-1.5" id={`compact-pool-${pool.name.toLowerCase().replace(/\s+/g, '-')}`}>
               <span className="font-serif font-bold text-[#5a5a40] uppercase tracking-wide text-[10px]">
-                {pool.name}
+                {pool.name.length > 10 ? `${pool.name.slice(0, 10)}...` : pool.name}
               </span>
               <button
                 onClick={async () => {

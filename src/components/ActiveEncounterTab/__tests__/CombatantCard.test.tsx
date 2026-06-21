@@ -12,6 +12,15 @@ import * as diceRoller from '../../../lib/diceRoller';
 import { CombatantCard } from '../CombatantCard';
 import type { Combatant } from '../../../types';
 import { useDashboardStore } from '../../../hooks/useAppState';
+import { updateCharacterDB } from '../../../services/dbOperations';
+
+vi.mock('../../../services/dbOperations', () => ({
+  updateCharacterDB: vi.fn(),
+  updateNpcInstanceConditionsDB: vi.fn(),
+  updateInitiativeDB: vi.fn(),
+  updateDeathSavesDB: vi.fn(),
+  updateEncounterStateDB: vi.fn(),
+}));
 
 vi.mock('../../../lib/diceRoller', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../../../lib/diceRoller')>();
@@ -721,6 +730,286 @@ describe('CombatantCard', () => {
 
       render(<CombatantCard {...defaultProps} c={pc} />);
       expect(screen.queryByTestId('compact-indicators')).toBeNull();
+    });
+  });
+
+  describe('Compact and Expanded PC Resource Trackers', () => {
+    it('renders both resource groups in the compact header row of a PC with two resource pools and uses flex-wrap', () => {
+      const pc: Combatant = {
+        ...defaultCombatant,
+        id: 'c-multi',
+        name: 'Hero',
+        type: 'pc',
+        characterId: 'char-multi'
+      };
+      useDashboardStore.setState(prev => ({
+        ...prev,
+        characters: [
+          {
+            id: 'char-multi',
+            playerName: 'Player 1',
+            characterName: 'Hero',
+            ac: 15, maxHp: 30, tempHp: 0, currentHp: 30, conditions: '', passivePerception: 10, level: 5, statusId: 1, statusName: 'Active', notes: '', isActive: true, class: 'Hero', hitDiceConfig: '1d8', hitDiceUsed: '0',
+            resourcePools: JSON.stringify([
+              { name: 'Infused Items', current: 4, max: 4, reset: 'long' },
+              { name: 'Spell Slots', current: 7, max: 10, reset: 'long' }
+            ])
+          }
+        ]
+      }));
+
+      const { container } = render(<CombatantCard {...defaultProps} c={pc} />);
+      
+      expect(screen.getByText('Infused It...')).toBeInTheDocument();
+      expect(screen.getByText('Spell Slot...')).toBeInTheDocument();
+
+      const compactRow = container.querySelector('.flex-wrap');
+      expect(compactRow).toBeInTheDocument();
+    });
+
+    it('renders exactly one resource group in the compact row of a PC with one pool with proper text', () => {
+      const pc: Combatant = {
+        ...defaultCombatant,
+        id: 'c-single',
+        name: 'Simple Hero',
+        type: 'pc',
+        characterId: 'char-single'
+      };
+      useDashboardStore.setState(prev => ({
+        ...prev,
+        characters: [
+          {
+            id: 'char-single',
+            playerName: 'Player 1',
+            characterName: 'Simple Hero',
+            ac: 15, maxHp: 30, tempHp: 0, currentHp: 30, conditions: '', passivePerception: 10, level: 5, statusId: 1, statusName: 'Active', notes: '', isActive: true, class: 'Hero', hitDiceConfig: '1d8', hitDiceUsed: '0',
+            resourcePools: JSON.stringify([
+              { name: 'Ki Points', current: 4, max: 4, reset: 'short' }
+            ])
+          }
+        ]
+      }));
+
+      render(<CombatantCard {...defaultProps} c={pc} />);
+      
+      expect(screen.getByText('Ki Points')).toBeInTheDocument();
+      expect(screen.getByText('4/4')).toBeInTheDocument();
+      expect(screen.queryByText('Spell Slots')).toBeNull();
+    });
+
+    it('renders no compact resource row if pools are empty or if it is an NPC', () => {
+      // Case 1: PC with empty pools
+      const pcEmpty: Combatant = {
+        ...defaultCombatant,
+        id: 'c-empty',
+        name: 'Empty PC',
+        type: 'pc',
+        characterId: 'char-empty'
+      };
+      useDashboardStore.setState(prev => ({
+        ...prev,
+        characters: [
+          {
+            id: 'char-empty',
+            playerName: 'Player 1',
+            characterName: 'Empty PC',
+            ac: 15, maxHp: 30, tempHp: 0, currentHp: 30, conditions: '', passivePerception: 10, level: 5, statusId: 1, statusName: 'Active', notes: '', isActive: true, class: 'Hero', hitDiceConfig: '1d8', hitDiceUsed: '0',
+            resourcePools: '[]'
+          }
+        ]
+      }));
+
+      const { container: containerPC } = render(<CombatantCard {...defaultProps} c={pcEmpty} />);
+      expect(containerPC.querySelector('[id^="compact-pool-"]')).toBeNull();
+
+      // Case 2: NPC combatant
+      const npc: Combatant = {
+        ...defaultCombatant,
+        id: 'c-npc',
+        name: 'Monster',
+        type: 'npc',
+      };
+      useDashboardStore.setState(prev => ({ ...prev, characters: [] }));
+
+      const { container: containerNPC } = render(<CombatantCard {...defaultProps} c={npc} />);
+      expect(containerNPC.querySelector('[id^="compact-pool-"]')).toBeNull();
+    });
+
+    it('shows counter format (e.g. 2/3) and does not render rounded-full pip elements', () => {
+      const pc: Combatant = {
+        ...defaultCombatant,
+        id: 'c-format',
+        name: 'Hero',
+        type: 'pc',
+        characterId: 'char-format'
+      };
+      useDashboardStore.setState(prev => ({
+        ...prev,
+        characters: [
+          {
+            id: 'char-format',
+            playerName: 'Player 1',
+            characterName: 'Hero',
+            ac: 15, maxHp: 30, tempHp: 0, currentHp: 30, conditions: '', passivePerception: 10, level: 5, statusId: 1, statusName: 'Active', notes: '', isActive: true, class: 'Hero', hitDiceConfig: '1d8', hitDiceUsed: '0',
+            resourcePools: JSON.stringify([
+              { name: 'Ki Points', current: 2, max: 3, reset: 'short' }
+            ])
+          }
+        ]
+      }));
+
+      const { container } = render(<CombatantCard {...defaultProps} c={pc} />);
+      expect(screen.getByText('2/3')).toBeInTheDocument();
+      
+      const compactRow = container.querySelector('[id^="compact-pool-"]');
+      expect(compactRow).toBeInTheDocument();
+      const pips = compactRow?.querySelectorAll('.rounded-full');
+      expect(pips?.length || 0).toBe(0);
+    });
+
+    it('handles increment/decrement interactions on compact resource buttons and respects disabled states', async () => {
+      const pc: Combatant = {
+        ...defaultCombatant,
+        id: 'c-int',
+        name: 'Hero',
+        type: 'pc',
+        characterId: 'char-int'
+      };
+      
+      const charMock = {
+        id: 'char-int',
+        playerName: 'Player 1',
+        characterName: 'Hero',
+        ac: 15, maxHp: 30, tempHp: 0, currentHp: 30, conditions: '', passivePerception: 10, level: 5, statusId: 1, statusName: 'Active', notes: '', isActive: true, class: 'Hero', hitDiceConfig: '1d8', hitDiceUsed: '0',
+        resourcePools: JSON.stringify([
+          { name: 'Infused Items', current: 4, max: 4, reset: 'long' },
+          { name: 'Spell Slots', current: 7, max: 10, reset: 'long' },
+          { name: 'Rage', current: 0, max: 2, reset: 'long' }
+        ])
+      };
+
+      useDashboardStore.setState(prev => ({
+        ...prev,
+        characters: [charMock]
+      }));
+
+      vi.mocked(updateCharacterDB).mockResolvedValue(undefined as any);
+
+      const { container } = render(<CombatantCard {...defaultProps} c={pc} />);
+
+      // Verify recover button for Infused Items is disabled initially (4/4)
+      const recoverInfusedBtn = container.querySelector('#compact-recover-c-int-infused-items') as HTMLButtonElement;
+      expect(recoverInfusedBtn).toBeInTheDocument();
+      expect(recoverInfusedBtn.disabled).toBe(true);
+
+      const spendInfusedBtn = container.querySelector('#compact-spend-c-int-infused-items') as HTMLButtonElement;
+      expect(spendInfusedBtn).toBeInTheDocument();
+      expect(spendInfusedBtn.disabled).toBe(false);
+
+      fireEvent.click(spendInfusedBtn);
+
+      expect(updateCharacterDB).toHaveBeenCalledWith(
+        {
+          resourcePools: JSON.stringify([
+            { name: 'Infused Items', current: 3, max: 4, reset: 'long' },
+            { name: 'Spell Slots', current: 7, max: 10, reset: 'long' },
+            { name: 'Rage', current: 0, max: 2, reset: 'long' }
+          ])
+        },
+        expect.objectContaining({ id: 'char-int' })
+      );
+
+      // Verify recover button for Infused Items is no longer disabled after spending (3/4)
+      expect(recoverInfusedBtn.disabled).toBe(false);
+
+      const recoverSpellBtn = container.querySelector('#compact-recover-c-int-spell-slots') as HTMLButtonElement;
+      expect(recoverSpellBtn).toBeInTheDocument();
+      expect(recoverSpellBtn.disabled).toBe(false);
+
+      fireEvent.click(recoverSpellBtn);
+
+      expect(updateCharacterDB).toHaveBeenCalledWith(
+        {
+          resourcePools: JSON.stringify([
+            { name: 'Infused Items', current: 3, max: 4, reset: 'long' },
+            { name: 'Spell Slots', current: 8, max: 10, reset: 'long' },
+            { name: 'Rage', current: 0, max: 2, reset: 'long' }
+          ])
+        },
+        expect.objectContaining({ id: 'char-int' })
+      );
+
+      const spendRageBtn = container.querySelector('#compact-spend-c-int-rage') as HTMLButtonElement;
+      expect(spendRageBtn).toBeInTheDocument();
+      expect(spendRageBtn.disabled).toBe(true);
+    });
+
+    it('Bardic Inspiration renders with a truncated label and Rage renders without truncation', () => {
+      const pc: Combatant = {
+        ...defaultCombatant,
+        id: 'c-trunc',
+        name: 'Bard',
+        type: 'pc',
+        characterId: 'char-trunc'
+      };
+      useDashboardStore.setState(prev => ({
+        ...prev,
+        characters: [
+          {
+            id: 'char-trunc',
+            playerName: 'Player 1',
+            characterName: 'Bard',
+            ac: 15, maxHp: 30, tempHp: 0, currentHp: 30, conditions: '', passivePerception: 10, level: 5, statusId: 1, statusName: 'Active', notes: '', isActive: true, class: 'Bard', hitDiceConfig: '1d8', hitDiceUsed: '0',
+            resourcePools: JSON.stringify([
+              { name: 'Bardic Inspiration', current: 3, max: 5, reset: 'long' },
+              { name: 'Rage', current: 2, max: 2, reset: 'long' }
+            ])
+          }
+        ]
+      }));
+      render(<CombatantCard {...defaultProps} c={pc} />);
+      expect(screen.getByText('Bardic Ins...')).toBeInTheDocument();
+      expect(screen.getByText('Rage')).toBeInTheDocument();
+    });
+
+    it('shows ResourcePoolsSection in expanded PC card, but not for NPC cards', () => {
+      // PC Expanded
+      const pc: Combatant = {
+        ...defaultCombatant,
+        id: 'c-pc-expanded',
+        name: 'Hero',
+        type: 'pc',
+        characterId: 'char-expanded'
+      };
+      
+      const charMock = {
+        id: 'char-expanded',
+        playerName: 'Player 1',
+        characterName: 'Hero',
+        ac: 15, maxHp: 30, tempHp: 0, currentHp: 30, conditions: '', passivePerception: 10, level: 5, statusId: 1, statusName: 'Active', notes: '', isActive: true, class: 'Hero', hitDiceConfig: '1d8', hitDiceUsed: '0',
+        resourcePools: JSON.stringify([
+          { name: 'Ki Points', current: 2, max: 3, reset: 'short' }
+        ])
+      };
+
+      useDashboardStore.setState(prev => ({
+        ...prev,
+        characters: [charMock]
+      }));
+
+      render(<CombatantCard {...defaultProps} c={pc} isExpanded={true} />);
+      expect(screen.getByText('Class Resource Trackers')).toBeInTheDocument();
+
+      // NPC Expanded
+      const npc: Combatant = {
+        ...defaultCombatant,
+        id: 'c-npc-expanded',
+        name: 'Goblin',
+        type: 'npc'
+      };
+
+      const { container: containerNPC } = render(<CombatantCard {...defaultProps} c={npc} isExpanded={true} />);
+      expect(containerNPC.querySelector('#resource-pools-section')).toBeNull();
     });
   });
 });
