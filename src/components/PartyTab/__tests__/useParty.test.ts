@@ -29,6 +29,15 @@ vi.mock('../../../hooks/useAppState', () => ({
   getSnapshot: vi.fn()
 }));
 
+const mockFireConcentrationAlert = vi.fn();
+vi.mock('../../../lib/concentrationCheck', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../../lib/concentrationCheck')>();
+  return {
+    ...actual,
+    fireConcentrationAlert: (...args: any[]) => mockFireConcentrationAlert(...args),
+  };
+});
+
 describe('useParty', () => {
   afterEach(() => { vi.restoreAllMocks(); vi.resetAllMocks(); });
 
@@ -737,6 +746,64 @@ describe('useParty', () => {
       expect(updateCharacterDB).toHaveBeenCalledWith(expect.objectContaining({
         hitDiceUsed: '{"d8":3}'
       }), mockChar);
+    });
+  });
+
+  describe('Concentration auto-prompt manual HP updates', () => {
+    beforeEach(() => {
+      mockFireConcentrationAlert.mockClear();
+    });
+
+    it("When a concentrating character's currentHp decreases, fireConcentrationAlert is called with the correct name and damage", async () => {
+      const mockChar = { id: 'char-1', characterName: 'Maeve', isActive: true, currentHp: 20, conditions: 'concentrating' };
+      const mockState = { characters: [mockChar], combatState: { combatants: [] } };
+      vi.mocked(useAppState).mockReturnValue({ state: mockState as any, updateState: vi.fn(), getSnapshot: vi.fn() } as any);
+      vi.mocked(getSnapshot).mockReturnValue(mockState as any);
+      
+      const { result } = renderHook(() => useParty());
+      await act(async () => {
+        await result.current.handleUpdate('char-1', { currentHp: 12 });
+      });
+      expect(mockFireConcentrationAlert).toHaveBeenCalledWith('Maeve', 8);
+    });
+
+    it("When a non-concentrating character's currentHp decreases, fireConcentrationAlert is NOT called", async () => {
+      const mockChar = { id: 'char-1', characterName: 'Maeve', isActive: true, currentHp: 20, conditions: '' };
+      const mockState = { characters: [mockChar], combatState: { combatants: [] } };
+      vi.mocked(useAppState).mockReturnValue({ state: mockState as any, updateState: vi.fn(), getSnapshot: vi.fn() } as any);
+      vi.mocked(getSnapshot).mockReturnValue(mockState as any);
+      
+      const { result } = renderHook(() => useParty());
+      await act(async () => {
+        await result.current.handleUpdate('char-1', { currentHp: 12 });
+      });
+      expect(mockFireConcentrationAlert).not.toHaveBeenCalled();
+    });
+
+    it("When a concentrating character's currentHp increases (healing), fireConcentrationAlert is NOT called", async () => {
+      const mockChar = { id: 'char-1', characterName: 'Maeve', isActive: true, currentHp: 20, conditions: 'concentrating' };
+      const mockState = { characters: [mockChar], combatState: { combatants: [] } };
+      vi.mocked(useAppState).mockReturnValue({ state: mockState as any, updateState: vi.fn(), getSnapshot: vi.fn() } as any);
+      vi.mocked(getSnapshot).mockReturnValue(mockState as any);
+      
+      const { result } = renderHook(() => useParty());
+      await act(async () => {
+        await result.current.handleUpdate('char-1', { currentHp: 25 });
+      });
+      expect(mockFireConcentrationAlert).not.toHaveBeenCalled();
+    });
+
+    it("When a concentrating character's currentHp stays the same, fireConcentrationAlert is NOT called", async () => {
+      const mockChar = { id: 'char-1', characterName: 'Maeve', isActive: true, currentHp: 20, conditions: 'concentrating' };
+      const mockState = { characters: [mockChar], combatState: { combatants: [] } };
+      vi.mocked(useAppState).mockReturnValue({ state: mockState as any, updateState: vi.fn(), getSnapshot: vi.fn() } as any);
+      vi.mocked(getSnapshot).mockReturnValue(mockState as any);
+      
+      const { result } = renderHook(() => useParty());
+      await act(async () => {
+        await result.current.handleUpdate('char-1', { currentHp: 20 });
+      });
+      expect(mockFireConcentrationAlert).not.toHaveBeenCalled();
     });
   });
 });

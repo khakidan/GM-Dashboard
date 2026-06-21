@@ -40,6 +40,10 @@ const mockAppState = {
 vi.mock('../../../hooks/useAppState', () => ({
   useAppState: () => ({
     updateState: mockUpdateState,
+    state: {
+      characters: [],
+      npcs: [],
+    },
   }),
   getSnapshot: () => mockAppState,
 }));

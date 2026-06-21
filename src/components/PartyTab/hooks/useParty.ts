@@ -11,6 +11,7 @@ import { useAppState, getSnapshot } from '../../../hooks/useAppState';
 import { Character } from '../../../types';
 import { addCharacterDB, updateCharacterDB, deleteCharacterFully } from '../../../services/dbOperations';
 import { toast } from 'sonner';
+import { isConcentrating, fireConcentrationAlert } from '../../../lib/concentrationCheck';
 ;
 ;
 
@@ -424,6 +425,20 @@ export function useParty() {
     if (sanitizedUpdates.tempHp !== undefined) sanitizedUpdates.tempHp = Math.max(0, Number(sanitizedUpdates.tempHp) || 0);
     if (sanitizedUpdates.level !== undefined) sanitizedUpdates.level = Math.max(1, Number(sanitizedUpdates.level) || 1);
     if (sanitizedUpdates.passivePerception !== undefined) sanitizedUpdates.passivePerception = Math.max(0, Number(sanitizedUpdates.passivePerception) || 0);
+
+    const character = state.characters.find(c => c.id === id);
+    if (character && sanitizedUpdates.currentHp !== undefined) {
+      const newHp = Number(sanitizedUpdates.currentHp);
+      const previousHp = character.currentHp;
+      const damageTaken = previousHp - newHp;
+      
+      if (damageTaken > 0 && isConcentrating(character.conditions)) {
+        fireConcentrationAlert(
+          character.characterName,
+          damageTaken
+        );
+      }
+    }
 
     // 1. Update local state immediately (Optimistic Update)
     updateState(prev => {

@@ -6,12 +6,14 @@ import { toast } from 'sonner';
 import { useAppState } from '../../../hooks/useAppState';
 import { useDamageEvent, useHealEvent, useUnconsciousEvent } from '../../../hooks/useOverlayEvents';
 import { useDeathSaves } from '../../../hooks/useDeathSaves';
+import { isConcentrating, fireConcentrationAlert } from '../../../lib/concentrationCheck';
 
 export function useHealthChange(
   syncingIds: Set<string>,
   updateCombatant: (id: string, updates: Partial<Combatant>) => void
 ) {
-  const { updateState } = useAppState();
+  const { state, updateState } = useAppState();
+  const { characters = [], npcs = [] } = state;
   const [damageInputs, setDamageInputs] = useState<Record<string, string>>({});
   const [healInputs, setHealInputs] = useState<Record<string, string>>({});
 
@@ -169,15 +171,43 @@ export function useHealthChange(
         }
       }
       
-      if (isDamage && finalDamageAmount > 0 && c.conditions?.toLowerCase().includes('concentrating')) {
-        toast('Concentration check required', {
-          description: `${c.name} took ${finalDamageAmount} damage. CON save DC: ${Math.max(10, Math.floor(finalDamageAmount / 2))}`,
-          duration: 10000,
-          action: {
-            label: 'Failed — End Concentration',
-            onClick: () => removeConcentration(id, c.conditions || '', c.conditionTimers || {}),
-          },
-        });
+      if (isDamage && finalDamageAmount > 0) {
+        let isConc = false;
+        let name = c.name;
+
+        if (c.type === 'pc') {
+          const playerId = (c as any).playerId || c.characterId;
+          const character = characters?.find(char => char.id === playerId);
+          if (character) {
+            isConc = isConcentrating(character.conditions ?? '');
+            name = character.characterName;
+          } else {
+            isConc = isConcentrating(c.conditions ?? '');
+          }
+        } else {
+          const npcId = (c as any).npcId;
+          const npcConditions = (c as any).npcTempConditions ?? c.conditions ?? '';
+          isConc = isConcentrating(npcConditions);
+          if (npcId) {
+            const npc = npcs?.find(n => n.id === npcId);
+            if (npc) {
+              name = npc.name;
+            }
+          }
+        }
+
+        if (isConc) {
+          fireConcentrationAlert(name, finalDamageAmount);
+          
+          toast('Concentration check required', {
+            description: `${name} took ${finalDamageAmount} damage. CON save DC: ${Math.max(10, Math.floor(finalDamageAmount / 2))}`,
+            duration: 10000,
+            action: {
+              label: 'Failed — End Concentration',
+              onClick: () => removeConcentration(id, c.conditions || '', c.conditionTimers || {}),
+            },
+          });
+        }
       }
     }
     

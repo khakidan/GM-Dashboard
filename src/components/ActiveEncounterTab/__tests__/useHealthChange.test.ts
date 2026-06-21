@@ -5,7 +5,7 @@
 // ────────────────────────────────────────────────────
 
 import { renderHook, act, cleanup } from '@testing-library/react';
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import { useHealthChange } from '../hooks/useHealthChange';
 import type { Combatant } from '../../../types';
 import { toast } from 'sonner';
@@ -31,12 +31,28 @@ const mockAppState = {
   },
 };
 
+let mockCharacters: any[] = [];
+let mockNpcs: any[] = [];
+
 vi.mock('../../../hooks/useAppState', () => ({
   useAppState: () => ({
+    state: {
+      characters: mockCharacters,
+      npcs: mockNpcs,
+    },
     updateState: mockUpdateState,
   }),
   getSnapshot: () => mockAppState,
 }));
+
+const mockFireConcentrationAlert = vi.fn();
+vi.mock('../../../lib/concentrationCheck', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../../lib/concentrationCheck')>();
+  return {
+    ...actual,
+    fireConcentrationAlert: (...args: any[]) => mockFireConcentrationAlert(...args),
+  };
+});
 
 const mockFireDamage = vi.fn();
 const mockFireHeal = vi.fn();
@@ -590,6 +606,169 @@ describe('useHealthChange', () => {
       deathSavesFails: 0,
       deathSavesSuccesses: 0,
       isStable: false,
+    });
+  });
+
+  describe('Concentration auto-prompt checks', () => {
+    beforeEach(() => {
+      mockFireConcentrationAlert.mockClear();
+      mockCharacters = [];
+      mockNpcs = [];
+    });
+
+    it('When a concentrating PC combatant takes damage, fireConcentrationAlert is called with the character name and damage amount', () => {
+      mockCharacters = [
+        { id: 'player-1', characterName: 'Maeve', conditions: 'concentrating' }
+      ];
+      const pcCombatant: Combatant = {
+        ...baseCombatant,
+        id: 'c1',
+        type: 'pc',
+        characterId: 'player-1',
+        currentHp: 20,
+        tempHp: 0,
+        conditions: '',
+      };
+      
+      const updateSpy = vi.fn();
+      const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
+
+      act(() => {
+        result.current.setDamageInputs({ c1: '10' });
+      });
+      act(() => {
+        result.current.handleHealthChange('c1', pcCombatant, true);
+      });
+
+      expect(mockFireConcentrationAlert).toHaveBeenCalledWith('Maeve', 10);
+    });
+
+    it('When a non-concentrating PC takes damage, fireConcentrationAlert is NOT called', () => {
+      mockCharacters = [
+        { id: 'player-2', characterName: 'Drogar', conditions: '' }
+      ];
+      const pcCombatant: Combatant = {
+        ...baseCombatant,
+        id: 'c2',
+        type: 'pc',
+        characterId: 'player-2',
+        currentHp: 20,
+        tempHp: 0,
+        conditions: '',
+      };
+      
+      const updateSpy = vi.fn();
+      const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
+
+      act(() => {
+        result.current.setDamageInputs({ c2: '10' });
+      });
+      act(() => {
+        result.current.handleHealthChange('c2', pcCombatant, true);
+      });
+
+      expect(mockFireConcentrationAlert).not.toHaveBeenCalled();
+    });
+
+    it('When a concentrating NPC combatant takes damage, fireConcentrationAlert is called', () => {
+      mockNpcs = [
+        { id: 'npc-10', name: 'Goblin Mage' }
+      ];
+      const npcCombatant: Combatant = {
+        ...baseCombatant,
+        id: 'c3',
+        type: 'npc',
+        npcId: 'npc-10',
+        currentHp: 20,
+        tempHp: 0,
+        conditions: 'concentrating',
+      } as any;
+      
+      const updateSpy = vi.fn();
+      const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
+
+      act(() => {
+        result.current.setDamageInputs({ c3: '8' });
+      });
+      act(() => {
+        result.current.handleHealthChange('c3', npcCombatant, true);
+      });
+
+      expect(mockFireConcentrationAlert).toHaveBeenCalledWith('Goblin Mage', 8);
+    });
+
+    it('When a concentrating PC takes 0 effective damage (immune), fireConcentrationAlert is NOT called', () => {
+      mockCharacters = [
+        { id: 'player-3', characterName: 'Ylva', conditions: 'concentrating' }
+      ];
+      const pcCombatant: Combatant = {
+        ...baseCombatant,
+        id: 'c4',
+        type: 'pc',
+        characterId: 'player-3',
+        currentHp: 20,
+        tempHp: 0,
+        immunities: 'fire',
+        conditions: '',
+      };
+      
+      const updateSpy = vi.fn();
+      const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
+
+      act(() => {
+        result.current.setDamageInputs({ c4: '10' });
+      });
+      act(() => {
+        result.current.handleHealthChange('c4', pcCombatant, true, 'fire');
+      });
+
+      expect(mockFireConcentrationAlert).not.toHaveBeenCalled();
+    });
+
+    it('When batch damage hits multiple concentrating targets, fireConcentrationAlert is called once per concentrating target', () => {
+      mockCharacters = [
+        { id: 'p1', characterName: 'Alys', conditions: 'concentrating' },
+        { id: 'p2', characterName: 'Kallista', conditions: 'concentrating' }
+      ];
+      const pc1: Combatant = {
+        ...baseCombatant,
+        id: 'c5',
+        type: 'pc',
+        characterId: 'p1',
+        currentHp: 30,
+        conditions: '',
+      };
+      const pc2: Combatant = {
+        ...baseCombatant,
+        id: 'c6',
+        type: 'pc',
+        characterId: 'p2',
+        currentHp: 30,
+        conditions: '',
+      };
+
+      const updateSpy = vi.fn();
+      const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
+
+      // damage p1
+      act(() => {
+        result.current.setDamageInputs({ c5: '5' });
+      });
+      act(() => {
+        result.current.handleHealthChange('c5', pc1, true);
+      });
+
+      // damage p2
+      act(() => {
+        result.current.setDamageInputs({ c6: '6' });
+      });
+      act(() => {
+        result.current.handleHealthChange('c6', pc2, true);
+      });
+
+      expect(mockFireConcentrationAlert).toHaveBeenCalledTimes(2);
+      expect(mockFireConcentrationAlert).toHaveBeenNthCalledWith(1, 'Alys', 5);
+      expect(mockFireConcentrationAlert).toHaveBeenNthCalledWith(2, 'Kallista', 6);
     });
   });
 });
