@@ -10,6 +10,7 @@ import { Combatant } from '../../types';
 import { ConditionChips } from '../ui/ConditionChips';
 import { CombatantRechargeTracker, RechargeAbility } from './CombatantRechargeTracker';
 import { CombatantLegendaryTracker } from './CombatantLegendaryTracker';
+import { ResourcePoolsSection } from '../PartyTab/ResourcePoolsSection';
 
 const ReadOnlyIrvDisplay = ({ label, items, theme }: { label: string, items: string, theme: 'resistances' | 'immunities' | 'vulnerabilities' }) => {
   const arr = items ? items.split(',').map(s => s.trim()).filter(Boolean) : [];
@@ -256,6 +257,37 @@ export function CombatantCardExpanded({
           />
         </>
       )}
+
+      {/* PCs sub-components */}
+      {c.type === 'pc' && (() => {
+        const charId = c.characterId;
+        if (!charId) return null;
+        const char = getSnapshot().characters.find(charItem => charItem.id === charId);
+        if (!char) return null;
+
+        return (
+          <ResourcePoolsSection
+            character={char}
+            isSyncing={isSyncing}
+            onUpdate={async (updates) => {
+              // 1. Optimistic local state update in Zustand
+              updateState((prev) => ({
+                ...prev,
+                characters: prev.characters.map((charItem) =>
+                  charItem.id === charId ? { ...charItem, ...updates } : charItem
+                ),
+              }));
+              // 2. Call updateCharacterDB with the changed fields
+              try {
+                await updateCharacterDB(updates, char);
+              } catch (err) {
+                console.error("Failed to update character resource pools: ", err);
+                toast.error(`Failed to sync resource update for ${char.characterName}`);
+              }
+            }}
+          />
+        );
+      })()}
 
       <div>
         <label className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40] mb-2">Conditions</label>

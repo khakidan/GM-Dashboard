@@ -8,6 +8,9 @@ import { DAMAGE_TYPE_OPTIONS } from '../../lib/conditions';
 import { CombatantCardBadges } from './CombatantCardBadges';
 import { DeathSaveTrackerDisplay } from './DeathSaveTrackerDisplay';
 import { useCombatantCard } from './hooks/useCombatantCard';
+import { useAppState } from '../../hooks/useAppState';
+import { updateCharacterDB } from '../../services/dbOperations';
+import { parseResourcePools, spendResourcePip, recoverResourcePip, serializeResourcePools } from '../../lib/resourcePools';
 
 const AnimatedHpDisplay = ({
   value,
@@ -142,14 +145,16 @@ export function CombatantCardHeader({
   selectionCheckbox,
 }: CombatantCardHeaderProps) {
   const { isActiveTurn, isSelected, isSelectable, isSyncing } = useCombatantCard(c.id);
+  const { state, updateState } = useAppState();
   const { name, ac, tempAcModifier, initiative, type } = c;
 
   const [selectedDamageType, setSelectedDamageType] = useState<DamageType | null>(null);
   const maxHpCeiling = effectiveMaxHp(c.maxHp, c.tempHpMax || 0);
 
   return (
-    <div 
-      className={cn("p-4 flex items-center justify-between gap-3", isSelectable && "cursor-pointer")}
+    <div className="flex flex-col">
+      <div 
+        className={cn("p-4 flex items-center justify-between gap-3", isSelectable && "cursor-pointer")}
       onClick={(e) => {
         if (isSelectable) {
           onToggleSelect?.(c.id);
@@ -460,5 +465,80 @@ export function CombatantCardHeader({
         </div>
       </div>
     </div>
-  );
+
+    {/* COMPACT RESOURCE ROW */}
+    {c.type === 'pc' && (() => {
+      const char = state.characters.find(charItem => charItem.id === c.characterId);
+      if (!char) return null;
+      const pools = parseResourcePools(char.resourcePools || '[]');
+      if (pools.length === 0) return null;
+      
+      return (
+        <div 
+          onClick={e => e.stopPropagation()}
+          className="border-t border-[#f5f5f0] px-4 py-1.5 flex flex-wrap gap-x-3 gap-y-1 text-xs select-none bg-[#faf9f6]/40 rounded-b-2xl"
+        >
+          {pools.map(pool => (
+            <div key={pool.name} className="inline-flex items-center gap-1.5" id={`compact-pool-${pool.name.toLowerCase().replace(/\s+/g, '-')}`}>
+              <span className="font-serif font-bold text-[#5a5a40] uppercase tracking-wide text-[10px]">
+                {pool.name}
+              </span>
+              <button
+                onClick={async () => {
+                  if (pool.current <= 0 || isSyncing) return;
+                  const updatedPools = spendResourcePip(pools, pool.name, 1);
+                  const serialized = serializeResourcePools(updatedPools);
+                  updateState(prev => ({
+                    ...prev,
+                    characters: prev.characters.map(charItem =>
+                      charItem.id === char.id ? { ...charItem, resourcePools: serialized } : charItem
+                    )
+                  }));
+                  try {
+                    await updateCharacterDB({ resourcePools: serialized }, char);
+                  } catch (err) {
+                    console.error("Failed to update resource: ", err);
+                  }
+                }}
+                disabled={pool.current <= 0 || isSyncing}
+                className="w-4 h-4 inline-flex items-center justify-center border border-[#e5e1d8] rounded text-[10px] font-bold text-red-600 hover:bg-red-50 disabled:opacity-30 cursor-pointer select-none leading-none"
+                title="Spend 1 Use"
+                id={`compact-spend-${c.id}-${pool.name.toLowerCase().replace(/\s+/g, '-')}`}
+              >
+                -
+              </button>
+              <span className="font-mono font-bold text-xs text-[#2c2c26]">
+                {pool.current}/{pool.max}
+              </span>
+              <button
+                onClick={async () => {
+                  if (pool.current >= pool.max || isSyncing) return;
+                  const updatedPools = recoverResourcePip(pools, pool.name, 1);
+                  const serialized = serializeResourcePools(updatedPools);
+                  updateState(prev => ({
+                    ...prev,
+                    characters: prev.characters.map(charItem =>
+                      charItem.id === char.id ? { ...charItem, resourcePools: serialized } : charItem
+                    )
+                  }));
+                  try {
+                    await updateCharacterDB({ resourcePools: serialized }, char);
+                  } catch (err) {
+                    console.error("Failed to update resource: ", err);
+                  }
+                }}
+                disabled={pool.current >= pool.max || isSyncing}
+                className="w-4 h-4 inline-flex items-center justify-center border border-[#e5e1d8] rounded text-[10px] font-bold text-green-700 hover:bg-green-50 disabled:opacity-30 cursor-pointer select-none leading-none"
+                title="Recover 1 Use"
+                id={`compact-recover-${c.id}-${pool.name.toLowerCase().replace(/\s+/g, '-')}`}
+              >
+                +
+              </button>
+            </div>
+          ))}
+        </div>
+      );
+    })()}
+  </div>
+);
 }
