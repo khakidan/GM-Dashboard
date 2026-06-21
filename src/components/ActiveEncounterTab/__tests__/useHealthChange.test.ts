@@ -10,6 +10,7 @@ import { useHealthChange } from '../hooks/useHealthChange';
 import type { Combatant } from '../../../types';
 import { toast } from 'sonner';
 import { useUnconsciousEvent } from '../../../hooks/useOverlayEvents';
+import { mockCombatant } from '../../../__tests__/fixtures/combatantFixtures';
 
 vi.mock('sonner', () => ({
   toast: Object.assign(vi.fn(), {
@@ -72,19 +73,7 @@ describe('useHealthChange', () => {
   });
   const syncingIds = new Set<string>();
 
-  const baseCombatant: Combatant = {
-    id: 'c1',
-    name: 'Goblin',
-    type: 'npc',
-    ac: 15,
-    maxHp: 30,
-    currentHp: 30,
-    tempHp: 5,
-    initiative: 10,
-    notes: '',
-    passivePerception: 10,
-    conditions: '',
-  };
+  const baseCombatant: Combatant = mockCombatant;
 
   it('handleHealthChange with isDamage true reduces currentHp correctly', () => {
     const updateSpy = vi.fn();

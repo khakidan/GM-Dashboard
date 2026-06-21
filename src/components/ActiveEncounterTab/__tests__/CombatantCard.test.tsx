@@ -13,6 +13,7 @@ import { CombatantCard } from '../CombatantCard';
 import type { Combatant } from '../../../types';
 import { useDashboardStore } from '../../../hooks/useAppState';
 import { updateCharacterDB } from '../../../services/dbOperations';
+import { makeCombatant } from '../../../__tests__/fixtures/combatantFixtures';
 
 vi.mock('../../../services/dbOperations', () => ({
   updateCharacterDB: vi.fn(),
@@ -33,18 +34,11 @@ vi.mock('../../../lib/diceRoller', async (importOriginal) => {
 describe('CombatantCard', () => {
   afterEach(() => cleanup());
 
-  const defaultCombatant: Combatant = {
-    id: 'c1',
-    name: 'Goblin',
-    type: 'npc',
-    ac: 15,
-    maxHp: 30,
+  const defaultCombatant: Combatant = makeCombatant({
     currentHp: 15,
-    initiative: 10,
     conditions: 'Poisoned',
     notes: 'Some notes',
-    passivePerception: 10,
-  };
+  });
 
   beforeEach(() => {
     // Reset store state before each test

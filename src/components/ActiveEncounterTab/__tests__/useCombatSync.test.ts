@@ -1,6 +1,7 @@
 import { toast } from 'sonner';
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn(), warning: vi.fn() } }));
 import { useAppState, getSnapshot, useDashboardStore } from '../../../hooks/useAppState';
+import { makeCombatant } from '../../../__tests__/fixtures/combatantFixtures';
 // ─── PROTECTED TEST FILE ───────────────────────────
 // Do not delete, rename, or remove test cases from 
 // this file without an explicit instruction to do so.
@@ -67,8 +68,8 @@ describe('useCombatSync', () => {
           ...prev.combatState,
           activeTurnId: 'c2',
           combatants: [
-            { id: 'c1', name: 'Goblin', type: 'npc', ac: 15, maxHp: 30, currentHp: 30, initiative: 10, notes: '', passivePerception: 10, encounterCombatantId: '1' },
-            { id: 'c2', name: 'Orc', type: 'npc', ac: 16, maxHp: 45, currentHp: 45, initiative: 15, notes: '', passivePerception: 10, encounterCombatantId: '2' },
+            makeCombatant({ id: 'c1', tempHp: 0, encounterCombatantId: '1' }),
+            makeCombatant({ id: 'c2', name: 'Orc', ac: 16, maxHp: 45, currentHp: 45, tempHp: 0, initiative: 15, encounterCombatantId: '2' }),
           ],
         },
       });

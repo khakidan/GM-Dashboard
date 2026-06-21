@@ -1,3 +1,4 @@
+import '@testing-library/jest-dom/vitest';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, fireEvent, screen, act, cleanup } from '@testing-library/react';
 import { AudioLibrary } from '../AudioLibrary';
@@ -65,7 +66,7 @@ describe('AudioLibrary', () => {
       );
 
       const ambientInput = container.querySelector('#dropzone-ambient input[type="file"]') as HTMLInputElement;
-      expect(ambientInput).not.toBeNull();
+      expect(ambientInput).toBeInTheDocument();
 
       const files = [createMockFile('ambient1.mp3', 'audio/mpeg')];
       fireEvent.change(ambientInput, { target: { files } });
@@ -83,7 +84,7 @@ describe('AudioLibrary', () => {
       fireEvent.click(effectTabBtns[0]);
 
       const effectInput = container.querySelector('#dropzone-effect input[type="file"]') as HTMLInputElement;
-      expect(effectInput).not.toBeNull();
+      expect(effectInput).toBeInTheDocument();
 
       const files = [createMockFile('effect1.wav', 'audio/wav')];
       fireEvent.change(effectInput, { target: { files } });
@@ -127,7 +128,7 @@ describe('AudioLibrary', () => {
       );
       
       const dropzone = container.querySelector('#dropzone-ambient') as HTMLElement;
-      expect(dropzone).not.toBeNull();
+      expect(dropzone).toBeInTheDocument();
 
       const file = createMockFile('some_ambience.mp3', 'audio/mpeg');
       fireEvent.drop(dropzone, {
@@ -146,7 +147,7 @@ describe('AudioLibrary', () => {
       fireEvent.click(effectTabBtns[0]);
       
       const dropzone = container.querySelector('#dropzone-effect') as HTMLElement;
-      expect(dropzone).not.toBeNull();
+      expect(dropzone).toBeInTheDocument();
 
       const file = createMockFile('some_effect.wav', 'audio/wav');
       fireEvent.drop(dropzone, {
@@ -162,7 +163,7 @@ describe('AudioLibrary', () => {
         <AudioLibrary storedFiles={[]} addFiles={mockAddFiles} removeFile={mockRemoveFile} />
       );
       const dropzone = container.querySelector('#dropzone-ambient') as HTMLElement;
-      expect(dropzone).not.toBeNull();
+      expect(dropzone).toBeInTheDocument();
 
       const filePdf = createMockFile('document.pdf', 'application/pdf');
       const fileTxt = createMockFile('text.txt', 'text/plain');
@@ -179,7 +180,7 @@ describe('AudioLibrary', () => {
         <AudioLibrary storedFiles={[]} addFiles={mockAddFiles} removeFile={mockRemoveFile} />
       );
       const dropzone = container.querySelector('#dropzone-ambient') as HTMLElement;
-      expect(dropzone).not.toBeNull();
+      expect(dropzone).toBeInTheDocument();
 
       const file = createMockFile('track.m4a', 'application/octet-stream'); // testing fallback extension logic
       fireEvent.drop(dropzone, {
@@ -198,7 +199,7 @@ describe('AudioLibrary', () => {
       fireEvent.click(effectTabBtns[0]);
       
       const dropzone = container.querySelector('#dropzone-effect') as HTMLElement;
-      expect(dropzone).not.toBeNull();
+      expect(dropzone).toBeInTheDocument();
 
       const file = createMockFile('effect.ogg', 'application/octet-stream');
       fireEvent.drop(dropzone, {
@@ -392,13 +393,13 @@ describe('AudioLibrary', () => {
         <AudioLibrary storedFiles={[sampleAmbientFile]} addFiles={mockAddFiles} removeFile={mockRemoveFile} />
       );
       const ambientSection = container.querySelector('#library-ambient-section');
-      expect(ambientSection).not.toBeNull();
+      expect(ambientSection).toBeInTheDocument();
       
       const effectSection = container.querySelector('#library-effect-section');
       expect(effectSection).toBeNull();
       
       const clearBtn = screen.getByTitle('Clear all ambient tracks');
-      expect(clearBtn).not.toBeNull();
+      expect(clearBtn).toBeInTheDocument();
     });
 
     it('Switches to the effect sub-tab and shows relevant clear button', () => {
@@ -410,10 +411,10 @@ describe('AudioLibrary', () => {
       fireEvent.click(effectTabBtns[0]);
       
       const effectSection = container.querySelector('#library-effect-section');
-      expect(effectSection).not.toBeNull();
+      expect(effectSection).toBeInTheDocument();
       
       const clearBtn = screen.getByTitle('Clear all sound effects');
-      expect(clearBtn).not.toBeNull();
+      expect(clearBtn).toBeInTheDocument();
     });
 
     it('Shows confirmation UI when Clear All is clicked and cancels correctly', () => {
@@ -426,7 +427,7 @@ describe('AudioLibrary', () => {
       const confirmRemoveBtn = screen.getByText('Remove all');
       const cancelBtn = screen.getByText('Cancel');
       
-      expect(confirmRemoveBtn).not.toBeNull();
+      expect(confirmRemoveBtn).toBeInTheDocument();
       
       // cancel
       fireEvent.click(cancelBtn);
@@ -474,7 +475,7 @@ describe('AudioLibrary', () => {
         <AudioLibrary storedFiles={[]} addFiles={mockAddFiles} removeFile={mockRemoveFile} />
       );
       const banner = container.querySelector('#library-import-instructions');
-      expect(banner).not.toBeNull();
+      expect(banner).toBeInTheDocument();
     });
 
     it('Clicking the dismiss button hides the banner', () => {

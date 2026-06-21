@@ -111,4 +111,48 @@ describe('GMTabContent', () => {
 
     expect(screen.queryByText('Goblins!')).toBeNull();
   });
+
+  it("renders NPCLibraryTab when activeTab is 'npc-library'", () => {
+    render(
+      <MemoryRouter>
+        <GMTabContent
+          activeTab="npc-library"
+          hasActiveEncounter={false}
+          clearEncounter={vi.fn()}
+          startEncounter={vi.fn()}
+          isGoogleConnected={false}
+          handleSignIn={vi.fn()}
+          handleSignOut={vi.fn()}
+          setIsGoogleConnected={vi.fn()}
+          handleSyncWithSheets={vi.fn().mockResolvedValue(undefined)}
+          addLog={vi.fn()}
+        />
+      </MemoryRouter>
+    );
+
+    // NPCLibraryTab renders search/add button or relevant page headers
+    expect(screen.getByPlaceholderText(/search by name/i)).toBeInTheDocument();
+  });
+
+  it('falls back gracefully to EncountersTab if activeTab is unrecognized', () => {
+    render(
+      <MemoryRouter>
+        <GMTabContent
+          activeTab={'invalid-tab' as any}
+          hasActiveEncounter={false}
+          clearEncounter={vi.fn()}
+          startEncounter={vi.fn()}
+          isGoogleConnected={false}
+          handleSignIn={vi.fn()}
+          handleSignOut={vi.fn()}
+          setIsGoogleConnected={vi.fn()}
+          handleSyncWithSheets={vi.fn().mockResolvedValue(undefined)}
+          addLog={vi.fn()}
+        />
+      </MemoryRouter>
+    );
+
+    // Should fall back to encounters tab which shows "Encounters Library" from state
+    expect(screen.getByText('Encounters Library')).toBeInTheDocument();
+  });
 });

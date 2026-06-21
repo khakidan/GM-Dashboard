@@ -10,6 +10,7 @@ import { useParty } from '../hooks/useParty';
 import { useAppState, getSnapshot } from '../../../hooks/useAppState';
 import { deleteCharacterFully, addCharacterDB, updateCharacterDB } from '../../../services/dbOperations';
 import { toast } from 'sonner';
+import { makeCharacter } from '../../../__tests__/fixtures/characterFixtures';
 
 vi.mock('sonner', () => ({
   toast: {
@@ -123,8 +124,8 @@ describe('useParty', () => {
 
   describe('handleLongRest basic expectations', () => {
     it('handleLongRest with [id1] applies long rest only to character id1, not to id2', async () => {
-      const mockActiveChar1 = { id: 'char-1', characterName: 'Maeve', isActive: true, maxHp: 100, currentHp: 50, conditions: 'exhaustion 4', tempHpMax: 0, tempHp: 0, hitDiceConfig: '4d12', hitDiceUsed: '{"d12":2}' };
-      const mockActiveChar2 = { id: 'char-2', characterName: 'Drogar', isActive: true, maxHp: 160, currentHp: 80, conditions: '', tempHpMax: 0, tempHp: 0, hitDiceConfig: '4d10', hitDiceUsed: '{"d10":2}' };
+      const mockActiveChar1 = makeCharacter({ id: 'char-1', characterName: 'Maeve', isActive: true, maxHp: 100, currentHp: 50, conditions: 'exhaustion 4', tempHpMax: 0, tempHp: 0, hitDiceConfig: '4d12', hitDiceUsed: '{"d12":2}' });
+      const mockActiveChar2 = makeCharacter({ id: 'char-2', characterName: 'Drogar', isActive: true, maxHp: 160, currentHp: 80, conditions: '', tempHpMax: 0, tempHp: 0, hitDiceConfig: '4d10', hitDiceUsed: '{"d10":2}' });
 
       const mockState = {
         characters: [mockActiveChar1, mockActiveChar2],
@@ -161,7 +162,7 @@ describe('useParty', () => {
     });
 
     it('handleLongRest restores currentHp to maxHp and calls applyLongRestHitDiceRecovery for selected characters', async () => {
-      const mockActiveChar1 = { id: 'char-1', characterName: 'Maeve', isActive: true, maxHp: 100, currentHp: 50, conditions: 'exhaustion 4', tempHpMax: 0, tempHp: 0, hitDiceConfig: '4d12', hitDiceUsed: '{"d12":2}' };
+      const mockActiveChar1 = makeCharacter({ id: 'char-1', characterName: 'Maeve', isActive: true, maxHp: 100, currentHp: 50, conditions: 'exhaustion 4', tempHpMax: 0, tempHp: 0, hitDiceConfig: '4d12', hitDiceUsed: '{"d12":2}' });
 
       const mockState = {
         characters: [mockActiveChar1],
