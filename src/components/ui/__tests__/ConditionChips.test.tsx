@@ -68,4 +68,41 @@ describe('ConditionChips', () => {
     expect(screen.getByTestId('condition-popover-content')).toBeInTheDocument();
     expect(screen.getByText("Can't see. Attacks against you have advantage; yours have disadvantage.")).toBeInTheDocument();
   });
+
+  it('triggers onConditionAdded when a chip is added but not when removed', async () => {
+    const onChange = vi.fn();
+    const onConditionAdded = vi.fn();
+
+    const { rerender } = render(
+      <ConditionChips
+        value="blinded"
+        onChange={onChange}
+        onConditionAdded={onConditionAdded}
+      />
+    );
+
+    const input = screen.getByPlaceholderText('');
+    fireEvent.change(input, { target: { value: 'poisoned' } });
+    fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' });
+
+    await waitFor(() => {
+      expect(onConditionAdded).toHaveBeenCalledWith('poisoned');
+    });
+
+    onConditionAdded.mockClear();
+
+    // Rerender with 'poisoned' included so we can click to remove it
+    rerender(
+      <ConditionChips
+        value="blinded, poisoned"
+        onChange={onChange}
+        onConditionAdded={onConditionAdded}
+      />
+    );
+
+    const removeButton = screen.getByLabelText('Remove poisoned');
+    fireEvent.click(removeButton);
+
+    expect(onConditionAdded).not.toHaveBeenCalled();
+  });
 });

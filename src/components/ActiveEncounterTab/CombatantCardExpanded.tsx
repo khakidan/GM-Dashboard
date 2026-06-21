@@ -1,6 +1,10 @@
 import React from 'react';
 import { Trash2, Lock, Ban, TrendingDown, Target, AlertTriangle, ShieldOff } from 'lucide-react';
 import { buildConditionSummary, CONDITION_OPTIONS, EFFECT_OPTIONS } from '../../lib/conditions';
+import { useAppState } from '../../hooks/useAppState';
+import { updateCharacterDB } from '../../services/dbOperations';
+import { getResourceForEffect, parseResourcePools, spendResourcePip, serializeResourcePools } from '../../lib/resourcePools';
+import { toast } from 'sonner';
 import { cn } from '../../lib/utils';
 import { Combatant } from '../../types';
 import { ConditionChips } from '../ui/ConditionChips';
@@ -73,6 +77,7 @@ export function CombatantCardExpanded({
   const conditionList = (c.conditions || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
   const mechanicalSummary = buildConditionSummary(conditionList);
   const isSpeedZero = mechanicalSummary.speedLocked;
+  const { updateState, getSnapshot } = useAppState();
 
   return (
     <div className="px-6 pb-6 pt-2 border-t border-[#f5f5f0] space-y-5">
@@ -296,6 +301,48 @@ export function CombatantCardExpanded({
           onConcentrationEffectAdded={(effectName) => {
             if (onConcentrationPrompt) {
               onConcentrationPrompt(effectName, c.name);
+            }
+          }}
+          onConditionAdded={async (label) => {
+            if (c.type !== 'pc') return;
+            const charId = c.characterId;
+            if (!charId) return;
+
+            const resourceName = getResourceForEffect(label);
+            if (!resourceName) return;
+
+            const latestState = getSnapshot();
+            const char = latestState.characters.find(charItem => charItem.id === charId);
+            if (!char) return;
+
+            const pools = parseResourcePools(char.resourcePools || '');
+            const matchedPool = pools.find(
+              (p) => p.name.toLowerCase() === resourceName.toLowerCase()
+            );
+
+            if (!matchedPool) return;
+
+            if (matchedPool.current > 0) {
+              const updatedPools = spendResourcePip(pools, resourceName, 1);
+              const serialized = serializeResourcePools(updatedPools);
+
+              // 1. Optimistic local state update in Zustand
+              updateState((prev) => ({
+                ...prev,
+                characters: prev.characters.map((charItem) =>
+                  charItem.id === charId ? { ...charItem, resourcePools: serialized } : charItem
+                ),
+              }));
+
+              // 2. Call updateCharacterDB with the changed fields
+              try {
+                await updateCharacterDB({ resourcePools: serialized }, char);
+              } catch (err) {
+                console.error("Failed to update character resource pools: ", err);
+                toast.error(`Failed to sync resource update for ${char.characterName}`);
+              }
+            } else {
+              toast.warning(`${matchedPool.name} is already depleted.`);
             }
           }}
         />

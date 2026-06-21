@@ -8,6 +8,7 @@ export interface CharacterResourceSectionProps {
   onConditionsChange: (conditions: string) => void;
   combatantId?: string;
   immunities?: string;
+  onConditionAdded?: (label: string) => void;
 }
 
 export const CharacterResourceSection: React.FC<CharacterResourceSectionProps> = ({
@@ -16,6 +17,7 @@ export const CharacterResourceSection: React.FC<CharacterResourceSectionProps> =
   onConditionsChange,
   combatantId,
   immunities = '',
+  onConditionAdded,
 }) => {
   return (
     <div>
@@ -29,6 +31,7 @@ export const CharacterResourceSection: React.FC<CharacterResourceSectionProps> =
             duration: 6000
           });
         }}
+        onConditionAdded={onConditionAdded}
       />
       {combatantId && concentrationLinks && concentrationLinks[combatantId] && concentrationLinks[combatantId].length > 0 && (
         <div className="text-xs text-purple-700 font-sans font-semibold flex items-center gap-1.5 bg-purple-50/50 px-3 py-1.5 rounded-lg border border-purple-100 max-w-fit mt-2">

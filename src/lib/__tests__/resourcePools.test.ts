@@ -10,6 +10,8 @@ import {
   removeResourcePool,
   updateResourcePool,
   ResourcePool,
+  getResourceForEffect,
+  EFFECT_RESOURCE_MAP,
 } from '../resourcePools';
 
 describe('ResourcePools pure utilities', () => {
@@ -133,6 +135,21 @@ describe('ResourcePools pure utilities', () => {
       const updated = updateResourcePool(mockPools, 'ki', { max: 1 });
       expect(updated[1].max).toBe(1);
       expect(updated[1].current).toBe(1); // clamped from 2
+    });
+  });
+
+  describe('getResourceForEffect & EFFECT_RESOURCE_MAP', () => {
+    it('getResourceForEffect returns correct mapping', () => {
+      expect(getResourceForEffect('raging')).toBe('rage');
+      expect(getResourceForEffect('RAGING')).toBe('rage');
+      expect(getResourceForEffect('wild shaped')).toBe('wild shape');
+      expect(getResourceForEffect('concentrating')).toBeNull();
+      expect(getResourceForEffect('blinded')).toBeNull();
+      expect(getResourceForEffect('sneak attack (used)')).toBeNull();
+    });
+
+    it('EFFECT_RESOURCE_MAP has exactly 5 entries', () => {
+      expect(Object.keys(EFFECT_RESOURCE_MAP)).toHaveLength(5);
     });
   });
 });

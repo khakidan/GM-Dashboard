@@ -8,6 +8,8 @@ import { CharacterResourceSection } from './CharacterResourceSection';
 import { CharacterIRVSection } from './CharacterIRVSection';
 import { ResourcePoolsSection } from './ResourcePoolsSection';
 import { getHitDiceStatus, getTotalHitDiceCount } from '../../lib/hitDice';
+import { getResourceForEffect, parseResourcePools, spendResourcePip, serializeResourcePools } from '../../lib/resourcePools';
+import { toast } from 'sonner';
 
 export interface CharacterCardExpandedProps {
   character: Character;
@@ -22,6 +24,27 @@ export const CharacterCardExpanded: React.FC<CharacterCardExpandedProps> = ({
   onUpdate,
   onDelete,
 }) => {
+  const handleConditionAdded = (label: string) => {
+    const resourceName = getResourceForEffect(label);
+    if (!resourceName) return;
+
+    const pools = parseResourcePools(character.resourcePools || '');
+    const matchedPool = pools.find(
+      (p) => p.name.toLowerCase() === resourceName.toLowerCase()
+    );
+
+    if (!matchedPool) return;
+
+    if (matchedPool.current > 0) {
+      const updatedPools = spendResourcePip(pools, resourceName, 1);
+      onUpdate({
+        resourcePools: serializeResourcePools(updatedPools),
+      });
+    } else {
+      toast.warning(`${matchedPool.name} is already depleted.`);
+    }
+  };
+
   return (
     <div className="p-6 flex flex-col font-sans gap-5">
       <div className="grid grid-cols-3 md:grid-cols-6 gap-3 sm:gap-4">
@@ -188,6 +211,7 @@ export const CharacterCardExpanded: React.FC<CharacterCardExpandedProps> = ({
         onConditionsChange={(v) => onUpdate({ conditions: v })}
         immunities={character.immunities || ''}
         combatantId={character.id}
+        onConditionAdded={handleConditionAdded}
       />
 
       <CharacterIRVSection

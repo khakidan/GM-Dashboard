@@ -17,6 +17,7 @@ interface ConditionChipsProps {
   onAddWithTimer?: (label: string, rounds: number) => void;
   currentRound?: number;
   onConcentrationEffectAdded?: (effectName: string) => void;
+  onConditionAdded?: (label: string) => void;
 }
 
 type ChipCategory = 'condition' | 'effect' | 'custom';
@@ -43,6 +44,7 @@ export function ConditionChips({
   onAddWithTimer,
   currentRound,
   onConcentrationEffectAdded,
+  onConditionAdded,
 }: ConditionChipsProps) {
   const [query, setQuery]   = useState('');
   const [open, setOpen]     = useState(false);
@@ -232,6 +234,9 @@ export function ConditionChips({
     } else {
       commitChip(trimmed);
     }
+
+    // After adding the chip to the list
+    onConditionAdded?.(label);
 
     const mechanics = CONDITION_MECHANICS[lower];
     if (mechanics) {

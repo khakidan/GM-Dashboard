@@ -151,3 +151,28 @@ export function updateResourcePool(
     return pool;
   });
 }
+
+// Maps exact effect names (lowercase) 
+// to the resource pool name they 
+// decrement when applied.
+// Matching is case-insensitive and 
+// exact — no partial matches.
+export const EFFECT_RESOURCE_MAP: Record<string, string> = {
+  'raging':                   'rage',
+  'wild shaped':              'wild shape',
+  'action surge (used)':      'action surge',
+  'second wind (used)':       'second wind',
+  'bardic inspiration (given)': 'bardic inspiration',
+};
+
+// Returns the resource pool name to 
+// decrement when this effect is applied, 
+// or null if no mapping exists.
+export function getResourceForEffect(
+  effectName: string
+): string | null {
+  return EFFECT_RESOURCE_MAP[
+    effectName.toLowerCase().trim()
+  ] ?? null;
+}
+
