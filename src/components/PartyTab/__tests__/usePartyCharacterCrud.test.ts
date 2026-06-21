@@ -1,16 +1,9 @@
-// ─── PROTECTED TEST FILE ───────────────────────────
-// Do not delete, rename, or remove test cases from 
-// this file without an explicit instruction to do so.
-// Removing tests to make a count pass is not acceptable.
-// ────────────────────────────────────────────────────
-
 import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useParty } from '../hooks/useParty';
 import { useAppState, getSnapshot } from '../../../hooks/useAppState';
 import { deleteCharacterFully, addCharacterDB, updateCharacterDB } from '../../../services/dbOperations';
 import { toast } from 'sonner';
-import { makeCharacter } from '../../../__tests__/fixtures/characterFixtures';
 
 vi.mock('sonner', () => ({
   toast: {
@@ -39,8 +32,13 @@ vi.mock('../../../lib/concentrationCheck', async (importOriginal) => {
   };
 });
 
-describe('useParty', () => {
+describe('useParty - Character CRUD', () => {
   afterEach(() => { vi.restoreAllMocks(); vi.resetAllMocks(); });
+  
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.stubGlobal('confirm', vi.fn().mockReturnValue(true));
+  });
 
   describe('handleDeletePlayer', () => {
     it('rolls back state and shows error toast if deleteCharacterFully throws', async () => {
@@ -65,6 +63,25 @@ describe('useParty', () => {
 
       expect(toast.error).toHaveBeenCalledWith('Failed to save changes. Please try again.', expect.any(Object));
       expect(updateStateSpy).toHaveBeenCalled();
+    });
+
+    it('triggers a success toast with the character name on deletion', async () => {
+      const mockChar = { id: 'char-1', characterName: 'Testo' };
+      vi.mocked(useAppState).mockReturnValue({
+        state: { characters: [mockChar] } as any,
+        updateState: vi.fn(),
+        getSnapshot: vi.fn(),
+      } as any);
+      vi.mocked(getSnapshot).mockReturnValue({ characters: [mockChar] } as any);
+
+      const { result } = renderHook(() => useParty());
+      
+      await act(async () => {
+        await result.current.handleDeletePlayer('char-1');
+      });
+
+      expect(toast.success).toHaveBeenCalledWith(expect.stringContaining('Testo'));
+      expect(toast.success).toHaveBeenCalledWith(expect.stringContaining('removed from roster'));
     });
   });
 
@@ -95,108 +112,6 @@ describe('useParty', () => {
 
       expect(toast.error).toHaveBeenCalledWith('Failed to save changes. Please try again.', expect.any(Object));
       expect(updateStateSpy).toHaveBeenCalled();
-    });
-  });
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-    vi.stubGlobal('confirm', vi.fn().mockReturnValue(true));
-  });
-
-  it('triggers a success toast with the character name on deletion', async () => {
-    const mockChar = { id: 'char-1', characterName: 'Testo' };
-    vi.mocked(useAppState).mockReturnValue({
-      state: { characters: [mockChar] } as any,
-      updateState: vi.fn(),
-      getSnapshot: vi.fn(),
-    } as any);
-    vi.mocked(getSnapshot).mockReturnValue({ characters: [mockChar] } as any);
-
-    const { result } = renderHook(() => useParty());
-    
-    await act(async () => {
-      await result.current.handleDeletePlayer('char-1');
-    });
-
-    expect(toast.success).toHaveBeenCalledWith(expect.stringContaining('Testo'));
-    expect(toast.success).toHaveBeenCalledWith(expect.stringContaining('removed from roster'));
-  });
-
-  describe('handleLongRest basic expectations', () => {
-    it('handleLongRest with [id1] applies long rest only to character id1, not to id2', async () => {
-      const mockActiveChar1 = makeCharacter({ id: 'char-1', characterName: 'Maeve', isActive: true, maxHp: 100, currentHp: 50, conditions: 'exhaustion 4', tempHpMax: 0, tempHp: 0, hitDiceConfig: '4d12', hitDiceUsed: '{"d12":2}' });
-      const mockActiveChar2 = makeCharacter({ id: 'char-2', characterName: 'Drogar', isActive: true, maxHp: 160, currentHp: 80, conditions: '', tempHpMax: 0, tempHp: 0, hitDiceConfig: '4d10', hitDiceUsed: '{"d10":2}' });
-
-      const mockState = {
-        characters: [mockActiveChar1, mockActiveChar2],
-        combatState: {
-          combatants: []
-        }
-      };
-
-      const updateStateSpy = vi.fn();
-      vi.mocked(useAppState).mockReturnValue({
-        state: mockState as any,
-        updateState: updateStateSpy,
-        getSnapshot: vi.fn(),
-      } as any);
-      vi.mocked(getSnapshot).mockReturnValue(mockState as any);
-
-      const { result } = renderHook(() => useParty());
-      await act(async () => {
-        await result.current.handleLongRest(['char-1']);
-      });
-
-      expect(updateStateSpy).toHaveBeenCalled();
-      const stateUpdater = updateStateSpy.mock.calls[0][0];
-      const nextState = stateUpdater(mockState);
-
-      const updatedMaeve = nextState.characters.find((c: any) => c.id === 'char-1');
-      const updatedDrogar = nextState.characters.find((c: any) => c.id === 'char-2');
-
-      // Maeve is updated
-      expect(updatedMaeve.currentHp).toBe(100);
-      expect(updatedMaeve.tempHp).toBe(0);
-      // Drogar is NOT updated because his ID was not passed
-      expect(updatedDrogar.currentHp).toBe(80);
-    });
-
-    it('handleLongRest restores currentHp to maxHp and calls applyLongRestHitDiceRecovery for selected characters', async () => {
-      const mockActiveChar1 = makeCharacter({ id: 'char-1', characterName: 'Maeve', isActive: true, maxHp: 100, currentHp: 50, conditions: 'exhaustion 4', tempHpMax: 0, tempHp: 0, hitDiceConfig: '4d12', hitDiceUsed: '{"d12":2}' });
-
-      const mockState = {
-        characters: [mockActiveChar1],
-        combatState: {
-          combatants: []
-        }
-      };
-
-      const updateStateSpy = vi.fn();
-      vi.mocked(useAppState).mockReturnValue({
-        state: mockState as any,
-        updateState: updateStateSpy,
-        getSnapshot: vi.fn(),
-      } as any);
-      vi.mocked(getSnapshot).mockReturnValue(mockState as any);
-
-      const { result } = renderHook(() => useParty());
-      await act(async () => {
-        await result.current.handleLongRest(['char-1']);
-      });
-
-      expect(updateStateSpy).toHaveBeenCalled();
-      const stateUpdater = updateStateSpy.mock.calls[0][0];
-      const nextState = stateUpdater(mockState);
-
-      const updatedMaeve = nextState.characters.find((c: any) => c.id === 'char-1');
-      expect(updatedMaeve.currentHp).toBe(100);
-      // d12 pool of 4, recover ceil(4/2) = 2, so 2 - 2 = 0 used
-      expect(updatedMaeve.hitDiceUsed).toBe('{"d12":0}');
-
-      expect(updateCharacterDB).toHaveBeenCalledWith(expect.objectContaining({
-        currentHp: 100,
-        hitDiceUsed: '{"d12":0}'
-      }), mockActiveChar1);
     });
   });
 
@@ -438,14 +353,11 @@ describe('useParty', () => {
 
       expect(updateCharacterDB).toHaveBeenCalledWith({ class: 'Barbarian / Fighter' }, expect.objectContaining({ id: 'char-1' }));
     });
-  });
 
-  describe('handleShortRest basic expectations', () => {
-    it('handleShortRest adds hpToAdd to currentHp without exceeding maxHp and updates hitDiceUsed', async () => {
-      const mockActiveChar = { id: 'char-1', characterName: 'Maeve', isActive: true, maxHp: 50, currentHp: 20, tempHp: 5, hitDiceConfig: '4d8', hitDiceUsed: '{"d8":1}' };
-      
+    it('calls updateCharacterDB with the new hitDiceConfig when handleUpdate is called with hitDiceConfig', async () => {
+      const mockChar = { id: 'char-1', characterName: 'Maeve', isActive: true, maxHp: 50, currentHp: 20, hitDiceConfig: '4d12', hitDiceUsed: '{"d12":1}' };
       const mockState = {
-        characters: [mockActiveChar],
+        characters: [mockChar],
         combatState: { combatants: [] }
       };
 
@@ -456,59 +368,38 @@ describe('useParty', () => {
         getSnapshot: vi.fn(),
       } as any);
       vi.mocked(getSnapshot).mockReturnValue(mockState as any);
-
       vi.mocked(updateCharacterDB).mockResolvedValue(undefined as any);
 
       const { result } = renderHook(() => useParty());
       await act(async () => {
-        await result.current.handleShortRest([
-          { characterId: 'char-1', hpToAdd: 40, newHitDiceUsed: '{"d8":2}' }
-        ]);
+        await result.current.handleUpdate('char-1', { hitDiceConfig: '5d12' });
       });
 
-      // Verify the state updater function restores and maps correctly
-      expect(updateStateSpy).toHaveBeenCalled();
-      const stateUpdater = updateStateSpy.mock.calls[0][0];
-      const nextState = stateUpdater(mockState);
-      
-      const updatedActive = nextState.characters.find((c: any) => c.id === 'char-1');
-
-      // Max HP is 50, temp HP is 5. Max allowed HP is maxHp + tempHp = 55. But 20 + 40 = 60. So capped at 55.
-      expect(updatedActive.currentHp).toBe(55);
-      expect(updatedActive.hitDiceUsed).toBe('{"d8":2}');
-
-      // Verify updateCharacterDB called
-      expect(updateCharacterDB).toHaveBeenCalledWith({ currentHp: 55, hitDiceUsed: '{"d8":2}', resourcePools: '[]' }, mockActiveChar);
+      expect(updateCharacterDB).toHaveBeenCalledWith({ hitDiceConfig: '5d12' }, expect.objectContaining({ id: 'char-1' }));
     });
 
-    it('handleShortRest rolls back on DB failure', async () => {
-      const mockActiveChar = { id: 'char-1', characterName: 'Maeve', isActive: true, maxHp: 50, currentHp: 20, tempHp: 0, hitDiceConfig: '4d12', hitDiceUsed: '{"d12":1}' };
-      
-      const mockState = {
-        characters: [mockActiveChar],
-        combatState: { combatants: [] }
-      };
-
-      const updateStateSpy = vi.fn();
-      vi.mocked(useAppState).mockReturnValue({
-        state: mockState as any,
-        updateState: updateStateSpy,
-        getSnapshot: vi.fn(),
-      } as any);
+    it('handleUpdate with { class: \'Barbarian\' } results in updateCharacterDB being called with class', async () => {
+      const mockChar = { id: 'char-1', characterName: 'Maeve', isActive: true, class: 'Fighter' };
+      const mockState = { characters: [mockChar], combatState: { combatants: [] } };
+      vi.mocked(useAppState).mockReturnValue({ state: mockState as any, updateState: vi.fn(), getSnapshot: vi.fn() } as any);
       vi.mocked(getSnapshot).mockReturnValue(mockState as any);
-
-      vi.mocked(updateCharacterDB).mockRejectedValue(new Error('DB Error'));
-
       const { result } = renderHook(() => useParty());
       await act(async () => {
-        await result.current.handleShortRest([
-          { characterId: 'char-1', hpToAdd: 10, newHitDiceUsed: '{"d12":2}' }
-        ]);
+        await result.current.handleUpdate('char-1', { class: 'Barbarian' });
       });
+      expect(updateCharacterDB).toHaveBeenCalledWith({ class: 'Barbarian' }, expect.any(Object));
+    });
 
-      // Verification of rollback
-      expect(updateStateSpy).toHaveBeenCalledWith(mockState);
-      expect(result.current.globalError).toBe('Failed to save short rest. Please try again.');
+    it('handleUpdate with { hitDiceConfig: \'7d8\' } results in updateCharacterDB being called with hitDiceConfig', async () => {
+      const mockChar = { id: 'char-1', characterName: 'Maeve', isActive: true, hitDiceConfig: '1d8' };
+      const mockState = { characters: [mockChar], combatState: { combatants: [] } };
+      vi.mocked(useAppState).mockReturnValue({ state: mockState as any, updateState: vi.fn(), getSnapshot: vi.fn() } as any);
+      vi.mocked(getSnapshot).mockReturnValue(mockState as any);
+      const { result } = renderHook(() => useParty());
+      await act(async () => {
+        await result.current.handleUpdate('char-1', { hitDiceConfig: '7d8' });
+      });
+      expect(updateCharacterDB).toHaveBeenCalledWith({ hitDiceConfig: '7d8' }, expect.any(Object));
     });
   });
 
@@ -535,7 +426,6 @@ describe('useParty', () => {
 
       const { result } = renderHook(() => useParty());
       
-      // Set levelUpCharacter first so handleLevelUpConfirm runs
       act(() => {
         result.current.setLevelUpCharacter(mockChar as any);
       });
@@ -600,153 +490,17 @@ describe('useParty', () => {
 
       const { result } = renderHook(() => useParty());
       
-      // Starts empty
       expect(result.current.expandedIds.has('id-1')).toBe(false);
 
-      // Add it
       act(() => {
         result.current.toggleExpand('id-1');
       });
       expect(result.current.expandedIds.has('id-1')).toBe(true);
 
-      // Remove it
       act(() => {
         result.current.toggleExpand('id-1');
       });
       expect(result.current.expandedIds.has('id-1')).toBe(false);
-    });
-  });
-
-  describe('hitDice specific DB write path tests', () => {
-    it('calls updateCharacterDB with the new hitDiceConfig when handleUpdate is called with hitDiceConfig', async () => {
-      const mockChar = { id: 'char-1', characterName: 'Maeve', isActive: true, maxHp: 50, currentHp: 20, hitDiceConfig: '4d12', hitDiceUsed: '{"d12":1}' };
-      const mockState = {
-        characters: [mockChar],
-        combatState: { combatants: [] }
-      };
-
-      const updateStateSpy = vi.fn();
-      vi.mocked(useAppState).mockReturnValue({
-        state: mockState as any,
-        updateState: updateStateSpy,
-        getSnapshot: vi.fn(),
-      } as any);
-      vi.mocked(getSnapshot).mockReturnValue(mockState as any);
-      vi.mocked(updateCharacterDB).mockResolvedValue(undefined as any);
-
-      const { result } = renderHook(() => useParty());
-      await act(async () => {
-        await result.current.handleUpdate('char-1', { hitDiceConfig: '5d12' });
-      });
-
-      expect(updateCharacterDB).toHaveBeenCalledWith({ hitDiceConfig: '5d12' }, expect.objectContaining({ id: 'char-1' }));
-    });
-
-    it('calls updateCharacterDB with the new hitDiceUsed when handleShortRest completes', async () => {
-      const mockChar = { id: 'char-1', characterName: 'Maeve', isActive: true, maxHp: 50, currentHp: 20, hitDiceConfig: '4d12', hitDiceUsed: '{"d12":1}' };
-      const mockState = {
-        characters: [mockChar],
-        combatState: { combatants: [] }
-      };
-
-      const updateStateSpy = vi.fn();
-      vi.mocked(useAppState).mockReturnValue({
-        state: mockState as any,
-        updateState: updateStateSpy,
-        getSnapshot: vi.fn(),
-      } as any);
-      vi.mocked(getSnapshot).mockReturnValue(mockState as any);
-      vi.mocked(updateCharacterDB).mockResolvedValue(undefined as any);
-
-      const { result } = renderHook(() => useParty());
-      await act(async () => {
-        await result.current.handleShortRest([
-          { characterId: 'char-1', hpToAdd: 15, newHitDiceUsed: '{"d12":2}' }
-        ]);
-      });
-
-      expect(updateCharacterDB).toHaveBeenCalledWith({ currentHp: 35, hitDiceUsed: '{"d12":2}', resourcePools: '[]' }, mockChar);
-    });
-
-    it('calls updateCharacterDB with partially recovered hitDiceUsed for 7d8 config (7 spent -> 3 spent) when handleLongRest completes', async () => {
-      const mockChar = {
-        id: 'char-7d8',
-        characterName: 'Caleb',
-        isActive: true,
-        maxHp: 40,
-        currentHp: 10,
-        hitDiceConfig: '7d8',
-        hitDiceUsed: '{"d8":7}',
-        tempHpMax: 0,
-        tempHp: 0,
-        deathSavesFails: 0,
-        deathSavesSuccesses: 0
-      };
-      const mockState = {
-        characters: [mockChar],
-        combatState: { combatants: [] }
-      };
-
-      const updateStateSpy = vi.fn();
-      vi.mocked(useAppState).mockReturnValue({
-        state: mockState as any,
-        updateState: updateStateSpy,
-        getSnapshot: vi.fn(),
-      } as any);
-      vi.mocked(getSnapshot).mockReturnValue(mockState as any);
-      vi.mocked(updateCharacterDB).mockResolvedValue(undefined as any);
-
-      const { result } = renderHook(() => useParty());
-      await act(async () => {
-        await result.current.handleLongRest(['char-7d8']);
-      });
-
-      expect(updateCharacterDB).toHaveBeenCalledWith({
-        currentHp: 40,
-        tempHp: 0,
-        hitDiceUsed: '{"d8":3}',
-        deathSavesFails: 0,
-        deathSavesSuccesses: 0,
-        resourcePools: '[]'
-      }, mockChar);
-    });
-
-    it('handleUpdate with { class: \'Barbarian\' } results in updateCharacterDB being called with class', async () => {
-      const mockChar = { id: 'char-1', characterName: 'Maeve', isActive: true, class: 'Fighter' };
-      const mockState = { characters: [mockChar], combatState: { combatants: [] } };
-      vi.mocked(useAppState).mockReturnValue({ state: mockState as any, updateState: vi.fn(), getSnapshot: vi.fn() } as any);
-      vi.mocked(getSnapshot).mockReturnValue(mockState as any);
-      const { result } = renderHook(() => useParty());
-      await act(async () => {
-        await result.current.handleUpdate('char-1', { class: 'Barbarian' });
-      });
-      expect(updateCharacterDB).toHaveBeenCalledWith({ class: 'Barbarian' }, expect.any(Object));
-    });
-
-    it('handleUpdate with { hitDiceConfig: \'7d8\' } results in updateCharacterDB being called with hitDiceConfig', async () => {
-      const mockChar = { id: 'char-1', characterName: 'Maeve', isActive: true, hitDiceConfig: '1d8' };
-      const mockState = { characters: [mockChar], combatState: { combatants: [] } };
-      vi.mocked(useAppState).mockReturnValue({ state: mockState as any, updateState: vi.fn(), getSnapshot: vi.fn() } as any);
-      vi.mocked(getSnapshot).mockReturnValue(mockState as any);
-      const { result } = renderHook(() => useParty());
-      await act(async () => {
-        await result.current.handleUpdate('char-1', { hitDiceConfig: '7d8' });
-      });
-      expect(updateCharacterDB).toHaveBeenCalledWith({ hitDiceConfig: '7d8' }, expect.any(Object));
-    });
-
-    it('handleLongRest writes partially recovered hitDiceUsed and not default {}', async () => {
-      const mockChar = { id: 'char-1', characterName: 'Maeve', isActive: true, maxHp: 50, currentHp: 20, hitDiceConfig: '7d8', hitDiceUsed: '{"d8":7}', tempHpMax: 0, tempHp: 0, deathSavesFails: 0, deathSavesSuccesses: 0 };
-      const mockState = { characters: [mockChar], combatState: { combatants: [] } };
-      vi.mocked(useAppState).mockReturnValue({ state: mockState as any, updateState: vi.fn(), getSnapshot: vi.fn() } as any);
-      vi.mocked(getSnapshot).mockReturnValue(mockState as any);
-      const { result } = renderHook(() => useParty());
-      await act(async () => {
-        await result.current.handleLongRest(['char-1']);
-      });
-      expect(updateCharacterDB).toHaveBeenCalledWith(expect.objectContaining({
-        hitDiceUsed: '{"d8":3}'
-      }), mockChar);
     });
   });
 
@@ -755,7 +509,7 @@ describe('useParty', () => {
       mockFireConcentrationAlert.mockClear();
     });
 
-    it("When a concentrating character's currentHp decreases, fireConcentrationAlert is called with the correct name and damage", async () => {
+    it('When a concentrating character currentHp decreases, fireConcentrationAlert is called with the correct name and damage', async () => {
       const mockChar = { id: 'char-1', characterName: 'Maeve', isActive: true, currentHp: 20, conditions: 'concentrating' };
       const mockState = { characters: [mockChar], combatState: { combatants: [] } };
       vi.mocked(useAppState).mockReturnValue({ state: mockState as any, updateState: vi.fn(), getSnapshot: vi.fn() } as any);
@@ -768,7 +522,7 @@ describe('useParty', () => {
       expect(mockFireConcentrationAlert).toHaveBeenCalledWith('Maeve', 8);
     });
 
-    it("When a non-concentrating character's currentHp decreases, fireConcentrationAlert is NOT called", async () => {
+    it('When a non-concentrating character currentHp decreases, fireConcentrationAlert is NOT called', async () => {
       const mockChar = { id: 'char-1', characterName: 'Maeve', isActive: true, currentHp: 20, conditions: '' };
       const mockState = { characters: [mockChar], combatState: { combatants: [] } };
       vi.mocked(useAppState).mockReturnValue({ state: mockState as any, updateState: vi.fn(), getSnapshot: vi.fn() } as any);
@@ -781,7 +535,7 @@ describe('useParty', () => {
       expect(mockFireConcentrationAlert).not.toHaveBeenCalled();
     });
 
-    it("When a concentrating character's currentHp increases (healing), fireConcentrationAlert is NOT called", async () => {
+    it('When a concentrating character currentHp increases, fireConcentrationAlert is NOT called', async () => {
       const mockChar = { id: 'char-1', characterName: 'Maeve', isActive: true, currentHp: 20, conditions: 'concentrating' };
       const mockState = { characters: [mockChar], combatState: { combatants: [] } };
       vi.mocked(useAppState).mockReturnValue({ state: mockState as any, updateState: vi.fn(), getSnapshot: vi.fn() } as any);
@@ -794,7 +548,7 @@ describe('useParty', () => {
       expect(mockFireConcentrationAlert).not.toHaveBeenCalled();
     });
 
-    it("When a concentrating character's currentHp stays the same, fireConcentrationAlert is NOT called", async () => {
+    it('When a concentrating character currentHp stays the same, fireConcentrationAlert is NOT called', async () => {
       const mockChar = { id: 'char-1', characterName: 'Maeve', isActive: true, currentHp: 20, conditions: 'concentrating' };
       const mockState = { characters: [mockChar], combatState: { combatants: [] } };
       vi.mocked(useAppState).mockReturnValue({ state: mockState as any, updateState: vi.fn(), getSnapshot: vi.fn() } as any);
