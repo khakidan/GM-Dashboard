@@ -40,6 +40,7 @@ export function mapCharacterRowToCharacter(
     classStr,
     hitDiceConfig,
     hitDiceUsed,
+    resourcePools,
   ] = data;
 
   return {
@@ -68,6 +69,7 @@ export function mapCharacterRowToCharacter(
     deathSavesSuccesses: deathSavesSuccesses ?? 0,
     hitDiceConfig: hitDiceConfig ?? '',
     hitDiceUsed: hitDiceUsed ?? '{}',
+    resourcePools: resourcePools ?? '[]',
   };
 }
 

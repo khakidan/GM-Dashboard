@@ -26,6 +26,7 @@ export interface Character {
   deathSavesSuccesses?: number;
   hitDiceConfig: string;
   hitDiceUsed: string;
+  resourcePools?: string;
 }
 
 export interface NPC {

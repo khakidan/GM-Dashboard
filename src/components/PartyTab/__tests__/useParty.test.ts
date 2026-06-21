@@ -468,7 +468,7 @@ describe('useParty', () => {
       expect(updatedActive.hitDiceUsed).toBe('{"d8":2}');
 
       // Verify updateCharacterDB called
-      expect(updateCharacterDB).toHaveBeenCalledWith({ currentHp: 55, hitDiceUsed: '{"d8":2}' }, mockActiveChar);
+      expect(updateCharacterDB).toHaveBeenCalledWith({ currentHp: 55, hitDiceUsed: '{"d8":2}', resourcePools: '[]' }, mockActiveChar);
     });
 
     it('handleShortRest rolls back on DB failure', async () => {
@@ -655,7 +655,7 @@ describe('useParty', () => {
         ]);
       });
 
-      expect(updateCharacterDB).toHaveBeenCalledWith({ currentHp: 35, hitDiceUsed: '{"d12":2}' }, mockChar);
+      expect(updateCharacterDB).toHaveBeenCalledWith({ currentHp: 35, hitDiceUsed: '{"d12":2}', resourcePools: '[]' }, mockChar);
     });
 
     it('calls updateCharacterDB with partially recovered hitDiceUsed for 7d8 config (7 spent -> 3 spent) when handleLongRest completes', async () => {
@@ -696,7 +696,8 @@ describe('useParty', () => {
         tempHp: 0,
         hitDiceUsed: '{"d8":3}',
         deathSavesFails: 0,
-        deathSavesSuccesses: 0
+        deathSavesSuccesses: 0,
+        resourcePools: '[]'
       }, mockChar);
     });
 

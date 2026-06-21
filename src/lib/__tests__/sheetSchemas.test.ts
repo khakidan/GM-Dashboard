@@ -22,7 +22,7 @@ describe('sheetSchemas', () => {
       const result = CharacterRowSchema.safeParse(row);
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data).toEqual(['char-1', 'Alice', 'Thor', 15, 20, 5, 25, 'Blinded', 14, 3, 1, 'Notes', '', '', '', 0, 0, 0, 0, '', '', '{}']);
+        expect(result.data).toEqual(['char-1', 'Alice', 'Thor', 15, 20, 5, 25, 'Blinded', 14, 3, 1, 'Notes', '', '', '', 0, 0, 0, 0, '', '', '{}', '[]']);
       }
     });
 
@@ -54,6 +54,7 @@ describe('sheetSchemas', () => {
          '', // class
          '', // hitDiceConfig
          '{}', // hitDiceUsed
+         '[]', // resourcePools
         ]);
       }
     });

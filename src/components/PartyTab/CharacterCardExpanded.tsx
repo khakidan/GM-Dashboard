@@ -6,6 +6,7 @@ import { DebouncedInput } from '../ui/DebouncedInput';
 import { DebouncedTextarea } from '../ui/DebouncedTextarea';
 import { CharacterResourceSection } from './CharacterResourceSection';
 import { CharacterIRVSection } from './CharacterIRVSection';
+import { ResourcePoolsSection } from './ResourcePoolsSection';
 import { getHitDiceStatus, getTotalHitDiceCount } from '../../lib/hitDice';
 
 export interface CharacterCardExpandedProps {
@@ -175,6 +176,12 @@ export const CharacterCardExpanded: React.FC<CharacterCardExpandedProps> = ({
           </div>
         )}
       </div>
+
+      <ResourcePoolsSection
+        character={character}
+        isSyncing={isSyncing}
+        onUpdate={onUpdate}
+      />
 
       <CharacterResourceSection
         conditions={character.conditions || ''}

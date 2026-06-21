@@ -36,7 +36,7 @@ const padRow = (length: number) => (val: unknown) => {
   return arr;
 };
 
-export const CharacterRowSchema = z.preprocess(padRow(22), z.tuple([
+export const CharacterRowSchema = z.preprocess(padRow(23), z.tuple([
   idSchema,                            // [0] id
   stringDefault(''),                   // [1] playerName
   nonEmptyString,                      // [2] characterName
@@ -59,6 +59,7 @@ export const CharacterRowSchema = z.preprocess(padRow(22), z.tuple([
   stringDefault(''),                   // [19] class
   stringDefault(''),                   // [20] hitDiceConfig
   stringDefault('{}'),                 // [21] hitDiceUsed
+  stringDefault('[]'),                 // [22] resourcePools
 ]));
 
 export const NpcRowSchema = z.preprocess(padRow(14), z.tuple([

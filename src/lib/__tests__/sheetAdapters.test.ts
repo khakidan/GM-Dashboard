@@ -85,6 +85,7 @@ describe('sheetAdapters', () => {
         deathSavesSuccesses: 0,
         hitDiceConfig: '4d12+3d10',
         hitDiceUsed: '{"d12":1}',
+        resourcePools: '[]',
       });
     });
 

@@ -50,7 +50,7 @@ router.post('/create', async (req, res) => {
           'Resistances', 'Immunities', 'Vulnerabilities',
           'Temp_HP_Max', 'Temp_AC', 'Death_Saves_Fails',
           'Death_Saves_Successes', 'Class',
-          'Hit_Dice_Config', 'Hit_Dice_Used'
+          'Hit_Dice_Config', 'Hit_Dice_Used', 'Resource_Pools'
         ],
         rows: []
       },

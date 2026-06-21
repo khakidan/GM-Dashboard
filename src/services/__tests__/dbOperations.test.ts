@@ -192,7 +192,7 @@ describe('addCharacterDB logic', () => {
     });
 
     expect(result.id).toBe('pc-1');
-    expect(sheetsService.appendSheetData).toHaveBeenCalledWith('Characters!A:V', [[
+    expect(sheetsService.appendSheetData).toHaveBeenCalledWith('Characters!A:W', [[
       'pc-1',
       'Alice',      // trimmed playerName
       'Thorn',      // characterName
@@ -215,6 +215,7 @@ describe('addCharacterDB logic', () => {
       '',           // unused placeholder
       '',           // hitDiceConfig default
       '{}',         // hitDiceUsed default
+      '[]',         // resourcePools default
     ]]);
   });
 
@@ -703,7 +704,7 @@ describe('updateCharacterDB', () => {
       characterFullState
     );
 
-    expect(queueWrite).toHaveBeenCalledWith('Characters!A4:V4', [[
+    expect(queueWrite).toHaveBeenCalledWith('Characters!A4:W4', [[
       'pc-2',
       'Bob',
       'Grunk',
@@ -726,6 +727,7 @@ describe('updateCharacterDB', () => {
       '',           // unused placeholder
       '',           // hitDiceConfig default
       '{}',         // hitDiceUsed default
+      '[]',         // resourcePools default
     ]]);
   });
 

@@ -302,9 +302,10 @@ export async function addCharacterDB(
       sanitizeString(character.class || ''), // [19] class name
       sanitizeString(character.hitDiceConfig || ''),
       sanitizeString(character.hitDiceUsed || '{}'),
+      sanitizeString(character.resourcePools || '[]'),
     ];
 
-    await appendSheetData(resolvedId, 'Characters!A:V', [rowData]);
+    await appendSheetData(resolvedId, 'Characters!A:W', [rowData]);
     return {
       ...character,
       id: finalId,
@@ -315,6 +316,7 @@ export async function addCharacterDB(
       deathSavesSuccesses: character.deathSavesSuccesses ?? 0,
       hitDiceConfig: character.hitDiceConfig ?? '',
       hitDiceUsed: character.hitDiceUsed ?? '{}',
+      resourcePools: character.resourcePools ?? '[]',
     };
   } catch (err) {
     console.error('[DB] addCharacterDB failed:', err);
@@ -372,10 +374,11 @@ export async function updateCharacterDB(
       sanitizeString(character.class ?? fullState.class ?? ''), // [19] class
       sanitizeString(character.hitDiceConfig ?? fullState.hitDiceConfig ?? ''),
       sanitizeString(character.hitDiceUsed ?? fullState.hitDiceUsed ?? '{}'),
+      sanitizeString(character.resourcePools ?? fullState.resourcePools ?? '[]'),
     ];
 
     const a1Row = charRowIdx + 1;
-    queueWrite(resolvedId, `Characters!A${a1Row}:V${a1Row}`, [rowData]);
+    queueWrite(resolvedId, `Characters!A${a1Row}:W${a1Row}`, [rowData]);
   } catch (err) {
     console.error('[DB] updateCharacterDB failed:', err);
     throw err;

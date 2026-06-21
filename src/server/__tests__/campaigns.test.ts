@@ -97,7 +97,7 @@ describe('Campaigns Router', () => {
         'Resistances', 'Immunities', 'Vulnerabilities',
         'Temp_HP_Max', 'Temp_AC', 'Death_Saves_Fails',
         'Death_Saves_Successes', 'Class',
-        'Hit_Dice_Config', 'Hit_Dice_Used'
+        'Hit_Dice_Config', 'Hit_Dice_Used', 'Resource_Pools'
       ]);
 
       // NPCs sheet header assertion (Legendary_Actions at column L, Legendary_Resistances at column M, Recharge_Abilities at column N)

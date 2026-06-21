@@ -1,5 +1,11 @@
 import { effectiveMaxHp, applyLongRestToConditions } from '../../../lib/conditions';
 import { applyLongRestHitDiceRecovery } from '../../../lib/hitDice';
+import { 
+  parseResourcePools, 
+  serializeResourcePools, 
+  resetResourcesOnShortRest, 
+  resetResourcesOnLongRest 
+} from '../../../lib/resourcePools';
 import { useState } from 'react';
 import { useAppState, getSnapshot } from '../../../hooks/useAppState';
 import { Character } from '../../../types';
@@ -160,6 +166,9 @@ export function useParty() {
         if (!characterIds.includes(c.id)) return c;
         
         const nextHitDiceUsed = applyLongRestHitDiceRecovery(c.hitDiceConfig || '', c.hitDiceUsed || '{}');
+        const currentPools = parseResourcePools(c.resourcePools || '[]');
+        const updatedPools = resetResourcesOnLongRest(currentPools);
+        const serializedPools = serializeResourcePools(updatedPools);
 
         const updates: Partial<Character> = {
           currentHp: effectiveMaxHp(c.maxHp, c.tempHpMax),
@@ -167,6 +176,7 @@ export function useParty() {
           hitDiceUsed: nextHitDiceUsed,
           deathSavesFails: 0,
           deathSavesSuccesses: 0,
+          resourcePools: serializedPools,
         };
 
         return { ...c, ...updates };
@@ -210,12 +220,17 @@ export function useParty() {
       
       const updatePromises = selectedChars.map(char => {
         const nextHitDiceUsed = applyLongRestHitDiceRecovery(char.hitDiceConfig || '', char.hitDiceUsed || '{}');
+        const currentPools = parseResourcePools(char.resourcePools || '[]');
+        const updatedPools = resetResourcesOnLongRest(currentPools);
+        const serializedPools = serializeResourcePools(updatedPools);
+
         const updates: Partial<Character> = {
           currentHp: effectiveMaxHp(char.maxHp, char.tempHpMax),
           tempHp: 0,
           hitDiceUsed: nextHitDiceUsed,
           deathSavesFails: 0,
           deathSavesSuccesses: 0,
+          resourcePools: serializedPools,
         };
 
         return updateCharacterDB(updates, char);
@@ -266,10 +281,15 @@ export function useParty() {
           c.maxHp + (c.tempHp ?? 0)
         );
 
+        const currentPools = parseResourcePools(c.resourcePools || '[]');
+        const updatedPools = resetResourcesOnShortRest(currentPools);
+        const serializedPools = serializeResourcePools(updatedPools);
+
         return {
           ...c,
           currentHp: newHp,
           hitDiceUsed: res.newHitDiceUsed,
+          resourcePools: serializedPools,
         };
       });
 
@@ -316,9 +336,14 @@ export function useParty() {
           char.maxHp + (char.tempHp ?? 0)
         );
 
+        const currentPools = parseResourcePools(char.resourcePools || '[]');
+        const updatedPools = resetResourcesOnShortRest(currentPools);
+        const serializedPools = serializeResourcePools(updatedPools);
+
         const updates: Partial<Character> = {
           currentHp: newHp,
           hitDiceUsed: res.newHitDiceUsed,
+          resourcePools: serializedPools,
         };
 
         return updateCharacterDB(updates, char);
@@ -438,7 +463,7 @@ export function useParty() {
 
     // 2. Check if we need to sync to sheets (if we updated data that lives in the sheet)
     const isSheetData = Object.keys(sanitizedUpdates).some(k => 
-      ['playerName', 'characterName', 'class', 'ac', 'maxHp', 'tempHp', 'currentHp', 'conditions', 'passivePerception', 'level', 'statusId', 'notes', 'resistances', 'immunities', 'vulnerabilities', 'tempAc', 'deathSavesFails', 'deathSavesSuccesses', 'hitDiceConfig', 'hitDiceUsed'].includes(k)
+      ['playerName', 'characterName', 'class', 'ac', 'maxHp', 'tempHp', 'currentHp', 'conditions', 'passivePerception', 'level', 'statusId', 'notes', 'resistances', 'immunities', 'vulnerabilities', 'tempAc', 'deathSavesFails', 'deathSavesSuccesses', 'hitDiceConfig', 'hitDiceUsed', 'resourcePools'].includes(k)
     );
 
     if (!isSheetData) return;
