@@ -160,4 +160,63 @@ describe('CharacterCardExpanded', () => {
       expect(args.resourcePools).toBeUndefined();
     });
   });
+
+  it('StatBlock renders in the expanded character card when the character has abilityScores data', () => {
+    const characterWithStats = {
+      ...defaultCharacter,
+      abilityScores: JSON.stringify({ STR: 18, DEX: 14, CON: 16, INT: 10, WIS: 12, CHA: 8 }),
+      proficiencies: JSON.stringify({
+        proficiencyBonus: 3,
+        jackOfAllTrades: false,
+        savingThrows: ['STR', 'CON'],
+        skills: { Athletics: 'proficient' },
+        passiveBonuses: { perception: 0, insight: 0, investigation: 0 },
+      }),
+    };
+
+    const { container } = render(
+      <CharacterCardExpanded
+        {...defaultProps}
+        character={characterWithStats}
+      />
+    );
+
+    const strInput = container.querySelector('#ability-score-str') as HTMLInputElement;
+    expect(strInput).toBeDefined();
+    expect(strInput?.value).toBe('18');
+  });
+
+  it('Changing an ability score via StatBlock calls handleUpdate with both abilityScores and proficiencies in the payload', () => {
+    const onUpdateMock = vi.fn();
+    const characterWithStats = {
+      ...defaultCharacter,
+      abilityScores: JSON.stringify({ STR: 18, DEX: 14, CON: 16, INT: 10, WIS: 12, CHA: 8 }),
+      proficiencies: JSON.stringify({
+        proficiencyBonus: 3,
+        jackOfAllTrades: false,
+        savingThrows: ['STR', 'CON'],
+        skills: { Athletics: 'proficient' },
+        passiveBonuses: { perception: 0, insight: 0, investigation: 0 },
+      }),
+    };
+
+    const { container } = render(
+      <CharacterCardExpanded
+        {...defaultProps}
+        character={characterWithStats}
+        onUpdate={onUpdateMock}
+      />
+    );
+
+    const strInput = container.querySelector('#ability-score-str') as HTMLInputElement;
+    expect(strInput).toBeDefined();
+    
+    fireEvent.change(strInput!, { target: { value: '20' } });
+    fireEvent.blur(strInput!);
+
+    expect(onUpdateMock).toHaveBeenCalledWith(expect.objectContaining({
+      abilityScores: expect.stringContaining('"STR":20'),
+      proficiencies: expect.any(String),
+    }));
+  });
 });

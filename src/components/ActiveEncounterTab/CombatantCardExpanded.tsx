@@ -11,6 +11,8 @@ import { ConditionChips } from '../ui/ConditionChips';
 import { CombatantRechargeTracker, RechargeAbility } from './CombatantRechargeTracker';
 import { CombatantLegendaryTracker } from './CombatantLegendaryTracker';
 import { ResourcePoolsSection } from '../PartyTab/ResourcePoolsSection';
+import { StatBlock } from '../ui/StatBlock';
+import { parseAbilityScores, parseProficiencies } from '../../lib/abilityScores';
 
 const ReadOnlyIrvDisplay = ({ label, items, theme }: { label: string, items: string, theme: 'resistances' | 'immunities' | 'vulnerabilities' }) => {
   const arr = items ? items.split(',').map(s => s.trim()).filter(Boolean) : [];
@@ -79,6 +81,9 @@ export function CombatantCardExpanded({
   const mechanicalSummary = buildConditionSummary(conditionList);
   const isSpeedZero = mechanicalSummary.speedLocked;
   const { updateState, getSnapshot } = useAppState();
+  const { characters, npcs } = getSnapshot();
+  const pcCharacter = c.type === 'pc' && c.characterId ? characters.find(char => char.id === c.characterId) : undefined;
+  const npcModel = c.type === 'npc' ? npcs.find(n => c.id.startsWith(`combat-npc-${n.id}-`)) : undefined;
 
   return (
     <div className="px-6 pb-6 pt-2 border-t border-[#f5f5f0] space-y-5">
@@ -405,6 +410,23 @@ export function CombatantCardExpanded({
             </span>
           ))}
         </div>
+      )}
+
+      {pcCharacter && (
+        <StatBlock
+          abilityScores={parseAbilityScores(pcCharacter.abilityScores)}
+          proficiencies={parseProficiencies(pcCharacter.proficiencies)}
+          characterLevel={pcCharacter.level}
+          readOnly={true}
+        />
+      )}
+
+      {npcModel && (
+        <StatBlock
+          abilityScores={parseAbilityScores(npcModel.abilityScores)}
+          proficiencies={parseProficiencies(npcModel.proficiencies)}
+          readOnly={true}
+        />
       )}
 
       <div className="flex justify-between items-center pt-4 border-t border-[#f5f5f0]">

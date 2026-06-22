@@ -95,7 +95,7 @@ which calls a service.
 
 ## Google Sheets Schema
 
-### Characters (A2:W — 23 columns)
+### Characters (A2:Y — 25 columns)
 
 | Col | Index | Field | Notes |
 |-----|-------|-------|-------|
@@ -122,8 +122,10 @@ which calls a service.
 | U | 20 | hitDiceConfig | JSON string |
 | V | 21 | hitDiceUsed | JSON string, default {} |
 | W | 22 | resourcePools | JSON string, default [] |
+| X | 23 | abilityScores | JSON string |
+| Y | 24 | proficiencies | JSON string |
 
-### NPCs (A2:N — 14 columns)
+### NPCs (A2:P — 16 columns)
 
 | Col | Index | Field | Notes |
 |-----|-------|-------|-------|
@@ -141,6 +143,8 @@ which calls a service.
 | L | 11 | legendaryActions | Number, default 0 |
 | M | 12 | legendaryResistances | Number, default 0 |
 | N | 13 | rechargeAbilities | JSON string |
+| O | 14 | abilityScores | JSON string |
+| P | 15 | proficiencies | JSON string |
 
 ### Encounters (A2:G — 7 columns)
 
@@ -359,7 +363,8 @@ The following fields are accepted by
 `notes`, `resistances`, `immunities`,
 `vulnerabilities`, `tempAc`, `deathSavesFails`,
 `deathSavesSuccesses`, `hitDiceConfig`,
-`hitDiceUsed`, `resourcePools`
+`hitDiceUsed`, `resourcePools`, `abilityScores`,
+`proficiencies`
 
 When adding a new character field, add it to
 this whitelist and to `dbOperations.ts`.

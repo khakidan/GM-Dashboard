@@ -2,6 +2,15 @@ import React from 'react';
 import { Shield, Heart, Plus, Trash2 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { IrvMultiSelect } from '../ui/IrvMultiSelect';
+import { StatBlock } from '../ui/StatBlock';
+import {
+  parseAbilityScores,
+  parseProficiencies,
+  serializeAbilityScores,
+  serializeProficiencies,
+  DEFAULT_ABILITY_SCORES,
+  DEFAULT_PROFICIENCIES
+} from '../../lib/abilityScores';
 
 export interface RechargeAbility {
   id: string;
@@ -20,6 +29,8 @@ export interface NpcFormData {
   legendaryActions: number;
   legendaryResistances: number;
   rechargeAbilities: RechargeAbility[];
+  abilityScores: string;
+  proficiencies: string;
 }
 
 export const DEFAULT_NPC_FORM_DATA: NpcFormData = {
@@ -33,6 +44,8 @@ export const DEFAULT_NPC_FORM_DATA: NpcFormData = {
   legendaryActions: 0,
   legendaryResistances: 0,
   rechargeAbilities: [],
+  abilityScores: serializeAbilityScores(DEFAULT_ABILITY_SCORES),
+  proficiencies: serializeProficiencies(DEFAULT_PROFICIENCIES),
 };
 
 interface NpcFormFieldsProps {
@@ -62,6 +75,17 @@ export function NpcFormFields({ data, onChange, errors = {}, compact = false }: 
     handleChange('rechargeAbilities', data.rechargeAbilities.map(r => r.id === id ? { ...r, [field]: value } : r));
   };
   
+  const parsedAbilityScores = 
+    parseAbilityScores(
+      data.abilityScores ?? 
+      serializeAbilityScores(
+        DEFAULT_ABILITY_SCORES));
+  const parsedProficiencies = 
+    parseProficiencies(
+      data.proficiencies ?? 
+      serializeProficiencies(
+        DEFAULT_PROFICIENCIES));
+
   const labelClass = cn(
     "block font-bold uppercase tracking-widest text-[#5a5a40] mb-1.5 px-1",
     compact ? "text-[10px]" : "text-xs"
@@ -128,6 +152,19 @@ export function NpcFormFields({ data, onChange, errors = {}, compact = false }: 
           </div>
         </div>
       </div>
+
+      <StatBlock
+        abilityScores={parsedAbilityScores}
+        proficiencies={parsedProficiencies}
+        readOnly={false}
+        onChange={(scores, profs) => {
+          onChange({
+            ...data,
+            abilityScores: serializeAbilityScores(scores),
+            proficiencies: serializeProficiencies(profs),
+          });
+        }}
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <IrvMultiSelect

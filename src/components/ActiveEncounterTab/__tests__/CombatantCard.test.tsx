@@ -1006,4 +1006,90 @@ describe('CombatantCard', () => {
       expect(containerNPC.querySelector('#resource-pools-section')).toBeNull();
     });
   });
+
+  describe('StatBlock Integration in Expanded Card', () => {
+    it('ranks and renders read-only StatBlock for a PC when character data is available', () => {
+      const pc: Combatant = {
+        ...defaultCombatant,
+        id: 'combat-pc-char-stat',
+        name: 'Hero',
+        type: 'pc',
+        characterId: 'char-stat'
+      };
+      
+      const charMock = {
+        id: 'char-stat',
+        playerName: 'Player 1',
+        characterName: 'Hero',
+        ac: 15, maxHp: 30, tempHp: 0, currentHp: 30, conditions: '', passivePerception: 10, level: 5, statusId: 1, statusName: 'Active', notes: '', isActive: true, class: 'Hero', hitDiceConfig: '1d8', hitDiceUsed: '0',
+        abilityScores: JSON.stringify({ STR: 18, DEX: 14, CON: 16, INT: 10, WIS: 12, CHA: 8 }),
+        proficiencies: JSON.stringify({
+          proficiencyBonus: 3,
+          jackOfAllTrades: false,
+          savingThrows: ['STR', 'CON'],
+          skills: { Athletics: 'proficient' },
+          passiveBonuses: { perception: 0, insight: 0, investigation: 0 },
+        }),
+      };
+
+      useDashboardStore.setState(prev => ({
+        ...prev,
+        characters: [charMock]
+      }));
+
+      const { container } = render(<CombatantCard {...defaultProps} c={pc} isExpanded={true} />);
+      
+      // In read-only mode, ability score should render as text, not input
+      const strBox = container.querySelector('#ability-box-str');
+      expect(strBox).toBeInTheDocument();
+      expect(strBox?.textContent).toContain('18');
+      expect(container.querySelector('#ability-score-str')).toBeNull(); // Should be null because readOnly={true}
+    });
+
+    it('ranks and renders read-only StatBlock for an NPC when NPC template data is available in library', () => {
+      const npc: Combatant = {
+        ...defaultCombatant,
+        id: 'combat-npc-npc-stat-0-123456789',
+        name: 'Goblin Template',
+        type: 'npc',
+      };
+      
+      const npcMock = {
+        id: 'npc-stat',
+        name: 'Goblin Template',
+        ac: 15,
+        maxHp: 30,
+        tempHp: 0,
+        currentHp: 30,
+        conditions: '',
+        notes: '',
+        resistances: '',
+        immunities: '',
+        vulnerabilities: '',
+        legendaryActions: 0,
+        legendaryResistances: 0,
+        rechargeAbilities: [],
+        abilityScores: JSON.stringify({ STR: 12, DEX: 15, CON: 10, INT: 10, WIS: 8, CHA: 8 }),
+        proficiencies: JSON.stringify({
+          proficiencyBonus: 2,
+          jackOfAllTrades: false,
+          savingThrows: [],
+          skills: {},
+          passiveBonuses: { perception: 0, insight: 0, investigation: 0 },
+        }),
+      };
+
+      useDashboardStore.setState(prev => ({
+        ...prev,
+        npcs: [npcMock]
+      }));
+
+      const { container } = render(<CombatantCard {...defaultProps} c={npc} isExpanded={true} />);
+      
+      const dexBox = container.querySelector('#ability-box-dex');
+      expect(dexBox).toBeInTheDocument();
+      expect(dexBox?.textContent).toContain('15');
+      expect(container.querySelector('#ability-score-dex')).toBeNull(); // Should be null because readOnly={true}
+    });
+  });
 });

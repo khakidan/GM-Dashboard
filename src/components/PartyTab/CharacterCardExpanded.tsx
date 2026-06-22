@@ -10,6 +10,8 @@ import { ResourcePoolsSection } from './ResourcePoolsSection';
 import { getHitDiceStatus, getTotalHitDiceCount } from '../../lib/hitDice';
 import { getResourceForEffect, parseResourcePools, spendResourcePip, serializeResourcePools } from '../../lib/resourcePools';
 import { toast } from 'sonner';
+import { StatBlock } from '../ui/StatBlock';
+import { parseAbilityScores, parseProficiencies, serializeAbilityScores, serializeProficiencies } from '../../lib/abilityScores';
 
 export interface CharacterCardExpandedProps {
   character: Character;
@@ -44,6 +46,11 @@ export const CharacterCardExpanded: React.FC<CharacterCardExpandedProps> = ({
       toast.warning(`${matchedPool.name} is already depleted.`);
     }
   };
+
+  const parsedAbilityScores = 
+    parseAbilityScores(character.abilityScores);
+  const parsedProficiencies = 
+    parseProficiencies(character.proficiencies);
 
   return (
     <div className="p-6 flex flex-col font-sans gap-5">
@@ -204,6 +211,19 @@ export const CharacterCardExpanded: React.FC<CharacterCardExpandedProps> = ({
         character={character}
         isSyncing={isSyncing}
         onUpdate={onUpdate}
+      />
+
+      <StatBlock
+        abilityScores={parsedAbilityScores}
+        proficiencies={parsedProficiencies}
+        characterLevel={character.level}
+        readOnly={false}
+        onChange={(scores, profs) => {
+          onUpdate({
+            abilityScores: serializeAbilityScores(scores),
+            proficiencies: serializeProficiencies(profs),
+          });
+        }}
       />
 
       <CharacterResourceSection

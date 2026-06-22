@@ -26,4 +26,26 @@ describe('NpcFormFields', () => {
     expect(calledData).not.toBeNull();
     expect(calledData.name).toBe('Test NPC');
   });
+
+  it('StatBlock renders in NpcFormFields', () => {
+    const { container } = render(<NpcFormFields data={DEFAULT_NPC_FORM_DATA} onChange={vi.fn()} />);
+    const strInput = container.querySelector('#ability-score-str') as HTMLInputElement;
+    expect(strInput).toBeDefined();
+    expect(strInput?.value).toBe('10'); // Default STR is 10
+  });
+
+  it('Changing a StatBlock value calls onChange with updated abilityScores in the data object', () => {
+    let calledData: any = null;
+    const onChange = (data: any) => {
+      calledData = data;
+    };
+    const { container } = render(<NpcFormFields data={DEFAULT_NPC_FORM_DATA} onChange={onChange} />);
+    const strInput = container.querySelector('#ability-score-str') as HTMLInputElement;
+
+    fireEvent.change(strInput!, { target: { value: '15' } });
+    fireEvent.blur(strInput!);
+
+    expect(calledData).not.toBeNull();
+    expect(calledData.abilityScores).toContain('"STR":15');
+  });
 });
