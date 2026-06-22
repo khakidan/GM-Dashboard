@@ -12,7 +12,7 @@ import { NpcIRVSection } from './NpcIRVSection';
 import { NpcLegendarySection } from './NpcLegendarySection';
 import { NpcRechargeSection } from './NpcRechargeSection';
 import { StatBlock } from '../ui/StatBlock';
-import { parseAbilityScores, parseProficiencies } from '../../lib/abilityScores';
+import { parseAbilityScores, parseProficiencies, serializeAbilityScores, serializeProficiencies } from '../../lib/abilityScores';
 
 export interface NpcCardProps {
   npc: NPC;
@@ -79,7 +79,13 @@ export const NpcCard: React.FC<NpcCardProps> = ({
               <StatBlock
                 abilityScores={parseAbilityScores(npc.abilityScores || '')}
                 proficiencies={parseProficiencies(npc.proficiencies || '')}
-                readOnly={true}
+                readOnly={false}
+                onChange={(scores, profs) => {
+                  onUpdate({
+                    abilityScores: serializeAbilityScores(scores),
+                    proficiencies: serializeProficiencies(profs),
+                  });
+                }}
               />
 
               <div className="space-y-4">

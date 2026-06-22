@@ -124,14 +124,14 @@ describe('NpcCard Sub-components', () => {
         />
       );
 
-      // StatBlock in readOnly mode should render the ability score as text
-      const strBox = container.querySelector('#ability-box-str');
-      expect(strBox).toBeInTheDocument();
-      expect(strBox?.textContent).toContain('8');
+      // StatBlock in editable mode should render HTML input elements for scores
+      const strInput = container.querySelector('#ability-score-str') as HTMLInputElement;
+      expect(strInput).toBeInTheDocument();
+      expect(strInput.value).toBe('8');
 
-      const dexBox = container.querySelector('#ability-box-dex');
-      expect(dexBox).toBeInTheDocument();
-      expect(dexBox?.textContent).toContain('14');
+      const dexInput = container.querySelector('#ability-score-dex') as HTMLInputElement;
+      expect(dexInput).toBeInTheDocument();
+      expect(dexInput.value).toBe('14');
     });
   });
 });
