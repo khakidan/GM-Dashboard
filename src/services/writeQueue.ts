@@ -105,7 +105,6 @@ export async function flushQueue(): Promise<void> {
   const data = Array.from(queue.values());
   queue.clear();
 
-  const tId = toast.loading('Syncing changes...');
   try {
     const groups = new Map<string, Array<{ range: string; values: WriteGrid }>>();
     for (const item of data) {
@@ -124,12 +123,11 @@ export async function flushQueue(): Promise<void> {
       })
     );
 
-    toast.success('Changes synced successfully', { id: tId });
     clearPersistedWrites();
   } catch (err) {
     persistFailedWrites(data);
     console.error('[WriteQueue] Failed to flush queue:', err);
-    toast.error('Failed to sync some changes', { id: tId });
+    toast.error('Failed to sync some changes');
   }
 }
 
