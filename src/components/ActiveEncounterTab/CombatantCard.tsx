@@ -67,8 +67,8 @@ export function CombatantCard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className={cn(
-        'relative bg-white border-2 rounded-2xl transition-all h-fit',
-        isSelected ? 'border-[#c5b358] shadow-[0_0_15px_rgba(197,179,88,0.2)] border-l-[6px] border-l-amber-500' : (isActive ? 'border-[#c5b358] shadow-md z-10' : 'border-[#e5e1d8] hover:border-[#c5b358]/40'),
+        'relative bg-[#fdfaf5] border rounded-2xl transition-all h-fit',
+        isSelected ? 'bg-[#fdf4c2] border-[#c5b358] shadow-[0_0_15px_rgba(197,179,88,0.2)] border-l-[6px] border-l-amber-500' : (isActive ? 'bg-[#fdf4c2] border-2 border-[#c5b358] shadow-md z-10' : 'border-[#e5e1d8] hover:border-[#c5b358]/40'),
         c.currentHp <= 0 ? 'opacity-60 grayscale-[0.5]' : ''
       )}
     >

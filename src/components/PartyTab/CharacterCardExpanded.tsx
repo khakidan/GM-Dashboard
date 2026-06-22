@@ -200,7 +200,7 @@ export const CharacterCardExpanded: React.FC<CharacterCardExpandedProps> = ({
                 return (
                   <div key={pool.die} className="flex items-center justify-between text-xs py-1 px-1 border-b border-[#fdfaf5]/50 last:border-b-0" id={`pool-display-d{pool.die}`}>
                     <div className="flex items-center gap-2">
-                      <span className="font-serif font-bold text-[#20201a] inline-block bg-[#5a5a40]/10 px-1.5 py-0.5 rounded text-[10px]">
+                      <span className="font-serif font-bold text-[#20201a] inline-block bg-[#f5f1e8] px-1.5 py-0.5 rounded text-[10px]">
                         d{pool.die}
                       </span>
                       <span className="font-mono text-[#5a5a40]">
@@ -247,7 +247,7 @@ export const CharacterCardExpanded: React.FC<CharacterCardExpandedProps> = ({
           value={character.notes}
           onChange={(v) => onUpdate({ notes: v })}
           placeholder="Notes..."
-          className="w-full text-sm text-[#2c2c26] bg-[#fdfaf5] p-3 rounded-lg italic resize-none border border-[#e5e1d8] focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all h-24 placeholder:text-[#cccbcb] disabled:opacity-50"
+          className="w-full text-sm text-[#2c2c26] bg-transparent p-3 rounded-lg italic resize-none border border-[#e5e1d8] focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all h-24 placeholder:text-[#5a5a40]/40 disabled:opacity-50"
           disabled={isSyncing}
         />
       </div>

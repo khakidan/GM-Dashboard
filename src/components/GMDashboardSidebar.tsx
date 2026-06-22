@@ -37,7 +37,7 @@ export function GMDashboardSidebar({
   onCloseCampaign,
 }: GMDashboardSidebarProps) {
   return (
-    <aside className="w-16 bg-[#2c2c26] text-[#e5e1d8] flex flex-col border-r border-[#1a1a14] z-40 h-full relative shrink-0 pt-4 overflow-visible">
+    <aside className="w-16 bg-[#f5f1e8] text-[#2c2c26] flex flex-col border-r border-[#e5e1d8] z-40 h-full relative shrink-0 pt-4 overflow-visible">
       <nav className="flex-1 px-3 space-y-4 overflow-visible flex flex-col items-center">
         {/* Search / Command Palette */}
         <SidebarIcon
@@ -93,7 +93,7 @@ export function GMDashboardSidebar({
         />
 
         {/* All Campaigns (back button) */}
-        <div className="pt-4 border-t border-[#3f3f37] w-full mt-4">
+        <div className="pt-4 border-t border-[#e5e1d8] w-full mt-4">
           <SidebarIcon
             id="sidebar-all-campaigns-btn"
             icon={<ArrowLeft className="w-5 h-5" />}

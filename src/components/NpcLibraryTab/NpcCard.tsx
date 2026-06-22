@@ -31,8 +31,8 @@ export const NpcCard: React.FC<NpcCardProps> = ({
 
   return (
     <div className={cn(
-      "bg-white rounded-2xl border overflow-hidden flex flex-col relative group transition-all",
-      isExpanded ? "border-[#c5b358]/40" : "border-[#e5e1d8] hover:border-[#c5b358]/20",
+      "bg-[#fdfaf5] rounded-2xl border border-[#e5e1d8] overflow-hidden flex flex-col relative group transition-all",
+      isExpanded ? "border-[#c5b358]/40" : "hover:border-[#c5b358]/20",
       isSyncing ? "border-[#c5b358] shadow-[0_0_15px_rgba(197,179,88,0.3)] shadow-[#c5b358]/20" : "shadow-sm hover:shadow-md"
     )}>
       {isSyncing && (
@@ -53,7 +53,7 @@ export const NpcCard: React.FC<NpcCardProps> = ({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden border-t border-[#f5f5f0]"
+            className="overflow-hidden border-t border-[#e5e1d8]"
           >
             <div className="p-6 flex flex-col gap-6">
               <StatBlock

@@ -52,15 +52,15 @@ export const CharacterCardHeader: React.FC<CharacterCardHeaderProps> = ({
           <DebouncedInput 
             value={characterName}
             onChange={(v) => onUpdateCharacterName?.(v as string)}
-            className="text-lg font-bold text-[#2c2c26] font-serif bg-transparent border border-transparent rounded hover:bg-[#fdfaf5] focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none px-2 py-1 -ml-2 transition-all placeholder:text-gray-300 disabled:opacity-50 w-auto max-w-[160px] truncate"
+            className="text-lg font-bold text-[#2c2c26] font-serif bg-transparent border border-transparent rounded hover:bg-[#f5f1e8] focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none px-2 py-1 -ml-2 transition-all placeholder:text-[#5a5a40]/30 disabled:opacity-50 w-auto max-w-[160px] truncate"
             placeholder="Name"
             disabled={isSyncing}
           />
-          <div className="hidden sm:block text-[#e5e1d8] shrink-0">|</div>
+          <div className="hidden sm:block text-[#5a5a40]/30 shrink-0">|</div>
           <DebouncedInput 
             value={playerName}
             onChange={(v) => onUpdatePlayerName?.(v as string)}
-            className="text-xs text-[#5a5a40] uppercase tracking-wider font-bold opacity-60 bg-transparent border border-transparent rounded hover:bg-[#fdfaf5] focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none px-2 py-1 -ml-2 transition-all placeholder:text-gray-300 disabled:opacity-50 w-auto max-w-[100px] truncate"
+            className="text-xs text-[#5a5a40] uppercase tracking-wider font-bold opacity-60 bg-transparent border border-transparent rounded hover:bg-[#f5f1e8] focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none px-2 py-1 -ml-2 transition-all placeholder:text-[#5a5a40]/30 disabled:opacity-50 w-auto max-w-[100px] truncate"
             placeholder="Player"
             disabled={isSyncing}
           />
@@ -96,7 +96,7 @@ export const CharacterCardHeader: React.FC<CharacterCardHeaderProps> = ({
           </div>
 
           {!isExpanded && (
-            <div className="flex items-center gap-4 pl-4 border-l border-[#f5f5f0] whitespace-nowrap">
+            <div className="flex items-center gap-4 pl-4 border-l border-[#e5e1d8] whitespace-nowrap">
               {conditions && (
                 <div className="hidden lg:flex items-center gap-1.5 px-3 py-1 bg-red-50 text-red-700 border border-red-100 rounded-full text-[14px] font-bold italic max-w-[220px] truncate">
                   {conditions}
@@ -119,7 +119,7 @@ export const CharacterCardHeader: React.FC<CharacterCardHeaderProps> = ({
         </div>
       </div>
 
-      <div className="flex items-center gap-2 shrink-0 border-l border-[#f5f5f0] pl-3">
+      <div className="flex items-center gap-2 shrink-0 border-l border-[#e5e1d8] pl-3">
         {statusId === 1 && onLevelUpClick && (
           <button
             id={`lvl-btn-${characterId}`}
@@ -134,7 +134,7 @@ export const CharacterCardHeader: React.FC<CharacterCardHeaderProps> = ({
         )}
         <button 
           onClick={onToggleExpand}
-          className="p-2 text-[#5a5a40] opacity-30 hover:opacity-100 hover:bg-[#f5f5f0] rounded-full transition-all"
+          className="p-2 text-[#5a5a40] opacity-30 hover:opacity-100 hover:bg-[#f5f1e8] rounded-full transition-all"
         >
           <motion.div animate={{ rotate: isExpanded ? 180 : 0 }}>
             <ChevronDown className="w-5 h-5" />

@@ -40,18 +40,18 @@ export const StatBlockScores: React.FC<StatBlockScoresProps> = ({
           return (
             <div
               key={ability}
-              className="bg-stone-800 border border-stone-600 rounded-lg p-2 text-center min-w-[52px] flex-1 flex flex-col justify-between"
+              className="bg-[#f5f1e8] border border-[#e5e1d8] rounded-lg p-2 text-center min-w-[52px] flex-1 flex flex-col justify-between"
               id={`ability-box-${ability.toLowerCase()}`}
             >
               {/* Row 1 — Label */}
-              <div className="text-[10px] font-medium uppercase tracking-wider text-stone-400">
+              <div className="text-[10px] font-medium uppercase tracking-wider text-[#5a5a40]">
                 {ability}
               </div>
 
               {/* Row 2 — Score */}
               <div className="my-1.5 flex justify-center items-center h-8">
                 {readOnly ? (
-                  <span className="text-2xl font-bold text-stone-100">
+                  <span className="text-2xl font-bold text-[#2c2c26]">
                     {score}
                   </span>
                 ) : (
@@ -62,7 +62,7 @@ export const StatBlockScores: React.FC<StatBlockScoresProps> = ({
                     value={score}
                     onChange={(e) => onAbilityChange(ability, e.target.value)}
                     onFocus={(e) => e.target.select()}
-                    className="appearance-none bg-transparent text-center border-none focus:outline-none focus:ring-0 w-full text-2xl font-bold text-stone-100 p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    className="bg-white border border-[#e5e1d8] rounded text-[#2c2c26] text-2xl font-bold text-center w-full focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358]/50 focus:outline-none appearance-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     id={`ability-score-${ability.toLowerCase()}`}
                   />
                 )}
@@ -72,10 +72,10 @@ export const StatBlockScores: React.FC<StatBlockScoresProps> = ({
               <div
                 className={`text-sm font-medium ${
                   modifier > 0
-                    ? 'text-amber-400'
+                    ? 'text-[#8a7a20]'
                     : modifier === 0
-                    ? 'text-stone-400'
-                    : 'text-red-400'
+                    ? 'text-[#5a5a40]'
+                    : 'text-red-600'
                 }`}
                 id={`ability-modifier-${ability.toLowerCase()}`}
               >
@@ -87,11 +87,11 @@ export const StatBlockScores: React.FC<StatBlockScoresProps> = ({
       </div>
 
       {/* SECTION B — Proficiency Bonus Row */}
-      <div className="flex items-center justify-between py-1.5 border-b border-stone-700" id="proficiency-bonus-row">
+      <div className="flex items-center justify-between py-1.5 border-b border-[#e5e1d8]" id="proficiency-bonus-row">
         <div>
-          <span className="text-xs text-stone-600 font-medium block">Proficiency Bonus</span>
+          <span className="text-xs text-[#5a5a40] font-medium block">Proficiency Bonus</span>
           {characterLevel && !readOnly && (
-            <span className="text-[10px] text-stone-500 block mt-0.5">
+            <span className="text-[10px] text-[#5a5a40] block mt-0.5">
               Override
             </span>
           )}
@@ -100,7 +100,7 @@ export const StatBlockScores: React.FC<StatBlockScoresProps> = ({
         <div className="flex flex-col items-end">
           {characterLevel ? (
             <>
-              <span className="text-sm font-semibold text-stone-800" id="proficiency-bonus-display">
+              <span className="text-sm font-medium text-[#2c2c26]" id="proficiency-bonus-display">
                 {formatBonus(effectiveProfBonus)}
               </span>
               {!readOnly && (
@@ -115,7 +115,7 @@ export const StatBlockScores: React.FC<StatBlockScoresProps> = ({
                     onProfBonusOverrideChange(isNaN(val) ? 0 : val);
                   }}
                   onFocus={(e) => e.target.select()}
-                  className="w-12 text-[10px] bg-stone-800 border border-stone-600 rounded text-stone-300 text-center py-0.5 mt-0.5 outline-none focus:border-amber-500"
+                  className="w-12 text-[10px] bg-white border border-[#e5e1d8] rounded text-[#2c2c26] text-center py-0.5 mt-0.5 outline-none focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358]/50"
                   id="proficiency-bonus-override"
                 />
               )}
@@ -123,7 +123,7 @@ export const StatBlockScores: React.FC<StatBlockScoresProps> = ({
           ) : (
             <>
               {readOnly ? (
-                <span className="text-sm font-semibold text-stone-800" id="proficiency-bonus-display">
+                <span className="text-sm font-medium text-[#2c2c26]" id="proficiency-bonus-display">
                   {formatBonus(effectiveProfBonus)}
                 </span>
               ) : (
@@ -137,7 +137,7 @@ export const StatBlockScores: React.FC<StatBlockScoresProps> = ({
                     onProfBonusOverrideChange(isNaN(val) ? 2 : val);
                   }}
                   onFocus={(e) => e.target.select()}
-                  className="w-12 text-sm bg-stone-800 border border-stone-600 rounded text-stone-200 text-center py-0.5 outline-none focus:border-amber-500"
+                  className="w-12 text-sm bg-white border border-[#e5e1d8] rounded text-[#2c2c26] text-center py-0.5 outline-none focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358]/50"
                   id="proficiency-bonus-input"
                 />
               )}

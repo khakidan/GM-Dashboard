@@ -151,26 +151,26 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
   return (
     <div
       id="level-up-overlay"
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#2c2c26]/60 backdrop-blur-sm overflow-y-auto"
     >
       <div
         id="level-up-dialog"
-        className="bg-[#fdfaf5] w-full max-w-lg rounded-2xl shadow-2xl border border-[#e5e1d8] overflow-hidden flex flex-col my-8"
+        className="bg-[#fdfaf5] w-full max-w-lg rounded-2xl shadow-xl border border-[#e5e1d8] overflow-hidden flex flex-col my-8"
       >
         {/* Header */}
-        <div className="bg-[#2c2c26] p-5 text-[#e5e1d8] flex items-center justify-between">
+        <div className="bg-[#2c2c26] px-6 py-4 text-[#fdfaf5] flex items-center justify-between rounded-t-2xl">
           <div className="flex flex-col">
             <h2 className="text-lg font-bold font-serif uppercase tracking-wider text-[#c5b358]">
               Level Up Wizard
             </h2>
-            <p className="text-[10px] text-[#5a5a40] font-sans font-bold uppercase tracking-wider mt-0.5">
+            <p className="text-[10px] text-[#e5e1d8]/60 font-sans font-bold uppercase tracking-wider mt-0.5">
               {character.characterName} (Level {character.level})
             </p>
           </div>
           <button
             id="close-dialog-btn"
             onClick={onClose}
-            className="p-1.5 hover:bg-white/10 rounded-full transition-colors text-white cursor-pointer"
+            className="p-1.5 hover:bg-white/10 rounded-full transition-colors text-[#e5e1d8] hover:text-white cursor-pointer"
             title="Close"
           >
             <X className="w-5 h-5" />
@@ -181,7 +181,7 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
         <div className="p-6 space-y-6 overflow-y-auto max-h-[70vh]">
           {/* SECTION A: GM Checklist */}
           <div className="space-y-3" id="checklist-section">
-            <h3 className="text-xs font-bold uppercase tracking-widest text-[#2c2c26] border-b border-[#e5e1d8] pb-1.5">
+            <h3 className="text-[#5a5a40] text-xs font-bold uppercase tracking-widest border-b border-[#e5e1d8] pb-1 mb-2">
               Section A: GM Checklist <span className="text-[9px] font-normal text-[#5a5a40] normal-case tracking-normal">(visual only memory aid)</span>
             </h3>
             
@@ -269,7 +269,7 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
 
           {/* SECTION B: Updated Values */}
           <div className="space-y-4" id="values-section">
-            <h3 className="text-xs font-bold uppercase tracking-widest text-[#2c2c26] border-b border-[#e5e1d8] pb-1.5">
+            <h3 className="text-[#5a5a40] text-xs font-bold uppercase tracking-widest border-b border-[#e5e1d8] pb-1 mb-2">
               Section B: Updated Values
             </h3>
 
@@ -320,7 +320,7 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
                       placeholder="e.g. Fighter"
                       value={newClassName}
                       onChange={e => setNewClassName(e.target.value)}
-                      className="w-full bg-[#faf9f6]/90 border border-[#e5e1d8] rounded-xl px-3 py-1.5 text-xs outline-none focus:bg-white focus:border-[#c5b358]"
+                      className="bg-white border border-[#e5e1d8] rounded-xl text-[#2c2c26] placeholder:text-[#5a5a40] focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358]/50 focus:outline-none w-full px-3 py-1.5 text-xs"
                     />
                   </div>
                   <div>
@@ -331,7 +331,7 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
                       id="new-class-hitdie"
                       value={newClassHitDie}
                       onChange={e => setNewClassHitDie(parseInt(e.target.value, 10))}
-                      className="w-full bg-[#faf9f6] border border-[#e5e1d8] rounded-xl px-3 py-1.5 text-xs outline-none focus:bg-white focus:border-[#c5b358]"
+                      className="bg-white border border-[#e5e1d8] rounded-xl text-[#2c2c26] focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358]/50 focus:outline-none w-full px-3 py-1.5 text-xs"
                     >
                       <option value={6}>d6</option>
                       <option value={8}>d8</option>
@@ -354,7 +354,7 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
                   value={newLevel}
                   onFocus={(e) => e.target.select()}
                   onChange={e => setNewLevel(Math.max(1, parseInt(e.target.value) || 0))}
-                  className="w-full bg-[#faf9f6] border border-[#e5e1d8] rounded-xl px-3 py-2 text-sm outline-none focus:bg-white focus:border-[#c5b358]"
+                  className="bg-white border border-[#e5e1d8] rounded-xl text-[#2c2c26] placeholder:text-[#5a5a40] focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358]/50 focus:outline-none w-full px-3 py-2 text-sm transition-all"
                 />
               </div>
 
@@ -368,7 +368,7 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
                   value={newAc}
                   onFocus={(e) => e.target.select()}
                   onChange={e => setNewAc(Math.max(0, parseInt(e.target.value) || 0))}
-                  className="w-full bg-[#faf9f6]/50 border border-[#e5e1d8] rounded-xl px-3 py-2 text-sm outline-none focus:bg-white focus:border-[#c5b358]"
+                  className="bg-white border border-[#e5e1d8] rounded-xl text-[#2c2c26] placeholder:text-[#5a5a40] focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358]/50 focus:outline-none w-full px-3 py-2 text-sm transition-all"
                 />
               </div>
             </div>
@@ -384,7 +384,7 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
                   value={newMaxHp}
                   onFocus={(e) => e.target.select()}
                   onChange={e => setNewMaxHp(Math.max(1, parseInt(e.target.value) || 0))}
-                  className="w-full bg-[#faf9f6] border border-[#e5e1d8] rounded-xl px-3 py-2 text-sm outline-none focus:bg-white focus:border-[#c5b358]"
+                  className="bg-white border border-[#e5e1d8] rounded-xl text-[#2c2c26] placeholder:text-[#5a5a40] focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358]/50 focus:outline-none w-full px-3 py-2 text-sm transition-all"
                 />
               </div>
 
@@ -428,7 +428,7 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
                   value={newPassivePerception}
                   onFocus={(e) => e.target.select()}
                   onChange={e => setNewPassivePerception(Math.max(0, parseInt(e.target.value) || 0))}
-                  className="w-full bg-[#faf9f6]/50 border border-[#e5e1d8] rounded-xl px-3 py-2 text-sm outline-none focus:bg-white focus:border-[#c5b358]"
+                  className="bg-white border border-[#e5e1d8] rounded-xl text-[#2c2c26] placeholder:text-[#5a5a40] focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358]/50 focus:outline-none w-full px-3 py-2 text-sm transition-all"
                 />
               </div>
 
@@ -462,7 +462,7 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
                   value={newNotes}
                   onChange={e => setNewNotes(e.target.value)}
                   placeholder="Record level up traits, feats, spell choices..."
-                  className="w-full bg-[#faf9f6] border border-[#e5e1d8] rounded-xl px-3 py-2 text-xs italic outline-none focus:bg-white focus:border-[#c5b358] h-20 resize-none"
+                  className="bg-white border border-[#e5e1d8] rounded-xl text-[#2c2c26] placeholder:text-[#5a5a40] focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358]/50 focus:outline-none w-full px-3 py-2 text-sm transition-all h-20 resize-none font-sans"
                 />
               </div>
             </div>
@@ -470,11 +470,11 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="bg-[#f5f5f0] border-t border-[#e5e1d8] p-4 flex justify-end gap-3 px-6">
+        <div className="bg-[#fdfaf5] px-6 py-4 border-t border-[#e5e1d8] flex items-center justify-end gap-3 rounded-b-2xl">
           <button
             id="cancel-dialog-btn"
             onClick={onClose}
-            className="px-4 py-2 hover:bg-gray-200 text-[#5a5a40] rounded-xl text-xs font-bold uppercase tracking-widest transition-all cursor-pointer"
+            className="text-[#5a5a40] border border-[#e5e1d8] rounded-xl px-3 py-1.5 text-xs hover:border-[#c5b358] hover:text-[#2c2c26] transition-colors"
           >
             Cancel
           </button>
@@ -482,7 +482,7 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
             id="confirm-level-up-btn"
             onClick={handleConfirm}
             disabled={isConfirmDisabled}
-            className="px-5 py-2 bg-[#c5b358] hover:bg-[#b09e4b] disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl text-xs uppercase tracking-widest transition-all flex items-center gap-1.5 shadow-md hover:shadow-lg cursor-pointer"
+            className="bg-[#c5b358] text-[#2c2c26] font-bold uppercase tracking-widest text-xs rounded-xl px-4 py-2 hover:bg-[#d4c47a] transition-colors disabled:bg-[#e5e1d8] disabled:text-[#5a5a40] disabled:cursor-not-allowed disabled:opacity-60 shadow-sm flex items-center gap-1.5"
           >
             Confirm Level Up <ArrowRight className="w-3.5 h-3.5" />
           </button>

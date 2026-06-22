@@ -34,7 +34,7 @@ export function LongRestDialog({ isOpen, characters, onConfirm, onClose }: LongR
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -47,21 +47,21 @@ export function LongRestDialog({ isOpen, characters, onConfirm, onClose }: LongR
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="bg-[#fdfaf5] w-full max-w-lg rounded-2xl shadow-2xl border border-[#e5e1d8] overflow-hidden flex flex-col relative z-10"
+            className="bg-[#fdfaf5] w-full max-w-lg rounded-2xl shadow-xl border border-[#e5e1d8] overflow-hidden flex flex-col relative z-10"
             id="long-rest-dialog"
           >
             {/* Header */}
-            <div className="bg-[#2c2c26] p-5 text-[#e5e1d8] flex items-center justify-between">
+            <div className="bg-[#2c2c26] px-6 py-4 text-[#fdfaf5] flex items-center justify-between rounded-t-2xl">
               <div className="flex items-center gap-3">
                 <Moon className="w-5 h-5 text-[#c5b358]" />
                 <div>
                   <h2 className="text-lg font-bold font-serif uppercase tracking-wider">Long Rest</h2>
-                  <p className="text-xs text-white/60">Select which characters are taking a long rest.</p>
+                  <p className="text-xs text-[#e5e1d8]/60">Select which characters are taking a long rest.</p>
                 </div>
               </div>
               <button
                 onClick={onClose}
-                className="p-1.5 hover:bg-white/10 rounded-full transition-colors text-white/50 hover:text-white"
+                className="p-1.5 hover:bg-white/10 rounded-full transition-colors text-[#e5e1d8] hover:text-white"
                 title="Close"
                 id="long-rest-close-btn"
               >
@@ -87,8 +87,8 @@ export function LongRestDialog({ isOpen, characters, onConfirm, onClose }: LongR
                       onClick={() => toggleSelect(char.id)}
                       className={`flex flex-col p-3.5 rounded-xl border transition-all cursor-pointer select-none ${
                         isChecked
-                          ? 'bg-[#c5b358]/5 border-[#c5b358] shadow-sm'
-                          : 'bg-white border-[#e5e1d8] hover:border-[#bdbaa3]'
+                          ? 'bg-[#fdf4c2] border-[#c5b358] shadow-sm'
+                          : 'bg-white border-[#e5e1d8] hover:border-[#c5b358]'
                       }`}
                       id={`char-row-${char.id}`}
                     >
@@ -142,10 +142,10 @@ export function LongRestDialog({ isOpen, characters, onConfirm, onClose }: LongR
             )}
 
             {/* Footer */}
-            <div className="bg-[#fcfaf2] p-5 border-t border-[#e5e1d8] flex items-center justify-end gap-3">
+            <div className="bg-[#fdfaf5] px-6 py-4 border-t border-[#e5e1d8] flex items-center justify-end gap-3">
               <button
                 onClick={onClose}
-                className="px-4 py-2 border border-[#e5e1d8] text-[#5a5a40] hover:text-[#2c2c26] hover:bg-[#5a5a40]/5 hover:border-[#bdbaa3] rounded-xl text-sm font-medium transition-colors"
+                className="text-[#5a5a40] border border-[#e5e1d8] rounded-xl px-3 py-1.5 text-xs hover:border-[#c5b358] hover:text-[#2c2c26] transition-colors"
                 id="long-rest-cancel-btn"
               >
                 Cancel
@@ -154,7 +154,7 @@ export function LongRestDialog({ isOpen, characters, onConfirm, onClose }: LongR
                 onClick={handleApply}
                 disabled={selectedIds.length === 0}
                 title={selectedIds.length === 0 ? "Select at least one character" : "Apply Long Rest to selected characters"}
-                className="px-5 py-2 bg-[#c5b358] hover:bg-[#a39240] disabled:bg-[#e5e1d8] disabled:text-[#bdbaa3] disabled:cursor-not-allowed text-[#fdfaf5] hover:text-white rounded-xl text-sm font-bold shadow-sm transition-all flex items-center gap-1.5"
+                className="bg-[#c5b358] text-[#2c2c26] font-bold uppercase tracking-widest text-xs rounded-xl px-4 py-2 hover:bg-[#d4c47a] transition-colors disabled:bg-[#e5e1d8] disabled:text-[#5a5a40] disabled:cursor-not-allowed disabled:opacity-60 shadow-sm flex items-center gap-1.5"
                 id="long-rest-apply-btn"
               >
                 <Heart className="w-4 h-4 fill-current text-white/20" />
