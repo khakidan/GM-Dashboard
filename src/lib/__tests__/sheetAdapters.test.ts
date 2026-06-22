@@ -86,6 +86,8 @@ describe('sheetAdapters', () => {
         hitDiceConfig: '4d12+3d10',
         hitDiceUsed: '{"d12":1}',
         resourcePools: '[]',
+        abilityScores: '{"STR":10,"DEX":10,"CON":10,"INT":10,"WIS":10,"CHA":10}',
+        proficiencies: '{"proficiencyBonus":2,"jackOfAllTrades":false,"savingThrows":[],"skills":{},"passiveBonuses":{"perception":0,"insight":0,"investigation":0}}',
       });
     });
 
@@ -232,6 +234,8 @@ describe('sheetAdapters', () => {
         legendaryActions: 0,
         legendaryResistances: 0,
         rechargeAbilities: [],
+        abilityScores: '{"STR":10,"DEX":10,"CON":10,"INT":10,"WIS":10,"CHA":10}',
+        proficiencies: '{"proficiencyBonus":2,"jackOfAllTrades":false,"savingThrows":[],"skills":{},"passiveBonuses":{"perception":0,"insight":0,"investigation":0}}',
       });
     });
   });

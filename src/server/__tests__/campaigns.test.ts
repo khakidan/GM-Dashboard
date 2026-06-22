@@ -97,7 +97,8 @@ describe('Campaigns Router', () => {
         'Resistances', 'Immunities', 'Vulnerabilities',
         'Temp_HP_Max', 'Temp_AC', 'Death_Saves_Fails',
         'Death_Saves_Successes', 'Class',
-        'Hit_Dice_Config', 'Hit_Dice_Used', 'Resource_Pools'
+        'Hit_Dice_Config', 'Hit_Dice_Used', 'Resource_Pools',
+        'Ability_Scores', 'Proficiencies'
       ]);
 
       // NPCs sheet header assertion (Legendary_Actions at column L, Legendary_Resistances at column M, Recharge_Abilities at column N)
@@ -106,6 +107,8 @@ describe('Campaigns Router', () => {
       expect(npcsData.values[0][11]).toBe('Legendary_Actions');
       expect(npcsData.values[0][12]).toBe('Legendary_Resistances');
       expect(npcsData.values[0][13]).toBe('Recharge_Abilities');
+      expect(npcsData.values[0][14]).toBe('Ability_Scores');
+      expect(npcsData.values[0][15]).toBe('Proficiencies');
 
       // Encounters sheet header assertion
       const encountersData = valuesBody.data.find((d: any) => d.range.startsWith('Encounters!'));

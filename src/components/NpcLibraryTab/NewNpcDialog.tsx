@@ -55,6 +55,8 @@ export function NewNpcDialog({ isOpen, onClose, onConfirm }: NewNpcDialogProps) 
       legendaryActions: formData.legendaryActions,
       legendaryResistances: formData.legendaryResistances,
       rechargeAbilities: formData.rechargeAbilities.map(r => ({ name: r.name, rechargeOn: r.rechargeOn })),
+      abilityScores: '{}',
+      proficiencies: '{}',
     });
   };
 

@@ -214,6 +214,8 @@ export function useEncounterPresetLoader(
             resistances: resistances,
             immunities: immunities,
             vulnerabilities: vulnerabilities,
+            abilityScores: '{}',
+            proficiencies: '{}',
           },
         ],
         encounterCombatants: [

@@ -27,6 +27,8 @@ export interface Character {
   hitDiceConfig: string;
   hitDiceUsed: string;
   resourcePools?: string;
+  abilityScores: string;  // JSON
+  proficiencies: string;  // JSON
 }
 
 export interface NPC {
@@ -47,6 +49,8 @@ export interface NPC {
     name: string;
     rechargeOn: number;
   }>;
+  abilityScores: string;  // JSON
+  proficiencies: string;  // JSON
 }
 
 export interface Encounter {

@@ -73,7 +73,7 @@ export function useSheetSync({ setIsGoogleConnected, onActiveTabChange }: UseShe
 
       // 3. Fetch NPCs
       addLog('Step 4: Loading NPC library...');
-      const npcRes = await fetchSheetData(sid, 'NPCs!A2:N');
+      const npcRes = await fetchSheetData(sid, SHEET_RANGES.npcs);
       const parsedNPCs = parseNPCs(npcRes.values || []);
       addLog(`NPC entries loaded: ${parsedNPCs.length}`);
 

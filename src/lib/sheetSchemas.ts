@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { DEFAULT_ABILITY_SCORES, DEFAULT_PROFICIENCIES } from './abilityScores';
 
 const idSchema = z
   .any()
@@ -36,7 +37,7 @@ const padRow = (length: number) => (val: unknown) => {
   return arr;
 };
 
-export const CharacterRowSchema = z.preprocess(padRow(23), z.tuple([
+export const CharacterRowSchema = z.preprocess(padRow(25), z.tuple([
   idSchema,                            // [0] id
   stringDefault(''),                   // [1] playerName
   nonEmptyString,                      // [2] characterName
@@ -60,9 +61,11 @@ export const CharacterRowSchema = z.preprocess(padRow(23), z.tuple([
   stringDefault(''),                   // [20] hitDiceConfig
   stringDefault('{}'),                 // [21] hitDiceUsed
   stringDefault('[]'),                 // [22] resourcePools
+  stringDefault(JSON.stringify(DEFAULT_ABILITY_SCORES)), // [23] abilityScores
+  stringDefault(JSON.stringify(DEFAULT_PROFICIENCIES)),  // [24] proficiencies
 ]));
 
-export const NpcRowSchema = z.preprocess(padRow(14), z.tuple([
+export const NpcRowSchema = z.preprocess(padRow(16), z.tuple([
   idSchema,                            // [0] id
   stringDefault('Unknown NPC'),        // [1] name
   coerceNumber(10),                    // [2] ac
@@ -77,6 +80,8 @@ export const NpcRowSchema = z.preprocess(padRow(14), z.tuple([
   coerceNumber(0),                     // [11] legendaryActions
   coerceNumber(0),                     // [12] legendaryResistances
   stringDefault(''),                   // [13] rechargeAbilities
+  stringDefault(JSON.stringify(DEFAULT_ABILITY_SCORES)), // [14] abilityScores
+  stringDefault(JSON.stringify(DEFAULT_PROFICIENCIES)),  // [15] proficiencies
 ]));
 
 export const EncounterRowSchema = z.preprocess(padRow(7), z.tuple([

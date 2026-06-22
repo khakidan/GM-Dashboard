@@ -99,6 +99,8 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
       isActive: formData.statusId === 1,
       hitDiceConfig: hitDiceConfig.trim(),
       hitDiceUsed: '{}',
+      abilityScores: '{}',
+      proficiencies: '{}',
     });
   };
 

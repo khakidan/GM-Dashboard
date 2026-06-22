@@ -192,7 +192,7 @@ describe('addCharacterDB logic', () => {
     });
 
     expect(result.id).toBe('pc-1');
-    expect(sheetsService.appendSheetData).toHaveBeenCalledWith('Characters!A:W', [[
+    expect(sheetsService.appendSheetData).toHaveBeenCalledWith('Characters!A:Y', [[
       'pc-1',
       'Alice',      // trimmed playerName
       'Thorn',      // characterName
@@ -216,6 +216,8 @@ describe('addCharacterDB logic', () => {
       '',           // hitDiceConfig default
       '{}',         // hitDiceUsed default
       '[]',         // resourcePools default
+      '{}',         // abilityScores default
+      '{}',         // proficiencies default
     ]]);
   });
 
@@ -517,7 +519,7 @@ describe('updateNpcFullDB', () => {
 
     await updateNpcFullDB(npc as any);
 
-    expect(queueWrite).toHaveBeenCalledWith('NPCs!A2:N2', [[
+    expect(queueWrite).toHaveBeenCalledWith('NPCs!A2:P2', [[
       '101',
       'New Name',
       15,
@@ -531,7 +533,9 @@ describe('updateNpcFullDB', () => {
       'Cold',
       2,
       3,
-      '[{"name":"Fire Breath","recharge":"5-6"}]'
+      '[{"name":"Fire Breath","recharge":"5-6"}]',
+      '{}',
+      '{}'
     ]]);
   });
 
@@ -634,7 +638,7 @@ describe('addNpcDB', () => {
     );
 
     expect(result.id).toBe('1');
-    expect(sheetsService.appendSheetData).toHaveBeenCalledWith('NPCs!A:N', [[
+    expect(sheetsService.appendSheetData).toHaveBeenCalledWith('NPCs!A:P', [[
       '1',             // ID
       'Dragon',        // Name
       20,              // AC
@@ -648,7 +652,9 @@ describe('addNpcDB', () => {
       'cold',          // Vulnerabilities
       3,               // Legendary Actions
       3,               // Legendary Resistances
-      '[{"name":"Fire Breath","rechargeOn":5}]' // Recharge Abilities (JSON)
+      '[{"name":"Fire Breath","rechargeOn":5}]', // Recharge Abilities (JSON)
+      '{}',            // abilityScores
+      '{}'             // proficiencies
     ]]);
   });
 });
@@ -704,7 +710,7 @@ describe('updateCharacterDB', () => {
       characterFullState
     );
 
-    expect(queueWrite).toHaveBeenCalledWith('Characters!A4:W4', [[
+    expect(queueWrite).toHaveBeenCalledWith('Characters!A4:Y4', [[
       'pc-2',
       'Bob',
       'Grunk',
@@ -728,6 +734,8 @@ describe('updateCharacterDB', () => {
       '',           // hitDiceConfig default
       '{}',         // hitDiceUsed default
       '[]',         // resourcePools default
+      '{}',         // abilityScores default
+      '{}',         // proficiencies default
     ]]);
   });
 

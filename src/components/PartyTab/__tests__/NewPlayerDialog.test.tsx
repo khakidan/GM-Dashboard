@@ -120,6 +120,8 @@ describe('NewPlayerDialog', () => {
       isActive: false,
       hitDiceConfig: '3d6',
       hitDiceUsed: '{}',
+      abilityScores: '{}',
+      proficiencies: '{}',
     });
   });
 

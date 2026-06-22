@@ -303,9 +303,11 @@ export async function addCharacterDB(
       sanitizeString(character.hitDiceConfig || ''),
       sanitizeString(character.hitDiceUsed || '{}'),
       sanitizeString(character.resourcePools || '[]'),
+      sanitizeString(character.abilityScores || '{}'),
+      sanitizeString(character.proficiencies || '{}'),
     ];
 
-    await appendSheetData(resolvedId, 'Characters!A:W', [rowData]);
+    await appendSheetData(resolvedId, 'Characters!A:Y', [rowData]);
     return {
       ...character,
       id: finalId,
@@ -317,6 +319,8 @@ export async function addCharacterDB(
       hitDiceConfig: character.hitDiceConfig ?? '',
       hitDiceUsed: character.hitDiceUsed ?? '{}',
       resourcePools: character.resourcePools ?? '[]',
+      abilityScores: character.abilityScores ?? '{}',
+      proficiencies: character.proficiencies ?? '{}',
     };
   } catch (err) {
     console.error('[DB] addCharacterDB failed:', err);
@@ -375,10 +379,12 @@ export async function updateCharacterDB(
       sanitizeString(character.hitDiceConfig ?? fullState.hitDiceConfig ?? ''),
       sanitizeString(character.hitDiceUsed ?? fullState.hitDiceUsed ?? '{}'),
       sanitizeString(character.resourcePools ?? fullState.resourcePools ?? '[]'),
+      sanitizeString(character.abilityScores ?? fullState.abilityScores ?? '{}'),
+      sanitizeString(character.proficiencies ?? fullState.proficiencies ?? '{}'),
     ];
 
     const a1Row = charRowIdx + 1;
-    queueWrite(resolvedId, `Characters!A${a1Row}:W${a1Row}`, [rowData]);
+    queueWrite(resolvedId, `Characters!A${a1Row}:Y${a1Row}`, [rowData]);
   } catch (err) {
     console.error('[DB] updateCharacterDB failed:', err);
     throw err;
@@ -481,9 +487,11 @@ export async function addNpcDB(
       castInt(legendaryActions, 0),
       castInt(legendaryResistances, 0),
       JSON.stringify(rechargeAbilities ?? []),
+      '{}',               // npc.abilityScores -> '{}'
+      '{}',               // npc.proficiencies -> '{}'
     ];
 
-    await appendSheetData(resolvedId, 'NPCs!A:N', [rowData]);
+    await appendSheetData(resolvedId, 'NPCs!A:P', [rowData]);
     return {
       id: finalId,
       name: npcName,
@@ -499,6 +507,8 @@ export async function addNpcDB(
       legendaryActions,
       legendaryResistances,
       rechargeAbilities,
+      abilityScores: '{}',
+      proficiencies: '{}',
     };
   } catch (err) {
     console.error('[DB] addNpcDB failed:', err);
@@ -544,9 +554,11 @@ export async function updateNpcFullDB(
       castInt(npc.legendaryActions ?? 0, 0),
       castInt(npc.legendaryResistances ?? 0, 0),
       JSON.stringify(npc.rechargeAbilities ?? []),
+      sanitizeString(npc.abilityScores || '{}'),
+      sanitizeString(npc.proficiencies || '{}'),
     ];
 
-    queueWrite(resolvedId, `NPCs!A${a1Row}:N${a1Row}`, [rowData]);
+    queueWrite(resolvedId, `NPCs!A${a1Row}:P${a1Row}`, [rowData]);
   } catch (err) {
     console.error('[DB] updateNpcFullDB failed:', err);
     throw err;

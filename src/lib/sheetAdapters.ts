@@ -6,6 +6,7 @@ import {
   EncounterCombatantRowSchema
 } from './sheetSchemas';
 import { Character, NPC, Encounter, EncounterCombatant } from '../types';
+import { DEFAULT_ABILITY_SCORES, DEFAULT_PROFICIENCIES } from './abilityScores';
 
 export type CharacterRowData = z.infer<typeof CharacterRowSchema>;
 export type NpcRowData = z.infer<typeof NpcRowSchema>;
@@ -41,6 +42,8 @@ export function mapCharacterRowToCharacter(
     hitDiceConfig,
     hitDiceUsed,
     resourcePools,
+    abilityScores,
+    proficiencies,
   ] = data;
 
   return {
@@ -70,6 +73,8 @@ export function mapCharacterRowToCharacter(
     hitDiceConfig: hitDiceConfig ?? '',
     hitDiceUsed: hitDiceUsed ?? '{}',
     resourcePools: resourcePools ?? '[]',
+    abilityScores: abilityScores ?? JSON.stringify(DEFAULT_ABILITY_SCORES),
+    proficiencies: proficiencies ?? JSON.stringify(DEFAULT_PROFICIENCIES),
   };
 }
 
@@ -92,6 +97,8 @@ export function mapNpcRowToNpc(
     legendaryActions,
     legendaryResistances,
     rechargeAbilities,
+    abilityScores,
+    proficiencies,
   ] = data;
 
   return {
@@ -115,6 +122,8 @@ export function mapNpcRowToNpc(
         return [];
       }
     })(),
+    abilityScores: abilityScores ?? JSON.stringify(DEFAULT_ABILITY_SCORES),
+    proficiencies: proficiencies ?? JSON.stringify(DEFAULT_PROFICIENCIES),
   };
 }
 

@@ -50,7 +50,8 @@ router.post('/create', async (req, res) => {
           'Resistances', 'Immunities', 'Vulnerabilities',
           'Temp_HP_Max', 'Temp_AC', 'Death_Saves_Fails',
           'Death_Saves_Successes', 'Class',
-          'Hit_Dice_Config', 'Hit_Dice_Used', 'Resource_Pools'
+          'Hit_Dice_Config', 'Hit_Dice_Used', 'Resource_Pools',
+          'Ability_Scores', 'Proficiencies'
         ],
         rows: []
       },
@@ -61,7 +62,7 @@ router.post('/create', async (req, res) => {
           'Current_HP', 'Current_Condition', 'Notes',
           'Resistances', 'Immunities', 'Vulnerabilities',
           'Legendary_Actions', 'Legendary_Resistances',
-          'Recharge_Abilities'
+          'Recharge_Abilities', 'Ability_Scores', 'Proficiencies'
         ],
         rows: []
       },

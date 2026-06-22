@@ -12,8 +12,13 @@ import { Character } from '../../../types';
 import { addCharacterDB, updateCharacterDB, deleteCharacterFully } from '../../../services/dbOperations';
 import { toast } from 'sonner';
 import { isConcentrating, fireConcentrationAlert } from '../../../lib/concentrationCheck';
-;
-;
+import {
+  parseAbilityScores,
+  parseProficiencies,
+  getPassiveScore,
+  proficiencyBonusFromLevel,
+  serializeProficiencies,
+} from '../../../lib/abilityScores';
 
 export function useParty() {
   const { state, updateState } = useAppState();
@@ -417,6 +422,28 @@ export function useParty() {
     if (typeof sanitizedUpdates.characterName === 'string') sanitizedUpdates.characterName = sanitizedUpdates.characterName.trim();
     if (typeof sanitizedUpdates.playerName === 'string') sanitizedUpdates.playerName = sanitizedUpdates.playerName.trim();
     
+    // Recalculate passive perception if abilityScores, proficiencies, or level changed
+    const characterForCalc = state.characters.find(c => c.id === id);
+    if (characterForCalc) {
+      if (sanitizedUpdates.abilityScores !== undefined || sanitizedUpdates.proficiencies !== undefined || sanitizedUpdates.level !== undefined) {
+        const charLevel = sanitizedUpdates.level !== undefined ? Number(sanitizedUpdates.level) : characterForCalc.level;
+        const rawAbil = sanitizedUpdates.abilityScores !== undefined ? String(sanitizedUpdates.abilityScores) : (characterForCalc.abilityScores || '{}');
+        const rawProf = sanitizedUpdates.proficiencies !== undefined ? String(sanitizedUpdates.proficiencies) : (characterForCalc.proficiencies || '{}');
+        
+        const abilObj = parseAbilityScores(rawAbil);
+        const profObj = parseProficiencies(rawProf);
+
+        // If level changed, let's update proficiency bonus
+        if (sanitizedUpdates.level !== undefined) {
+          profObj.proficiencyBonus = proficiencyBonusFromLevel(charLevel);
+          sanitizedUpdates.proficiencies = serializeProficiencies(profObj);
+        }
+
+        const recalculatedPassivePerception = getPassiveScore(abilObj, profObj, 'perception');
+        sanitizedUpdates.passivePerception = recalculatedPassivePerception;
+      }
+    }
+
     // Fallbacks for numbers
     if (sanitizedUpdates.ac !== undefined) sanitizedUpdates.ac = Math.max(0, Number(sanitizedUpdates.ac) || 0);
     if (sanitizedUpdates.tempAc !== undefined) sanitizedUpdates.tempAc = Number(sanitizedUpdates.tempAc) || 0;
@@ -478,7 +505,7 @@ export function useParty() {
 
     // 2. Check if we need to sync to sheets (if we updated data that lives in the sheet)
     const isSheetData = Object.keys(sanitizedUpdates).some(k => 
-      ['playerName', 'characterName', 'class', 'ac', 'maxHp', 'tempHp', 'currentHp', 'conditions', 'passivePerception', 'level', 'statusId', 'notes', 'resistances', 'immunities', 'vulnerabilities', 'tempAc', 'deathSavesFails', 'deathSavesSuccesses', 'hitDiceConfig', 'hitDiceUsed', 'resourcePools'].includes(k)
+      ['playerName', 'characterName', 'class', 'ac', 'maxHp', 'tempHp', 'currentHp', 'conditions', 'passivePerception', 'level', 'statusId', 'notes', 'resistances', 'immunities', 'vulnerabilities', 'tempAc', 'deathSavesFails', 'deathSavesSuccesses', 'hitDiceConfig', 'hitDiceUsed', 'resourcePools', 'abilityScores', 'proficiencies'].includes(k)
     );
 
     if (!isSheetData) return;
