@@ -147,8 +147,7 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
     handleChange('resourcePools', addResourcePool(formData.resourcePools, {
       name: trimmed,
       max: newResourceMax,
-      reset: newResourceReset,
-      current: newResourceMax
+      reset: newResourceReset
     }));
     setNewResourceName('');
     setNewResourceMax(3);
