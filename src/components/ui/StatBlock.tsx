@@ -206,7 +206,7 @@ export const StatBlock: React.FC<StatBlockProps> = ({
       {/* SECTION B — Proficiency Bonus Row */}
       <div className="flex items-center justify-between py-1.5 border-b border-stone-700" id="proficiency-bonus-row">
         <div>
-          <span className="text-xs text-stone-400 block">Proficiency Bonus</span>
+          <span className="text-xs text-stone-600 font-medium block">Proficiency Bonus</span>
           {characterLevel && !readOnly && (
             <span className="text-[10px] text-stone-500 block mt-0.5">
               Override
@@ -217,7 +217,7 @@ export const StatBlock: React.FC<StatBlockProps> = ({
         <div className="flex flex-col items-end">
           {characterLevel ? (
             <>
-              <span className="text-sm font-medium text-stone-200" id="proficiency-bonus-display">
+              <span className="text-sm font-semibold text-stone-800" id="proficiency-bonus-display">
                 {formatBonus(effectiveProfBonus)}
               </span>
               {!readOnly && (
@@ -243,7 +243,7 @@ export const StatBlock: React.FC<StatBlockProps> = ({
           ) : (
             <>
               {readOnly ? (
-                <span className="text-sm font-medium text-stone-200" id="proficiency-bonus-display">
+                <span className="text-sm font-semibold text-stone-800" id="proficiency-bonus-display">
                   {formatBonus(proficiencies.proficiencyBonus)}
                 </span>
               ) : (
@@ -271,7 +271,7 @@ export const StatBlock: React.FC<StatBlockProps> = ({
 
       {/* SECTION C — Saving Throws */}
       <div id="saving-throws-section">
-        <div className="text-xs font-medium uppercase tracking-wide text-stone-400 mb-1.5">
+        <div className="text-xs font-semibold uppercase tracking-wide text-stone-600 mb-1.5">
           Saving Throws
         </div>
         <div className="grid grid-cols-2 gap-x-4 gap-y-1">
@@ -294,20 +294,20 @@ export const StatBlock: React.FC<StatBlockProps> = ({
               <div className="flex items-center gap-1.5 w-full">
                 {/* Indicator */}
                 <span
-                  className={isProficient ? 'text-amber-400' : 'text-stone-500'}
+                  className={isProficient ? 'text-amber-500' : 'text-stone-400'}
                   id={`saving-throw-indicator-${ability.toLowerCase()}`}
                 >
                   {isProficient ? '●' : '○'}
                 </span>
                 {/* Label */}
-                <span className="text-xs text-stone-300 w-8" id={`saving-throw-label-${ability.toLowerCase()}`}>
+                <span className="text-xs text-stone-700 font-medium w-8" id={`saving-throw-label-${ability.toLowerCase()}`}>
                   {ability}
                 </span>
                 {/* Spacer */}
                 <div className="flex-grow" />
                 {/* Bonus */}
                 <span
-                  className={`text-xs font-medium ${isProficient ? 'text-amber-300' : 'text-stone-200'}`}
+                  className={`text-xs font-semibold ${isProficient ? 'text-amber-600' : 'text-stone-700'}`}
                   id={`saving-throw-bonus-${ability.toLowerCase()}`}
                 >
                   {formatBonus(bonus)}
@@ -344,12 +344,12 @@ export const StatBlock: React.FC<StatBlockProps> = ({
 
       {/* SECTION D — Passive Scores */}
       <div className="py-1 border-t border-b border-stone-700/50 space-y-1.5" id="passive-scores-section">
-        <div className="text-sm text-stone-100 font-medium leading-relaxed" id="passive-scores-text">
-          Passive Perception: <span className="font-semibold text-stone-100">{passivePerception}</span>
+        <div className="text-sm text-stone-700 font-medium leading-relaxed" id="passive-scores-text">
+          Passive Perception: <span className="font-semibold text-stone-900">{passivePerception}</span>
           <span className="text-stone-500 px-1.5">·</span>
-          Passive Insight: <span className="font-semibold text-stone-100">{passiveInsight}</span>
+          Passive Insight: <span className="font-semibold text-stone-900">{passiveInsight}</span>
           <span className="text-stone-500 px-1.5">·</span>
-          Passive Investigation: <span className="font-semibold text-stone-100">{passiveInvestigation}</span>
+          Passive Investigation: <span className="font-semibold text-stone-900">{passiveInvestigation}</span>
         </div>
 
         {!readOnly && (
@@ -411,13 +411,13 @@ export const StatBlock: React.FC<StatBlockProps> = ({
       <div id="skills-section">
         {/* Section header row */}
         <div className="flex items-center justify-between pb-1.5">
-          <span className="text-xs font-medium uppercase tracking-wide text-stone-400">
+          <span className="text-xs font-semibold uppercase tracking-wide text-stone-600">
             Skills
           </span>
           <button
             type="button"
             onClick={() => setSkillsExpanded(!skillsExpanded)}
-            className="text-stone-400 hover:text-stone-200 p-0.5 transition-colors outline-none cursor-pointer"
+            className="text-stone-500 hover:text-stone-700 p-0.5 transition-colors outline-none cursor-pointer"
             id="skills-expand-btn"
           >
             {skillsExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -448,17 +448,17 @@ export const StatBlock: React.FC<StatBlockProps> = ({
 
                 return (
                   <div key={skill} className="flex items-center gap-1.5 py-0.5" id={`skill-collapsed-${skill.toLowerCase().replace(/\s+/g, '-')}`}>
-                    <span className="text-amber-400">●</span>
-                    <span className="text-xs text-stone-200">
+                    <span className="text-amber-500 font-bold">●</span>
+                    <span className="text-xs text-stone-850 font-medium">
                       {skill}
                       {prof === 'expertise' && (
-                        <span className="text-[10px] text-amber-500 ml-0.5">
+                        <span className="text-[10px] text-amber-700 ml-0.5">
                           (exp)
                         </span>
                       )}
                     </span>
                     <div className="flex-1" />
-                    <span className="text-xs font-medium text-amber-300">
+                    <span className="text-xs font-semibold text-amber-600">
                       {formatBonus(bonus)}
                     </span>
                   </div>
@@ -475,7 +475,7 @@ export const StatBlock: React.FC<StatBlockProps> = ({
               .filter((ability) => skillsByAbility[ability].length > 0)
               .map((ability) => (
                 <div key={ability} className="space-y-0.5" id={`skill-group-${ability.toLowerCase()}`}>
-                  <div className="text-[10px] uppercase text-stone-500 mt-1 mb-0.5">
+                  <div className="text-[10px] uppercase text-stone-600 mt-1 mb-0.5 font-semibold">
                     {ability} Skills
                   </div>
 
@@ -494,7 +494,7 @@ export const StatBlock: React.FC<StatBlockProps> = ({
                       if (readOnly) {
                         return (
                           <span
-                            className={prof !== 'none' ? 'text-amber-400' : 'text-stone-600'}
+                            className={prof !== 'none' ? 'text-amber-500' : 'text-stone-400'}
                             id={`skill-expanded-indicator-${skill.toLowerCase().replace(/\s+/g, '-')}`}
                           >
                             {prof !== 'none' ? '●' : '○'}
@@ -506,16 +506,16 @@ export const StatBlock: React.FC<StatBlockProps> = ({
                       const cycleIndicator = prof === 'none' ? '○' : prof === 'proficient' ? '●' : '★';
                       const cycleClass =
                         prof === 'none'
-                          ? 'text-stone-500 hover:text-stone-300'
+                          ? 'text-stone-450 hover:text-stone-700'
                           : prof === 'proficient'
-                          ? 'text-amber-400'
-                          : 'text-amber-300';
+                          ? 'text-amber-500'
+                          : 'text-amber-600';
 
                       return (
                         <button
                           type="button"
                           onClick={() => handleSkillCycle(skill)}
-                          className={`${cycleClass} font-bold text-center px-0.5 select-none hover:bg-stone-700/40 rounded transition-colors w-5 h-5 flex items-center justify-center outline-none cursor-pointer`}
+                          className={`${cycleClass} font-bold text-center px-0.5 select-none hover:bg-stone-100 rounded transition-colors w-5 h-5 flex items-center justify-center outline-none cursor-pointer`}
                           id={`skill-cycle-btn-${skill.toLowerCase().replace(/\s+/g, '-')}`}
                         >
                           {cycleIndicator}
@@ -533,13 +533,13 @@ export const StatBlock: React.FC<StatBlockProps> = ({
 
                         <span
                           className={`text-xs ${
-                            prof !== 'none' ? 'text-stone-200' : 'text-stone-400'
+                            prof !== 'none' ? 'text-stone-850 font-semibold' : 'text-stone-600'
                           }`}
                           id={`skill-label-${skill.toLowerCase().replace(/\s+/g, '-')}`}
                         >
                           {skill}
                           {prof === 'expertise' && (
-                            <span className="text-[10px] text-amber-500 ml-0.5">
+                            <span className="text-[10px] text-amber-700 font-semibold ml-0.5">
                               (exp)
                             </span>
                           )}
@@ -548,8 +548,8 @@ export const StatBlock: React.FC<StatBlockProps> = ({
                         <div className="flex-1" />
 
                         <span
-                          className={`text-xs font-medium ${
-                            prof !== 'none' ? 'text-amber-300' : 'text-stone-400'
+                          className={`text-xs font-semibold ${
+                            prof !== 'none' ? 'text-amber-600' : 'text-stone-600'
                           }`}
                           id={`skill-bonus-${skill.toLowerCase().replace(/\s+/g, '-')}`}
                         >
@@ -563,17 +563,17 @@ export const StatBlock: React.FC<StatBlockProps> = ({
 
             {/* Jack of All Trades Checkbox (edit mode only) */}
             {!readOnly && (
-              <div className="flex items-center gap-1.5 pt-1.5 border-t border-stone-700/30" id="jack-of-trades-row">
+              <div className="flex items-center gap-1.5 pt-1.5 border-t border-stone-200" id="jack-of-trades-row">
                 <input
                   type="checkbox"
                   id="jack-of-all-trades-chk"
                   checked={proficiencies.jackOfAllTrades}
                   onChange={handleJackOfAllTradesToggle}
-                  className="rounded border-stone-600 text-amber-500 focus:ring-amber-500/50 bg-stone-800"
+                  className="rounded border-stone-400 text-amber-500 focus:ring-amber-500/50 bg-stone-800"
                 />
                 <label
                   htmlFor="jack-of-all-trades-chk"
-                  className="text-xs text-stone-400 select-none cursor-pointer"
+                  className="text-xs text-stone-600 select-none cursor-pointer font-medium"
                 >
                   Jack of All Trades (½ proficiency to non-proficient skills)
                 </label>
