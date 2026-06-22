@@ -206,10 +206,10 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="bg-[#1a1a12] w-full max-w-2xl max-h-[90vh] rounded-xl shadow-2xl border border-stone-700 flex flex-col mx-4"
+            className="bg-[#f5f4f0] w-full max-w-2xl max-h-[90vh] rounded-xl shadow-2xl border border-stone-200 flex flex-col mx-4"
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-stone-700">
+            <div className="flex items-center justify-between px-6 py-4 bg-stone-900 rounded-t-xl transition-colors">
               <div className="flex items-center gap-3">
                 <UserPlus className="w-5 h-5 text-amber-500" />
                 <h2 className="text-lg font-bold text-stone-100">Add Character</h2>
@@ -224,7 +224,7 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
             </div>
 
             {/* Tab Navigation */}
-            <div className="border-b border-stone-700 px-6 flex items-center overflow-x-auto no-scrollbar">
+            <div className="border-b border-stone-200 bg-stone-50/50 px-6 flex items-center overflow-x-auto no-scrollbar">
               {TABS.map((tab) => {
                 const isActive = activeTab === tab.id;
                 return (
@@ -234,12 +234,12 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                     onClick={() => setActiveTab(tab.id)}
                     className={cn(
                       "px-4 py-3 text-sm transition-colors relative whitespace-nowrap",
-                      isActive ? "text-amber-400 border-b-2 border-amber-400 font-medium" : "text-stone-400 hover:text-stone-300"
+                      isActive ? "text-amber-600 border-b-2 border-amber-500 font-medium" : "text-stone-500 hover:text-stone-700"
                     )}
                   >
                     {tab.label}
                     {!tab.optional && (
-                      <span className="text-[10px] text-amber-500/70 ml-1.5">(required)</span>
+                      <span className="text-[10px] text-amber-600 ml-1.5">(required)</span>
                     )}
                   </button>
                 );
@@ -252,7 +252,7 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                 {activeTab === 'identity' && (
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-xs font-bold text-stone-400 mb-1.5">
+                      <label className="block text-sm font-medium text-stone-700 mb-1.5">
                         Player Name
                       </label>
                       <input
@@ -261,11 +261,11 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                         onChange={e => handleChange('playerName', e.target.value)}
                         placeholder="e.g. Sarah"
                         required
-                        className="w-full bg-[#2c2c26] border border-stone-700 rounded-lg px-4 py-2 text-sm text-stone-100 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-all placeholder:text-stone-500"
+                        className="w-full bg-white border border-stone-200 rounded-lg px-4 py-2 text-sm text-stone-800 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all placeholder:text-stone-400 shadow-sm"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-stone-400 mb-1.5">
+                      <label className="block text-sm font-medium text-stone-700 mb-1.5">
                         Character Name
                       </label>
                       <input
@@ -274,11 +274,11 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                         onChange={e => handleChange('characterName', e.target.value)}
                         placeholder="e.g. Drogar"
                         required
-                        className="w-full bg-[#2c2c26] border border-stone-700 rounded-lg px-4 py-2 text-sm text-stone-100 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-all placeholder:text-stone-500"
+                        className="w-full bg-white border border-stone-200 rounded-lg px-4 py-2 text-sm text-stone-800 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all placeholder:text-stone-400 shadow-sm"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-stone-400 mb-1.5">
+                      <label className="block text-sm font-medium text-stone-700 mb-1.5">
                         Class
                       </label>
                       <input
@@ -286,15 +286,15 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                         value={formData.class}
                         onChange={e => handleChange('class', e.target.value)}
                         placeholder="e.g. Barbarian, Monk, Vitalist"
-                        className="w-full bg-[#2c2c26] border border-stone-700 rounded-lg px-4 py-2 text-sm text-stone-100 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-all placeholder:text-stone-500"
+                        className="w-full bg-white border border-stone-200 rounded-lg px-4 py-2 text-sm text-stone-800 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all placeholder:text-stone-400 shadow-sm"
                       />
-                      <p className="text-[11px] text-stone-500 mt-1">
+                      <p className="text-xs text-stone-500 mt-1">
                         Used to suggest starting resources on the Resources tab
                       </p>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs font-bold text-stone-400 mb-1.5">
+                        <label className="block text-sm font-medium text-stone-700 mb-1.5">
                           Level
                         </label>
                         <input
@@ -303,17 +303,17 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                           max="20"
                           value={formData.level}
                           onChange={e => handleChange('level', parseInt(e.target.value) || 1)}
-                          className="w-full bg-[#2c2c26] border border-stone-700 rounded-lg px-4 py-2 text-sm text-stone-100 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-all"
+                          className="w-full bg-white border border-stone-200 rounded-lg px-4 py-2 text-sm text-stone-800 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all shadow-sm"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-bold text-stone-400 mb-1.5">
+                        <label className="block text-sm font-medium text-stone-700 mb-1.5">
                           Status
                         </label>
                         <select
                           value={formData.statusId}
                           onChange={e => handleChange('statusId', parseInt(e.target.value))}
-                          className="w-full bg-[#2c2c26] border border-stone-700 rounded-lg px-4 py-2 text-sm text-stone-100 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-all appearance-none cursor-pointer"
+                          className="w-full bg-white border border-stone-200 rounded-lg px-4 py-2 text-sm text-stone-800 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all appearance-none cursor-pointer shadow-sm"
                         >
                           <option value={1}>Active</option>
                           <option value={2}>Inactive</option>
@@ -327,7 +327,7 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                   <div className="space-y-6">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs font-bold text-stone-400 mb-1.5">
+                        <label className="block text-sm font-medium text-stone-700 mb-1.5">
                           Armor Class
                         </label>
                         <input
@@ -336,11 +336,11 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                           max="30"
                           value={formData.ac}
                           onChange={e => handleChange('ac', parseInt(e.target.value) || 10)}
-                          className="w-full bg-[#2c2c26] border border-stone-700 rounded-lg px-4 py-2 text-sm text-stone-100 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-all"
+                          className="w-full bg-white border border-stone-200 rounded-lg px-4 py-2 text-sm text-stone-800 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all shadow-sm"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-bold text-stone-400 mb-1.5">
+                        <label className="block text-sm font-medium text-stone-700 mb-1.5">
                           Max HP
                         </label>
                         <input
@@ -348,13 +348,13 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                           min="1"
                           value={formData.maxHp}
                           onChange={e => handleChange('maxHp', parseInt(e.target.value) || 1)}
-                          className="w-full bg-[#2c2c26] border border-stone-700 rounded-lg px-4 py-2 text-sm text-stone-100 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-all"
+                          className="w-full bg-white border border-stone-200 rounded-lg px-4 py-2 text-sm text-stone-800 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all shadow-sm"
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-xs font-bold text-stone-400 mb-1.5">
+                      <label className="block text-sm font-medium text-stone-700 mb-1.5">
                         Hit Dice
                       </label>
                       <input
@@ -363,25 +363,25 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                         onChange={e => handleChange('hitDiceConfig', e.target.value)}
                         placeholder="e.g. 5d10 or 4d8+1d6"
                         className={cn(
-                          "w-full bg-[#2c2c26] border rounded-lg px-4 py-2 text-sm text-stone-100 outline-none transition-all placeholder:text-stone-500",
+                          "w-full bg-white border rounded-lg px-4 py-2 text-sm text-stone-800 outline-none transition-all placeholder:text-stone-400 shadow-sm",
                           isHitDiceValid 
-                            ? "border-stone-700 focus:border-amber-500 focus:ring-1 focus:ring-amber-500" 
+                            ? "border-stone-200 focus:border-amber-400 focus:ring-1 focus:ring-amber-400" 
                             : "border-red-500/50 focus:border-red-500 focus:ring-1 focus:ring-red-500"
                         )}
                       />
                       {!isHitDiceValid && (
-                        <div className="flex items-center gap-1 mt-1 text-red-400 text-xs">
+                        <div className="flex items-center gap-1 mt-1 text-red-500 text-xs">
                           <AlertCircle className="w-3 h-3 flex-shrink-0" />
                           <span>Invalid format. Must be like 2d6 or 1d8+2d6.</span>
                         </div>
                       )}
-                      <p className="text-[11px] text-stone-500 mt-1">
+                      <p className="text-xs text-stone-500 mt-1">
                         Auto-suggested from class. Format: [count]d[size] (e.g. 5d10)
                       </p>
                     </div>
 
                     <div>
-                      <label className="block text-xs uppercase tracking-wide text-stone-400 mb-2 font-bold">
+                      <label className="block text-xs font-medium uppercase tracking-wide text-stone-600 mb-2">
                         RESISTANCES / IMMUNITIES / VULNERABILITIES
                       </label>
                       <div className="grid grid-cols-3 gap-3">
@@ -407,7 +407,7 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                     </div>
 
                     <div>
-                      <label className="block text-xs font-bold text-stone-400 mb-1.5">
+                      <label className="block text-sm font-medium text-stone-700 mb-1.5">
                         Notes
                       </label>
                       <textarea
@@ -415,32 +415,34 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                         onChange={e => handleChange('notes', e.target.value)}
                         placeholder="Special abilities, backstory notes..."
                         rows={3}
-                        className="w-full bg-[#2c2c26] border border-stone-700 rounded-lg px-4 py-2 text-sm text-stone-100 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-all placeholder:text-stone-500 resize-none"
+                        className="w-full bg-white border border-stone-200 rounded-lg px-4 py-2 text-sm text-stone-800 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all placeholder:text-stone-400 resize-none shadow-sm"
                       />
                     </div>
                   </div>
                 )}
                 {activeTab === 'abilities' && (
                   <div>
-                    <p className="text-xs text-stone-400 italic mb-3">
+                    <p className="text-xs text-stone-500 italic mb-4">
                       Passive Perception, Insight, and Investigation are calculated automatically from these values.
                     </p>
-                    <StatBlock
-                      abilityScores={formData.abilityScores}
-                      proficiencies={formData.proficiencies}
-                      characterLevel={formData.level}
-                      readOnly={false}
-                      onChange={(scores, profs) => {
-                        handleChange('abilityScores', scores);
-                        handleChange('proficiencies', profs);
-                      }}
-                    />
+                    <div className="bg-stone-100 rounded-xl p-3 shadow-inner border border-stone-200">
+                      <StatBlock
+                        abilityScores={formData.abilityScores}
+                        proficiencies={formData.proficiencies}
+                        characterLevel={formData.level}
+                        readOnly={false}
+                        onChange={(scores, profs) => {
+                          handleChange('abilityScores', scores);
+                          handleChange('proficiencies', profs);
+                        }}
+                      />
+                    </div>
                   </div>
                 )}
                 {activeTab === 'resources' && (
                   <div className="space-y-4">
                     {formData.class && getClassResourceSuggestions(formData.class).length > 0 ? (
-                      <p className="text-xs text-stone-400 italic mb-3">
+                      <p className="text-xs text-stone-500 italic mb-3">
                         Suggested pools for {formData.class}. Adjust max values to match your character.
                       </p>
                     ) : (formData.resourcePools.length === 0 && !isAddingResource) ? (
@@ -453,7 +455,7 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                       {formData.resourcePools.map(pool => {
                         const isEditing = editingResourceId === pool.name;
                         return (
-                          <div key={pool.name} className="bg-[#2c2c26] border border-stone-700 rounded-lg p-3">
+                          <div key={pool.name} className="bg-white border border-stone-200 rounded-lg p-3 shadow-sm">
                             {isEditing ? (
                               <div className="space-y-3">
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -463,7 +465,7 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                                       type="text"
                                       value={editResourceName}
                                       onChange={e => setEditResourceName(e.target.value)}
-                                      className="w-full text-xs bg-[#1a1a12] text-stone-100 border border-stone-700 focus:border-amber-500 px-2 py-1.5 rounded outline-none"
+                                      className="w-full text-xs bg-stone-50 text-stone-800 border border-stone-200 focus:border-amber-400 px-2 py-1.5 rounded outline-none"
                                     />
                                   </div>
                                   <div>
@@ -474,7 +476,7 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                                       max={20}
                                       value={editResourceMax}
                                       onChange={e => setEditResourceMax(parseInt(e.target.value, 10) || 1)}
-                                      className="w-full text-xs bg-[#1a1a12] text-stone-100 border border-stone-700 focus:border-amber-500 px-2 py-1.5 rounded outline-none"
+                                      className="w-full text-xs bg-stone-50 text-stone-800 border border-stone-200 focus:border-amber-400 px-2 py-1.5 rounded outline-none"
                                     />
                                   </div>
                                   <div>
@@ -482,7 +484,7 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                                     <select
                                       value={editResourceReset}
                                       onChange={e => setEditResourceReset(e.target.value as 'short'|'long'|'none')}
-                                      className="w-full text-xs bg-[#1a1a12] text-stone-100 border border-stone-700 focus:border-amber-500 px-2 py-1.5 rounded outline-none"
+                                      className="w-full text-xs bg-stone-50 text-stone-800 border border-stone-200 focus:border-amber-400 px-2 py-1.5 rounded outline-none"
                                     >
                                       <option value="short">Short Rest</option>
                                       <option value="long">Long Rest</option>
@@ -491,19 +493,19 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                                   </div>
                                 </div>
                                 <div className="flex justify-end gap-2 text-xs">
-                                  <button type="button" onClick={() => setEditingResourceId(null)} className="px-3 py-1.5 text-stone-400 hover:text-stone-200">Cancel</button>
-                                  <button type="button" onClick={() => handleSaveEditResource(pool.name)} className="px-3 py-1.5 bg-amber-600/20 text-amber-500 hover:bg-amber-600/30 font-medium rounded">Save</button>
+                                  <button type="button" onClick={() => setEditingResourceId(null)} className="px-3 py-1.5 text-stone-500 hover:text-stone-700">Cancel</button>
+                                  <button type="button" onClick={() => handleSaveEditResource(pool.name)} className="px-3 py-1.5 bg-amber-100 text-amber-700 hover:bg-amber-200 font-medium rounded transition-colors">Save</button>
                                 </div>
                               </div>
                             ) : (
                               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                                 <div className="flex items-center gap-3">
-                                  <div className="font-bold text-stone-200">{pool.name}</div>
+                                  <div className="font-bold text-stone-800">{pool.name}</div>
                                   <div className={cn(
                                     "text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-full",
-                                    pool.reset === 'short' ? "bg-amber-500/20 text-amber-500" :
-                                    pool.reset === 'long' ? "bg-blue-500/20 text-blue-400" :
-                                    "bg-stone-700 text-stone-400"
+                                    pool.reset === 'short' ? "bg-amber-100 text-amber-700 font-medium" :
+                                    pool.reset === 'long' ? "bg-blue-100 text-blue-700 font-medium" :
+                                    "bg-stone-100 text-stone-500"
                                   )}>
                                     {pool.reset === 'short' ? 'SR' : pool.reset === 'long' ? 'LR' : '—'}
                                   </div>
@@ -514,25 +516,25 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                                       type="button"
                                       onClick={() => handleUpdateResourceCurrent(pool.name, -1)}
                                       disabled={pool.current <= 0}
-                                      className="w-6 h-6 flex items-center justify-center bg-[#1a1a12] border border-stone-700 rounded hover:bg-stone-800 text-stone-400 disabled:opacity-30 disabled:hover:bg-[#1a1a12]"
+                                      className="w-6 h-6 flex items-center justify-center bg-stone-50 border border-stone-200 rounded hover:bg-stone-100 text-stone-600 disabled:opacity-30 disabled:hover:bg-stone-50"
                                     >
                                       −
                                     </button>
-                                    <span className="text-xs font-mono font-bold text-stone-300 w-8 text-center">{pool.current} / {pool.max}</span>
+                                    <span className="text-xs font-mono font-bold text-stone-700 w-8 text-center">{pool.current} / {pool.max}</span>
                                     <button
                                       type="button"
                                       onClick={() => handleUpdateResourceCurrent(pool.name, 1)}
                                       disabled={pool.current >= pool.max}
-                                      className="w-6 h-6 flex items-center justify-center bg-[#1a1a12] border border-stone-700 rounded hover:bg-stone-800 text-stone-400 disabled:opacity-30 disabled:hover:bg-[#1a1a12]"
+                                      className="w-6 h-6 flex items-center justify-center bg-stone-50 border border-stone-200 rounded hover:bg-stone-100 text-stone-600 disabled:opacity-30 disabled:hover:bg-stone-50"
                                     >
                                       +
                                     </button>
                                   </div>
                                   <div className="flex items-center gap-1">
-                                    <button type="button" onClick={() => startEditResource(pool)} className="p-1.5 text-stone-500 hover:text-amber-400 rounded transition-colors" title="Edit">
+                                    <button type="button" onClick={() => startEditResource(pool)} className="p-1.5 text-stone-400 hover:text-amber-600 rounded transition-colors" title="Edit">
                                       <Edit2 className="w-3.5 h-3.5" />
                                     </button>
-                                    <button type="button" onClick={() => handleDeleteResource(pool.name)} className="p-1.5 text-stone-500 hover:text-red-400 rounded transition-colors" title="Delete">
+                                    <button type="button" onClick={() => handleDeleteResource(pool.name)} className="p-1.5 text-stone-400 hover:text-red-500 rounded transition-colors" title="Delete">
                                       <X className="w-4 h-4" />
                                     </button>
                                   </div>
@@ -545,35 +547,35 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                     </div>
 
                     {isAddingResource && (
-                      <div className="bg-[#2c2c26] border border-stone-700 rounded-lg p-3 space-y-3">
+                      <div className="bg-stone-100 border border-stone-200 rounded-lg p-3 space-y-3">
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                           <div>
-                            <label className="text-[10px] uppercase font-bold text-stone-500 mb-1 block">Name</label>
+                            <label className="text-[10px] uppercase font-bold text-stone-600 mb-1 block">Name</label>
                             <input
                               type="text"
                               value={newResourceName}
                               onChange={e => setNewResourceName(e.target.value)}
                               placeholder="e.g. Rage, Ki Points"
-                              className="w-full text-xs bg-[#1a1a12] text-stone-100 border border-stone-700 focus:border-amber-500 px-2 py-1.5 rounded outline-none"
+                              className="w-full text-xs bg-white text-stone-800 border border-stone-200 focus:border-amber-400 px-2 py-1.5 rounded outline-none"
                             />
                           </div>
                           <div>
-                            <label className="text-[10px] uppercase font-bold text-stone-500 mb-1 block">Max Uses</label>
+                            <label className="text-[10px] uppercase font-bold text-stone-600 mb-1 block">Max Uses</label>
                             <input
                               type="number"
                               min={1}
                               max={20}
                               value={newResourceMax}
                               onChange={e => setNewResourceMax(parseInt(e.target.value, 10) || 1)}
-                              className="w-full text-xs bg-[#1a1a12] text-stone-100 border border-stone-700 focus:border-amber-500 px-2 py-1.5 rounded outline-none"
+                              className="w-full text-xs bg-white text-stone-800 border border-stone-200 focus:border-amber-400 px-2 py-1.5 rounded outline-none"
                             />
                           </div>
                           <div>
-                            <label className="text-[10px] uppercase font-bold text-stone-500 mb-1 block">Resets On</label>
+                            <label className="text-[10px] uppercase font-bold text-stone-600 mb-1 block">Resets On</label>
                             <select
                               value={newResourceReset}
                               onChange={e => setNewResourceReset(e.target.value as 'short'|'long'|'none')}
-                              className="w-full text-xs bg-[#1a1a12] text-stone-100 border border-stone-700 focus:border-amber-500 px-2 py-1.5 rounded outline-none"
+                              className="w-full text-xs bg-white text-stone-800 border border-stone-200 focus:border-amber-400 px-2 py-1.5 rounded outline-none"
                             >
                               <option value="short">Short Rest</option>
                               <option value="long">Long Rest</option>
@@ -582,8 +584,8 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                           </div>
                         </div>
                         <div className="flex justify-end gap-2 text-xs">
-                          <button type="button" onClick={() => setIsAddingResource(false)} className="px-3 py-1.5 text-stone-400 hover:text-stone-200">Cancel</button>
-                          <button type="button" onClick={handleAddResource} disabled={!newResourceName.trim()} className="px-3 py-1.5 bg-amber-600 text-stone-100 hover:bg-amber-500 font-medium rounded disabled:opacity-50">Add</button>
+                          <button type="button" onClick={() => setIsAddingResource(false)} className="px-3 py-1.5 text-stone-500 hover:text-stone-700">Cancel</button>
+                          <button type="button" onClick={handleAddResource} disabled={!newResourceName.trim()} className="px-3 py-1.5 bg-amber-600 text-white hover:bg-amber-500 font-medium rounded disabled:opacity-50 transition-colors">Add</button>
                         </div>
                       </div>
                     )}
@@ -592,14 +594,14 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                       <button
                         type="button"
                         onClick={() => setIsAddingResource(true)}
-                        className="w-full py-2.5 border border-dashed border-stone-700 rounded-lg text-stone-400 hover:text-amber-400 hover:border-amber-500/50 transition-colors text-sm font-medium flex items-center justify-center gap-1"
+                        className="w-full py-2.5 border border-dashed border-stone-300 rounded-lg text-stone-400 hover:text-amber-600 hover:border-amber-400 transition-colors text-sm font-medium flex items-center justify-center gap-1"
                       >
                         <span className="text-lg leading-none">+</span> Add Resource
                       </button>
                     )}
 
                     {formData.resourcePools.length === 0 && !isAddingResource && (
-                      <div className="border border-dashed border-stone-700/50 rounded-lg p-6 text-center text-stone-500 text-sm italic">
+                      <div className="border border-dashed border-stone-200 rounded-lg p-6 text-center text-stone-400 text-sm italic bg-white/50">
                         No resource pools yet. Click '+ Add Resource' to add class abilities like Rage or Ki Points.
                       </div>
                     )}
@@ -608,13 +610,13 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
               </div>
 
               {/* Footer */}
-              <div className="px-6 py-4 border-t border-stone-700 flex items-center justify-between shrink-0">
+              <div className="px-6 py-4 border-t border-stone-200 bg-stone-50/50 flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-2">
                   {activeTab !== 'identity' && (
                     <button
                       type="button"
                       onClick={handlePrev}
-                      className="text-sm text-stone-400 hover:text-stone-200 px-2 py-1 transition-colors"
+                      className="text-sm text-stone-500 hover:text-stone-700 px-2 py-1 transition-colors"
                     >
                       ← Previous
                     </button>
@@ -623,7 +625,7 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                     <button
                       type="button"
                       onClick={handleNext}
-                      className="text-sm text-stone-400 hover:text-stone-200 px-2 py-1 transition-colors"
+                      className="text-sm text-stone-500 hover:text-stone-700 px-2 py-1 transition-colors"
                     >
                       Next →
                     </button>
@@ -633,14 +635,14 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                   <button
                     type="button"
                     onClick={onClose}
-                    className="text-sm text-stone-400 hover:text-stone-200 mr-3 px-3 py-2 transition-colors"
+                    className="text-sm text-stone-500 hover:text-stone-700 mr-3 px-3 py-2 transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={!isFormValid}
-                    className="bg-amber-600 hover:bg-amber-500 text-white font-medium px-4 py-2 rounded-lg text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-stone-700 disabled:text-stone-500 flex items-center justify-center shadow-lg"
+                    className="bg-amber-600 hover:bg-amber-500 text-white font-medium px-4 py-2 rounded-lg text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-stone-200 disabled:text-stone-400 flex items-center justify-center shadow-lg"
                   >
                     Add Character
                   </button>
