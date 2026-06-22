@@ -1,9 +1,27 @@
-import React, { useEffect, useState } from 'react';
-import { X, UserPlus } from 'lucide-react';
+import React, { useEffect, useState, useRef } from 'react';
+import { X, UserPlus, AlertCircle, Edit2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Character } from '../../types';
 import { cn } from '../../lib/utils';
 import { useFormState } from '../../hooks/useFormState';
+import { suggestHitDiceConfig } from '../../lib/hitDice';
+import { IrvMultiSelect } from '../ui/IrvMultiSelect';
+import { StatBlock } from '../ui/StatBlock';
+import { 
+  DEFAULT_ABILITY_SCORES, 
+  DEFAULT_PROFICIENCIES, 
+  serializeAbilityScores, 
+  serializeProficiencies,
+  getPassiveScore
+} from '../../lib/abilityScores';
+import {
+  ResourcePool,
+  serializeResourcePools,
+  addResourcePool,
+  removeResourcePool,
+  updateResourcePool
+} from '../../lib/resourcePools';
+import { getClassResourceSuggestions } from '../../lib/classResources';
 
 interface NewPlayerDialogProps {
   isOpen: boolean;
@@ -29,20 +47,68 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
     class: '',
     level: 1,
     statusId: 1, // Active
+    ac: 10,
+    maxHp: 10,
+    hitDiceConfig: '',
+    notes: '',
+    resistances: '',
+    immunities: '',
+    vulnerabilities: '',
+    abilityScores: DEFAULT_ABILITY_SCORES,
+    proficiencies: DEFAULT_PROFICIENCIES,
+    resourcePools: [] as ResourcePool[],
   });
+
+  const poolsCustomized = useRef(false);
+
+  // Tab 4 local state
+  const [isAddingResource, setIsAddingResource] = useState(false);
+  const [newResourceName, setNewResourceName] = useState('');
+  const [newResourceMax, setNewResourceMax] = useState(3);
+  const [newResourceReset, setNewResourceReset] = useState<'short'|'long'|'none'>('long');
+
+  const [editingResourceId, setEditingResourceId] = useState<string | null>(null);
+  const [editResourceName, setEditResourceName] = useState('');
+  const [editResourceMax, setEditResourceMax] = useState(3);
+  const [editResourceReset, setEditResourceReset] = useState<'short'|'long'|'none'>('long');
 
   useEffect(() => {
     if (!isOpen) {
       reset();
       setActiveTab('identity');
+      poolsCustomized.current = false;
+      setIsAddingResource(false);
+      setEditingResourceId(null);
     }
   }, [isOpen, reset]);
 
+  // Auto-suggest hit dice
+  useEffect(() => {
+    if (activeTab === 'combat' && !formData.hitDiceConfig && formData.class && formData.level) {
+      const suggestion = suggestHitDiceConfig(formData.class, formData.level);
+      if (suggestion) {
+        handleChange('hitDiceConfig', suggestion);
+      }
+    }
+  }, [activeTab, formData.class, formData.level, formData.hitDiceConfig, handleChange]);
+
+  // Auto-suggest resource pools
+  useEffect(() => {
+    if (!poolsCustomized.current && formData.class) {
+      const suggestions = getClassResourceSuggestions(formData.class);
+      // only update if suggestions exist (allow empty array to pass if they delete them, but wait, customization handles that)
+      // Actually we just replace it
+      handleChange('resourcePools', suggestions);
+    }
+  }, [formData.class, handleChange]);
+
   const isTab1Valid = formData.playerName.trim() !== '' && formData.characterName.trim() !== '';
+  const isHitDiceValid = formData.hitDiceConfig.trim() === '' || /^\d+d\d+(\+\d+d\d+)*$/.test(formData.hitDiceConfig.trim());
+  const isFormValid = isTab1Valid && isHitDiceValid;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isTab1Valid) return;
+    if (!isFormValid) return;
 
     onConfirm({
       playerName: formData.playerName,
@@ -51,28 +117,76 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
       class: formData.class,
       statusId: formData.statusId,
       statusName: formData.statusId === 1 ? 'Active' : formData.statusId === 2 ? 'Inactive' : 'Deceased',
-      // Hardcoded defaults for uncollected fields:
-      ac: 10,
-      maxHp: 10,
-      currentHp: 10,
+      ac: formData.ac,
+      maxHp: formData.maxHp,
+      currentHp: formData.maxHp, // starts at max
       tempHp: 0,
       tempHpMax: 0,
       conditions: '',
       isActive: formData.statusId === 1,
-      passivePerception: 10,
-      notes: '',
-      resistances: '',
-      immunities: '',
-      vulnerabilities: '',
+      passivePerception: getPassiveScore(formData.abilityScores, formData.proficiencies, 'perception'),
+      notes: formData.notes,
+      resistances: formData.resistances,
+      immunities: formData.immunities,
+      vulnerabilities: formData.vulnerabilities,
       tempAc: 0,
       deathSavesFails: 0,
       deathSavesSuccesses: 0,
-      hitDiceConfig: '',
+      hitDiceConfig: formData.hitDiceConfig,
       hitDiceUsed: '{}',
-      abilityScores: '{}',
-      proficiencies: '{}',
-      resourcePools: '[]',
+      abilityScores: serializeAbilityScores(formData.abilityScores),
+      proficiencies: serializeProficiencies(formData.proficiencies),
+      resourcePools: serializeResourcePools(formData.resourcePools),
     });
+  };
+
+  const handleAddResource = () => {
+    const trimmed = newResourceName.trim();
+    if (!trimmed) return;
+    poolsCustomized.current = true;
+    handleChange('resourcePools', addResourcePool(formData.resourcePools, {
+      name: trimmed,
+      max: newResourceMax,
+      reset: newResourceReset,
+      current: newResourceMax
+    }));
+    setNewResourceName('');
+    setNewResourceMax(3);
+    setNewResourceReset('long');
+    setIsAddingResource(false);
+  };
+
+  const handleUpdateResourceCurrent = (name: string, delta: number) => {
+    poolsCustomized.current = true;
+    const items = formData.resourcePools.map(p => {
+      if (p.name === name) {
+        return { ...p, current: Math.max(0, Math.min(p.max, p.current + delta)) };
+      }
+      return p;
+    });
+    handleChange('resourcePools', items);
+  };
+
+  const handleDeleteResource = (name: string) => {
+    poolsCustomized.current = true;
+    handleChange('resourcePools', removeResourcePool(formData.resourcePools, name));
+  };
+  
+  const startEditResource = (pool: ResourcePool) => {
+    setEditingResourceId(pool.name);
+    setEditResourceName(pool.name);
+    setEditResourceMax(pool.max);
+    setEditResourceReset(pool.reset);
+  };
+
+  const handleSaveEditResource = (originalName: string) => {
+    poolsCustomized.current = true;
+    handleChange('resourcePools', updateResourcePool(formData.resourcePools, originalName, {
+      name: editResourceName.trim() || originalName,
+      max: editResourceMax,
+      reset: editResourceReset
+    }));
+    setEditingResourceId(null);
   };
 
   const handleNext = () => {
@@ -211,18 +325,285 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                   </div>
                 )}
                 {activeTab === 'combat' && (
-                  <div className="flex items-center justify-center h-48 text-stone-500 text-sm">
-                    Combat Stats — coming soon
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-stone-400 mb-1.5">
+                          Armor Class
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="30"
+                          value={formData.ac}
+                          onChange={e => handleChange('ac', parseInt(e.target.value) || 10)}
+                          className="w-full bg-[#2c2c26] border border-stone-700 rounded-lg px-4 py-2 text-sm text-stone-100 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-all"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-stone-400 mb-1.5">
+                          Max HP
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          value={formData.maxHp}
+                          onChange={e => handleChange('maxHp', parseInt(e.target.value) || 1)}
+                          className="w-full bg-[#2c2c26] border border-stone-700 rounded-lg px-4 py-2 text-sm text-stone-100 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-all"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-stone-400 mb-1.5">
+                        Hit Dice
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.hitDiceConfig}
+                        onChange={e => handleChange('hitDiceConfig', e.target.value)}
+                        placeholder="e.g. 5d10 or 4d8+1d6"
+                        className={cn(
+                          "w-full bg-[#2c2c26] border rounded-lg px-4 py-2 text-sm text-stone-100 outline-none transition-all placeholder:text-stone-500",
+                          isHitDiceValid 
+                            ? "border-stone-700 focus:border-amber-500 focus:ring-1 focus:ring-amber-500" 
+                            : "border-red-500/50 focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                        )}
+                      />
+                      {!isHitDiceValid && (
+                        <div className="flex items-center gap-1 mt-1 text-red-400 text-xs">
+                          <AlertCircle className="w-3 h-3 flex-shrink-0" />
+                          <span>Invalid format. Must be like 2d6 or 1d8+2d6.</span>
+                        </div>
+                      )}
+                      <p className="text-[11px] text-stone-500 mt-1">
+                        Auto-suggested from class. Format: [count]d[size] (e.g. 5d10)
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs uppercase tracking-wide text-stone-400 mb-2 font-bold">
+                        RESISTANCES / IMMUNITIES / VULNERABILITIES
+                      </label>
+                      <div className="grid grid-cols-3 gap-3">
+                        <IrvMultiSelect
+                          label="Resists"
+                          value={formData.resistances}
+                          onChange={v => handleChange('resistances', v)}
+                          compact
+                        />
+                        <IrvMultiSelect
+                          label="Immune"
+                          value={formData.immunities}
+                          onChange={v => handleChange('immunities', v)}
+                          compact
+                        />
+                        <IrvMultiSelect
+                          label="Vuln"
+                          value={formData.vulnerabilities}
+                          onChange={v => handleChange('vulnerabilities', v)}
+                          compact
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-stone-400 mb-1.5">
+                        Notes
+                      </label>
+                      <textarea
+                        value={formData.notes}
+                        onChange={e => handleChange('notes', e.target.value)}
+                        placeholder="Special abilities, backstory notes..."
+                        rows={3}
+                        className="w-full bg-[#2c2c26] border border-stone-700 rounded-lg px-4 py-2 text-sm text-stone-100 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-all placeholder:text-stone-500 resize-none"
+                      />
+                    </div>
                   </div>
                 )}
                 {activeTab === 'abilities' && (
-                  <div className="flex items-center justify-center h-48 text-stone-500 text-sm">
-                    Abilities — coming soon
+                  <div>
+                    <p className="text-xs text-stone-400 italic mb-3">
+                      Passive Perception, Insight, and Investigation are calculated automatically from these values.
+                    </p>
+                    <StatBlock
+                      abilityScores={formData.abilityScores}
+                      proficiencies={formData.proficiencies}
+                      characterLevel={formData.level}
+                      readOnly={false}
+                      onChange={(scores, profs) => {
+                        handleChange('abilityScores', scores);
+                        handleChange('proficiencies', profs);
+                      }}
+                    />
                   </div>
                 )}
                 {activeTab === 'resources' && (
-                  <div className="flex items-center justify-center h-48 text-stone-500 text-sm">
-                    Resources — coming soon
+                  <div className="space-y-4">
+                    {formData.class && getClassResourceSuggestions(formData.class).length > 0 ? (
+                      <p className="text-xs text-stone-400 italic mb-3">
+                        Suggested pools for {formData.class}. Adjust max values to match your character.
+                      </p>
+                    ) : (formData.resourcePools.length === 0 && !isAddingResource) ? (
+                      <p className="text-xs text-stone-500 italic mb-3">
+                        No class entered. Add resource pools manually below.
+                      </p>
+                    ) : null}
+
+                    <div className="space-y-2">
+                      {formData.resourcePools.map(pool => {
+                        const isEditing = editingResourceId === pool.name;
+                        return (
+                          <div key={pool.name} className="bg-[#2c2c26] border border-stone-700 rounded-lg p-3">
+                            {isEditing ? (
+                              <div className="space-y-3">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                  <div>
+                                    <label className="text-[10px] uppercase font-bold text-stone-500 mb-1 block">Name</label>
+                                    <input
+                                      type="text"
+                                      value={editResourceName}
+                                      onChange={e => setEditResourceName(e.target.value)}
+                                      className="w-full text-xs bg-[#1a1a12] text-stone-100 border border-stone-700 focus:border-amber-500 px-2 py-1.5 rounded outline-none"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="text-[10px] uppercase font-bold text-stone-500 mb-1 block">Max Uses</label>
+                                    <input
+                                      type="number"
+                                      min={1}
+                                      max={20}
+                                      value={editResourceMax}
+                                      onChange={e => setEditResourceMax(parseInt(e.target.value, 10) || 1)}
+                                      className="w-full text-xs bg-[#1a1a12] text-stone-100 border border-stone-700 focus:border-amber-500 px-2 py-1.5 rounded outline-none"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="text-[10px] uppercase font-bold text-stone-500 mb-1 block">Resets On</label>
+                                    <select
+                                      value={editResourceReset}
+                                      onChange={e => setEditResourceReset(e.target.value as 'short'|'long'|'none')}
+                                      className="w-full text-xs bg-[#1a1a12] text-stone-100 border border-stone-700 focus:border-amber-500 px-2 py-1.5 rounded outline-none"
+                                    >
+                                      <option value="short">Short Rest</option>
+                                      <option value="long">Long Rest</option>
+                                      <option value="none">Never</option>
+                                    </select>
+                                  </div>
+                                </div>
+                                <div className="flex justify-end gap-2 text-xs">
+                                  <button type="button" onClick={() => setEditingResourceId(null)} className="px-3 py-1.5 text-stone-400 hover:text-stone-200">Cancel</button>
+                                  <button type="button" onClick={() => handleSaveEditResource(pool.name)} className="px-3 py-1.5 bg-amber-600/20 text-amber-500 hover:bg-amber-600/30 font-medium rounded">Save</button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                <div className="flex items-center gap-3">
+                                  <div className="font-bold text-stone-200">{pool.name}</div>
+                                  <div className={cn(
+                                    "text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-full",
+                                    pool.reset === 'short' ? "bg-amber-500/20 text-amber-500" :
+                                    pool.reset === 'long' ? "bg-blue-500/20 text-blue-400" :
+                                    "bg-stone-700 text-stone-400"
+                                  )}>
+                                    {pool.reset === 'short' ? 'SR' : pool.reset === 'long' ? 'LR' : '—'}
+                                  </div>
+                                </div>
+                                <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto">
+                                  <div className="flex items-center gap-2">
+                                    <button
+                                      type="button"
+                                      onClick={() => handleUpdateResourceCurrent(pool.name, -1)}
+                                      disabled={pool.current <= 0}
+                                      className="w-6 h-6 flex items-center justify-center bg-[#1a1a12] border border-stone-700 rounded hover:bg-stone-800 text-stone-400 disabled:opacity-30 disabled:hover:bg-[#1a1a12]"
+                                    >
+                                      −
+                                    </button>
+                                    <span className="text-xs font-mono font-bold text-stone-300 w-8 text-center">{pool.current} / {pool.max}</span>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleUpdateResourceCurrent(pool.name, 1)}
+                                      disabled={pool.current >= pool.max}
+                                      className="w-6 h-6 flex items-center justify-center bg-[#1a1a12] border border-stone-700 rounded hover:bg-stone-800 text-stone-400 disabled:opacity-30 disabled:hover:bg-[#1a1a12]"
+                                    >
+                                      +
+                                    </button>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <button type="button" onClick={() => startEditResource(pool)} className="p-1.5 text-stone-500 hover:text-amber-400 rounded transition-colors" title="Edit">
+                                      <Edit2 className="w-3.5 h-3.5" />
+                                    </button>
+                                    <button type="button" onClick={() => handleDeleteResource(pool.name)} className="p-1.5 text-stone-500 hover:text-red-400 rounded transition-colors" title="Delete">
+                                      <X className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {isAddingResource && (
+                      <div className="bg-[#2c2c26] border border-stone-700 rounded-lg p-3 space-y-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                          <div>
+                            <label className="text-[10px] uppercase font-bold text-stone-500 mb-1 block">Name</label>
+                            <input
+                              type="text"
+                              value={newResourceName}
+                              onChange={e => setNewResourceName(e.target.value)}
+                              placeholder="e.g. Rage, Ki Points"
+                              className="w-full text-xs bg-[#1a1a12] text-stone-100 border border-stone-700 focus:border-amber-500 px-2 py-1.5 rounded outline-none"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] uppercase font-bold text-stone-500 mb-1 block">Max Uses</label>
+                            <input
+                              type="number"
+                              min={1}
+                              max={20}
+                              value={newResourceMax}
+                              onChange={e => setNewResourceMax(parseInt(e.target.value, 10) || 1)}
+                              className="w-full text-xs bg-[#1a1a12] text-stone-100 border border-stone-700 focus:border-amber-500 px-2 py-1.5 rounded outline-none"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] uppercase font-bold text-stone-500 mb-1 block">Resets On</label>
+                            <select
+                              value={newResourceReset}
+                              onChange={e => setNewResourceReset(e.target.value as 'short'|'long'|'none')}
+                              className="w-full text-xs bg-[#1a1a12] text-stone-100 border border-stone-700 focus:border-amber-500 px-2 py-1.5 rounded outline-none"
+                            >
+                              <option value="short">Short Rest</option>
+                              <option value="long">Long Rest</option>
+                              <option value="none">Never</option>
+                            </select>
+                          </div>
+                        </div>
+                        <div className="flex justify-end gap-2 text-xs">
+                          <button type="button" onClick={() => setIsAddingResource(false)} className="px-3 py-1.5 text-stone-400 hover:text-stone-200">Cancel</button>
+                          <button type="button" onClick={handleAddResource} disabled={!newResourceName.trim()} className="px-3 py-1.5 bg-amber-600 text-stone-100 hover:bg-amber-500 font-medium rounded disabled:opacity-50">Add</button>
+                        </div>
+                      </div>
+                    )}
+
+                    {!isAddingResource && (
+                      <button
+                        type="button"
+                        onClick={() => setIsAddingResource(true)}
+                        className="w-full py-2.5 border border-dashed border-stone-700 rounded-lg text-stone-400 hover:text-amber-400 hover:border-amber-500/50 transition-colors text-sm font-medium flex items-center justify-center gap-1"
+                      >
+                        <span className="text-lg leading-none">+</span> Add Resource
+                      </button>
+                    )}
+
+                    {formData.resourcePools.length === 0 && !isAddingResource && (
+                      <div className="border border-dashed border-stone-700/50 rounded-lg p-6 text-center text-stone-500 text-sm italic">
+                        No resource pools yet. Click '+ Add Resource' to add class abilities like Rage or Ki Points.
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -234,7 +615,7 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                     <button
                       type="button"
                       onClick={handlePrev}
-                      className="text-sm text-stone-400 hover:text-stone-200 px-2 py-1"
+                      className="text-sm text-stone-400 hover:text-stone-200 px-2 py-1 transition-colors"
                     >
                       ← Previous
                     </button>
@@ -243,7 +624,7 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                     <button
                       type="button"
                       onClick={handleNext}
-                      className="text-sm text-stone-400 hover:text-stone-200 px-2 py-1"
+                      className="text-sm text-stone-400 hover:text-stone-200 px-2 py-1 transition-colors"
                     >
                       Next →
                     </button>
@@ -259,8 +640,8 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                   </button>
                   <button
                     type="submit"
-                    disabled={!isTab1Valid}
-                    className="bg-amber-600 hover:bg-amber-500 text-white font-medium px-4 py-2 rounded-lg text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-stone-700 disabled:text-stone-500"
+                    disabled={!isFormValid}
+                    className="bg-amber-600 hover:bg-amber-500 text-white font-medium px-4 py-2 rounded-lg text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-stone-700 disabled:text-stone-500 flex items-center justify-center shadow-lg"
                   >
                     Add Character
                   </button>

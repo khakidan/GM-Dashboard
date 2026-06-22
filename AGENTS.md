@@ -212,6 +212,7 @@ schema.
 - `combatantBuilder.ts` — Pure function that
   builds combatant state from characters +
   npcs + encounterCombatants
+- `classResources.ts` — Pre-defined D&D class resource pool templates and `getClassResourceSuggestions()` helper
 - `hitDice.ts` — Hit dice parsing, spending,
   recovery. Includes `CLASS_HIT_DIE_MAP`
 - `resourcePools.ts` — ResourcePool interface,
@@ -371,9 +372,9 @@ this whitelist and to `dbOperations.ts`.
 
 ---
 
-## Testing Structure — 12-Batch System
+## Testing Structure — 13-Batch System
 
-**Current baseline: 982 tests.**
+**Current baseline: 1087 tests.**
 All batches must pass with zero failures.
 No batch should exceed 35 seconds.
 
@@ -535,6 +536,16 @@ app is served from any path. Previously used
 for Tauri desktop wrapping; now retained
 because it simplifies deployment.
 
+## Workflows
+
+### Add Player Workflow (`NewPlayerDialog.tsx`)
+A 4-tab complex form for creating new characters manually:
+1. **Identity:** Name, Character Name, Class, Level, Status
+2. **Combat Stats:** AC, Max HP, Hit Dice, IRV, Notes
+3. **Abilities:** Ability Scores (calculates passive perception and proficiency bonus automatically)
+4. **Resources:** Manage Resource Pools (auto-suggests pools based on Identity Tab Class input, stores via `poolsCustomized` ref to avoid overwriting manual changes when class changes again)
+- Submits as a single flat Character record matching the Google Sheets schema.
+
 ---
 
 ## Hard Rules — Never Violate These
@@ -577,7 +588,7 @@ because it simplifies deployment.
    to include the new column header. Otherwise
    new campaigns will have the wrong schema.
 
-9. **Report all 12 batch counts individually**
+9. **Report all 13 batch counts individually**
    after any change. Never report a combined
    total without the per-batch breakdown.
 
