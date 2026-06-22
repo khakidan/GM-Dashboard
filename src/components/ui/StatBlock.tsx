@@ -148,7 +148,7 @@ export const StatBlock: React.FC<StatBlockProps> = ({
   );
 
   return (
-    <div className="space-y-3 text-stone-100 font-sans" id="statblock-container">
+    <div className="space-y-3 text-stone-800 font-sans" id="statblock-container">
       {/* SECTION A — Ability Scores Grid */}
       <div className="flex flex-wrap gap-2 justify-center" id="ability-scores-grid">
         {abilitiesInOrder.map((ability) => {
@@ -448,8 +448,8 @@ export const StatBlock: React.FC<StatBlockProps> = ({
 
                 return (
                   <div key={skill} className="flex items-center gap-1.5 py-0.5" id={`skill-collapsed-${skill.toLowerCase().replace(/\s+/g, '-')}`}>
-                    <span className="text-amber-500 font-bold">●</span>
-                    <span className="text-xs text-stone-850 font-medium">
+                     <span className="text-amber-500 font-bold">●</span>
+                    <span className="text-xs text-stone-800 font-medium">
                       {skill}
                       {prof === 'expertise' && (
                         <span className="text-[10px] text-amber-700 ml-0.5">
@@ -506,7 +506,7 @@ export const StatBlock: React.FC<StatBlockProps> = ({
                       const cycleIndicator = prof === 'none' ? '○' : prof === 'proficient' ? '●' : '★';
                       const cycleClass =
                         prof === 'none'
-                          ? 'text-stone-450 hover:text-stone-700'
+                          ? 'text-stone-400 hover:text-stone-700'
                           : prof === 'proficient'
                           ? 'text-amber-500'
                           : 'text-amber-600';
@@ -533,7 +533,7 @@ export const StatBlock: React.FC<StatBlockProps> = ({
 
                         <span
                           className={`text-xs ${
-                            prof !== 'none' ? 'text-stone-850 font-semibold' : 'text-stone-600'
+                            prof !== 'none' ? 'text-stone-800 font-semibold' : 'text-stone-600'
                           }`}
                           id={`skill-label-${skill.toLowerCase().replace(/\s+/g, '-')}`}
                         >
