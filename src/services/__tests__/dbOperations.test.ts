@@ -173,7 +173,7 @@ describe('addCharacterDB logic', () => {
     vi.clearAllMocks();
   });
 
-  it('builds a 16-column row matching the Characters sheet schema and appends it', async () => {
+  it('builds a 23-column row matching the Characters sheet schema and appends it', async () => {
     vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({ values: [] as SheetGrid }); // For getNextId
 
     const result = await addCharacterDB({

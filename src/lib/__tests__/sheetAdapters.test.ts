@@ -150,18 +150,19 @@ describe('sheetAdapters', () => {
       expect(characterUnknown.isActive).toBe(false);
     });
 
-    it('mapCharacterRowToCharacter defaults hitDiceConfig and hitDiceUsed when row is shorter than 22 columns', () => {
+    it('mapCharacterRowToCharacter defaults hitDiceConfig, hitDiceUsed, and resourcePools when row is shorter than 23 columns', () => {
       const shortRow = [
         'char-short', 'Alice', 'Shorty', 10, 10, 0, 10, '', 10, 1, 1, 'notes'
       ] as any;
       const character = mapCharacterRowToCharacter(shortRow, 5, mockStatuses);
       expect(character.hitDiceConfig).toBe('');
       expect(character.hitDiceUsed).toBe('{}');
+      expect(character.resourcePools).toBe('[]');
     });
 
     it('mapCharacterRowToCharacter maps index 19 to the class field', () => {
       const data: CharacterRowData = [
-        'char-class', 'Alice', 'Thor', 15, 20, 5, 25, '', 14, 3, 1, '', '', '', '', 0, 0, 0, 0, 'Barbarian', '4d12', '{}'
+        'char-class', 'Alice', 'Thor', 15, 20, 5, 25, '', 14, 3, 1, '', '', '', '', 0, 0, 0, 0, 'Barbarian', '4d12', '{}', '[]'
       ];
       const character = mapCharacterRowToCharacter(data, 6, mockStatuses);
       expect(character.class).toBe('Barbarian');
@@ -175,17 +176,18 @@ describe('sheetAdapters', () => {
       expect(character.class).toBe('');
     });
 
-    it('mapCharacterRowToCharacter with a full 22-element row maps class, hitDiceConfig, and hitDiceUsed to their correct values', () => {
+    it('mapCharacterRowToCharacter with a full 23-element row maps class, hitDiceConfig, hitDiceUsed, and resourcePools to their correct values', () => {
       const data: CharacterRowData = [
-        'char-1', 'Alice', 'Thor', 15, 20, 0, 20, '', 14, 1, 1, 'Notes', '', '', '', 0, 0, 0, 0, 'Wizard', '6d6', '{"d6":1}'
+        'char-1', 'Alice', 'Thor', 15, 20, 0, 20, '', 14, 1, 1, 'Notes', '', '', '', 0, 0, 0, 0, 'Wizard', '6d6', '{"d6":1}', '[{"id":"res-1","name":"Ki Points","max":5,"current":5,"resetOn":"short"}]'
       ];
       const character = mapCharacterRowToCharacter(data, 7, mockStatuses);
       expect(character.class).toBe('Wizard');
       expect(character.hitDiceConfig).toBe('6d6');
       expect(character.hitDiceUsed).toBe('{"d6":1}');
+      expect(character.resourcePools).toBe('[{"id":"res-1","name":"Ki Points","max":5,"current":5,"resetOn":"short"}]');
     });
 
-    it('mapCharacterRowToCharacter with a 20-element row (missing last two columns) returns empty string for hitDiceConfig and {} default for hitDiceUsed', () => {
+    it('mapCharacterRowToCharacter with a 20-element row (missing last columns) returns defaults', () => {
       const data = [
         'char-1', 'Alice', 'Thor', 15, 20, 0, 20, '', 14, 1, 1, 'Notes', '', '', '', 0, 0, 0, 0, 'Wizard'
       ] as any;
@@ -193,6 +195,7 @@ describe('sheetAdapters', () => {
       expect(character.class).toBe('Wizard');
       expect(character.hitDiceConfig).toBe('');
       expect(character.hitDiceUsed).toBe('{}');
+      expect(character.resourcePools).toBe('[]');
     });
   });
 

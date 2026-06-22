@@ -9,7 +9,7 @@ import {
 } from '../services/sheetsService';
 import { clearRetryQueue } from '../services/writeQueue';
 import { Character, Encounter, NPC, EncounterCombatant } from '../types';
-import { STORAGE_KEYS } from '../lib/constants';
+import { STORAGE_KEYS, SHEET_RANGES } from '../lib/constants';
 import {
   parseStatuses,
   parseDifficulties,
@@ -79,7 +79,7 @@ export function useSheetSync({ setIsGoogleConnected, onActiveTabChange }: UseShe
 
       // 4. Fetch Characters
       addLog('Step 5: Fetching character roster...');
-      const charactersResponse = await fetchSheetData(sid, 'Characters!A2:V');
+      const charactersResponse = await fetchSheetData(sid, SHEET_RANGES.characters);
       const characterRows = charactersResponse.values || [];
       addLog(`Character rows found: ${characterRows.length}`);
 
