@@ -109,7 +109,7 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden border-t border-[#e5e1d8]"
+            className="overflow-hidden border-t border-[#e5e1d8] bg-white"
           >
             <CharacterCardExpanded
               character={character}

@@ -58,7 +58,7 @@ export function CombatantCardExpanded({
   } = useCombatantExpanded(c);
 
   return (
-    <div className="px-6 pb-6 pt-2 border-t border-[#f5f5f0] space-y-5">
+    <div className="px-6 pb-6 pt-2 border-t border-[#e5e1d8] bg-white space-y-5">
       {c.notes && (
         <p className="text-sm text-[#5a5a40] opacity-60 italic">{c.notes}</p>
       )}

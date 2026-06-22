@@ -53,7 +53,7 @@ export const CharacterCardExpanded: React.FC<CharacterCardExpandedProps> = ({
     parseProficiencies(character.proficiencies);
 
   return (
-    <div className="p-6 flex flex-col font-sans gap-5">
+    <div className="p-6 flex flex-col font-sans gap-5 bg-white">
       <StatBlock
         abilityScores={parsedAbilityScores}
         proficiencies={parsedProficiencies}

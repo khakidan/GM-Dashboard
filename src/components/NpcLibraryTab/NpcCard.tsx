@@ -53,7 +53,7 @@ export const NpcCard: React.FC<NpcCardProps> = ({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden border-t border-[#e5e1d8]"
+            className="overflow-hidden border-t border-[#e5e1d8] bg-white"
           >
             <div className="p-6 flex flex-col gap-6">
               <StatBlock
