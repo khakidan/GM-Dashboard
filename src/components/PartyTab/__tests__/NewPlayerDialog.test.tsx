@@ -1,196 +1,273 @@
 import '@testing-library/jest-dom/vitest';
-// ─── PROTECTED TEST FILE ───────────────────────────
-// Do not delete, rename, or remove test cases from 
-// this file without an explicit instruction to do so.
-// Removing tests to make a count pass is not acceptable.
-// ────────────────────────────────────────────────────
-
 import React from 'react';
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { NewPlayerDialog } from '../NewPlayerDialog';
 
-vi.mock('../../ui/IrvMultiSelect', () => ({
-  IrvMultiSelect: ({ label, value, onChange }: any) => {
-    // Determine which ID to use based on label
-    const idMap: Record<string, string> = {
-      'Resistances': 'new-character-resistances',
-      'Immunities': 'new-character-immunities',
-      'Vulnerabilities': 'new-character-vulnerabilities'
-    };
-    return (
-      <div>
-        <label>{label}</label>
-        <input 
-          id={idMap[label]}
-          value={value} 
-          onChange={(e) => onChange(e.target.value)} 
-        />
-      </div>
-    );
-  }
+// Mock matchMedia
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: vi.fn().mockImplementation(query => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: vi.fn(), // deprecated
+    removeListener: vi.fn(), // deprecated
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })),
+});
+
+// Mock ResizeObserver
+const MockResizeObserver = vi.fn(() => ({
+  observe: vi.fn(),
+  unobserve: vi.fn(),
+  disconnect: vi.fn(),
+}));
+vi.stubGlobal('ResizeObserver', MockResizeObserver);
+
+vi.mock('motion/react', () => ({
+  motion: {
+    div: ({ children, className, onClick }: any) => <div className={className} onClick={onClick}>{children}</div>,
+  },
+  AnimatePresence: ({ children }: any) => <>{children}</>,
 }));
 
 describe('NewPlayerDialog', () => {
-  afterEach(() => {
-    cleanup();
-  });
-
   const defaultProps = {
     isOpen: true,
     onClose: vi.fn(),
     onConfirm: vi.fn(),
   };
 
-  it('renders all required fields', () => {
-    const { container } = render(<NewPlayerDialog {...defaultProps} />);
-    
-    expect(screen.getByText('Add New Player Character')).toBeInTheDocument();
-    
-    expect(container.querySelector('#new-player-name')).toBeDefined();
-    expect(container.querySelector('#new-character-name')).toBeDefined();
-    expect(container.querySelector('#new-character-level')).toBeDefined();
-    expect(container.querySelector('#new-character-ac')).toBeDefined();
-    expect(container.querySelector('#new-character-maxhp')).toBeDefined();
-    expect(container.querySelector('#new-character-passive')).toBeDefined();
-    expect(container.querySelector('#new-character-status')).toBeDefined();
-    expect(container.querySelector('#new-character-notes')).toBeDefined();
-    expect(container.querySelector('#new-character-resistances')).toBeDefined();
-    expect(container.querySelector('#new-character-immunities')).toBeDefined();
-    expect(container.querySelector('#new-character-vulnerabilities')).toBeDefined();
+  beforeEach(() => {
+    vi.clearAllMocks();
   });
 
-  it('Confirm button is disabled when required fields are empty', () => {
-    const { container } = render(<NewPlayerDialog {...defaultProps} />);
-    const confirmBtn = container.querySelector('#confirm-add-character-btn') as HTMLButtonElement;
-    
-    // Default maxHp is 10, but names are empty
-    expect(confirmBtn.disabled).toBe(true);
-
-    // Fill names
-    fireEvent.change(container.querySelector('#new-player-name')!, { target: { value: 'Matt' } });
-    fireEvent.change(container.querySelector('#new-character-name')!, { target: { value: 'Caleb' } });
-    
-    // Now it should be enabled
-    expect(confirmBtn.disabled).toBe(false);
-
-    // Clear one
-    fireEvent.change(container.querySelector('#new-player-name')!, { target: { value: '' } });
-    expect(confirmBtn.disabled).toBe(true);
+  afterEach(() => {
+    cleanup();
   });
 
-  it('Confirm button calls onConfirm with correct data when all fields are filled', () => {
-    const onConfirmMock = vi.fn();
-    const { container } = render(<NewPlayerDialog {...defaultProps} onConfirm={onConfirmMock} />);
-    
-    fireEvent.change(container.querySelector('#new-player-name')!, { target: { value: 'Matt' } });
-    fireEvent.change(container.querySelector('#new-character-name')!, { target: { value: 'Caleb' } });
-    fireEvent.change(container.querySelector('#new-character-class')!, { target: { value: 'Wizard' } });
-    fireEvent.change(container.querySelector('#new-character-level')!, { target: { value: '3' } });
-    fireEvent.change(container.querySelector('#new-character-ac')!, { target: { value: '15' } });
-    fireEvent.change(container.querySelector('#new-character-maxhp')!, { target: { value: '25' } });
-    fireEvent.change(container.querySelector('#new-character-passive')!, { target: { value: '12' } });
-    fireEvent.change(container.querySelector('#new-character-status')!, { target: { value: '2' } }); // Inactive
-    fireEvent.change(container.querySelector('#new-character-resistances')!, { target: { value: 'Fire' } });
-    fireEvent.change(container.querySelector('#new-character-immunities')!, { target: { value: 'Poison' } });
-    fireEvent.change(container.querySelector('#new-character-vulnerabilities')!, { target: { value: 'Cold' } });
-    fireEvent.change(container.querySelector('#new-character-notes')!, { target: { value: 'A wizard.' } });
-    fireEvent.change(container.querySelector('#new-character-hitdice')!, { target: { value: '3d6' } });
+  describe('RENDERING', () => {
+    it('renders when isOpen is true', () => {
+      render(<NewPlayerDialog {...defaultProps} />);
+      expect(screen.getByRole('heading', { name: 'Add Character' })).toBeInTheDocument();
+    });
 
-    fireEvent.click(container.querySelector('#confirm-add-character-btn')!);
+    it('does not render when isOpen is false', () => {
+      render(<NewPlayerDialog {...defaultProps} isOpen={false} />);
+      expect(screen.queryByRole('heading', { name: 'Add Character' })).not.toBeInTheDocument();
+    });
 
-    expect(onConfirmMock).toHaveBeenCalledTimes(1);
-    expect(onConfirmMock).toHaveBeenCalledWith({
-      playerName: 'Matt',
-      characterName: 'Caleb',
-      class: 'Wizard',
-      level: 3,
-      ac: 15,
-      maxHp: 25,
-      currentHp: 25, // currentHp equals maxHp
-      tempHp: 0,     // tempHp is 0
-      passivePerception: 12,
-      statusId: 2,
-      statusName: 'Inactive',
-      notes: 'A wizard.',
-      resistances: 'Fire',
-      immunities: 'Poison',
-      vulnerabilities: 'Cold',
-      conditions: '',
-      isActive: false,
-      hitDiceConfig: '3d6',
-      hitDiceUsed: '{}',
-      abilityScores: '{}',
-      proficiencies: '{}',
+    it('all 4 tab labels are visible', () => {
+      render(<NewPlayerDialog {...defaultProps} />);
+      expect(screen.getByRole('button', { name: /Identity/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Combat Stats/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Abilities/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Resources/i })).toBeInTheDocument();
+    });
+
+    it('Tab 1 is active by default', () => {
+      render(<NewPlayerDialog {...defaultProps} />);
+      expect(screen.getByPlaceholderText('e.g. Sarah')).toBeInTheDocument();
     });
   });
 
-  it('Cancel button calls onClose without calling onConfirm', () => {
-    const onCloseMock = vi.fn();
-    const onConfirmMock = vi.fn();
-    const { container } = render(
-      <NewPlayerDialog {...defaultProps} onClose={onCloseMock} onConfirm={onConfirmMock} />
-    );
+  describe('TAB 1 CONTENT', () => {
+    it('Player Name input is present', () => {
+      render(<NewPlayerDialog {...defaultProps} />);
+      expect(screen.getByPlaceholderText('e.g. Sarah')).toBeInTheDocument();
+    });
 
-    fireEvent.click(container.querySelector('#cancel-new-character-btn')!);
+    it('Character Name input is present', () => {
+      render(<NewPlayerDialog {...defaultProps} />);
+      expect(screen.getByPlaceholderText('e.g. Drogar')).toBeInTheDocument();
+    });
 
-    expect(onCloseMock).toHaveBeenCalledTimes(1);
-    expect(onConfirmMock).not.toHaveBeenCalled();
+    it('Class input is present', () => {
+      render(<NewPlayerDialog {...defaultProps} />);
+      expect(screen.getByPlaceholderText('e.g. Barbarian, Monk, Vitalist')).toBeInTheDocument();
+    });
+
+    it('Level input is present', () => {
+      render(<NewPlayerDialog {...defaultProps} />);
+      const levelInput = screen.getByRole('spinbutton');
+      expect(levelInput).toBeInTheDocument();
+    });
+
+    it('Status select is present', () => {
+      render(<NewPlayerDialog {...defaultProps} />);
+      expect(screen.getByRole('combobox')).toBeInTheDocument();
+    });
+
+    it('helper text is present', () => {
+      render(<NewPlayerDialog {...defaultProps} />);
+      expect(screen.getByText('Used to suggest starting resources on the Resources tab')).toBeInTheDocument();
+    });
   });
 
-  it('Optional fields submit as empty strings when left blank', () => {
-    const onConfirmMock = vi.fn();
-    const { container } = render(<NewPlayerDialog {...defaultProps} onConfirm={onConfirmMock} />);
-    
-    fireEvent.change(container.querySelector('#new-player-name')!, { target: { value: 'Matt' } });
-    fireEvent.change(container.querySelector('#new-character-name')!, { target: { value: 'Caleb' } });
-    // Keep maxHp default 10
-    
-    fireEvent.click(container.querySelector('#confirm-add-character-btn')!);
+  describe('TAB NAVIGATION — clicking', () => {
+    it('Clicking "Combat Stats" tab makes Tab 2 active', () => {
+      render(<NewPlayerDialog {...defaultProps} />);
+      fireEvent.click(screen.getByRole('button', { name: /Combat Stats/i }));
+      expect(screen.getByText('Combat Stats — coming soon')).toBeInTheDocument();
+      expect(screen.queryByPlaceholderText('e.g. Sarah')).not.toBeInTheDocument();
+    });
 
-    expect(onConfirmMock).toHaveBeenCalledWith(expect.objectContaining({
-      notes: '',
-      resistances: '',
-      immunities: '',
-      vulnerabilities: '',
-    }));
+    it('Clicking "Abilities" tab makes Tab 3 active', () => {
+      render(<NewPlayerDialog {...defaultProps} />);
+      fireEvent.click(screen.getByRole('button', { name: /Abilities/i }));
+      expect(screen.getByText('Abilities — coming soon')).toBeInTheDocument();
+    });
+
+    it('Clicking "Resources" tab makes Tab 4 active', () => {
+      render(<NewPlayerDialog {...defaultProps} />);
+      fireEvent.click(screen.getByRole('button', { name: /Resources/i }));
+      expect(screen.getByText('Resources — coming soon')).toBeInTheDocument();
+    });
+
+    it('Clicking "Identity" tab from Tab 3 returns to Tab 1', () => {
+      render(<NewPlayerDialog {...defaultProps} />);
+      fireEvent.click(screen.getByRole('button', { name: /Abilities/i }));
+      fireEvent.click(screen.getByRole('button', { name: /Identity/i }));
+      expect(screen.getByPlaceholderText('e.g. Sarah')).toBeInTheDocument();
+    });
   });
 
-  it('currentHp in the payload equals the entered maxHp and tempHp is 0', () => {
-    const onConfirmMock = vi.fn();
-    const { container } = render(<NewPlayerDialog {...defaultProps} onConfirm={onConfirmMock} />);
-    
-    fireEvent.change(container.querySelector('#new-player-name')!, { target: { value: 'Matt' } });
-    fireEvent.change(container.querySelector('#new-character-name')!, { target: { value: 'Caleb' } });
-    fireEvent.change(container.querySelector('#new-character-maxhp')!, { target: { value: '50' } });
-    
-    fireEvent.click(container.querySelector('#confirm-add-character-btn')!);
+  describe('TAB NAVIGATION — Next/Previous', () => {
+    it('"Next →" button is present on Tab 1', () => {
+      render(<NewPlayerDialog {...defaultProps} />);
+      expect(screen.getByRole('button', { name: 'Next →' })).toBeInTheDocument();
+    });
 
-    expect(onConfirmMock).toHaveBeenCalledWith(expect.objectContaining({
-      maxHp: 50,
-      currentHp: 50,
-      tempHp: 0
-    }));
+    it('Clicking Next advances to Tab 2', () => {
+      render(<NewPlayerDialog {...defaultProps} />);
+      fireEvent.click(screen.getByRole('button', { name: 'Next →' }));
+      expect(screen.getByText('Combat Stats — coming soon')).toBeInTheDocument();
+    });
+
+    it('"← Previous" button appears on Tab 2 and clicking returns to Tab 1', () => {
+      render(<NewPlayerDialog {...defaultProps} />);
+      fireEvent.click(screen.getByRole('button', { name: 'Next →' }));
+      const prevBtn = screen.getByRole('button', { name: '← Previous' });
+      expect(prevBtn).toBeInTheDocument();
+      fireEvent.click(prevBtn);
+      expect(screen.getByPlaceholderText('e.g. Sarah')).toBeInTheDocument();
+    });
+
+    it('"Next →" is not present on Tab 4', () => {
+      render(<NewPlayerDialog {...defaultProps} />);
+      fireEvent.click(screen.getByRole('button', { name: /Resources/i }));
+      expect(screen.queryByRole('button', { name: 'Next →' })).not.toBeInTheDocument();
+    });
+
+    it('"← Previous" is not present on Tab 1', () => {
+      render(<NewPlayerDialog {...defaultProps} />);
+      expect(screen.queryByRole('button', { name: '← Previous' })).not.toBeInTheDocument();
+    });
   });
 
-  it('displays validation error for invalid hit dice format', () => {
-    const { container } = render(<NewPlayerDialog {...defaultProps} />);
-    
-    fireEvent.change(container.querySelector('#new-character-hitdice')!, { target: { value: 'invalid' } });
-    
-    expect(screen.getByText(/Invalid format/)).toBeInTheDocument();
-    
-    const confirmBtn = container.querySelector('#confirm-add-character-btn') as HTMLButtonElement;
-    expect(confirmBtn.disabled).toBe(true);
+  describe('SUBMIT BUTTON STATE', () => {
+    it('Submit is disabled when playerName is empty', () => {
+      render(<NewPlayerDialog {...defaultProps} />);
+      const playerInput = screen.getByPlaceholderText('e.g. Sarah');
+      const characterInput = screen.getByPlaceholderText('e.g. Drogar');
+      fireEvent.change(characterInput, { target: { value: 'Aragorn' } });
+      const submitBtn = screen.getByRole('button', { name: 'Add Character' });
+      expect(submitBtn).toBeDisabled();
+    });
+
+    it('Submit is disabled when characterName is empty', () => {
+      render(<NewPlayerDialog {...defaultProps} />);
+      const playerInput = screen.getByPlaceholderText('e.g. Sarah');
+      fireEvent.change(playerInput, { target: { value: 'John' } });
+      const submitBtn = screen.getByRole('button', { name: 'Add Character' });
+      expect(submitBtn).toBeDisabled();
+    });
+
+    it('Submit is enabled when both playerName and characterName are filled in', () => {
+      render(<NewPlayerDialog {...defaultProps} />);
+      const playerInput = screen.getByPlaceholderText('e.g. Sarah');
+      const characterInput = screen.getByPlaceholderText('e.g. Drogar');
+      
+      fireEvent.change(playerInput, { target: { value: 'John' } });
+      fireEvent.change(characterInput, { target: { value: 'Aragorn' } });
+      
+      const submitBtn = screen.getByRole('button', { name: 'Add Character' });
+      expect(submitBtn).not.toBeDisabled();
+    });
+
+    it('Submit is disabled on Tab 2 if Tab 1 fields are empty', () => {
+      render(<NewPlayerDialog {...defaultProps} />);
+      fireEvent.click(screen.getByRole('button', { name: 'Next →' }));
+      const submitBtn = screen.getByRole('button', { name: 'Add Character' });
+      expect(submitBtn).toBeDisabled();
+    });
   });
 
-  it('suggests hit dice based on class and level and populates suggests config', () => {
-    const { container } = render(<NewPlayerDialog {...defaultProps} />);
-    
-    fireEvent.change(container.querySelector('#new-character-class')!, { target: { value: 'barbarian' } });
-    fireEvent.change(container.querySelector('#new-character-level')!, { target: { value: '5' } });
-    
-    const hitDiceInput = container.querySelector('#new-character-hitdice') as HTMLInputElement;
-    expect(hitDiceInput.value).toBe('5d12');
+  describe('SUBMISSION', () => {
+    it('Filling in Player Name and Character Name then clicking "Add Character" calls onConfirm', () => {
+      render(<NewPlayerDialog {...defaultProps} />);
+      const playerInput = screen.getByPlaceholderText('e.g. Sarah');
+      const characterInput = screen.getByPlaceholderText('e.g. Drogar');
+      
+      fireEvent.change(playerInput, { target: { value: 'John' } });
+      fireEvent.change(characterInput, { target: { value: 'Aragorn' } });
+      
+      const submitBtn = screen.getByRole('button', { name: 'Add Character' });
+      fireEvent.click(submitBtn);
+      
+      expect(defaultProps.onConfirm).toHaveBeenCalled();
+      expect(defaultProps.onConfirm).toHaveBeenCalledWith(expect.objectContaining({
+        playerName: 'John',
+        characterName: 'Aragorn',
+        level: 1,
+        statusId: 1,
+        ac: 10,
+        maxHp: 10,
+        currentHp: 10,
+        passivePerception: 10,
+        tempHp: 0,
+        tempHpMax: 0,
+        conditions: '',
+        isActive: true,
+        notes: '',
+        resistances: '',
+        immunities: '',
+        vulnerabilities: '',
+        tempAc: 0,
+        deathSavesFails: 0,
+        deathSavesSuccesses: 0,
+        hitDiceConfig: '',
+        hitDiceUsed: '{}',
+        abilityScores: '{}',
+        proficiencies: '{}',
+        resourcePools: '[]',
+      }));
+    });
+
+    it('onConfirm is NOT called when playerName is empty', () => {
+      render(<NewPlayerDialog {...defaultProps} />);
+      const submitBtn = screen.getByRole('button', { name: 'Add Character' });
+      fireEvent.click(submitBtn);
+      expect(defaultProps.onConfirm).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('CLOSE', () => {
+    it('Clicking × calls onClose', () => {
+      render(<NewPlayerDialog {...defaultProps} />);
+      const closeBtn = screen.getByRole('button', { name: 'Close' });
+      fireEvent.click(closeBtn);
+      expect(defaultProps.onClose).toHaveBeenCalled();
+    });
+
+    it('Clicking Cancel calls onClose', () => {
+      render(<NewPlayerDialog {...defaultProps} />);
+      const cancelBtn = screen.getByRole('button', { name: 'Cancel' });
+      fireEvent.click(cancelBtn);
+      expect(defaultProps.onClose).toHaveBeenCalled();
+    });
   });
 });

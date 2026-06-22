@@ -1,11 +1,9 @@
-import React, { useEffect, useState, useMemo } from 'react';
-import { X, UserPlus, Shield, Heart, Eye, Star, Info, Save } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { X, UserPlus } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Character } from '../../types';
 import { cn } from '../../lib/utils';
-import { IrvMultiSelect } from '../ui/IrvMultiSelect';
 import { useFormState } from '../../hooks/useFormState';
-import { parseHitDiceConfig, suggestHitDiceConfig } from '../../lib/hitDice';
 
 interface NewPlayerDialogProps {
   isOpen: boolean;
@@ -13,358 +11,260 @@ interface NewPlayerDialogProps {
   onConfirm: (character: Omit<Character, 'id' | 'sheetRowIndex'>) => void;
 }
 
+type TabId = 'identity' | 'combat' | 'abilities' | 'resources';
+
+const TABS: { id: TabId; label: string; optional?: boolean }[] = [
+  { id: 'identity', label: 'Identity' },
+  { id: 'combat', label: 'Combat Stats', optional: true },
+  { id: 'abilities', label: 'Abilities', optional: true },
+  { id: 'resources', label: 'Resources', optional: true },
+];
+
 export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogProps) {
+  const [activeTab, setActiveTab] = useState<TabId>('identity');
+
   const { values: formData, handleChange, reset } = useFormState({
     playerName: '',
     characterName: '',
     class: '',
     level: 1,
-    ac: 10,
-    maxHp: 10,
-    passivePerception: 10,
     statusId: 1, // Active
-    notes: '',
-    resistances: '',
-    immunities: '',
-    vulnerabilities: '',
   });
-
-  const [hitDiceConfig, setHitDiceConfig] = useState('');
-  const [hitDiceError, setHitDiceError] = useState('');
-  const [isHitDiceTouched, setIsHitDiceTouched] = useState(false);
 
   useEffect(() => {
     if (!isOpen) {
       reset();
-      setHitDiceConfig('');
-      setHitDiceError('');
-      setIsHitDiceTouched(false);
+      setActiveTab('identity');
     }
   }, [isOpen, reset]);
 
-  const handleHitDiceChange = (val: string) => {
-    setHitDiceConfig(val);
-    setIsHitDiceTouched(true);
-    if (!val.trim()) {
-      setHitDiceError('');
-    } else {
-      const parsed = parseHitDiceConfig(val);
-      if (parsed.length === 0) {
-        setHitDiceError('Invalid format. Use [count]d[size], e.g. 7d8 or 4d12+3d10');
-      } else {
-        setHitDiceError('');
-      }
-    }
-  };
-
-  const classValue = formData.class;
-  const levelValue = formData.level;
-
-  const suggestedConfig = useMemo(() => {
-    return suggestHitDiceConfig(classValue, Number(levelValue));
-  }, [classValue, levelValue]);
-
-  useEffect(() => {
-    if (!isHitDiceTouched && suggestedConfig) {
-      setHitDiceConfig(suggestedConfig);
-    }
-  }, [suggestedConfig, isHitDiceTouched]);
-
-  const isFormValid = formData.playerName.trim() !== '' && 
-                      formData.characterName.trim() !== '' && 
-                      formData.maxHp > 0 &&
-                      !hitDiceError;
+  const isTab1Valid = formData.playerName.trim() !== '' && formData.characterName.trim() !== '';
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isFormValid) return;
+    if (!isTab1Valid) return;
 
     onConfirm({
       playerName: formData.playerName,
       characterName: formData.characterName,
       level: formData.level,
       class: formData.class,
-      ac: formData.ac,
-      maxHp: formData.maxHp,
-      currentHp: formData.maxHp, // Defaults to Max HP
-      tempHp: 0, // Defaults to 0
-      passivePerception: formData.passivePerception,
       statusId: formData.statusId,
       statusName: formData.statusId === 1 ? 'Active' : formData.statusId === 2 ? 'Inactive' : 'Deceased',
-      notes: formData.notes,
-      resistances: formData.resistances,
-      immunities: formData.immunities,
-      vulnerabilities: formData.vulnerabilities,
+      // Hardcoded defaults for uncollected fields:
+      ac: 10,
+      maxHp: 10,
+      currentHp: 10,
+      tempHp: 0,
+      tempHpMax: 0,
       conditions: '',
       isActive: formData.statusId === 1,
-      hitDiceConfig: hitDiceConfig.trim(),
+      passivePerception: 10,
+      notes: '',
+      resistances: '',
+      immunities: '',
+      vulnerabilities: '',
+      tempAc: 0,
+      deathSavesFails: 0,
+      deathSavesSuccesses: 0,
+      hitDiceConfig: '',
       hitDiceUsed: '{}',
       abilityScores: '{}',
       proficiencies: '{}',
+      resourcePools: '[]',
     });
+  };
+
+  const handleNext = () => {
+    const currentIndex = TABS.findIndex(t => t.id === activeTab);
+    if (currentIndex < TABS.length - 1) setActiveTab(TABS[currentIndex + 1].id);
+  };
+
+  const handlePrev = () => {
+    const currentIndex = TABS.findIndex(t => t.id === activeTab);
+    if (currentIndex > 0) setActiveTab(TABS[currentIndex - 1].id);
   };
 
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-[#2c2c26]/60 backdrop-blur-sm"
-            onClick={onClose}
-          />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="bg-[#fdfaf5] w-full max-w-2xl rounded-2xl shadow-2xl border border-[#e5e1d8] overflow-hidden flex flex-col relative z-10"
+            className="bg-[#1a1a12] w-full max-w-2xl max-h-[90vh] rounded-xl shadow-2xl border border-stone-700 flex flex-col mx-4"
           >
-            <div className="bg-[#2c2c26] p-6 text-[#e5e1d8] flex items-center justify-between">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-stone-700">
               <div className="flex items-center gap-3">
-                <UserPlus className="w-6 h-6 text-[#c5b358]" />
-                <h2 className="text-xl font-bold font-serif uppercase tracking-wider">Add New Player Character</h2>
+                <UserPlus className="w-5 h-5 text-amber-500" />
+                <h2 className="text-lg font-bold text-stone-100">Add Character</h2>
               </div>
               <button
                 onClick={onClose}
-                className="p-2 hover:bg-white/10 rounded-full transition-colors text-white/50 hover:text-white"
+                className="text-stone-400 hover:text-stone-200 transition-colors"
                 title="Close"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-8 space-y-6 overflow-y-auto max-h-[70vh]">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Names */}
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40] mb-1.5 px-1">
-                      Player Name <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      id="new-player-name"
-                      type="text"
-                      required
-                      value={formData.playerName}
-                      onChange={e => handleChange('playerName', e.target.value)}
-                      placeholder="e.g. Matt"
-                      className="w-full bg-white border border-[#e5e1d8] rounded-xl px-4 py-3 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40] mb-1.5 px-1">
-                      Character Name <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      id="new-character-name"
-                      type="text"
-                      required
-                      value={formData.characterName}
-                      onChange={e => handleChange('characterName', e.target.value)}
-                      placeholder="e.g. Caleb"
-                      className="w-full bg-white border border-[#e5e1d8] rounded-xl px-4 py-3 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all font-serif italic"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40] mb-1.5 px-1">
-                      Class
-                    </label>
-                    <input
-                      id="new-character-class"
-                      type="text"
-                      value={formData.class}
-                      onChange={e => handleChange('class', e.target.value)}
-                      placeholder="e.g. Barbarian or Barbarian / Fighter"
-                      className="w-full bg-white border border-[#e5e1d8] rounded-xl px-4 py-3 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all"
-                    />
-                  </div>
-                </div>
-
-                {/* Core Stats */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40] mb-1.5 px-1">
-                      Level <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <Star className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#c5b358]" />
-                      <input
-                        id="new-character-level"
-                        type="number"
-                        min="1"
-                        required
-                        value={formData.level}
-                        onFocus={(e) => e.target.select()}
-                        onChange={e => handleChange('level', parseInt(e.target.value) || 0)}
-                        className="w-full bg-white border border-[#e5e1d8] rounded-xl pl-10 pr-4 py-3 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40] mb-1.5 px-1">
-                      AC <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5a5a40] opacity-50" />
-                      <input
-                        id="new-character-ac"
-                        type="number"
-                        min="0"
-                        required
-                        value={formData.ac}
-                        onFocus={(e) => e.target.select()}
-                        onChange={e => handleChange('ac', parseInt(e.target.value) || 0)}
-                        className="w-full bg-white border border-[#e5e1d8] rounded-xl pl-10 pr-4 py-3 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40] mb-1.5 px-1">
-                      Max HP <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <Heart className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-red-400" />
-                      <input
-                        id="new-character-maxhp"
-                        type="number"
-                        min="1"
-                        required
-                        value={formData.maxHp}
-                        onFocus={(e) => e.target.select()}
-                        onChange={e => handleChange('maxHp', parseInt(e.target.value) || 0)}
-                        className="w-full bg-white border border-[#e5e1d8] rounded-xl pl-10 pr-4 py-3 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all font-bold"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40] mb-1.5 px-1">
-                      Passive Percept.
-                    </label>
-                    <div className="relative">
-                      <Eye className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5a5a40] opacity-50" />
-                      <input
-                        id="new-character-passive"
-                        type="number"
-                        min="0"
-                        value={formData.passivePerception}
-                        onFocus={(e) => e.target.select()}
-                        onChange={e => handleChange('passivePerception', parseInt(e.target.value) || 0)}
-                        className="w-full bg-white border border-[#e5e1d8] rounded-xl pl-10 pr-4 py-3 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all"
-                      />
-                    </div>
-                  </div>
-                  <div className="col-span-2">
-                    <label className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40] mb-1.5 px-1">
-                      Hit Dice
-                    </label>
-                    <input
-                      id="new-character-hitdice"
-                      type="text"
-                      value={hitDiceConfig}
-                      onChange={e => handleHitDiceChange(e.target.value)}
-                      placeholder="e.g. 7d8 or 4d12+3d10"
-                      className="w-full bg-white border border-[#e5e1d8] rounded-xl px-4 py-3 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all font-mono"
-                    />
-                    <p className="text-[10px] text-gray-400 mt-1 px-1">
-                      Format: [count]d[size]. Separate multiple pools with +.
-                    </p>
-                    {hitDiceError && (
-                      <p id="hitdice-error-msg" className="text-xs text-red-500 mt-1 px-1">
-                        {hitDiceError}
-                      </p>
+            {/* Tab Navigation */}
+            <div className="border-b border-stone-700 px-6 flex items-center overflow-x-auto no-scrollbar">
+              {TABS.map((tab) => {
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setActiveTab(tab.id)}
+                    className={cn(
+                      "px-4 py-3 text-sm transition-colors relative whitespace-nowrap",
+                      isActive ? "text-amber-400 border-b-2 border-amber-400 font-medium" : "text-stone-400 hover:text-stone-300"
                     )}
-                    {suggestedConfig && suggestedConfig !== hitDiceConfig && (
-                      <div className="flex items-center gap-1.5 mt-1 text-xs">
-                        <span className="text-gray-500">Suggested: <code className="bg-[#2c2c26]/5 px-1 py-0.5 rounded font-mono text-[11px]">{suggestedConfig}</code></span>
-                        <button
-                          id="use-suggestion-btn"
-                          type="button"
-                          onClick={() => handleHitDiceChange(suggestedConfig)}
-                          className="text-[#c5b358] hover:text-[#b0a04f] font-bold cursor-pointer underline decoration-dotted text-xs"
-                        >
-                          Use suggestion
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40] mb-1.5 px-1">
-                    Status <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    id="new-character-status"
-                    value={formData.statusId}
-                    onChange={e => handleChange('statusId', parseInt(e.target.value))}
-                    className="w-full bg-white border border-[#e5e1d8] rounded-xl px-4 py-3 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all appearance-none cursor-pointer"
                   >
-                    <option value={1}>Active</option>
-                    <option value={2}>Inactive</option>
-                    <option value={3}>Deceased</option>
-                  </select>
-                </div>
-                <IrvMultiSelect
-                  label="Resistances"
-                  value={formData.resistances}
-                  onChange={v => handleChange('resistances', v)}
-                  placeholder="e.g. fire, cold"
-                />
+                    {tab.label}
+                    {!tab.optional && (
+                      <span className="text-[10px] text-amber-500/70 ml-1.5">(required)</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Form Content Area */}
+            <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto flex flex-col min-h-0">
+              <div className="flex-1 px-6 py-5">
+                {activeTab === 'identity' && (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-bold text-stone-400 mb-1.5">
+                        Player Name
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.playerName}
+                        onChange={e => handleChange('playerName', e.target.value)}
+                        placeholder="e.g. Sarah"
+                        required
+                        className="w-full bg-[#2c2c26] border border-stone-700 rounded-lg px-4 py-2 text-sm text-stone-100 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-all placeholder:text-stone-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-stone-400 mb-1.5">
+                        Character Name
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.characterName}
+                        onChange={e => handleChange('characterName', e.target.value)}
+                        placeholder="e.g. Drogar"
+                        required
+                        className="w-full bg-[#2c2c26] border border-stone-700 rounded-lg px-4 py-2 text-sm text-stone-100 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-all placeholder:text-stone-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-stone-400 mb-1.5">
+                        Class
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.class}
+                        onChange={e => handleChange('class', e.target.value)}
+                        placeholder="e.g. Barbarian, Monk, Vitalist"
+                        className="w-full bg-[#2c2c26] border border-stone-700 rounded-lg px-4 py-2 text-sm text-stone-100 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-all placeholder:text-stone-500"
+                      />
+                      <p className="text-[11px] text-stone-500 mt-1">
+                        Used to suggest starting resources on the Resources tab
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-stone-400 mb-1.5">
+                          Level
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="20"
+                          value={formData.level}
+                          onChange={e => handleChange('level', parseInt(e.target.value) || 1)}
+                          className="w-full bg-[#2c2c26] border border-stone-700 rounded-lg px-4 py-2 text-sm text-stone-100 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-all"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-stone-400 mb-1.5">
+                          Status
+                        </label>
+                        <select
+                          value={formData.statusId}
+                          onChange={e => handleChange('statusId', parseInt(e.target.value))}
+                          className="w-full bg-[#2c2c26] border border-stone-700 rounded-lg px-4 py-2 text-sm text-stone-100 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-all appearance-none cursor-pointer"
+                        >
+                          <option value={1}>Active</option>
+                          <option value={2}>Inactive</option>
+                          <option value={3}>Deceased</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {activeTab === 'combat' && (
+                  <div className="flex items-center justify-center h-48 text-stone-500 text-sm">
+                    Combat Stats — coming soon
+                  </div>
+                )}
+                {activeTab === 'abilities' && (
+                  <div className="flex items-center justify-center h-48 text-stone-500 text-sm">
+                    Abilities — coming soon
+                  </div>
+                )}
+                {activeTab === 'resources' && (
+                  <div className="flex items-center justify-center h-48 text-stone-500 text-sm">
+                    Resources — coming soon
+                  </div>
+                )}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <IrvMultiSelect
-                  label="Immunities"
-                  value={formData.immunities}
-                  onChange={v => handleChange('immunities', v)}
-                  placeholder="e.g. poison, charmed"
-                />
-                <IrvMultiSelect
-                  label="Vulnerabilities"
-                  value={formData.vulnerabilities}
-                  onChange={v => handleChange('vulnerabilities', v)}
-                  placeholder="e.g. thunder"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40] mb-1.5 px-1">
-                  Notes
-                </label>
-                <textarea
-                  id="new-character-notes"
-                  value={formData.notes}
-                  onChange={e => handleChange('notes', e.target.value)}
-                  placeholder="Character backstory, special items, etc."
-                  rows={3}
-                  className="w-full bg-white border border-[#e5e1d8] rounded-xl px-4 py-3 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all resize-none"
-                />
-              </div>
-
-              <div className="pt-4 flex gap-4">
-                <button
-                  id="cancel-new-character-btn"
-                  type="button"
-                  onClick={onClose}
-                  className="flex-1 bg-[#e5e1d8] hover:bg-[#d4cfc1] text-[#2c2c26] py-3.5 rounded-xl font-bold font-sans uppercase tracking-widest text-xs transition-all active:scale-95"
-                >
-                  Cancel
-                </button>
-                <button
-                  id="confirm-add-character-btn"
-                  type="submit"
-                  disabled={!isFormValid}
-                  className={cn(
-                    "flex-1 bg-[#c5b358] hover:bg-[#b0a04f] text-[#2c2c26] py-3.5 rounded-xl font-bold font-sans uppercase tracking-widest text-xs transition-all flex items-center justify-center gap-2 shadow-md active:scale-95 disabled:opacity-50 disabled:active:scale-100 disabled:cursor-not-allowed",
+              {/* Footer */}
+              <div className="px-6 py-4 border-t border-stone-700 flex items-center justify-between shrink-0">
+                <div className="flex items-center gap-2">
+                  {activeTab !== 'identity' && (
+                    <button
+                      type="button"
+                      onClick={handlePrev}
+                      className="text-sm text-stone-400 hover:text-stone-200 px-2 py-1"
+                    >
+                      ← Previous
+                    </button>
                   )}
-                >
-                  <Save className="w-4 h-4" />
-                  Add Character →
-                </button>
+                  {activeTab !== 'resources' && (
+                    <button
+                      type="button"
+                      onClick={handleNext}
+                      className="text-sm text-stone-400 hover:text-stone-200 px-2 py-1"
+                    >
+                      Next →
+                    </button>
+                  )}
+                </div>
+                <div className="flex items-center">
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="text-sm text-stone-400 hover:text-stone-200 mr-3 px-3 py-2 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={!isTab1Valid}
+                    className="bg-amber-600 hover:bg-amber-500 text-white font-medium px-4 py-2 rounded-lg text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-stone-700 disabled:text-stone-500"
+                  >
+                    Add Character
+                  </button>
+                </div>
               </div>
             </form>
           </motion.div>
