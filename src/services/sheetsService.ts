@@ -33,18 +33,14 @@ export interface AddSheetRequest {
 export type BatchRequest = DeleteDimensionRequest | AddSheetRequest;
 
 async function withSheetToast<T>(promise: Promise<T>): Promise<T> {
-  const activeNotifier = getSheetNotifier();
-  const tId = activeNotifier.loading('Updating sheet...');
   try {
     const res = await promise;
-    activeNotifier.success('Sheet updated successfully', { id: tId });
     return res;
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'An unknown error occurred';
     if (message !== 'UNAUTHENTICATED') {
-      activeNotifier.error('Failed to update sheet', { id: tId });
-    } else {
-      activeNotifier.dismiss(tId);
+      const activeNotifier = getSheetNotifier();
+      activeNotifier.error('Failed to update sheet');
     }
     throw err;
   }

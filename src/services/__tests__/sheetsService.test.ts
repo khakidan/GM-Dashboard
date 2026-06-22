@@ -91,36 +91,11 @@ describe('Notifier Pattern', () => {
     expect(getSheetNotifier()).toBe(toast);
   });
 
-  it('After setting a custom notifier object, its loading method is called when a sheet write begins', async () => {
-    localStorage.setItem(STORAGE_KEYS.googleAccessToken, 'fake-token');
-    localStorage.setItem(STORAGE_KEYS.spreadsheetId, 'test-id');
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({}), { status: 200 })));
-
-    await updateSheetData('A1', [[1]]);
-    expect(customNotifier.loading).toHaveBeenCalledWith('Updating sheet...');
-  });
-
-  it("The notifier's success method is called when the write succeeds", async () => {
-    localStorage.setItem(STORAGE_KEYS.googleAccessToken, 'fake-token');
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({}), { status: 200 })));
-
-    await updateSheetData('A1', [[1]]);
-    expect(customNotifier.success).toHaveBeenCalledWith('Sheet updated successfully', { id: 'toast-id' });
-  });
-
   it("The notifier's error method is called when the write fails with a non-UNAUTHENTICATED error", async () => {
     localStorage.setItem(STORAGE_KEYS.googleAccessToken, 'fake-token');
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('Bad Request', { status: 400 })));
 
     await expect(updateSheetData('A1', [[1]])).rejects.toThrow();
-    expect(customNotifier.error).toHaveBeenCalledWith('Failed to update sheet', { id: 'toast-id' });
-  });
-
-  it("The notifier's dismiss method is called when the write fails with an UNAUTHENTICATED error", async () => {
-    localStorage.setItem(STORAGE_KEYS.googleAccessToken, 'fake-token');
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ error: 'UNAUTHENTICATED' }), { status: 401 })));
-
-    await expect(updateSheetData('A1', [[1]])).rejects.toThrow('UNAUTHENTICATED');
-    expect(customNotifier.dismiss).toHaveBeenCalledWith('toast-id');
+    expect(customNotifier.error).toHaveBeenCalledWith('Failed to update sheet');
   });
 });
