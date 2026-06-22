@@ -212,7 +212,15 @@ schema.
 - `combatantBuilder.ts` — Pure function that
   builds combatant state from characters +
   npcs + encounterCombatants
-- `classResources.ts` — Pre-defined D&D class resource pool templates and `getClassResourceSuggestions()` helper
+- `classResources.ts` — 
+  CLASS_RESOURCE_SUGGESTIONS 
+  mapping for 12 standard 5e 
+  classes and 
+  getClassResourceSuggestions() 
+  helper. Returns deep-copied 
+  ResourcePool[] suggestions. 
+  Returns [] for unknown/custom 
+  classes (e.g. Vitalist).
 - `hitDice.ts` — Hit dice parsing, spending,
   recovery. Includes `CLASS_HIT_DIE_MAP`
 - `resourcePools.ts` — ResourcePool interface,
@@ -323,6 +331,15 @@ schema.
   condition or effect
 - `IrvMultiSelect.tsx` — Compact multi-select
   for resistances/immunities/vulnerabilities
+- `StatBlock.tsx` — orchestrator 
+  (117 lines). Delegates rendering 
+  to four subcomponents:
+  StatBlockScores.tsx, 
+  StatBlockSaves.tsx,
+  StatBlockPassive.tsx, 
+  StatBlockSkills.tsx.
+  All five live in 
+  src/components/ui/.
 
 ### src/components/PartyTab/
 - `ResourcePoolsSection.tsx` — Shared pip
@@ -341,6 +358,24 @@ schema.
   pools on PC combatant cards (collapsed view)
 - `CombatantCardExpanded.tsx` — Full
   ResourcePoolsSection for PC combatants
+- `CombatMechanicsSummary.tsx` — 
+  Pure presentational component 
+  rendering the combat mechanics 
+  status grid (speed locks, 
+  advantage/disadvantage indicators, 
+  auto-fail warnings) from a 
+  mechanicalSummary object. 
+  No store access.
+- `CombatantIrvDisplay.tsx` — 
+  Read-only display for a 
+  combatant's Resistances, 
+  Immunities, and Vulnerabilities.
+- `hooks/useCombatantExpanded.ts` — 
+  Encapsulates the resource pool 
+  update handler and the condition-
+  triggered resource depletion 
+  handler (onConditionAdded). 
+  Used by CombatantCardExpanded.
 - `hooks/useHealthChange.ts` — Damage/heal
   with IRV math. Fires `fireConcentrationAlert`
   when a concentrating combatant takes damage.
@@ -402,9 +437,12 @@ npx vitest run src/components/ActiveEncounterTab/__tests__/useBatchActions.test.
 npx vitest run src/components/ActiveEncounterTab/__tests__/AddNpcCollision.test.tsx src/components/ActiveEncounterTab/__tests__/CasterAttributionDialog.test.tsx src/components/ActiveEncounterTab/__tests__/CombatHeader.test.tsx src/components/ActiveEncounterTab/__tests__/CombatSidebar.test.tsx src/components/ActiveEncounterTab/__tests__/CombatantCard.test.tsx src/components/ActiveEncounterTab/__tests__/KeyboardShortcuts.test.tsx src/components/ActiveEncounterTab/__tests__/MultiTargetActionPanel.test.tsx src/components/ActiveEncounterTab/__tests__/ShortcutCheatSheet.test.tsx src/components/ActiveEncounterTab/__tests__/index.test.tsx
 
 # BATCH 6A
-npx vitest run src/components/PartyTab/__tests__ src/components/EncountersTab/__tests__
+npx vitest run src/components/PartyTab/__tests__
 
 # BATCH 6B
+npx vitest run src/components/EncountersTab/__tests__
+
+# BATCH 6C
 npx vitest run src/components/NpcLibraryTab/__tests__
 
 # BATCH 7A
@@ -429,8 +467,9 @@ npx vitest run src/components/ui/__tests__
 | src/hooks/ | Batch 3 (auto-picked up) |
 | AET hook (.test.ts) | Add to Batch 5A explicitly |
 | AET component (.test.tsx) | Add to Batch 5B explicitly |
-| PartyTab or EncountersTab | Batch 6A (auto-picked up) |
-| NpcLibraryTab | Batch 6B (auto-picked up) |
+| PartyTab | Batch 6A (auto-picked up) |
+| EncountersTab | Batch 6B (auto-picked up) |
+| NpcLibraryTab | Batch 6C (auto-picked up) |
 | Overlay component | Add to Batch 7A explicitly |
 | Audio or main dashboard | Add to Batch 7B-1 explicitly |
 | Other top-level component | Add to Batch 7B-2 explicitly |
