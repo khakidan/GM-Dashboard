@@ -61,6 +61,7 @@ export const StatBlockScores: React.FC<StatBlockScoresProps> = ({
                     max="30"
                     value={score}
                     onChange={(e) => onAbilityChange(ability, e.target.value)}
+                    onFocus={(e) => e.target.select()}
                     className="appearance-none bg-transparent text-center border-none focus:outline-none focus:ring-0 w-full text-2xl font-bold text-stone-100 p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     id={`ability-score-${ability.toLowerCase()}`}
                   />
@@ -113,6 +114,7 @@ export const StatBlockScores: React.FC<StatBlockScoresProps> = ({
                     const val = parseInt(e.target.value, 10);
                     onProfBonusOverrideChange(isNaN(val) ? 0 : val);
                   }}
+                  onFocus={(e) => e.target.select()}
                   className="w-12 text-[10px] bg-stone-800 border border-stone-600 rounded text-stone-300 text-center py-0.5 mt-0.5 outline-none focus:border-amber-500"
                   id="proficiency-bonus-override"
                 />
@@ -134,6 +136,7 @@ export const StatBlockScores: React.FC<StatBlockScoresProps> = ({
                     const val = parseInt(e.target.value, 10);
                     onProfBonusOverrideChange(isNaN(val) ? 2 : val);
                   }}
+                  onFocus={(e) => e.target.select()}
                   className="w-12 text-sm bg-stone-800 border border-stone-600 rounded text-stone-200 text-center py-0.5 outline-none focus:border-amber-500"
                   id="proficiency-bonus-input"
                 />

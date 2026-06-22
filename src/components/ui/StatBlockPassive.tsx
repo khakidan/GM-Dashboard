@@ -59,6 +59,7 @@ export const StatBlockPassive: React.FC<StatBlockPassiveProps> = ({
                   max="10"
                   value={proficiencies.passiveBonuses?.perception ?? 0}
                   onChange={(e) => onPassiveBonusChange('perception', e.target.value)}
+                  onFocus={(e) => e.target.select()}
                   className="w-full text-xs bg-stone-800 border border-stone-600 rounded text-stone-200 text-center py-0.5 outline-none focus:border-amber-500"
                   id="passive-bonus-perception-input"
                 />
@@ -71,6 +72,7 @@ export const StatBlockPassive: React.FC<StatBlockPassiveProps> = ({
                   max="10"
                   value={proficiencies.passiveBonuses?.insight ?? 0}
                   onChange={(e) => onPassiveBonusChange('insight', e.target.value)}
+                  onFocus={(e) => e.target.select()}
                   className="w-full text-xs bg-stone-800 border border-stone-600 rounded text-stone-200 text-center py-0.5 outline-none focus:border-amber-500"
                   id="passive-bonus-insight-input"
                 />
@@ -83,6 +85,7 @@ export const StatBlockPassive: React.FC<StatBlockPassiveProps> = ({
                   max="10"
                   value={proficiencies.passiveBonuses?.investigation ?? 0}
                   onChange={(e) => onPassiveBonusChange('investigation', e.target.value)}
+                  onFocus={(e) => e.target.select()}
                   className="w-full text-xs bg-stone-800 border border-stone-600 rounded text-stone-200 text-center py-0.5 outline-none focus:border-amber-500"
                   id="passive-bonus-investigation-input"
                 />
