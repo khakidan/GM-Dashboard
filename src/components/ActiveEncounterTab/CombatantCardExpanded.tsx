@@ -91,6 +91,23 @@ export function CombatantCardExpanded({
         <p className="text-sm text-[#5a5a40] opacity-60 italic">{c.notes}</p>
       )}
 
+      {pcCharacter && (
+        <StatBlock
+          abilityScores={parseAbilityScores(pcCharacter.abilityScores)}
+          proficiencies={parseProficiencies(pcCharacter.proficiencies)}
+          characterLevel={pcCharacter.level}
+          readOnly={true}
+        />
+      )}
+
+      {npcModel && (
+        <StatBlock
+          abilityScores={parseAbilityScores(npcModel.abilityScores)}
+          proficiencies={parseProficiencies(npcModel.proficiencies)}
+          readOnly={true}
+        />
+      )}
+
       <div id={`combatant-stat-grid-${c.id}`} className="flex gap-4">
         {/* Left column: IRV */}
         <div className="w-[60%] space-y-4 bg-[#faf9f6]/30 p-4 rounded-xl border border-[#e5e1d8]">
@@ -412,22 +429,6 @@ export function CombatantCardExpanded({
         </div>
       )}
 
-      {pcCharacter && (
-        <StatBlock
-          abilityScores={parseAbilityScores(pcCharacter.abilityScores)}
-          proficiencies={parseProficiencies(pcCharacter.proficiencies)}
-          characterLevel={pcCharacter.level}
-          readOnly={true}
-        />
-      )}
-
-      {npcModel && (
-        <StatBlock
-          abilityScores={parseAbilityScores(npcModel.abilityScores)}
-          proficiencies={parseProficiencies(npcModel.proficiencies)}
-          readOnly={true}
-        />
-      )}
 
       <div className="flex justify-between items-center pt-4 border-t border-[#f5f5f0]">
         <span className="text-xs text-[#5a5a40] opacity-40 font-mono tracking-tighter">{c.id.split('-').pop()}</span>

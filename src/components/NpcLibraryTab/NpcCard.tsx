@@ -56,6 +56,18 @@ export const NpcCard: React.FC<NpcCardProps> = ({
             className="overflow-hidden border-t border-[#f5f5f0]"
           >
             <div className="p-6 flex flex-col gap-6">
+              <StatBlock
+                abilityScores={parseAbilityScores(npc.abilityScores || '')}
+                proficiencies={parseProficiencies(npc.proficiencies || '')}
+                readOnly={false}
+                onChange={(scores, profs) => {
+                  onUpdate({
+                    abilityScores: serializeAbilityScores(scores),
+                    proficiencies: serializeProficiencies(profs),
+                  });
+                }}
+              />
+
               {/* Stats Grid */}
               <div className="grid grid-cols-4 gap-3">
                 <div className="text-center p-3 bg-[#fdfaf5] border border-[#e5e1d8] rounded-xl shadow-sm">
@@ -75,18 +87,6 @@ export const NpcCard: React.FC<NpcCardProps> = ({
                   <DebouncedInput type="number" value={npc.tempHp} onFocus={(e) => (e.target as HTMLInputElement).select()} onChange={(v) => onUpdate({ tempHp: parseInt(v as string, 10) || 0 })} className="text-lg font-bold text-[#2c2c26] w-full text-center bg-transparent border-none focus:ring-0 p-0 disabled:opacity-50" disabled={isSyncing} />
                 </div>
               </div>
-
-              <StatBlock
-                abilityScores={parseAbilityScores(npc.abilityScores || '')}
-                proficiencies={parseProficiencies(npc.proficiencies || '')}
-                readOnly={false}
-                onChange={(scores, profs) => {
-                  onUpdate({
-                    abilityScores: serializeAbilityScores(scores),
-                    proficiencies: serializeProficiencies(profs),
-                  });
-                }}
-              />
 
               <div className="space-y-4">
                 <div>

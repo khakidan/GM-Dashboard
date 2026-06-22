@@ -54,6 +54,19 @@ export const CharacterCardExpanded: React.FC<CharacterCardExpandedProps> = ({
 
   return (
     <div className="p-6 flex flex-col font-sans gap-5">
+      <StatBlock
+        abilityScores={parsedAbilityScores}
+        proficiencies={parsedProficiencies}
+        characterLevel={character.level}
+        readOnly={false}
+        onChange={(scores, profs) => {
+          onUpdate({
+            abilityScores: serializeAbilityScores(scores),
+            proficiencies: serializeProficiencies(profs),
+          });
+        }}
+      />
+
       <div className="grid grid-cols-3 md:grid-cols-6 gap-3 sm:gap-4">
         <div className="text-center p-3 bg-[#fdfaf5] border border-[#e5e1d8] rounded-xl shadow-sm">
           <div className="text-[10px] font-bold uppercase tracking-widest text-[#5a5a40] mb-1">AC</div>
@@ -211,19 +224,6 @@ export const CharacterCardExpanded: React.FC<CharacterCardExpandedProps> = ({
         character={character}
         isSyncing={isSyncing}
         onUpdate={onUpdate}
-      />
-
-      <StatBlock
-        abilityScores={parsedAbilityScores}
-        proficiencies={parsedProficiencies}
-        characterLevel={character.level}
-        readOnly={false}
-        onChange={(scores, profs) => {
-          onUpdate({
-            abilityScores: serializeAbilityScores(scores),
-            proficiencies: serializeProficiencies(profs),
-          });
-        }}
       />
 
       <CharacterResourceSection

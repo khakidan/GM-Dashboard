@@ -366,7 +366,7 @@ export const StatBlock: React.FC<StatBlockProps> = ({
             {passiveBonusExpanded && (
               <div className="grid grid-cols-3 gap-2 mt-1.5 p-2 bg-stone-800/40 border border-stone-700/50 rounded" id="passive-bonuses-inputs">
                 <div>
-                  <label className="text-[10px] text-stone-400 block mb-0.5">Perception</label>
+                  <label className="text-[10px] text-white font-bold block mb-0.5">Perception</label>
                   <input
                     type="number"
                     min="-10"
@@ -378,7 +378,7 @@ export const StatBlock: React.FC<StatBlockProps> = ({
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] text-stone-400 block mb-0.5">Insight</label>
+                  <label className="text-[10px] text-white font-bold block mb-0.5">Insight</label>
                   <input
                     type="number"
                     min="-10"
@@ -390,7 +390,7 @@ export const StatBlock: React.FC<StatBlockProps> = ({
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] text-stone-400 block mb-0.5">Investigation</label>
+                  <label className="text-[10px] text-white font-bold block mb-0.5">Investigation</label>
                   <input
                     type="number"
                     min="-10"
