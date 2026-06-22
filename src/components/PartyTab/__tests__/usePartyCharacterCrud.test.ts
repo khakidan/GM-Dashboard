@@ -221,6 +221,99 @@ describe('useParty - Character CRUD', () => {
       expect(updateStateSpy).toHaveBeenCalledWith(initialState);
       expect(result.current.globalError).toBe('Failed to add player. Please try again.');
     });
+
+    it('called without resourcePools, abilityScores, or proficiencies in payload defaults them to empty JSON strings', async () => {
+      const mockNewCharData = {
+        characterName: 'Maeve',
+        playerName: 'Sage',
+        ac: 15,
+        maxHp: 50,
+        currentHp: 50,
+        tempHp: 0,
+        tempHpMax: 0,
+        conditions: '',
+        passivePerception: 14,
+        level: 5,
+        statusId: 1,
+        statusName: 'Active',
+        notes: '',
+        isActive: true,
+        resistances: '',
+        immunities: '',
+        vulnerabilities: '',
+        class: 'Rogue',
+        hitDiceConfig: '',
+        hitDiceUsed: '{}',
+      };
+
+      const updateStateSpy = vi.fn();
+      vi.mocked(useAppState).mockReturnValue({
+        state: { characters: [] } as any,
+        updateState: updateStateSpy,
+        getSnapshot: vi.fn(),
+      } as any);
+
+      vi.mocked(addCharacterDB).mockResolvedValue({ ...mockNewCharData, id: 'char-real-id' } as any);
+
+      const { result } = renderHook(() => useParty());
+      await act(async () => {
+        await result.current.handleCreateCharacter(mockNewCharData);
+      });
+
+      expect(addCharacterDB).toHaveBeenCalledWith(expect.objectContaining({
+        resourcePools: '[]',
+        abilityScores: '{}',
+        proficiencies: '{}',
+      }));
+    });
+
+    it('called with valid resourcePools, abilityScores, and proficiencies JSON strings passes them through correctly', async () => {
+      const mockNewCharData = {
+        characterName: 'Maeve',
+        playerName: 'Sage',
+        ac: 15,
+        maxHp: 50,
+        currentHp: 50,
+        tempHp: 0,
+        tempHpMax: 0,
+        conditions: '',
+        passivePerception: 14,
+        level: 5,
+        statusId: 1,
+        statusName: 'Active',
+        notes: '',
+        isActive: true,
+        resistances: '',
+        immunities: '',
+        vulnerabilities: '',
+        class: 'Rogue',
+        hitDiceConfig: '',
+        hitDiceUsed: '{}',
+        resourcePools: '[{"name":"Luck","current":3,"max":3,"reset":"long"}]',
+        abilityScores: '{"dexterity":18}',
+        proficiencies: '{"savingThrows":["dexterity"]}',
+      };
+
+      const updateStateSpy = vi.fn();
+      vi.mocked(useAppState).mockReturnValue({
+        state: { characters: [] } as any,
+        updateState: updateStateSpy,
+        getSnapshot: vi.fn(),
+      } as any);
+
+      vi.mocked(addCharacterDB).mockResolvedValue({ ...mockNewCharData, id: 'char-real-id' } as any);
+
+      const { result } = renderHook(() => useParty());
+      await act(async () => {
+        await result.current.handleCreateCharacter(mockNewCharData);
+      });
+
+      expect(addCharacterDB).toHaveBeenCalledWith(expect.objectContaining({
+        resourcePools: '[{"name":"Luck","current":3,"max":3,"reset":"long"}]',
+        abilityScores: '{"dexterity":18}',
+        proficiencies: '{"savingThrows":["dexterity"]}',
+      }));
+    });
   });
 
   describe('handleUpdate', () => {

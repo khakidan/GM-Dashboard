@@ -126,6 +126,9 @@ export function useParty() {
     const newChar: Character = {
       ...newCharData,
       id: tempId,
+      resourcePools: newCharData.resourcePools ?? '[]',
+      abilityScores: newCharData.abilityScores ?? '{}',
+      proficiencies: newCharData.proficiencies ?? '{}',
     };
 
     updateState(prev => ({
