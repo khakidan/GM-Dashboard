@@ -4,6 +4,7 @@ import { render, screen, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { NpcLegendarySection } from '../NpcLegendarySection';
 import { NpcRechargeSection, RechargeAbility } from '../NpcRechargeSection';
+import { NpcCard } from '../NpcCard';
 
 describe('NpcCard Sub-components', () => {
   afterEach(() => {
@@ -82,6 +83,55 @@ describe('NpcCard Sub-components', () => {
 
       // It should display the empty placeholder text
       expect(screen.getByText(/No recharge abilities/i)).toBeInTheDocument();
+    });
+  });
+
+  describe('NpcCard (StatBlock Integration)', () => {
+    it('renders StatBlock with ability scores when expanded', () => {
+      const mockNpc = {
+        id: 'npc-1',
+        name: 'Goblin Warrior',
+        ac: 12,
+        maxHp: 15,
+        tempHp: 0,
+        currentHp: 15,
+        conditions: '',
+        notes: '',
+        abilityScores: JSON.stringify({ STR: 8, DEX: 14, CON: 10, INT: 10, WIS: 8, CHA: 8 }),
+        proficiencies: JSON.stringify({
+          proficiencyBonus: 2,
+          jackOfAllTrades: false,
+          savingThrows: [],
+          skills: {},
+          passiveBonuses: { perception: 0, insight: 0, investigation: 0 },
+        }),
+      };
+
+      const handleUpdate = vi.fn();
+      const handleDelete = vi.fn();
+      const handleResetHp = vi.fn();
+      const handleToggleExpand = vi.fn();
+
+      const { container } = render(
+        <NpcCard
+          npc={mockNpc}
+          isSyncing={false}
+          isExpanded={true}
+          onToggleExpand={handleToggleExpand}
+          onUpdate={handleUpdate}
+          onDelete={handleDelete}
+          onResetHp={handleResetHp}
+        />
+      );
+
+      // StatBlock in readOnly mode should render the ability score as text
+      const strBox = container.querySelector('#ability-box-str');
+      expect(strBox).toBeInTheDocument();
+      expect(strBox?.textContent).toContain('8');
+
+      const dexBox = container.querySelector('#ability-box-dex');
+      expect(dexBox).toBeInTheDocument();
+      expect(dexBox?.textContent).toContain('14');
     });
   });
 });

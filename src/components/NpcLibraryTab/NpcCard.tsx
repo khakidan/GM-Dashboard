@@ -11,6 +11,8 @@ import { NpcCardHeader } from './NpcCardHeader';
 import { NpcIRVSection } from './NpcIRVSection';
 import { NpcLegendarySection } from './NpcLegendarySection';
 import { NpcRechargeSection } from './NpcRechargeSection';
+import { StatBlock } from '../ui/StatBlock';
+import { parseAbilityScores, parseProficiencies } from '../../lib/abilityScores';
 
 export interface NpcCardProps {
   npc: NPC;
@@ -73,6 +75,12 @@ export const NpcCard: React.FC<NpcCardProps> = ({
                   <DebouncedInput type="number" value={npc.tempHp} onFocus={(e) => (e.target as HTMLInputElement).select()} onChange={(v) => onUpdate({ tempHp: parseInt(v as string, 10) || 0 })} className="text-lg font-bold text-[#2c2c26] w-full text-center bg-transparent border-none focus:ring-0 p-0 disabled:opacity-50" disabled={isSyncing} />
                 </div>
               </div>
+
+              <StatBlock
+                abilityScores={parseAbilityScores(npc.abilityScores || '')}
+                proficiencies={parseProficiencies(npc.proficiencies || '')}
+                readOnly={true}
+              />
 
               <div className="space-y-4">
                 <div>
