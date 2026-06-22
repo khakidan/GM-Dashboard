@@ -307,7 +307,7 @@ export const StatBlock: React.FC<StatBlockProps> = ({
                 <div className="flex-grow" />
                 {/* Bonus */}
                 <span
-                  className={`text-xs font-medium ${isProficient ? 'text-amber-300' : 'text-stone-400'}`}
+                  className={`text-xs font-medium ${isProficient ? 'text-amber-300' : 'text-stone-200'}`}
                   id={`saving-throw-bonus-${ability.toLowerCase()}`}
                 >
                   {formatBonus(bonus)}
@@ -344,7 +344,7 @@ export const StatBlock: React.FC<StatBlockProps> = ({
 
       {/* SECTION D — Passive Scores */}
       <div className="py-1 border-t border-b border-stone-700/50 space-y-1.5" id="passive-scores-section">
-        <div className="text-xs text-stone-300 leading-relaxed" id="passive-scores-text">
+        <div className="text-sm text-stone-100 font-medium leading-relaxed" id="passive-scores-text">
           Passive Perception: <span className="font-semibold text-stone-100">{passivePerception}</span>
           <span className="text-stone-500 px-1.5">·</span>
           Passive Insight: <span className="font-semibold text-stone-100">{passiveInsight}</span>
@@ -533,7 +533,7 @@ export const StatBlock: React.FC<StatBlockProps> = ({
 
                         <span
                           className={`text-xs ${
-                            prof !== 'none' ? 'text-stone-200' : 'text-stone-500'
+                            prof !== 'none' ? 'text-stone-200' : 'text-stone-400'
                           }`}
                           id={`skill-label-${skill.toLowerCase().replace(/\s+/g, '-')}`}
                         >
