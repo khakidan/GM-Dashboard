@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useParty } from '../hooks/useParty';
 import { useAppState, getSnapshot } from '../../../hooks/useAppState';
 import { updateCharacterDB } from '../../../services/dbOperations';
-import { makeCharacter } from '../../../__tests__/fixtures/characterFixtures';
+import { makeCharacter } from '../../../test-utils/fixtures/characterFixtures';
 
 vi.mock('../../../services/dbOperations', () => ({
   updateCharacterDB: vi.fn(),

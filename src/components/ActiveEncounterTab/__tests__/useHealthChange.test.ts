@@ -10,7 +10,7 @@ import { useHealthChange } from '../hooks/useHealthChange';
 import type { Combatant } from '../../../types';
 import { toast } from 'sonner';
 import { useUnconsciousEvent } from '../../../hooks/useOverlayEvents';
-import { mockCombatant } from '../../../__tests__/fixtures/combatantFixtures';
+import { mockCombatant } from '../../../test-utils/fixtures/combatantFixtures';
 
 vi.mock('sonner', () => ({
   toast: Object.assign(vi.fn(), {

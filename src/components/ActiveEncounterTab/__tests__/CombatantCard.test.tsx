@@ -13,7 +13,7 @@ import { CombatantCard } from '../CombatantCard';
 import type { Combatant } from '../../../types';
 import { useDashboardStore } from '../../../hooks/useAppState';
 import { updateCharacterDB } from '../../../services/dbOperations';
-import { makeCombatant } from '../../../__tests__/fixtures/combatantFixtures';
+import { makeCombatant } from '../../../test-utils/fixtures/combatantFixtures';
 
 vi.mock('../../../services/dbOperations', () => ({
   updateCharacterDB: vi.fn(),

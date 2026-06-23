@@ -9,7 +9,7 @@ vi.mock('sonner', () => {
   return { toast: mockToast };
 });
 import { useAppState, getSnapshot, useDashboardStore } from '../../../hooks/useAppState';
-import { makeCombatant } from '../../../__tests__/fixtures/combatantFixtures';
+import { makeCombatant } from '../../../test-utils/fixtures/combatantFixtures';
 // ─── PROTECTED TEST FILE ───────────────────────────
 // Do not delete, rename, or remove test cases from 
 // this file without an explicit instruction to do so.

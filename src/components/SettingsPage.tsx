@@ -4,7 +4,7 @@ import { Settings, Upload, Download } from 'lucide-react';
 import { useSettings } from '../hooks/useSettings';
 import { VisualSuiteSelector } from './VisualSuiteSelector';
 import { SheetConnectionSettings } from './SheetConnectionSettings';
-import { AuthPortalSettings } from './AuthPortalSettings';
+import { AuthPortalSettings } from './auth/AuthPortalSettings';
 import { GMTestingTools } from './GMTestingTools';
 
 interface SettingsPageProps {

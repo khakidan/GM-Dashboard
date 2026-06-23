@@ -12,7 +12,7 @@ vi.mock('../components/GMDashboard', () => ({
 vi.mock('../components/PlayerView', () => ({
   PlayerView: () => <div data-testid="player-view">Mock Player View</div>
 }));
-vi.mock('../components/AuthRelay', () => ({
+vi.mock('../components/auth/AuthRelay', () => ({
   AuthRelay: () => <div data-testid="auth-relay">Mock Auth Relay</div>
 }));
 

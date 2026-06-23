@@ -1,7 +1,7 @@
-import { STORAGE_KEYS, TIMERS } from '../lib/constants';
+import { STORAGE_KEYS, TIMERS } from '../../lib/constants';
 import { useState, useEffect } from 'react';
 import { Copy, Check, LogIn, AlertCircle, Info, RefreshCcw } from 'lucide-react';
-import { signInWithRedirect, signInWithToken } from '../services/googleAuth';
+import { signInWithRedirect, signInWithToken } from '../../services/googleAuth';
 
 export function AuthRelay() {
   const [token, setToken] = useState<string | null>(null);
