@@ -27,6 +27,8 @@ describe('CharacterCardExpanded', () => {
     class: 'Paladin',
     hitDiceConfig: '1d10',
     hitDiceUsed: '{}',
+    abilityScores: '{}',
+    proficiencies: '{}',
   };
 
   const defaultProps = {

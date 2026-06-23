@@ -3,7 +3,7 @@ import { X, UserPlus, Save } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { NPC } from '../../types';
 import { cn } from '../../lib/utils';
-import { NpcFormFields, NpcFormData, DEFAULT_NPC_FORM_DATA } from './NpcFormFields';
+import { NpcFormFields, NpcFormData, DEFAULT_NPC_FORM_DATA } from '../ui/NpcFormFields';
 
 interface NewNpcDialogProps {
   isOpen: boolean;

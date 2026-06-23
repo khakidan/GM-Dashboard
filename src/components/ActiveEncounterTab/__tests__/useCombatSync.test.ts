@@ -1,5 +1,13 @@
 import { toast } from 'sonner';
-vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn(), warning: vi.fn() } }));
+vi.mock('sonner', () => {
+  const mockToast = vi.fn();
+  (mockToast as any).success = vi.fn();
+  (mockToast as any).error = vi.fn();
+  (mockToast as any).warning = vi.fn();
+  (mockToast as any).info = vi.fn();
+  (mockToast as any).dismiss = vi.fn();
+  return { toast: mockToast };
+});
 import { useAppState, getSnapshot, useDashboardStore } from '../../../hooks/useAppState';
 import { makeCombatant } from '../../../__tests__/fixtures/combatantFixtures';
 // ─── PROTECTED TEST FILE ───────────────────────────
@@ -12,8 +20,18 @@ import { renderHook, act, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useCombatSync } from '../hooks/useCombatSync';
 
-vi.mock('../../../services/dbOperations');
-import { updateNpcInstanceHpDB } from '../../../services/dbOperations';
+vi.mock('../../../services/dbOperations', () => ({
+  updateNpcInstanceHpDB: vi.fn(() => Promise.resolve({})),
+  updateInitiativeDB: vi.fn(() => Promise.resolve({})),
+  updateCharacterDB: vi.fn(() => Promise.resolve({})),
+  deleteEncounterCombatantDB: vi.fn(() => Promise.resolve({})),
+  updateEncounterCombatantQuantityDB: vi.fn(() => Promise.resolve({})),
+  updateConditionTimersDB: vi.fn(() => Promise.resolve({})),
+  updateNpcInstanceConditionsDB: vi.fn(() => Promise.resolve({})),
+  updateNpcInstanceAcModDB: vi.fn(() => Promise.resolve({})),
+  updateEncounterStateDB: vi.fn(() => Promise.resolve({})),
+}));
+import { updateNpcInstanceHpDB, updateInitiativeDB } from '../../../services/dbOperations';
 vi.mock('../../../services/writeQueue');
 vi.mock('../../../services/sheetsService');
 
@@ -436,6 +454,87 @@ describe('useCombatSync', () => {
     });
     state = getSnapshot();
     expect(state.combatState.rageEvent).toBeNull();
+  });
+
+  describe('rollInitForNPCs', () => {
+    it('rolls NPC initiative with DEX modifier and floors at 1', async () => {
+      act(() => {
+        const prev = getSnapshot();
+        useDashboardStore.setState({
+          ...prev,
+          npcs: [
+            { id: 'npc-dex-14', name: 'High DEX', abilityScores: JSON.stringify({ STR: 10, DEX: 14, CON: 10, INT: 10, WIS: 10, CHA: 10 }) } as any,
+            { id: 'npc-dex-4', name: 'Very Low DEX', abilityScores: JSON.stringify({ STR: 10, DEX: 4, CON: 10, INT: 10, WIS: 10, CHA: 10 }) } as any,
+            { id: 'npc-no-scores', name: 'No Scores', abilityScores: '{}' } as any,
+          ],
+          combatState: {
+            ...prev.combatState,
+            combatants: [
+              { id: 'c-pc', name: 'Player', type: 'pc', initiative: 0 } as any,
+              { id: 'c-dex-14', name: 'NPC High', type: 'npc', npcId: 'npc-dex-14', initiative: 0, encounterCombatantId: 'ec-1' } as any,
+              { id: 'c-dex-4', name: 'NPC Very Low', type: 'npc', npcId: 'npc-dex-4', initiative: 0, encounterCombatantId: 'ec-2' } as any,
+              { id: 'c-no-scores', name: 'NPC No Scores', type: 'npc', npcId: 'npc-no-scores', initiative: 0, encounterCombatantId: 'ec-3' } as any,
+            ]
+          }
+        });
+      });
+
+      // Mock Math.random to return values
+      const mathMock = vi.spyOn(Math, 'random');
+      
+      // Roll 1: Math.floor(0.5 * 20) + 1 = 11. DEX 14 (+2) -> 13
+      // Roll 2: Math.floor(0.01 * 20) + 1 = 1. DEX 4 (-3) -> -2 -> Floored to 1
+      // Roll 3: Math.floor(0.5 * 20) + 1 = 11. DEX 10 (+0) -> 11
+      mathMock
+        .mockReturnValueOnce(0.5)
+        .mockReturnValueOnce(0.01)
+        .mockReturnValueOnce(0.5);
+
+      const { result } = renderHook(() => useCombatSync());
+      
+      act(() => {
+        result.current.rollInitForNPCs();
+      });
+
+      const stateAfter = getSnapshot();
+      const combatants = stateAfter.combatState.combatants;
+
+      expect(combatants.find(c => c.id === 'c-dex-14')?.initiative).toBe(13);
+      expect(combatants.find(c => c.id === 'c-dex-4')?.initiative).toBe(1);
+      expect(combatants.find(c => c.id === 'c-no-scores')?.initiative).toBe(11);
+      // PC initiative should remain untouched
+      expect(combatants.find(c => c.id === 'c-pc')?.initiative).toBe(0);
+
+      mathMock.mockRestore();
+    });
+
+    it('persists NPC initiative rolls to DB', async () => {
+      const { updateInitiativeDB } = await import('../../../services/dbOperations');
+      
+      act(() => {
+        const prev = getSnapshot();
+        useDashboardStore.setState({
+          ...prev,
+          npcs: [{ id: 'npc-1', name: 'N1', abilityScores: '{}' } as any],
+          combatState: {
+            ...prev.combatState,
+            combatants: [
+              { id: 'c-1', name: 'N1', type: 'npc', npcId: 'npc-1', initiative: 0, encounterCombatantId: 'ec-1' } as any,
+            ]
+          }
+        });
+      });
+
+      vi.spyOn(Math, 'random').mockReturnValue(0.5); // d20=11
+
+      const { result } = renderHook(() => useCombatSync());
+      
+      await act(async () => {
+        result.current.rollInitForNPCs();
+      });
+
+      expect(updateInitiativeDB).toHaveBeenCalledWith('ec-1', 11);
+    });
   });
 });
 

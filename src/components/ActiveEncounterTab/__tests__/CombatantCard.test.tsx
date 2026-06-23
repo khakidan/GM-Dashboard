@@ -743,7 +743,7 @@ describe('CombatantCard', () => {
             id: 'char-multi',
             playerName: 'Player 1',
             characterName: 'Hero',
-            ac: 15, maxHp: 30, tempHp: 0, currentHp: 30, conditions: '', passivePerception: 10, level: 5, statusId: 1, statusName: 'Active', notes: '', isActive: true, class: 'Hero', hitDiceConfig: '1d8', hitDiceUsed: '0',
+            ac: 15, maxHp: 30, tempHp: 0, currentHp: 30, conditions: '', passivePerception: 10, level: 5, statusId: 1, statusName: 'Active', notes: '', isActive: true, class: 'Hero', hitDiceConfig: '1d8', hitDiceUsed: '0', abilityScores: '{}', proficiencies: '{}',
             resourcePools: JSON.stringify([
               { name: 'Infused Items', current: 4, max: 4, reset: 'long' },
               { name: 'Spell Slots', current: 7, max: 10, reset: 'long' }
@@ -776,7 +776,7 @@ describe('CombatantCard', () => {
             id: 'char-single',
             playerName: 'Player 1',
             characterName: 'Simple Hero',
-            ac: 15, maxHp: 30, tempHp: 0, currentHp: 30, conditions: '', passivePerception: 10, level: 5, statusId: 1, statusName: 'Active', notes: '', isActive: true, class: 'Hero', hitDiceConfig: '1d8', hitDiceUsed: '0',
+            ac: 15, maxHp: 30, tempHp: 0, currentHp: 30, conditions: '', passivePerception: 10, level: 5, statusId: 1, statusName: 'Active', notes: '', isActive: true, class: 'Hero', hitDiceConfig: '1d8', hitDiceUsed: '0', abilityScores: '{}', proficiencies: '{}',
             resourcePools: JSON.stringify([
               { name: 'Ki Points', current: 4, max: 4, reset: 'short' }
             ])
@@ -807,7 +807,7 @@ describe('CombatantCard', () => {
             id: 'char-empty',
             playerName: 'Player 1',
             characterName: 'Empty PC',
-            ac: 15, maxHp: 30, tempHp: 0, currentHp: 30, conditions: '', passivePerception: 10, level: 5, statusId: 1, statusName: 'Active', notes: '', isActive: true, class: 'Hero', hitDiceConfig: '1d8', hitDiceUsed: '0',
+            ac: 15, maxHp: 30, tempHp: 0, currentHp: 30, conditions: '', passivePerception: 10, level: 5, statusId: 1, statusName: 'Active', notes: '', isActive: true, class: 'Hero', hitDiceConfig: '1d8', hitDiceUsed: '0', abilityScores: '{}', proficiencies: '{}',
             resourcePools: '[]'
           }
         ]
@@ -844,7 +844,7 @@ describe('CombatantCard', () => {
             id: 'char-format',
             playerName: 'Player 1',
             characterName: 'Hero',
-            ac: 15, maxHp: 30, tempHp: 0, currentHp: 30, conditions: '', passivePerception: 10, level: 5, statusId: 1, statusName: 'Active', notes: '', isActive: true, class: 'Hero', hitDiceConfig: '1d8', hitDiceUsed: '0',
+            ac: 15, maxHp: 30, tempHp: 0, currentHp: 30, conditions: '', passivePerception: 10, level: 5, statusId: 1, statusName: 'Active', notes: '', isActive: true, class: 'Hero', hitDiceConfig: '1d8', hitDiceUsed: '0', abilityScores: '{}', proficiencies: '{}',
             resourcePools: JSON.stringify([
               { name: 'Ki Points', current: 2, max: 3, reset: 'short' }
             ])
@@ -874,7 +874,7 @@ describe('CombatantCard', () => {
         id: 'char-int',
         playerName: 'Player 1',
         characterName: 'Hero',
-        ac: 15, maxHp: 30, tempHp: 0, currentHp: 30, conditions: '', passivePerception: 10, level: 5, statusId: 1, statusName: 'Active', notes: '', isActive: true, class: 'Hero', hitDiceConfig: '1d8', hitDiceUsed: '0',
+        ac: 15, maxHp: 30, tempHp: 0, currentHp: 30, conditions: '', passivePerception: 10, level: 5, statusId: 1, statusName: 'Active', notes: '', isActive: true, class: 'Hero', hitDiceConfig: '1d8', hitDiceUsed: '0', abilityScores: '{}', proficiencies: '{}',
         resourcePools: JSON.stringify([
           { name: 'Infused Items', current: 4, max: 4, reset: 'long' },
           { name: 'Spell Slots', current: 7, max: 10, reset: 'long' },
@@ -953,7 +953,7 @@ describe('CombatantCard', () => {
             id: 'char-trunc',
             playerName: 'Player 1',
             characterName: 'Bard',
-            ac: 15, maxHp: 30, tempHp: 0, currentHp: 30, conditions: '', passivePerception: 10, level: 5, statusId: 1, statusName: 'Active', notes: '', isActive: true, class: 'Bard', hitDiceConfig: '1d8', hitDiceUsed: '0',
+            ac: 15, maxHp: 30, tempHp: 0, currentHp: 30, conditions: '', passivePerception: 10, level: 5, statusId: 1, statusName: 'Active', notes: '', isActive: true, class: 'Bard', hitDiceConfig: '1d8', hitDiceUsed: '0', abilityScores: '{}', proficiencies: '{}',
             resourcePools: JSON.stringify([
               { name: 'Bardic Inspiration', current: 3, max: 5, reset: 'long' },
               { name: 'Rage', current: 2, max: 2, reset: 'long' }
@@ -980,7 +980,7 @@ describe('CombatantCard', () => {
         id: 'char-expanded',
         playerName: 'Player 1',
         characterName: 'Hero',
-        ac: 15, maxHp: 30, tempHp: 0, currentHp: 30, conditions: '', passivePerception: 10, level: 5, statusId: 1, statusName: 'Active', notes: '', isActive: true, class: 'Hero', hitDiceConfig: '1d8', hitDiceUsed: '0',
+        ac: 15, maxHp: 30, tempHp: 0, currentHp: 30, conditions: '', passivePerception: 10, level: 5, statusId: 1, statusName: 'Active', notes: '', isActive: true, class: 'Hero', hitDiceConfig: '1d8', hitDiceUsed: '0', abilityScores: '{}', proficiencies: '{}',
         resourcePools: JSON.stringify([
           { name: 'Ki Points', current: 2, max: 3, reset: 'short' }
         ])

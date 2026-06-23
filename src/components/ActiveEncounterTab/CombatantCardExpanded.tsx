@@ -6,7 +6,7 @@ import { Combatant } from '../../types';
 import { ConditionChips } from '../ui/ConditionChips';
 import { CombatantRechargeTracker } from './CombatantRechargeTracker';
 import { CombatantLegendaryTracker } from './CombatantLegendaryTracker';
-import { ResourcePoolsSection } from '../PartyTab/ResourcePoolsSection';
+import { ResourcePoolsSection } from '../ui/ResourcePoolsSection';
 import { StatBlock } from '../ui/StatBlock';
 import { parseAbilityScores, parseProficiencies } from '../../lib/abilityScores';
 import { useCombatantExpanded } from './hooks/useCombatantExpanded';

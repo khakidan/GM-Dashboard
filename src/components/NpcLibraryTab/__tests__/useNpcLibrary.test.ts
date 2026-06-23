@@ -136,6 +136,8 @@ describe('useNpcLibrary', () => {
         legendaryActions: 0,
         legendaryResistances: 0,
         rechargeAbilities: [],
+        abilityScores: '{}',
+        proficiencies: '{}',
       });
     });
 

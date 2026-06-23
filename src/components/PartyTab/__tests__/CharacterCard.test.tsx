@@ -30,6 +30,8 @@ describe('CharacterCard', () => {
     tempAc: 0,
     hitDiceConfig: '',
     hitDiceUsed: '{}',
+    abilityScores: '{}',
+    proficiencies: '{}',
   };
 
   const defaultProps = {

@@ -152,7 +152,7 @@ describe('useParty - Character CRUD', () => {
 
       const { result } = renderHook(() => useParty());
       await act(async () => {
-        await result.current.handleCreateCharacter(mockNewCharData);
+        await result.current.handleCreateCharacter(mockNewCharData as any);
       });
 
       // Assert optimistic add in updateState
@@ -214,7 +214,7 @@ describe('useParty - Character CRUD', () => {
 
       const { result } = renderHook(() => useParty());
       await act(async () => {
-        await result.current.handleCreateCharacter(mockNewCharData);
+        await result.current.handleCreateCharacter(mockNewCharData as any);
       });
 
       // Rollback is triggered by calling state update with the previous state (which was state, i.e., initialState)
@@ -257,7 +257,7 @@ describe('useParty - Character CRUD', () => {
 
       const { result } = renderHook(() => useParty());
       await act(async () => {
-        await result.current.handleCreateCharacter(mockNewCharData);
+        await result.current.handleCreateCharacter(mockNewCharData as any);
       });
 
       expect(addCharacterDB).toHaveBeenCalledWith(expect.objectContaining({
@@ -305,7 +305,7 @@ describe('useParty - Character CRUD', () => {
 
       const { result } = renderHook(() => useParty());
       await act(async () => {
-        await result.current.handleCreateCharacter(mockNewCharData);
+        await result.current.handleCreateCharacter(mockNewCharData as any);
       });
 
       expect(addCharacterDB).toHaveBeenCalledWith(expect.objectContaining({

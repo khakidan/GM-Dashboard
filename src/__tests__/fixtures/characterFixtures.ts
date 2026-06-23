@@ -26,6 +26,8 @@ export const mockCharacter: Character = {
   hitDiceConfig: '{"d10":5}',
   hitDiceUsed: '{}',
   resourcePools: '[]',
+  abilityScores: '{}',
+  proficiencies: '{}',
 };
 
 export function makeCharacter(

@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { useDeathEvent, useDamageEvent, useHealEvent, useUnconsciousEvent, useRageEvent, useInitiativeEvent } from '../../../hooks/useOverlayEvents';
 import { getExpiredConditions } from '../../../lib/combatLogic';
 import { useDeathSaves } from '../../../hooks/useDeathSaves';
+import { calculateModifier, parseAbilityScores } from '../../../lib/abilityScores';
 
 export function useCombatSync() {
   const { state, updateState } = useAppState();
@@ -312,16 +313,45 @@ export function useCombatSync() {
   };
 
   const rollInitForNPCs = useCallback(() => {
-    updateState(prev => {
-      const nextCombatants = prev.combatState.combatants
-        .map(c => (c.type === 'npc' ? { ...c, initiative: Math.floor(Math.random() * 20) + 1 } : c))
-        .sort((a, b) => b.initiative - a.initiative);
+    const snapshot = getSnapshot();
+    const { combatState: { combatants }, npcs } = snapshot;
 
-      return {
-        ...prev,
-        combatState: { ...prev.combatState, combatants: nextCombatants },
-      };
-    });
+    const nextCombatants = combatants.map(c => {
+      if (c.type === 'npc') {
+        const d20Roll = Math.floor(Math.random() * 20) + 1;
+        let dexMod = 0;
+        
+        if (c.npcId) {
+          const npcTemplate = npcs.find(n => n.id === c.npcId);
+          const scores = parseAbilityScores(npcTemplate?.abilityScores ?? '{}');
+          dexMod = calculateModifier(scores.DEX);
+        }
+
+        const total = Math.max(1, d20Roll + dexMod);
+        
+        // Show notification with breakdown if modifier exists
+        if (dexMod !== 0) {
+          toast(`Rolled initiative for ${c.name}: ${total} (d20: ${d20Roll} + DEX ${dexMod > 0 ? '+' : ''}${dexMod})`);
+        } else {
+          toast(`Rolled initiative for ${c.name}: ${total}`);
+        }
+
+        // Persist to Google Sheets
+        if (c.encounterCombatantId) {
+          updateInitiativeDB(c.encounterCombatantId, total).catch(err => {
+            console.error(`[Sync] Failed to update initiative for ${c.name}`, err);
+          });
+        }
+
+        return { ...c, initiative: total };
+      }
+      return c;
+    }).sort((a, b) => b.initiative - a.initiative);
+
+    updateState(prev => ({
+      ...prev,
+      combatState: { ...prev.combatState, combatants: nextCombatants },
+    }));
   }, [updateState]);
 
   const resetCombat = useCallback(() => {

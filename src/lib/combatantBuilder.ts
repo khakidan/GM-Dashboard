@@ -51,6 +51,7 @@ export function buildCombatantsFromState(
             combatants.push({
               id: `combat-npc-${npcTemplate.id}-${i}-${Date.now()}`,
               encounterCombatantId: ec.id,
+              npcId: npcTemplate.id,
               name: `${npcTemplate.name}${ec.quantity > 1 ? ` ${i + 1}` : ''}`,
               type: 'npc',
               initiative: ec.initiative || 0,

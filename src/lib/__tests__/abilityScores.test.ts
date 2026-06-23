@@ -85,7 +85,6 @@ describe('Ability Scores & Proficiencies Utilities', () => {
         savingThrows: [],
         skills: {
           'Perception': 'proficient' as const,
-          'Insight': 'none' as const,
           'Investigation': 'expertise' as const,
         },
         passiveBonuses: {

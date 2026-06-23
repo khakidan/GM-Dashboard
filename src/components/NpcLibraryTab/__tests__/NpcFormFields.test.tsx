@@ -1,5 +1,5 @@
 import { render, fireEvent, cleanup } from '@testing-library/react';
-import { NpcFormFields, DEFAULT_NPC_FORM_DATA } from '../NpcFormFields';
+import { NpcFormFields, DEFAULT_NPC_FORM_DATA } from '../../ui/NpcFormFields';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 
 describe('NpcFormFields', () => {

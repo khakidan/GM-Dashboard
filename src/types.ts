@@ -80,6 +80,7 @@ export interface Combatant {
   initiative: number;
   notes?: string;
   characterId?: string; // Link back to PC if applicable
+  npcId?: string; // Link back to NPC template if applicable
   resistances?: string;
   immunities?: string;
   vulnerabilities?: string;

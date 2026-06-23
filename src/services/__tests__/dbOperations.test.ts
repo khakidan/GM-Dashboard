@@ -694,6 +694,8 @@ describe('updateCharacterDB', () => {
       class: '',
       hitDiceConfig: '',
       hitDiceUsed: '{}',
+      abilityScores: '{}',
+      proficiencies: '{}',
     };
 
     await updateCharacterDB(

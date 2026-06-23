@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Library, Plus, Users, UserPlus } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { NPC as Npc, Character, Combatant } from '../../types';
-import { NpcFormFields, NpcFormData, DEFAULT_NPC_FORM_DATA } from '../NpcLibraryTab/NpcFormFields';
+import { NpcFormFields, NpcFormData, DEFAULT_NPC_FORM_DATA } from '../ui/NpcFormFields';
 
 interface CombatSidebarProps {
   isOpen: boolean;

@@ -6,7 +6,7 @@ import { DebouncedInput } from '../ui/DebouncedInput';
 import { DebouncedTextarea } from '../ui/DebouncedTextarea';
 import { CharacterResourceSection } from './CharacterResourceSection';
 import { CharacterIRVSection } from './CharacterIRVSection';
-import { ResourcePoolsSection } from './ResourcePoolsSection';
+import { ResourcePoolsSection } from '../ui/ResourcePoolsSection';
 import { getHitDiceStatus, getTotalHitDiceCount } from '../../lib/hitDice';
 import { getResourceForEffect, parseResourcePools, spendResourcePip, serializeResourcePools } from '../../lib/resourcePools';
 import { toast } from 'sonner';

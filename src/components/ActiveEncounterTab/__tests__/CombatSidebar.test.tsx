@@ -7,8 +7,8 @@ import type { NPC, Character } from '../../../types';
 
 describe('CombatSidebar', () => {
   afterEach(() => cleanup());
-  const npcs: NPC[] = [{ id: 'n1', name: 'Goblin', ac: 15, maxHp: 7, currentHp: 7, tempHp: 0, conditions: '', notes: '' }];
-  const characters: Character[] = [{ id: 'p1', playerName: 'P1', characterName: 'Char1', ac: 16, maxHp: 20, currentHp: 20, tempHp: 0, conditions: '', passivePerception: 12, isActive: true, level: 1, statusId: 1, statusName: 'Active', notes: '', class: '', hitDiceConfig: '', hitDiceUsed: '{}' }];
+  const npcs: NPC[] = [{ id: 'n1', name: 'Goblin', ac: 15, maxHp: 7, currentHp: 7, tempHp: 0, conditions: '', notes: '', abilityScores: '{}', proficiencies: '{}' }];
+  const characters: Character[] = [{ id: 'p1', playerName: 'P1', characterName: 'Char1', ac: 16, maxHp: 20, currentHp: 20, tempHp: 0, conditions: '', passivePerception: 12, isActive: true, level: 1, statusId: 1, statusName: 'Active', notes: '', class: '', hitDiceConfig: '', hitDiceUsed: '{}', abilityScores: '{}', proficiencies: '{}' }];
   
   const defaultProps = {
     isOpen: true,
@@ -46,8 +46,8 @@ describe('CombatSidebar', () => {
 
   it('filters the NPC list based on typing in the search input', () => {
     const customNpcs: NPC[] = [
-      { id: 'n1', name: 'Goblin', ac: 15, maxHp: 7, currentHp: 7, tempHp: 0, conditions: '', notes: '' },
-      { id: 'n2', name: 'Orc', ac: 13, maxHp: 15, currentHp: 15, tempHp: 0, conditions: '', notes: '' }
+      { id: 'n1', name: 'Goblin', ac: 15, maxHp: 7, currentHp: 7, tempHp: 0, conditions: '', notes: '', abilityScores: '{}', proficiencies: '{}' },
+      { id: 'n2', name: 'Orc', ac: 13, maxHp: 15, currentHp: 15, tempHp: 0, conditions: '', notes: '', abilityScores: '{}', proficiencies: '{}' }
     ];
     render(<CombatSidebar {...defaultProps} npcs={customNpcs} />);
     
@@ -98,8 +98,8 @@ describe('CombatSidebar', () => {
 
   it('displays correct interactive and disabled states for characters in party members tab', () => {
     const customCharacters: Character[] = [
-      { id: 'p1', playerName: 'P1', characterName: 'Char1', ac: 16, maxHp: 20, currentHp: 20, tempHp: 0, conditions: '', passivePerception: 12, isActive: true, level: 1, statusId: 1, statusName: 'Active', notes: '', class: '', hitDiceConfig: '', hitDiceUsed: '{}' },
-      { id: 'p2', playerName: 'P2', characterName: 'Char2', ac: 14, maxHp: 18, currentHp: 18, tempHp: 0, conditions: '', passivePerception: 10, isActive: true, level: 1, statusId: 1, statusName: 'Active', notes: '', class: '', hitDiceConfig: '', hitDiceUsed: '{}' }
+      { id: 'p1', playerName: 'P1', characterName: 'Char1', ac: 16, maxHp: 20, currentHp: 20, tempHp: 0, conditions: '', passivePerception: 12, isActive: true, level: 1, statusId: 1, statusName: 'Active', notes: '', class: '', hitDiceConfig: '', hitDiceUsed: '{}', abilityScores: '{}', proficiencies: '{}' },
+      { id: 'p2', playerName: 'P2', characterName: 'Char2', ac: 14, maxHp: 18, currentHp: 18, tempHp: 0, conditions: '', passivePerception: 10, isActive: true, level: 1, statusId: 1, statusName: 'Active', notes: '', class: '', hitDiceConfig: '', hitDiceUsed: '{}', abilityScores: '{}', proficiencies: '{}' }
     ];
     // Combatants list contains 'p1' (Char1) meaning they are already in the encounter
     const combatants = [

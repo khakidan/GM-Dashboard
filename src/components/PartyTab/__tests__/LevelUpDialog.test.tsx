@@ -34,6 +34,8 @@ describe('LevelUpDialog', () => {
     class: '',
     hitDiceConfig: '',
     hitDiceUsed: '{}',
+    abilityScores: '{}',
+    proficiencies: '{}',
   };
 
   const defaultProps = {

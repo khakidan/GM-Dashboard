@@ -31,6 +31,8 @@ describe('LongRestDialog', () => {
       class: 'Wizard',
       hitDiceConfig: '5d8',
       hitDiceUsed: '{"d8":2}',
+      abilityScores: '{}',
+      proficiencies: '{}',
     },
     {
       id: 'char-2',
@@ -51,6 +53,8 @@ describe('LongRestDialog', () => {
       class: 'Monk',
       hitDiceConfig: '5d8',
       hitDiceUsed: '{"d8":0}',
+      abilityScores: '{}',
+      proficiencies: '{}',
     },
   ];
 

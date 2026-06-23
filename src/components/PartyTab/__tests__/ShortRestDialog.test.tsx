@@ -52,6 +52,8 @@ describe('ShortRestDialog', () => {
       class: 'Wizard',
       hitDiceConfig: '5d8',
       hitDiceUsed: '{"d8":1}',
+      abilityScores: '{}',
+      proficiencies: '{}',
     },
     {
       id: 'char-2',
@@ -72,6 +74,8 @@ describe('ShortRestDialog', () => {
       class: 'Monk',
       hitDiceConfig: '5d10',
       hitDiceUsed: '{"d10":0}',
+      abilityScores: '{}',
+      proficiencies: '{}',
     },
   ];
 
