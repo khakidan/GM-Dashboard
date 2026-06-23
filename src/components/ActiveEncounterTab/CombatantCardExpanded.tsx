@@ -54,7 +54,8 @@ export function CombatantCardExpanded({
   const {
     handleResourcePoolUpdate,
     handleConditionAdded,
-    handleConditionWithTimer
+    handleConditionWithTimer,
+    handleExhaustionDeath,
   } = useCombatantExpanded(c);
 
   return (
@@ -166,6 +167,7 @@ export function CombatantCardExpanded({
             }
           }}
           onConditionAdded={handleConditionAdded}
+          onExhaustionDeath={handleExhaustionDeath}
         />
       </div>
 

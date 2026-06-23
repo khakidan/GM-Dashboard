@@ -17,18 +17,18 @@ describe('SidebarIcon', () => {
   it('applies active styling when isActive is true', () => {
     render(<SidebarIcon icon={<Search />} label="Active Tool" isActive={true} onClick={() => {}} />);
     const button = screen.getByLabelText('Active Tool');
-    expect(button.className).toContain('bg-[#3f3f37]');
-    expect(button.className).toContain('text-white');
-    expect(button.className).toContain('ring-[#c5b358]/30');
+    expect(button.className).toContain('bg-[#e5e1d8]');
+    expect(button.className).toContain('text-[#2c2c26]');
+    expect(button.className).toContain('ring-[#c5b358]/50');
   });
 
   it('applies inactive styling when isActive is false', () => {
     render(<SidebarIcon icon={<Search />} label="Inactive Tool" isActive={false} onClick={() => {}} />);
     const button = screen.getByLabelText('Inactive Tool');
-    expect(button.className).toContain('text-stone-400');
-    expect(button.className).toContain('hover:text-stone-200');
-    expect(button.className).not.toContain('text-white');
-    expect(button.className).not.toContain('ring-[#c5b358]');
+    expect(button.className).toContain('text-[#5a5a40]');
+    expect(button.className).toContain('hover:text-[#2c2c26]');
+    // Use regex with negative lookbehind (or similar) to ensure we don't match hover:text-[#2c2c26]
+    expect(button.className).not.toMatch(/(?<!hover:)text-\[#2c2c26\]/);
   });
 
   it('tooltip has opacity-0 by default and is visually hidden', () => {

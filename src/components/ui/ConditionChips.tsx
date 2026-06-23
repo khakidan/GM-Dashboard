@@ -7,6 +7,7 @@ import { cn } from '../../lib/utils';
 import { ConditionPopover } from './ConditionPopover';
 import { checkIrvMatch } from '../../lib/combatLogic';
 import { toast } from 'sonner';
+import { isIncapacitating } from '../../lib/concentrationCheck';
 
 interface ConditionChipsProps {
   value: string;                      // comma-separated string
@@ -18,6 +19,7 @@ interface ConditionChipsProps {
   currentRound?: number;
   onConcentrationEffectAdded?: (effectName: string) => void;
   onConditionAdded?: (label: string) => void;
+  onExhaustionDeath?: () => void;
 }
 
 type ChipCategory = 'condition' | 'effect' | 'custom';
@@ -45,6 +47,7 @@ export function ConditionChips({
   currentRound,
   onConcentrationEffectAdded,
   onConditionAdded,
+  onExhaustionDeath,
 }: ConditionChipsProps) {
   const [query, setQuery]   = useState('');
   const [open, setOpen]     = useState(false);
@@ -221,9 +224,10 @@ export function ConditionChips({
     const lower = trimmed.toLowerCase();
     if (lower === 'exhaustion 6') {
       toast.warning('Exhaustion 6 — Death', {
-        description: 'This creature has died. Remove from combat or mark as Defeated.',
+        description: 'This creature has died. Status updated to Deceased.',
         duration: 12000,
       });
+      onExhaustionDeath?.();
     }
 
     if (onAddWithTimer) {
@@ -237,6 +241,23 @@ export function ConditionChips({
 
     // After adding the chip to the list
     onConditionAdded?.(label);
+
+    // Automation: Incapacitation breaks concentration
+    if (isIncapacitating(label)) {
+      const currentFullList = chips.map(c => c.toLowerCase().trim());
+      const hasConcentrating = currentFullList.includes('concentrating');
+      
+      if (hasConcentrating) {
+        // Remove concentrating from the next state
+        const nextChips = [...chips, trimmed].filter(c => c.toLowerCase().trim() !== 'concentrating');
+        debouncedOnChange(nextChips.join(', '));
+        
+        toast.info('Concentration broken', {
+          description: `${label} causes incapacitation — concentration ended automatically.`,
+          duration: 6000,
+        });
+      }
+    }
 
     const mechanics = CONDITION_MECHANICS[lower];
     if (mechanics) {

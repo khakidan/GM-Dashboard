@@ -152,7 +152,7 @@ describe('GMTabContent', () => {
       </MemoryRouter>
     );
 
-    // Should fall back to encounters tab which shows "Encounters Library" from state
-    expect(screen.getByText('Encounters Library')).toBeInTheDocument();
+    // Should fall back to encounters tab which shows "Encounters" from state
+    expect(screen.getByText('Encounters')).toBeInTheDocument();
   });
 });

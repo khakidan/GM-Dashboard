@@ -85,11 +85,13 @@ describe('GMDashboardSidebar', () => {
     );
 
     const partyButton = screen.getByRole('button', { name: 'Party Roster' });
-    expect(partyButton.className).toContain('text-white');
-    expect(partyButton.className).toContain('bg-[#3f3f37]');
+    expect(partyButton.className).toContain('bg-[#e5e1d8]');
+    expect(partyButton.className).toContain('text-[#2c2c26]');
 
     const npcButton = screen.getByRole('button', { name: 'NPC Library' });
-    expect(npcButton.className).not.toContain('bg-[#3f3f37] text-white');
+    // Use regex with word boundaries to ensure we don't match hover:bg-[#e5e1d8]/60
+    expect(npcButton.className).not.toMatch(/\bbg-\[#e5e1d8\]\b/);
+    expect(npcButton.className).toContain('text-[#5a5a40]');
   });
 
   it('clicking a tab button calls onTabChange with the correct tab key', () => {

@@ -4,6 +4,7 @@ import {
   concentrationCheckDc,
   isConcentrating,
   fireConcentrationAlert,
+  isIncapacitating,
 } from '../concentrationCheck';
 
 vi.mock('sonner', () => ({
@@ -133,5 +134,35 @@ describe('fireConcentrationAlert', () => {
         description: expect.stringContaining('(min DC 10)'),
       })
     );
+  });
+});
+
+describe('isIncapacitating', () => {
+  it('stunned returns true', () => {
+    expect(isIncapacitating('stunned')).toBe(true);
+  });
+
+  it('paralyzed returns true', () => {
+    expect(isIncapacitating('paralyzed')).toBe(true);
+  });
+
+  it('unconscious returns true', () => {
+    expect(isIncapacitating('unconscious')).toBe(true);
+  });
+
+  it('poisoned returns false', () => {
+    expect(isIncapacitating('poisoned')).toBe(false);
+  });
+
+  it('blinded returns false', () => {
+    expect(isIncapacitating('blinded')).toBe(false);
+  });
+
+  it('STUNNED returns true (case insensitive)', () => {
+    expect(isIncapacitating('STUNNED')).toBe(true);
+  });
+
+  it('unknown returns false', () => {
+    expect(isIncapacitating('unknown')).toBe(false);
   });
 });

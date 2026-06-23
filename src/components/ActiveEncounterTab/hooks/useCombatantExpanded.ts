@@ -132,9 +132,39 @@ export function useCombatantExpanded(c: Combatant) {
     });
   };
 
+  /**
+   * handleExhaustionDeath
+   * Marks a PC as deceased when they reach exhaustion level 6.
+   */
+  const handleExhaustionDeath = async () => {
+    if (c.type !== 'pc' || !c.characterId) return;
+    const charId = c.characterId;
+    const { characters } = getSnapshot();
+    const char = characters.find(charItem => charItem.id === charId);
+    if (!char) return;
+
+    // 1. Optimistic update
+    updateState((prev) => ({
+      ...prev,
+      characters: prev.characters.map((charItem) =>
+        charItem.id === charId ? { ...charItem, statusId: 3 } : charItem
+      ),
+    }));
+
+    // 2. Persist
+    try {
+      await updateCharacterDB({ statusId: 3 }, char);
+      toast.info(`Character marked as Deceased: ${char.characterName}`);
+    } catch (err) {
+      console.error("Failed to mark character as Deceased: ", err);
+      toast.error(`Failed to sync death status for ${char.characterName}`);
+    }
+  };
+
   return {
     handleResourcePoolUpdate,
     handleConditionAdded,
     handleConditionWithTimer,
+    handleExhaustionDeath,
   };
 }

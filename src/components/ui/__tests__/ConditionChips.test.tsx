@@ -105,4 +105,67 @@ describe('ConditionChips', () => {
 
     expect(onConditionAdded).not.toHaveBeenCalled();
   });
+
+  it('adding an incapacitating condition removes "concentrating" if present', async () => {
+    const onChange = vi.fn();
+
+    render(
+      <ConditionChips
+        value="concentrating, poisoned"
+        onChange={onChange}
+      />
+    );
+
+    const input = screen.getByPlaceholderText('');
+    fireEvent.change(input, { target: { value: 'stunned' } });
+    fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' });
+
+    await waitFor(() => {
+      // onChange is called twice:
+      // 1. commitChip adds 'stunned' (value becomes "concentrating, poisoned, stunned")
+      // 2. automation removes 'concentrating' (value becomes "poisoned, stunned")
+      const calls = onChange.mock.calls.map(call => call[0]);
+      expect(calls).toContain('poisoned, stunned');
+    });
+  });
+
+  it('adding a non-incapacitating condition does not remove "concentrating"', async () => {
+    const onChange = vi.fn();
+
+    render(
+      <ConditionChips
+        value="concentrating"
+        onChange={onChange}
+      />
+    );
+
+    const input = screen.getByPlaceholderText('');
+    fireEvent.change(input, { target: { value: 'poisoned' } });
+    fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' });
+
+    await waitFor(() => {
+      expect(onChange).toHaveBeenCalledWith('concentrating, poisoned');
+      expect(onChange).not.toHaveBeenCalledWith('poisoned');
+    });
+  });
+
+  it('calls onExhaustionDeath when "exhaustion 6" is added', async () => {
+    const onExhaustionDeath = vi.fn();
+
+    render(
+      <ConditionChips
+        value=""
+        onChange={() => {}}
+        onExhaustionDeath={onExhaustionDeath}
+      />
+    );
+
+    const input = screen.getByPlaceholderText('Add condition or effect...');
+    fireEvent.change(input, { target: { value: 'exhaustion 6' } });
+    fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' });
+
+    await waitFor(() => {
+      expect(onExhaustionDeath).toHaveBeenCalled();
+    });
+  });
 });

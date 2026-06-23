@@ -131,14 +131,14 @@ describe('NpcLibraryTab', () => {
 
     // Test Filter by Resistance
     fireEvent.change(searchInput, { target: { value: '' } }); // Clear search
-    const resInput = screen.getByRole('combobox', { name: 'Resistance' });
+    const resInput = screen.getByRole('combobox', { name: 'Resist' });
     fireEvent.change(resInput, { target: { value: 'fire' } });
     
     expect(screen.queryByDisplayValue('Goblin Scout')).toBeNull();
     expect(screen.getByDisplayValue('Orc Warrior')).toBeInTheDocument();
 
     // Clear filters
-    fireEvent.click(screen.getByText(/Clear Filters/i));
+    fireEvent.click(screen.getByText(/Clear/i));
     expect(screen.getByDisplayValue('Goblin Scout')).toBeInTheDocument();
     expect(screen.getByDisplayValue('Orc Warrior')).toBeInTheDocument();
   });

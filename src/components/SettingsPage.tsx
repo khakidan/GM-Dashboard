@@ -48,21 +48,19 @@ export function SettingsPage(props: SettingsPageProps) {
   };
 
   return (
-    <div className="space-y-8" id="settings-standalone-container">
-      {/* Settings Header Card */}
-      <div className="bg-white p-6 rounded-2xl border border-[#e5e1d8] shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition-all">
-        <div>
-          <div className="flex items-center gap-2">
-            <Settings className="w-5 h-5 text-[#c5b358]" />
-            <h2 className="text-xl font-bold text-[#2c2c26] font-serif uppercase tracking-wider">Campaign & App Settings</h2>
+    <div className="bg-white rounded-2xl shadow-sm border border-[#e5e1d8] overflow-hidden flex flex-col w-full min-h-full" id="settings-standalone-container">
+      {/* Page Header */}
+      <div className="bg-[#fdfaf5] border-b border-[#e5e1d8] p-6 shrink-0">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-[#2c2c26]">Settings</h1>
+            <p className="text-sm text-[#5a5a40] mt-0.5">Customize your visual theme suite, manage Google Sheets connectivity database synchronization, and optimize resources.</p>
           </div>
-          <p className="text-sm text-[#5a5a40] mt-1 font-sans">
-            Customize your visual theme suite, manage Google Sheets connectivity database synchronization, and optimize resources.
-          </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="flex-1 bg-white w-full p-6 overflow-y-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left 2 Columns filled with Core Adjustments */}
         <div className="lg:col-span-2 space-y-6">
           <VisualSuiteSelector theme={theme} setTheme={setTheme} />
@@ -127,6 +125,7 @@ export function SettingsPage(props: SettingsPageProps) {
         fireRageEvent={fireRageEvent}
         fireInitiativeEvent={fireInitiativeEvent}
       />
+      </div>
     </div>
   );
 }

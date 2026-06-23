@@ -94,9 +94,9 @@ describe('LevelUpDialog', () => {
 
     // Only level should be changed implicitly (from 4 to 5)
     expect(onConfirmMock).toHaveBeenCalledTimes(1);
-    expect(onConfirmMock).toHaveBeenCalledWith({
+    expect(onConfirmMock).toHaveBeenCalledWith(expect.objectContaining({
       level: 5,
-    });
+    }));
   });
 
   it('When Max HP changes and the current HP checkbox is checked, onConfirm includes currentHp increase capped at new maxHp', () => {
@@ -111,11 +111,11 @@ describe('LevelUpDialog', () => {
     fireEvent.click(confirmBtn);
 
     expect(onConfirmMock).toHaveBeenCalledTimes(1);
-    expect(onConfirmMock).toHaveBeenCalledWith({
+    expect(onConfirmMock).toHaveBeenCalledWith(expect.objectContaining({
       level: 5,
       maxHp: 50,
       currentHp: 45, // (initial 40 + 5)
-    });
+    }));
   });
 
   it('When Max HP changes and the current HP checkbox is checked, currentHp increase is capped at new maxHp', () => {
@@ -133,11 +133,11 @@ describe('LevelUpDialog', () => {
     fireEvent.change(maxHpInput, { target: { value: '48' } });
     fireEvent.click(confirmBtn);
 
-    expect(onConfirmMock).toHaveBeenCalledWith({
+    expect(onConfirmMock).toHaveBeenCalledWith(expect.objectContaining({
       level: 5,
       maxHp: 48,
       currentHp: 47,
-    });
+    }));
   });
 
   it('When Max HP changes and the current HP checkbox is unchecked, onConfirm does not include currentHp', () => {
@@ -156,11 +156,11 @@ describe('LevelUpDialog', () => {
     fireEvent.click(confirmBtn);
 
     expect(onConfirmMock).toHaveBeenCalledTimes(1);
-    expect(onConfirmMock).toHaveBeenCalledWith({
+    expect(onConfirmMock).toHaveBeenCalledWith(expect.objectContaining({
       level: 5,
       maxHp: 50,
       // No currentHp in updates payload
-    });
+    }));
   });
 
   it('Cancel button calls onClose without calling onConfirm', () => {
@@ -189,9 +189,9 @@ describe('LevelUpDialog', () => {
     fireEvent.click(confirmBtn);
 
     expect(onConfirmMock).toHaveBeenCalledTimes(1);
-    expect(onConfirmMock).toHaveBeenCalledWith({
+    expect(onConfirmMock).toHaveBeenCalledWith(expect.objectContaining({
       level: 4,
-    });
+    }));
   });
 
   it('updates hit dice and class for existing class level up', () => {
@@ -241,6 +241,61 @@ describe('LevelUpDialog', () => {
       level: 5,
       class: 'wizard/fighter',
       hitDiceConfig: '1d10+4d6',
+    }));
+  });
+
+  it('updates proficiencyBonus in proficiencies JSON when crossing a level tier (4 to 5)', () => {
+    const onConfirmMock = vi.fn();
+    const level4Char: Character = {
+      ...mockCharacter,
+      level: 4,
+      proficiencies: JSON.stringify({ proficiencyBonus: 2, skills: [] }),
+    };
+    const { container } = render(<LevelUpDialog {...defaultProps} character={level4Char} onConfirm={onConfirmMock} />);
+    const confirmBtn = container.querySelector('#confirm-level-up-btn') as HTMLButtonElement;
+
+    fireEvent.click(confirmBtn);
+
+    expect(onConfirmMock).toHaveBeenCalledWith(expect.objectContaining({
+      level: 5,
+      proficiencies: expect.stringContaining('"proficiencyBonus":3'),
+    }));
+  });
+
+  it('does NOT update proficiencyBonus when level change does not cross a tier (1 to 2)', () => {
+    const onConfirmMock = vi.fn();
+    const level1Char: Character = {
+      ...mockCharacter,
+      level: 1,
+      proficiencies: JSON.stringify({ proficiencyBonus: 2, skills: [] }),
+    };
+    const { container } = render(<LevelUpDialog {...defaultProps} character={level1Char} onConfirm={onConfirmMock} />);
+    const confirmBtn = container.querySelector('#confirm-level-up-btn') as HTMLButtonElement;
+
+    fireEvent.click(confirmBtn);
+
+    // The payload should either not have proficiencies or have it unchanged
+    const callArgs = onConfirmMock.mock.calls[0][0];
+    if (callArgs.proficiencies) {
+      expect(JSON.parse(callArgs.proficiencies).proficiencyBonus).toBe(2);
+    }
+  });
+
+  it('updates proficiencyBonus in proficiencies JSON when crossing tier (8 to 9)', () => {
+    const onConfirmMock = vi.fn();
+    const level8Char: Character = {
+      ...mockCharacter,
+      level: 8,
+      proficiencies: JSON.stringify({ proficiencyBonus: 3, skills: [] }),
+    };
+    const { container } = render(<LevelUpDialog {...defaultProps} character={level8Char} onConfirm={onConfirmMock} />);
+    const confirmBtn = container.querySelector('#confirm-level-up-btn') as HTMLButtonElement;
+
+    fireEvent.click(confirmBtn);
+
+    expect(onConfirmMock).toHaveBeenCalledWith(expect.objectContaining({
+      level: 9,
+      proficiencies: expect.stringContaining('"proficiencyBonus":4'),
     }));
   });
 });

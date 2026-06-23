@@ -93,80 +93,71 @@ export function NpcLibraryTab() {
   );
 
   return (
-    <div className="space-y-6">
-      {/* Header Panel */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl border border-[#e5e1d8] shadow-sm">
-        <div>
-          <h2 className="text-xl font-bold text-[#2c2c26] font-serif">NPC Library</h2>
-          <p className="text-sm text-[#5a5a40] mt-1 font-sans">
-            Reference NPCs loaded from your campaign sheets. Directly inspect stats and health status.
-          </p>
-        </div>
-        <button
-          onClick={() => setIsNewNpcDialogOpen(true)}
-          className="flex items-center justify-center gap-2 bg-[#c5b358] hover:bg-[#b0a04f] text-[#2c2c26] px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#c5b358] shadow-sm active:scale-95"
-        >
-          <Plus className="w-4 h-4" />
-          Add New NPC
-        </button>
-      </div>
-
-      {globalError && (
-        <div className="bg-red-50 border border-red-100 p-4 rounded-xl flex items-center gap-3 text-red-800 text-sm">
-          <AlertCircle className="w-5 h-5 shrink-0" />
-          <p>{globalError}</p>
-        </div>
-      )}
-
-      {/* Search and Filters */}
-      <div className="bg-white p-6 rounded-2xl border border-[#e5e1d8] shadow-sm space-y-4">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-[#2c2c26]">
-            <Filter className="w-4 h-4 text-[#c5b358]" />
-            <h3 className="text-sm font-bold uppercase tracking-widest">Search & Filter</h3>
+    <div className="bg-white rounded-2xl shadow-sm border border-[#e5e1d8] overflow-hidden flex-1 flex flex-col w-full">
+      {/* Page Header */}
+      <div className="bg-[#fdfaf5] border-b border-[#e5e1d8] p-6">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-[#2c2c26]">NPC Library</h1>
+            <p className="text-sm text-[#5a5a40] mt-0.5">Reference NPCs loaded from your campaign sheets. Directly inspect stats and health status.</p>
           </div>
-          {hasActiveFilters && (
-            <button
-              onClick={clearFilters}
-              className="text-[10px] font-bold uppercase tracking-widest text-red-500 hover:text-red-600 transition-colors flex items-center gap-1"
-            >
-              <X className="w-3 h-3" />
-              Clear Filters
-            </button>
-          )}
+
+          <button
+            onClick={() => setIsNewNpcDialogOpen(true)}
+            className="flex items-center gap-1.5 px-4 py-1.5 bg-[#c5b358] hover:bg-[#d4c47a] text-[#2c2c26] text-xs font-bold uppercase tracking-widest rounded-xl transition-all shadow-md hover:shadow-lg flex-shrink-0"
+            id="add-npc-btn"
+          >
+            <Plus className="w-4 h-4" />
+            New NPC
+          </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search by name..."
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              className="w-full bg-[#fdfaf5]/50 border border-[#e5e1d8] rounded-xl pl-10 pr-4 py-2.5 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all"
-            />
-          </div>
-          {renderFilterSelect(<Shield className="w-4 h-4 text-blue-400 opacity-50" />, 'Resistance', filterResistances, setFilterResistances)}
-          {renderFilterSelect(<Shield className="w-4 h-4 text-green-400 opacity-50" />, 'Immunity', filterImmunities, setFilterImmunities)}
-          {renderFilterSelect(<Shield className="w-4 h-4 text-red-400 opacity-50" />, 'Vulnerability', filterVulnerabilities, setFilterVulnerabilities)}
-          
-          <div className="relative">
-            <Activity className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400 opacity-50" />
-            <input
-              type="text"
-              placeholder="Conditions..."
-              value={filterConditions}
-              onChange={e => setFilterConditions(e.target.value)}
-              className="w-full bg-[#fdfaf5]/50 border border-[#e5e1d8] rounded-xl pl-10 pr-4 py-2.5 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all"
-            />
+        {/* Filter Controls Area */}
+        <div className="mt-6 flex flex-col gap-4">
+          <div className="flex flex-col md:flex-row gap-3">
+            <div className="relative flex-1">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#5a5a40]/60" />
+              <input
+                type="text"
+                placeholder="Search by name..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-white border border-[#e5e1d8] rounded-xl pl-9 pr-4 py-2.5 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358]/50 outline-none transition-all placeholder:text-[#5a5a40]/30"
+                id="npc-search-input"
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 md:flex gap-3 flex-wrap">
+              {renderFilterSelect(<Shield className="w-4 h-4 text-blue-500/60" />, "Resist", filterResistances, setFilterResistances)}
+              {renderFilterSelect(<Shield className="w-4 h-4 text-green-600/60" />, "Immune", filterImmunities, setFilterImmunities)}
+              {renderFilterSelect(<Shield className="w-4 h-4 text-red-500/60" />, "Vulnerable", filterVulnerabilities, setFilterVulnerabilities)}
+              {renderFilterSelect(<Activity className="w-4 h-4 text-purple-600/60" />, "Trait", filterConditions, setFilterConditions)}
+            </div>
+
+            {hasActiveFilters && (
+              <button
+                onClick={clearFilters}
+                className="flex items-center justify-center gap-1.5 px-3 py-2 text-[#5a5a40] hover:text-[#2c2c26] text-xs font-bold uppercase tracking-widest transition-colors"
+                id="clear-filters-btn"
+              >
+                <X className="w-3.5 h-3.5" />
+                Clear
+              </button>
+            )}
           </div>
         </div>
       </div>
 
-      {/* NPC List */}
-      <div className="space-y-4">
-        {filteredNpcs.length === 0 ? (
+      <div className="flex-1 bg-white w-full p-6 overflow-y-auto">
+        {globalError && (
+          <div className="bg-red-50 border border-red-100 p-4 rounded-xl flex items-center gap-3 text-red-800 text-sm mb-6 shadow-sm">
+            <AlertCircle className="w-5 h-5 shrink-0" />
+            <p>{globalError}</p>
+          </div>
+        )}
+
+        <div className="space-y-4">
+          {filteredNpcs.length === 0 ? (
           <div className="bg-white py-12 text-center text-[#5a5a40] italic flex flex-col items-center justify-center border border-dashed border-[#e5e1d8] rounded-2xl bg-gray-50/50">
             <BookOpen className="w-10 h-10 text-gray-300 mb-2" />
             {state.npcs.length === 0 ? (
@@ -201,6 +192,7 @@ export function NpcLibraryTab() {
           setIsNewNpcDialogOpen(false);
         }}
       />
+      </div>
     </div>
   );
 }

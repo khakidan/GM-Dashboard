@@ -232,6 +232,8 @@ export const CharacterCardExpanded: React.FC<CharacterCardExpandedProps> = ({
         immunities={character.immunities || ''}
         combatantId={character.id}
         onConditionAdded={handleConditionAdded}
+        characterId={character.id}
+        onUpdateCharacter={(id, updates) => onUpdate(updates)}
       />
 
       <CharacterIRVSection
