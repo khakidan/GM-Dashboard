@@ -8,16 +8,16 @@ import '@testing-library/jest-dom/vitest';
 import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { NpcLibraryTab } from '../NpcLibraryTab';
-import { useAppState } from '../../hooks/useAppState';
+import { NpcLibraryTab } from '../../NpcLibraryTab';
+import { useAppState } from '../../../hooks/useAppState';
 
 // Mock useAppState
-vi.mock('../../hooks/useAppState', () => ({
+vi.mock('../../../hooks/useAppState', () => ({
   useAppState: vi.fn(),
 }));
 
 // Mock dbOperations
-vi.mock('../../services/dbOperations', () => ({
+vi.mock('../../../services/dbOperations', () => ({
   resetNpcHpDB: vi.fn().mockResolvedValue({}),
 }));
 
