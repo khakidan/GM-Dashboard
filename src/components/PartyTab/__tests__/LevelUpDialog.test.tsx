@@ -300,4 +300,173 @@ describe('LevelUpDialog', () => {
       proficiencies: expect.stringContaining('"proficiencyBonus":4'),
     }));
   });
+
+  describe('Resource Pools Scaling & Suggestions', () => {
+    it('renders Resource Pools section for a Barbarian character (Rage pool scaling)', () => {
+      const barbarianChar: Character = {
+        ...mockCharacter,
+        class: 'Barbarian',
+        level: 1,
+        resourcePools: JSON.stringify([{ name: 'Rage', current: 2, max: 2, reset: 'long' }]),
+      };
+
+      const { container } = render(
+        <LevelUpDialog {...defaultProps} character={barbarianChar} />
+      );
+
+      // Section should render
+      const section = container.querySelector('#resource-pools-section');
+      expect(section).toBeInTheDocument();
+      expect(screen.getByText('Resource Pools')).toBeInTheDocument();
+
+      // Rage pool should appear with an input and 'Auto' label
+      expect(screen.getByText('Rage')).toBeInTheDocument();
+      const rageInput = container.querySelector('#pool-input-rage') as HTMLInputElement;
+      expect(rageInput).toBeInTheDocument();
+      // Level 1 -> level 2: Rage max is still 2
+      expect(rageInput.value).toBe('2');
+      expect(screen.getByText('Auto')).toBeInTheDocument();
+    });
+
+    it('suggests Ki Points with "New" badge for a Monk character leveling L1 to L2', () => {
+      const monkChar: Character = {
+        ...mockCharacter,
+        class: 'Monk',
+        level: 1,
+        resourcePools: JSON.stringify([]),
+      };
+
+      const { container } = render(
+        <LevelUpDialog {...defaultProps} character={monkChar} />
+      );
+
+      // Section should render
+      expect(container.querySelector('#resource-pools-section')).toBeInTheDocument();
+      expect(screen.getByText('Ki Points')).toBeInTheDocument();
+      expect(screen.getByText('New')).toBeInTheDocument();
+
+      // Ki Points at level 2 is 2
+      const kiInput = container.querySelector('#pool-input-ki-points') as HTMLInputElement;
+      expect(kiInput.value).toBe('2');
+    });
+
+    it('does not render Resource Pools section for a character with no class and no existing pools', () => {
+      const customChar: Character = {
+        ...mockCharacter,
+        class: '',
+        level: 1,
+        resourcePools: JSON.stringify([]),
+      };
+
+      const { container } = render(
+        <LevelUpDialog {...defaultProps} character={customChar} />
+      );
+
+      expect(container.querySelector('#resource-pools-section')).not.toBeInTheDocument();
+    });
+
+    it('updates poolEdits state accordingly when GM changes max input value', () => {
+      const barbarianChar: Character = {
+        ...mockCharacter,
+        class: 'Barbarian',
+        level: 1,
+        resourcePools: JSON.stringify([{ name: 'Rage', current: 2, max: 2, reset: 'long' }]),
+      };
+
+      const { container } = render(
+        <LevelUpDialog {...defaultProps} character={barbarianChar} />
+      );
+
+      const rageInput = container.querySelector('#pool-input-rage') as HTMLInputElement;
+      fireEvent.change(rageInput, { target: { value: '5' } });
+      expect(rageInput.value).toBe('5');
+    });
+
+    it('excludes a new pool from onConfirm call if include toggle is unchecked', () => {
+      const onConfirmMock = vi.fn();
+      const monkChar: Character = {
+        ...mockCharacter,
+        class: 'Monk',
+        level: 1,
+        resourcePools: JSON.stringify([]),
+      };
+
+      const { container } = render(
+        <LevelUpDialog {...defaultProps} character={monkChar} onConfirm={onConfirmMock} />
+      );
+
+      // Uncheck "Add" for Ki Points
+      const checkbox = container.querySelector('#pool-checkbox-ki-points') as HTMLInputElement;
+      expect(checkbox.checked).toBe(true);
+      fireEvent.click(checkbox);
+      expect(checkbox.checked).toBe(false);
+
+      const confirmBtn = container.querySelector('#confirm-level-up-btn') as HTMLButtonElement;
+      fireEvent.click(confirmBtn);
+
+      expect(onConfirmMock).toHaveBeenCalledTimes(1);
+      const callArgs = onConfirmMock.mock.calls[0][0];
+      expect(callArgs.resourcePools).toBe('[]');
+    });
+
+    it('includes updated pools in onConfirm payload and sets current=max for newly added pools', () => {
+      const onConfirmMock = vi.fn();
+      const monkChar: Character = {
+        ...mockCharacter,
+        class: 'Monk',
+        level: 1,
+        resourcePools: JSON.stringify([]),
+      };
+
+      const { container } = render(
+        <LevelUpDialog {...defaultProps} character={monkChar} onConfirm={onConfirmMock} />
+      );
+
+      const confirmBtn = container.querySelector('#confirm-level-up-btn') as HTMLButtonElement;
+      fireEvent.click(confirmBtn);
+
+      expect(onConfirmMock).toHaveBeenCalledTimes(1);
+      const callArgs = onConfirmMock.mock.calls[0][0];
+      const parsedPools = JSON.parse(callArgs.resourcePools);
+      expect(parsedPools).toHaveLength(1);
+      expect(parsedPools[0]).toEqual({
+        name: 'Ki Points',
+        max: 2,
+        current: 2, // set full on level-up
+        reset: 'short',
+      });
+    });
+
+    it('clamps an existing pool current value to the new max if new max < old current', () => {
+      const onConfirmMock = vi.fn();
+      const barbarianChar: Character = {
+        ...mockCharacter,
+        class: 'Barbarian',
+        level: 5,
+        resourcePools: JSON.stringify([{ name: 'Rage', current: 3, max: 3, reset: 'long' }]),
+      };
+
+      // Let's open level up. Scaling table says level 6 Rage is 4.
+      // But let's say the GM manually lowers it to 2!
+      const { container } = render(
+        <LevelUpDialog {...defaultProps} character={barbarianChar} onConfirm={onConfirmMock} />
+      );
+
+      const rageInput = container.querySelector('#pool-input-rage') as HTMLInputElement;
+      fireEvent.change(rageInput, { target: { value: '2' } });
+
+      const confirmBtn = container.querySelector('#confirm-level-up-btn') as HTMLButtonElement;
+      fireEvent.click(confirmBtn);
+
+      expect(onConfirmMock).toHaveBeenCalledTimes(1);
+      const callArgs = onConfirmMock.mock.calls[0][0];
+      const parsedPools = JSON.parse(callArgs.resourcePools);
+      expect(parsedPools[0]).toEqual({
+        name: 'Rage',
+        max: 2,
+        current: 2, // clamped from 3 to 2 because new max is 2
+        reset: 'long',
+      });
+    });
+  });
 });

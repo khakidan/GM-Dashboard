@@ -4,6 +4,9 @@ import { X, ArrowRight, CheckSquare, Square } from 'lucide-react';
 import { IrvMultiSelect } from '../ui/IrvMultiSelect';
 import { parseClassString, getHitDieForClass, addHitDieToConfig } from '../../lib/hitDice';
 import { proficiencyBonusFromLevel, parseProficiencies, serializeProficiencies } from '../../lib/abilityScores';
+import { getResourcePoolSuggestions } from '../../lib/resourcePoolScaling';
+import { ResourcePool, parseResourcePools, serializeResourcePools } from '../../lib/resourcePools';
+
 
 export interface LevelUpDialogProps {
   character: Character;
@@ -52,6 +55,38 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
   const [levelUpOption, setLevelUpOption] = useState<string>(''); // Class name or 'newClass'
   const [newClassName, setNewClassName] = useState('');
   const [newClassHitDie, setNewClassHitDie] = useState<number>(8);
+
+  const [poolEdits, setPoolEdits] = useState<
+    Array<{
+      name: string;
+      max: number;
+      reset: 'short' | 'long' | 'none';
+      isNew: boolean;
+      include: boolean;
+      isAutoDerived: boolean;
+    }>
+  >([]);
+
+  useEffect(() => {
+    if (isOpen) {
+      const currentPools = parseResourcePools(character.resourcePools || '[]');
+      const suggestions = getResourcePoolSuggestions(
+        character.class ?? '',
+        newLevel,
+        currentPools
+      );
+      setPoolEdits(suggestions.map(s => ({
+        name: s.name,
+        max: s.suggestedMax,
+        reset: s.reset,
+        isNew: s.isNew,
+        include: s.suggestedMax > 0,
+        isAutoDerived: s.isAutoDerived
+      })));
+    } else {
+      setPoolEdits([]);
+    }
+  }, [isOpen, newLevel, character.class, character.resourcePools]);
 
   // Keep states updated if the input character prop changes while open
   useEffect(() => {
@@ -165,6 +200,29 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
     if (newNotes !== character.notes) {
       updates.notes = newNotes;
     }
+
+    // Build the updated pool list from poolEdits
+    const currentPoolsList = parseResourcePools(character.resourcePools || '[]');
+    const updatedPools: ResourcePool[] = poolEdits
+      .filter(e => e.include && e.max > 0)
+      .map(e => {
+        // For existing pools, preserve current value
+        // For new pools, set current = max (full on level-up)
+        const existing = currentPoolsList.find(p =>
+          p.name.toLowerCase().trim() ===
+          e.name.toLowerCase().trim()
+        );
+        return {
+          name: e.name,
+          max: e.max,
+          current: existing
+            ? Math.min(existing.current, e.max)
+            : e.max,
+          reset: e.reset,
+        };
+      });
+
+    updates.resourcePools = serializeResourcePools(updatedPools);
 
     onConfirm(updates);
   };
@@ -490,6 +548,91 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
               </div>
             </div>
           </div>
+
+          {/* SECTION C: Resource Pools */}
+          {poolEdits.length > 0 && (
+            <div className="space-y-3" id="resource-pools-section">
+              <h3 className="text-[#5a5a40] text-xs font-bold uppercase tracking-widest border-b border-[#e5e1d8] pb-1 mb-2">
+                Resource Pools
+              </h3>
+              <div className="border border-[#e5e1d8] rounded-2xl p-4 bg-[#f5f1e8] space-y-3">
+                {poolEdits.map((entry, index) => (
+                  <div
+                    key={entry.name}
+                    className={`flex items-center justify-between gap-4 py-2 border-b border-[#e5e1d8]/50 last:border-0 ${
+                      !entry.include ? 'opacity-50' : ''
+                    }`}
+                    id={`pool-row-${entry.name.toLowerCase().replace(/\s+/g, '-')}`}
+                  >
+                    {/* LEFT: pool name + badge */}
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <span className="text-[#2c2c26] font-medium text-xs truncate">
+                        {entry.name}
+                      </span>
+                      {entry.isNew && (
+                        <span className="bg-[#c5b358]/20 border border-[#c5b358] text-[#8a7a20] px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider shrink-0">
+                          New
+                        </span>
+                      )}
+                    </div>
+
+                    {/* MIDDLE: input + auto label */}
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        min={0}
+                        value={entry.max}
+                        onFocus={(e) => e.target.select()}
+                        onChange={(e) => {
+                          const val = Math.max(0, parseInt(e.target.value, 10) || 0);
+                          setPoolEdits(prev => prev.map((item, i) => i === index ? { ...item, max: val } : item));
+                        }}
+                        disabled={!entry.include}
+                        className="bg-white border border-[#e5e1d8] rounded-xl text-[#2c2c26] focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358]/50 focus:outline-none w-16 px-2 py-1 text-xs text-center font-bold"
+                        id={`pool-input-${entry.name.toLowerCase().replace(/\s+/g, '-')}`}
+                      />
+                      {entry.isAutoDerived && (
+                        <span className="text-[#5a5a40] text-[9px] font-bold bg-[#5a5a40]/10 px-1.5 py-0.5 rounded uppercase tracking-wider">
+                          Auto
+                        </span>
+                      )}
+                    </div>
+
+                    {/* RIGHT: reset label */}
+                    <div className="w-24 text-right shrink-0">
+                      <span className="text-[#5a5a40] text-[11px] font-medium">
+                        {entry.reset === 'short'
+                          ? 'Short/Long Rest'
+                          : entry.reset === 'long'
+                          ? 'Long Rest'
+                          : 'Manual'}
+                      </span>
+                    </div>
+
+                    {/* FAR RIGHT: include checkbox for new pools only */}
+                    <div className="w-12 flex justify-end shrink-0">
+                      {entry.isNew ? (
+                        <label className="flex items-center gap-1 cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={entry.include}
+                            onChange={(e) => {
+                              setPoolEdits(prev => prev.map((item, i) => i === index ? { ...item, include: e.target.checked } : item));
+                            }}
+                            className="w-3.5 h-3.5 accent-[#c5b358] cursor-pointer"
+                            id={`pool-checkbox-${entry.name.toLowerCase().replace(/\s+/g, '-')}`}
+                          />
+                          <span className="text-[9px] font-bold text-[#5a5a40] uppercase">Add</span>
+                        </label>
+                      ) : (
+                        <div className="w-7 h-3.5" />
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Footer */}

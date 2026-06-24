@@ -60,31 +60,22 @@ the GUI.**
 ---
 
 ## Architecture — Layer Dependency Rules
+
+```
 lib/          Pure utilities. No React, no
-
-imports from other layers.
-
-↓
-
+              imports from other layers.
+              ↓
 services/     Network calls to Google Sheets
-
-API. Imports from lib only.
-
-↓
-
+              API. Imports from lib only.
+              ↓
 hooks/        Zustand store + React hooks.
-
-Imports from lib and services.
-
-↓
-
+              Imports from lib and services.
+              ↓
 components/   UI only. Imports from hooks,
-
-lib, and other components.
-
-Never imports from services
-
-directly.
+              lib, and other components.
+              Never imports from services
+              directly.
+```
 
 Violations of this dependency direction are
 bugs. A component should never call
@@ -211,22 +202,45 @@ schema.
   IRV application, health status calculation
 - `combatantBuilder.ts` — Pure function that
   builds combatant state from characters +
-  npcs + encounterCombatants
-- `classResources.ts` — 
-  CLASS_RESOURCE_SUGGESTIONS 
-  mapping for 12 standard 5e 
-  classes and 
-  getClassResourceSuggestions() 
-  helper. Returns deep-copied 
-  ResourcePool[] suggestions. 
-  Returns [] for unknown/custom 
-  classes (e.g. Vitalist).
+  npcs + encounterCombatants. Combatant type
+  includes class, level, abilityScores, and
+  proficiencies fields passed through from
+  the character source.
+- `classResources.ts` — CLASS_RESOURCE_SUGGESTIONS
+  mapping for 12 standard 5e classes and
+  `getClassResourceSuggestions()` helper.
+  Returns deep-copied ResourcePool[] suggestions.
+  Returns [] for unknown/custom classes
+  (e.g. Vitalist).
 - `hitDice.ts` — Hit dice parsing, spending,
   recovery. Includes `CLASS_HIT_DIE_MAP`
-- `resourcePools.ts` — ResourcePool interface,
+- `resourcePools.ts` — ResourcePool interface
+  (`{ name, current, max, reset }`),
   parse/serialize/spend/recover/reset/add/
   remove/update. Includes `EFFECT_RESOURCE_MAP`
-  for auto-decrement when effects are applied
+  for auto-decrement when effects are applied.
+  Note: the rest field is named `reset`
+  (not `restoreOn`).
+- `resourcePoolScaling.ts` — Level-based
+  resource pool scaling. Exports
+  `ResourcePoolSuggestion` interface,
+  `POOL_LEVEL_TABLES` (Rage, Ki Points,
+  Sorcery Points), `getAutoScaledMax()`,
+  and `getResourcePoolSuggestions()`. Used by
+  LevelUpDialog to pre-fill pool max suggestions
+  when a character levels up. Returns both
+  scaled existing pools and new pools the
+  character should gain at the new level.
+- `spellcasting.ts` — Spellcasting stat
+  utilities. Exports `SpellcastingAbility`
+  type (`'STR'|'DEX'|'CON'|'INT'|'WIS'|'CHA'|null`),
+  `SPELLCASTING_ABILITY_MAP` (12 classes),
+  `getAutoSpellcastingAbility()`,
+  `getEffectiveSpellcastingAbility()`,
+  `calculateSpellSaveDC()`, and
+  `calculateSpellAttackBonus()`. Note: ability
+  score keys are uppercase (STR, DEX, etc.)
+  to match the AbilityScores type.
 - `concentrationCheck.ts` — `concentrationCheckDc()`,
   `isConcentrating()`, `fireConcentrationAlert()`
 - `conditionDefinitions.ts` — CONDITION_MECHANICS
@@ -239,6 +253,13 @@ schema.
 - `irvOptions.ts` — CONDITION_OPTIONS,
   EFFECT_OPTIONS, CONCENTRATION_EFFECTS,
   CONDITION_IMMUNITY_MAP, IRV_OPTIONS
+- `abilityScores.ts` — AbilityScores and
+  Proficiencies types, `calculateModifier()`,
+  `proficiencyBonusFromLevel()`, skill/save
+  helpers, parse/serialize helpers.
+  Proficiencies includes optional
+  `spellcastingAbility?: SpellcastingAbility`
+  for GM override of auto-derived caster stat.
 - `audioFileStore.ts` — IndexedDB persistence
   for audio blobs, scoped per campaign
 - `diceRoller.ts` — Parses dice notation
@@ -282,8 +303,6 @@ schema.
   one-to-one track assignment, campaign-scoped
 - `useDashboardShortcuts.ts` — Global keyboard
   events and mood shortcuts (Alt+1–5)
-- `useDeathSaves.ts` — Death saving throw
-  state and stabilization logic
 - `useNetworkState.ts` — Online/offline
   detection, triggers write retry
 - `useTabState.ts` — Active navigation tab
@@ -296,6 +315,14 @@ schema.
 - `auth.ts` — Proxies OAuth token exchanges
   (keeps secrets off the client)
 - `health.ts` — Health check endpoint
+
+### src/test-utils/fixtures/
+Shared test data factories used across many
+test files. Not tests themselves.
+- `characterFixtures.ts` — Mock Character
+  objects for use in component and hook tests
+- `combatantFixtures.ts` — Mock Combatant
+  objects for use in ActiveEncounterTab tests
 
 ### src/components/
 - `GMDashboard.tsx` — Root shell. Calls
@@ -321,7 +348,12 @@ schema.
 - `AudioLibrary.tsx` — Tabbed audio file
   manager with drag-drop and mood assignment
 
-### src/components/ui/
+### src/components/auth/
+- `AuthPortalSettings.tsx` — Auth portal
+  configuration UI
+- `AuthRelay.tsx` — OAuth relay handler
+
+### src/components/ui/ (shared components)
 - `ConditionChips.tsx` — Condition/effect
   chip input with popover, immunity checking,
   timer prompts, and `onConditionAdded`
@@ -331,26 +363,53 @@ schema.
   condition or effect
 - `IrvMultiSelect.tsx` — Compact multi-select
   for resistances/immunities/vulnerabilities
-- `StatBlock.tsx` — orchestrator 
-  (117 lines). Delegates rendering 
-  to four subcomponents:
-  StatBlockScores.tsx, 
-  StatBlockSaves.tsx,
-  StatBlockPassive.tsx, 
-  StatBlockSkills.tsx.
-  All five live in 
-  src/components/ui/.
-
-### src/components/PartyTab/
+- `StatBlock.tsx` — Orchestrator (117 lines).
+  Delegates rendering to four subcomponents:
+  StatBlockScores.tsx, StatBlockSaves.tsx,
+  StatBlockPassive.tsx, StatBlockSkills.tsx.
+  All five live in src/components/ui/.
+- `NpcFormFields.tsx` — Shared form fields
+  used in both NewNpcDialog AND CombatSidebar
+  Create NPC tab. Must stay in sync with both
+  usage sites. Lives in ui/ because it crosses
+  feature boundaries.
 - `ResourcePoolsSection.tsx` — Shared pip
   tracker UI used in both CharacterCardExpanded
-  and CombatantCardExpanded
+  (PartyTab) and CombatantCardExpanded
+  (ActiveEncounterTab). Lives in ui/ because
+  it crosses feature boundaries.
+- `SpellcastingStatsRow.tsx` — Displays Spell
+  Save DC and Spell Attack Bonus inline on
+  character and NPC cards. Accepts an optional
+  `onOverrideChange` prop: when provided
+  (Party tab, NPC Library expanded sections),
+  renders a spellcasting ability override
+  dropdown; when absent (Active Encounter),
+  renders read-only. Non-casters with no
+  override render nothing (returns null).
+- `DebouncedInput.tsx` — Standard debounced
+  input (light parchment theme)
+- `DebouncedTextarea.tsx` — Standard debounced
+  textarea (light parchment theme)
+
+### src/components/PartyTab/
 - `CharacterResourceSection.tsx` — Condition
   chips with `onConditionAdded` → auto-
   decrements matching resource pools
 - `hooks/useParty.ts` — Character CRUD,
   handleLongRest, handleShortRest (both reset
   resource pools appropriately)
+- `LevelUpDialog.tsx` — Level-up flow.
+  Writes: level, class, hitDiceConfig, maxHp,
+  currentHp, ac, passivePerception,
+  resistances, immunities, vulnerabilities,
+  notes, proficiencies, resourcePools.
+  The Resource Pools section shows pre-filled
+  scaling suggestions (via
+  `getResourcePoolSuggestions`) that the GM
+  can edit before confirming. New pools the
+  character should gain at the new level are
+  suggested with an include toggle.
 
 ### src/components/ActiveEncounterTab/
 - `CombatantCardHeader.tsx` — Compact
@@ -358,34 +417,38 @@ schema.
   pools on PC combatant cards (collapsed view)
 - `CombatantCardExpanded.tsx` — Full
   ResourcePoolsSection for PC combatants
-- `CombatMechanicsSummary.tsx` — 
-  Pure presentational component 
-  rendering the combat mechanics 
-  status grid (speed locks, 
-  advantage/disadvantage indicators, 
-  auto-fail warnings) from a 
-  mechanicalSummary object. 
+- `CombatMechanicsSummary.tsx` — Pure
+  presentational component rendering the
+  combat mechanics status grid (speed locks,
+  advantage/disadvantage indicators, auto-fail
+  warnings) from a mechanicalSummary object.
   No store access.
-- `CombatantIrvDisplay.tsx` — 
-  Read-only display for a 
-  combatant's Resistances, 
+- `CombatantIrvDisplay.tsx` — Read-only
+  display for a combatant's Resistances,
   Immunities, and Vulnerabilities.
-- `hooks/useCombatantExpanded.ts` — 
-  Encapsulates the resource pool 
-  update handler and the condition-
-  triggered resource depletion 
-  handler (onConditionAdded). 
-  Used by CombatantCardExpanded.
+- `hooks/useDeathSaves.ts` — Death saving
+  throw state and stabilization logic.
+- `hooks/useCombatantExpanded.ts` — Encapsulates
+  the resource pool update handler and the
+  condition-triggered resource depletion
+  handler (onConditionAdded). Used by
+  CombatantCardExpanded.
 - `hooks/useHealthChange.ts` — Damage/heal
   with IRV math. Fires `fireConcentrationAlert`
   when a concentrating combatant takes damage.
 - `hooks/useBatchActions.ts` — Batch
   damage/heal/condition/delete
+- `hooks/useCombatSync.ts` — Turn/round/
+  combatant sync. NPC initiative uses DEX
+  modifier (1d20 + DEX mod).
 
 ### src/components/NpcLibraryTab/
-- `NpcFormFields.tsx` — Shared form component
-  used in NewNpcDialog AND CombatSidebar
-  Create NPC tab. Must stay in sync.
+- `NpcCard.tsx` — NPC library card. Renders
+  SpellcastingStatsRow on collapsed face
+  (read-only) and in expanded section (with
+  override dropdown).
+- `NewNpcDialog.tsx` — NPC creation dialog.
+  Uses NpcFormFields from ui/.
 
 ---
 
@@ -409,7 +472,7 @@ this whitelist and to `dbOperations.ts`.
 
 ## Testing Structure — 13-Batch System
 
-**Current baseline: 1087 tests.**
+**Current baseline: 1152 tests.**
 All batches must pass with zero failures.
 No batch should exceed 35 seconds.
 
@@ -418,43 +481,43 @@ with `&&`. Never use glob patterns. Never
 run all tests at once with `npx vitest run`.
 
 ```bash
-# BATCH 1
+# BATCH 1 — 392 tests
 npx vitest run src/lib/__tests__
 
-# BATCH 2
+# BATCH 2 — 108 tests
 npx vitest run src/services/__tests__
 
-# BATCH 3
+# BATCH 3 — 103 tests
 npx vitest run src/hooks/__tests__
 
-# BATCH 4
+# BATCH 4 — 11 tests
 npx vitest run src/server/__tests__ src/__tests__
 
-# BATCH 5A
+# BATCH 5A — 66 tests
 npx vitest run src/components/ActiveEncounterTab/__tests__/useBatchActions.test.ts src/components/ActiveEncounterTab/__tests__/useCombatSync.test.ts src/components/ActiveEncounterTab/__tests__/useCombatantCard.test.ts src/components/ActiveEncounterTab/__tests__/useEncounterPresetLoader.test.ts src/components/ActiveEncounterTab/__tests__/useHealthChange.test.ts src/components/ActiveEncounterTab/__tests__/useSelectionMode.test.ts
 
-# BATCH 5B
+# BATCH 5B — 119 tests
 npx vitest run src/components/ActiveEncounterTab/__tests__/AddNpcCollision.test.tsx src/components/ActiveEncounterTab/__tests__/CasterAttributionDialog.test.tsx src/components/ActiveEncounterTab/__tests__/CombatHeader.test.tsx src/components/ActiveEncounterTab/__tests__/CombatSidebar.test.tsx src/components/ActiveEncounterTab/__tests__/CombatantCard.test.tsx src/components/ActiveEncounterTab/__tests__/KeyboardShortcuts.test.tsx src/components/ActiveEncounterTab/__tests__/MultiTargetActionPanel.test.tsx src/components/ActiveEncounterTab/__tests__/ShortcutCheatSheet.test.tsx src/components/ActiveEncounterTab/__tests__/index.test.tsx
 
-# BATCH 6A
+# BATCH 6A — 119 tests
 npx vitest run src/components/PartyTab/__tests__
 
-# BATCH 6B
+# BATCH 6B — 15 tests
 npx vitest run src/components/EncountersTab/__tests__
 
-# BATCH 6C
+# BATCH 6C — 18 tests
 npx vitest run src/components/NpcLibraryTab/__tests__
 
-# BATCH 7A
+# BATCH 7A — 36 tests
 npx vitest run src/components/__tests__/DeathOverlay.test.tsx src/components/__tests__/DamageOverlay.test.tsx src/components/__tests__/HealOverlay.test.tsx src/components/__tests__/RageOverlay.test.tsx src/components/__tests__/UnconsciousOverlay.test.tsx src/components/__tests__/InitiativeOverlay.test.tsx
 
-# BATCH 7B-1
+# BATCH 7B-1 — 72 tests
 npx vitest run src/components/__tests__/AmbientPlayer.test.tsx src/components/__tests__/AudioLibrary.test.tsx src/components/__tests__/AudioPanel.test.tsx src/components/__tests__/CommandPalette.test.tsx src/components/__tests__/ErrorBoundary.test.tsx src/components/__tests__/GMDashboard.test.tsx src/components/__tests__/GMDashboardSidebar.test.tsx
 
-# BATCH 7B-2
-npx vitest run src/components/__tests__/CampaignSelector.test.tsx src/components/__tests__/GMLoadingScreen.test.tsx src/components/__tests__/GMTabContent.test.tsx src/components/__tests__/NpcLibraryTab.test.tsx src/components/__tests__/PlayerView.test.tsx src/components/__tests__/SettingsModal.test.tsx src/components/__tests__/SidebarIcon.test.tsx src/components/__tests__/Soundboard.test.tsx src/components/__tests__/SyncStatusIndicators.test.tsx src/components/__tests__/ThemeContext.test.tsx
+# BATCH 7B-2 — 53 tests
+npx vitest run src/components/__tests__/CampaignSelector.test.tsx src/components/__tests__/GMLoadingScreen.test.tsx src/components/__tests__/GMTabContent.test.tsx src/components/__tests__/PlayerView.test.tsx src/components/__tests__/SettingsModal.test.tsx src/components/__tests__/SidebarIcon.test.tsx src/components/__tests__/Soundboard.test.tsx src/components/__tests__/SyncStatusIndicators.test.tsx src/components/__tests__/ThemeContext.test.tsx
 
-# BATCH 8
+# BATCH 8 — 62 tests
 npx vitest run src/components/ui/__tests__
 ```
 
@@ -545,6 +608,37 @@ Current mappings (from `EFFECT_RESOURCE_MAP`):
 - `bardic inspiration (given)` →
   `bardic inspiration`
 
+### Spellcasting stats display
+
+`SpellcastingStatsRow` derives Spell Save DC
+and Spell Attack Bonus from abilityScores +
+proficiencyBonus. The spellcasting ability is
+resolved in this priority order:
+1. `proficiencies.spellcastingAbility` override
+   (if the key exists, even if null — null means
+   the GM has explicitly marked as non-caster)
+2. Auto-derived from class via
+   `SPELLCASTING_ABILITY_MAP` in spellcasting.ts
+3. If neither resolves, the row renders nothing
+
+The undefined vs null distinction is critical:
+- `undefined` = no override set (auto-derive)
+- `null` = override explicitly set to none
+  (non-caster override, beats auto-derive)
+
+Do not flatten both to null in any handler.
+
+### Resource pool scaling on level-up
+
+`LevelUpDialog` calls `getResourcePoolSuggestions(
+  character.class, newLevel, currentPools
+)` to produce pre-filled pool suggestions.
+The GM sees all pools with editable max values
+and can include/exclude new pools before
+confirming. On confirm, `resourcePools` is
+included in the `onConfirm` updates object
+alongside the other level-up fields.
+
 ---
 
 ## Architectural Decisions
@@ -574,6 +668,24 @@ token exchange, keeping credentials server-side.
 app is served from any path. Previously used
 for Tauri desktop wrapping; now retained
 because it simplifies deployment.
+
+**Shared components live in ui/ when they
+cross feature boundaries:** NpcFormFields,
+ResourcePoolsSection, and SpellcastingStatsRow
+are all in `src/components/ui/` rather than
+the feature directory where they were first
+created. The rule: if a component is imported
+by more than one feature tab, it belongs in
+ui/.
+
+**Test fixtures live in src/test-utils/:**
+`characterFixtures.ts` and `combatantFixtures.ts`
+are factory functions, not test files. They
+live in `src/test-utils/fixtures/` (not in
+`__tests__/`) to make clear they are test
+infrastructure rather than test suites.
+
+---
 
 ## Workflows
 
@@ -635,6 +747,25 @@ A 4-tab complex form for creating new characters manually:
     Any `fix*.cjs`, `scan*.ts`, or `replace.js`
     files found in the project root must be
     deleted. They are diagnostic artifacts.
+
+11. **Keep AGENTS.md current.** After any
+    session that adds files, moves files,
+    changes the test baseline, or implements
+    features that affect the architecture,
+    update this file. Specifically:
+    - New lib files → add to src/lib/ section
+    - New shared UI components → add to
+      src/components/ui/ section
+    - File moves → update the section the file
+      moved from AND the section it moved to
+    - Test count changes → update the baseline
+      number AND the per-batch comment in the
+      batch commands
+    - New batch 7B-2 explicit files or batch
+      5A/5B explicit files → update those
+      batch commands
+    - New architectural patterns → add to the
+      Patterns and Conventions section
 
 ---
 
