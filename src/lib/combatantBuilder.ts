@@ -98,6 +98,14 @@ export function buildCombatantsFromState(
                 : undefined,
               abilityScores: npcTemplate.abilityScores,
               proficiencies: npcTemplate.proficiencies,
+              speed: npcTemplate.speed,
+              senses: npcTemplate.senses,
+              languages: npcTemplate.languages,
+              challengeRating: npcTemplate.challengeRating,
+              traits: npcTemplate.traits,
+              actions: npcTemplate.actions,
+              reactions: npcTemplate.reactions,
+              legendaryActionsList: npcTemplate.legendaryActionsList,
             });
           }
         }

@@ -99,6 +99,14 @@ export function mapNpcRowToNpc(
     rechargeAbilities,
     abilityScores,
     proficiencies,
+    speed,
+    senses,
+    languages,
+    challengeRating,
+    traits,
+    actions,
+    reactions,
+    legendaryActionsList,
   ] = data;
 
   return {
@@ -124,6 +132,14 @@ export function mapNpcRowToNpc(
     })(),
     abilityScores: abilityScores ?? JSON.stringify(DEFAULT_ABILITY_SCORES),
     proficiencies: proficiencies ?? JSON.stringify(DEFAULT_PROFICIENCIES),
+    speed: speed ?? '',
+    senses: senses ?? '',
+    languages: languages ?? '',
+    challengeRating: challengeRating ?? '',
+    traits: traits ?? '[]',
+    actions: actions ?? '[]',
+    reactions: reactions ?? '[]',
+    legendaryActionsList: legendaryActionsList ?? '[]',
   };
 }
 

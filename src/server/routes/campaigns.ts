@@ -62,7 +62,9 @@ router.post('/create', async (req, res) => {
           'Current_HP', 'Current_Condition', 'Notes',
           'Resistances', 'Immunities', 'Vulnerabilities',
           'Legendary_Actions', 'Legendary_Resistances',
-          'Recharge_Abilities', 'Ability_Scores', 'Proficiencies'
+          'Recharge_Abilities', 'Ability_Scores', 'Proficiencies',
+          'Speed', 'Senses', 'Languages', 'Challenge_Rating',
+          'Traits', 'Actions', 'Reactions', 'Legendary_Actions_List'
         ],
         rows: []
       },

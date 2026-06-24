@@ -31,6 +31,37 @@ export interface Character {
   proficiencies: string;  // JSON
 }
 
+export interface NpcTrait {
+  name: string;
+  description: string;
+}
+
+export interface NpcAction {
+  name: string;
+  description: string;
+  attackBonus?: number;
+  damage?: string;
+  saveDC?: number;
+  saveType?: string;
+  range?: string;
+  recharge?: string;
+}
+
+export interface NpcReaction {
+  name: string;
+  description: string;
+}
+
+export interface NpcLegendaryAction {
+  name: string;
+  description: string;
+  cost?: number;
+  attackBonus?: number;
+  damage?: string;
+  saveDC?: number;
+  saveType?: string;
+}
+
 export interface NPC {
   id: string; // NPC_ID
   name: string; // NPC_Name
@@ -51,6 +82,14 @@ export interface NPC {
   }>;
   abilityScores: string;  // JSON
   proficiencies: string;  // JSON
+  speed: string;
+  senses: string;
+  languages: string;
+  challengeRating: string;   // text: "1/4", "16", etc.
+  traits: string;            // JSON: NpcTrait[]
+  actions: string;           // JSON: NpcAction[]
+  reactions: string;         // JSON: NpcReaction[]
+  legendaryActionsList: string; // JSON: NpcLegendaryAction[]
 }
 
 export interface Encounter {
@@ -109,6 +148,14 @@ export interface Combatant {
   level?: number;
   abilityScores?: string;
   proficiencies?: string;
+  speed?: string;
+  senses?: string;
+  languages?: string;
+  challengeRating?: string;
+  traits?: string;
+  actions?: string;
+  reactions?: string;
+  legendaryActionsList?: string;
 }
 
 export interface CombatState {

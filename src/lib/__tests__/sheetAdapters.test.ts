@@ -236,6 +236,14 @@ describe('sheetAdapters', () => {
         rechargeAbilities: [],
         abilityScores: '{"STR":10,"DEX":10,"CON":10,"INT":10,"WIS":10,"CHA":10}',
         proficiencies: '{"proficiencyBonus":2,"jackOfAllTrades":false,"savingThrows":[],"skills":{},"passiveBonuses":{"perception":0,"insight":0,"investigation":0}}',
+        speed: '',
+        senses: '',
+        languages: '',
+        challengeRating: '',
+        traits: '[]',
+        actions: '[]',
+        reactions: '[]',
+        legendaryActionsList: '[]',
       });
     });
   });

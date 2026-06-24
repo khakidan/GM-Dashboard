@@ -65,7 +65,7 @@ export const CharacterRowSchema = z.preprocess(padRow(25), z.tuple([
   stringDefault(JSON.stringify(DEFAULT_PROFICIENCIES)),  // [24] proficiencies
 ]));
 
-export const NpcRowSchema = z.preprocess(padRow(16), z.tuple([
+export const NpcRowSchema = z.preprocess(padRow(24), z.tuple([
   idSchema,                            // [0] id
   stringDefault('Unknown NPC'),        // [1] name
   coerceNumber(10),                    // [2] ac
@@ -82,6 +82,14 @@ export const NpcRowSchema = z.preprocess(padRow(16), z.tuple([
   stringDefault(''),                   // [13] rechargeAbilities
   stringDefault(JSON.stringify(DEFAULT_ABILITY_SCORES)), // [14] abilityScores
   stringDefault(JSON.stringify(DEFAULT_PROFICIENCIES)),  // [15] proficiencies
+  stringDefault(''),                   // [16] speed
+  stringDefault(''),                   // [17] senses
+  stringDefault(''),                   // [18] languages
+  stringDefault(''),                   // [19] challengeRating
+  stringDefault('[]'),                 // [20] traits
+  stringDefault('[]'),                 // [21] actions
+  stringDefault('[]'),                 // [22] reactions
+  stringDefault('[]'),                 // [23] legendaryActionsList
 ]));
 
 export const EncounterRowSchema = z.preprocess(padRow(7), z.tuple([

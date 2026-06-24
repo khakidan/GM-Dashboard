@@ -519,7 +519,7 @@ describe('updateNpcFullDB', () => {
 
     await updateNpcFullDB(npc as any);
 
-    expect(queueWrite).toHaveBeenCalledWith('NPCs!A2:P2', [[
+    expect(queueWrite).toHaveBeenCalledWith('NPCs!A2:X2', [[
       '101',
       'New Name',
       15,
@@ -535,7 +535,15 @@ describe('updateNpcFullDB', () => {
       3,
       '[{"name":"Fire Breath","recharge":"5-6"}]',
       '{}',
-      '{}'
+      '{}',
+      '',
+      '',
+      '',
+      '',
+      '[]',
+      '[]',
+      '[]',
+      '[]'
     ]]);
   });
 
@@ -638,7 +646,7 @@ describe('addNpcDB', () => {
     );
 
     expect(result.id).toBe('1');
-    expect(sheetsService.appendSheetData).toHaveBeenCalledWith('NPCs!A:P', [[
+    expect(sheetsService.appendSheetData).toHaveBeenCalledWith('NPCs!A:X', [[
       '1',             // ID
       'Dragon',        // Name
       20,              // AC
@@ -654,7 +662,15 @@ describe('addNpcDB', () => {
       3,               // Legendary Resistances
       '[{"name":"Fire Breath","rechargeOn":5}]', // Recharge Abilities (JSON)
       '{}',            // abilityScores
-      '{}'             // proficiencies
+      '{}',            // proficiencies
+      '',
+      '',
+      '',
+      '',
+      '[]',
+      '[]',
+      '[]',
+      '[]'
     ]]);
   });
 });
