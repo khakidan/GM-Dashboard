@@ -116,7 +116,7 @@ which calls a service.
 | X | 23 | abilityScores | JSON string |
 | Y | 24 | proficiencies | JSON string |
 
-### NPCs (A2:P — 16 columns)
+### NPCs (A2:X — 24 columns)
 
 | Col | Index | Field | Notes |
 |-----|-------|-------|-------|
@@ -128,14 +128,41 @@ which calls a service.
 | F | 5 | currentHp | Number, default 10 |
 | G | 6 | conditions | Comma-separated |
 | H | 7 | notes | |
-| I | 8 | resistances | Comma-separated |
-| J | 9 | immunities | Comma-separated |
+| I | 8 | resistances | Comma-separated damage types |
+| J | 9 | immunities | Comma-separated damage types AND condition immunities |
 | K | 10 | vulnerabilities | Comma-separated |
 | L | 11 | legendaryActions | Number, default 0 |
 | M | 12 | legendaryResistances | Number, default 0 |
 | N | 13 | rechargeAbilities | JSON string |
 | O | 14 | abilityScores | JSON string |
 | P | 15 | proficiencies | JSON string |
+| Q | 16 | speed | Text, e.g. "30 ft., fly 60 ft." |
+| R | 17 | senses | Text, e.g. "darkvision 60 ft." |
+| S | 18 | languages | Text |
+| T | 19 | challengeRating | Text, e.g. "1/4", "16" |
+| U | 20 | traits | JSON: NpcTrait[] |
+| V | 21 | actions | JSON: NpcAction[] |
+| W | 22 | reactions | JSON: NpcReaction[] |
+| X | 23 | legendaryActionsList | JSON: NpcLegendaryAction[] |
+
+**NPC TypeScript interfaces** (in src/types.ts):
+
+  NpcTrait: { name, description }
+
+  NpcAction: { name, description,
+    attackBonus?, damage?, saveDC?,
+    saveType?, range?, recharge? }
+
+  NpcReaction: { name, description }
+
+  NpcLegendaryAction: { name, description,
+    cost?, attackBonus?, damage?,
+    saveDC?, saveType? }
+
+Note: `immunities` (col J) stores BOTH damage
+immunities and condition immunities as a
+comma-separated string. There is no separate
+conditionImmunities column.
 
 ### Encounters (A2:G — 7 columns)
 
@@ -193,7 +220,7 @@ schema.
   MOODS, AUDIO, `campaignKey()` helper
 - `sheetSchemas.ts` — Zod validation for
   each sheet row. Defines defaults for every
-  column.
+  column. NPC schema covers 24 columns (0–23).
 - `sheetAdapters.ts` — Maps raw row arrays
   from the API into typed model objects
 - `sheetSyncParser.ts` — Validates full
@@ -203,9 +230,12 @@ schema.
 - `combatantBuilder.ts` — Pure function that
   builds combatant state from characters +
   npcs + encounterCombatants. Combatant type
-  includes class, level, abilityScores, and
-  proficiencies fields passed through from
-  the character source.
+  includes class, level, abilityScores,
+  proficiencies, and all 8 NPC stat block
+  fields (speed, senses, languages,
+  challengeRating, traits, actions, reactions,
+  legendaryActionsList) passed through from
+  the NPC source.
 - `classResources.ts` — CLASS_RESOURCE_SUGGESTIONS
   mapping for 12 standard 5e classes and
   `getClassResourceSuggestions()` helper.
@@ -371,8 +401,27 @@ test files. Not tests themselves.
 - `NpcFormFields.tsx` — Shared form fields
   used in both NewNpcDialog AND CombatSidebar
   Create NPC tab. Must stay in sync with both
-  usage sites. Lives in ui/ because it crosses
-  feature boundaries.
+  usage sites. Contains: plain text fields
+  (name, AC, HP, notes, IRV, CR, speed,
+  senses, languages) and four list editors
+  (traits, actions, reactions, legendary
+  actions) using NpcListEditor.
+- `NpcListEditor.tsx` — Generic list editor
+  component used by NpcFormFields for traits,
+  actions, reactions, and legendary actions.
+  Generic over `T extends { name: string }`.
+  Each entry renders via a `renderFields` prop
+  and has an Add/Remove affordance.
+- `NpcStatBlockSection.tsx` — Pure display
+  component for one section of an NPC stat
+  block (traits, actions, reactions, or
+  legendary actions). Accepts `title` and
+  `items[]` with optional `meta` per item.
+  Also exports `formatActionMeta(action)` which
+  builds a compact mechanical summary string
+  from NpcAction fields (attackBonus, damage,
+  saveDC, saveType, range, recharge). Returns
+  null when items is empty.
 - `ResourcePoolsSection.tsx` — Shared pip
   tracker UI used in both CharacterCardExpanded
   (PartyTab) and CombatantCardExpanded
@@ -417,6 +466,17 @@ test files. Not tests themselves.
   pools on PC combatant cards (collapsed view)
 - `CombatantCardExpanded.tsx` — Full
   ResourcePoolsSection for PC combatants
+- `NpcReferencePanel.tsx` — Collapsible stat
+  block reference panel shown on NPC combatant
+  cards during active encounters. Manages its
+  own open/closed state. Renders nothing if
+  the combatant has no stat block content.
+  Toggle button reads "▶ Stat Block" /
+  "▼ Stat Block". Displays CR, speed, senses,
+  languages, and all four NpcStatBlockSection
+  lists when expanded. Import
+  NpcStatBlockSection and formatActionMeta
+  from src/components/ui/NpcStatBlockSection.
 - `CombatMechanicsSummary.tsx` — Pure
   presentational component rendering the
   combat mechanics status grid (speed locks,
@@ -443,10 +503,13 @@ test files. Not tests themselves.
   modifier (1d20 + DEX mod).
 
 ### src/components/NpcLibraryTab/
-- `NpcCard.tsx` — NPC library card. Renders
-  SpellcastingStatsRow on collapsed face
-  (read-only) and in expanded section (with
-  override dropdown).
+- `NpcCard.tsx` — NPC library card. Expanded
+  view shows: StatBlock, SpellcastingStatsRow,
+  editable stat fields (AC, HP, IRV, etc.),
+  and read-only display of all stat block
+  sections (CR, speed, senses, languages,
+  traits, actions, reactions, legendary
+  actions) via NpcStatBlockSection.
 - `NewNpcDialog.tsx` — NPC creation dialog.
   Uses NpcFormFields from ui/.
 
@@ -472,7 +535,7 @@ this whitelist and to `dbOperations.ts`.
 
 ## Testing Structure — 13-Batch System
 
-**Current baseline: 1152 tests.**
+**Current baseline: 1203 tests.**
 All batches must pass with zero failures.
 No batch should exceed 35 seconds.
 
@@ -496,8 +559,8 @@ npx vitest run src/server/__tests__ src/__tests__
 # BATCH 5A — 66 tests
 npx vitest run src/components/ActiveEncounterTab/__tests__/useBatchActions.test.ts src/components/ActiveEncounterTab/__tests__/useCombatSync.test.ts src/components/ActiveEncounterTab/__tests__/useCombatantCard.test.ts src/components/ActiveEncounterTab/__tests__/useEncounterPresetLoader.test.ts src/components/ActiveEncounterTab/__tests__/useHealthChange.test.ts src/components/ActiveEncounterTab/__tests__/useSelectionMode.test.ts
 
-# BATCH 5B — 119 tests
-npx vitest run src/components/ActiveEncounterTab/__tests__/AddNpcCollision.test.tsx src/components/ActiveEncounterTab/__tests__/CasterAttributionDialog.test.tsx src/components/ActiveEncounterTab/__tests__/CombatHeader.test.tsx src/components/ActiveEncounterTab/__tests__/CombatSidebar.test.tsx src/components/ActiveEncounterTab/__tests__/CombatantCard.test.tsx src/components/ActiveEncounterTab/__tests__/KeyboardShortcuts.test.tsx src/components/ActiveEncounterTab/__tests__/MultiTargetActionPanel.test.tsx src/components/ActiveEncounterTab/__tests__/ShortcutCheatSheet.test.tsx src/components/ActiveEncounterTab/__tests__/index.test.tsx
+# BATCH 5B — 131 tests
+npx vitest run src/components/ActiveEncounterTab/__tests__/AddNpcCollision.test.tsx src/components/ActiveEncounterTab/__tests__/CasterAttributionDialog.test.tsx src/components/ActiveEncounterTab/__tests__/CombatHeader.test.tsx src/components/ActiveEncounterTab/__tests__/CombatSidebar.test.tsx src/components/ActiveEncounterTab/__tests__/CombatantCard.test.tsx src/components/ActiveEncounterTab/__tests__/KeyboardShortcuts.test.tsx src/components/ActiveEncounterTab/__tests__/MultiTargetActionPanel.test.tsx src/components/ActiveEncounterTab/__tests__/NpcReferencePanel.test.tsx src/components/ActiveEncounterTab/__tests__/ShortcutCheatSheet.test.tsx src/components/ActiveEncounterTab/__tests__/index.test.tsx
 
 # BATCH 6A — 119 tests
 npx vitest run src/components/PartyTab/__tests__
@@ -505,7 +568,7 @@ npx vitest run src/components/PartyTab/__tests__
 # BATCH 6B — 15 tests
 npx vitest run src/components/EncountersTab/__tests__
 
-# BATCH 6C — 18 tests
+# BATCH 6C — 20 tests
 npx vitest run src/components/NpcLibraryTab/__tests__
 
 # BATCH 7A — 36 tests
@@ -517,7 +580,7 @@ npx vitest run src/components/__tests__/AmbientPlayer.test.tsx src/components/__
 # BATCH 7B-2 — 53 tests
 npx vitest run src/components/__tests__/CampaignSelector.test.tsx src/components/__tests__/GMLoadingScreen.test.tsx src/components/__tests__/GMTabContent.test.tsx src/components/__tests__/PlayerView.test.tsx src/components/__tests__/SettingsModal.test.tsx src/components/__tests__/SidebarIcon.test.tsx src/components/__tests__/Soundboard.test.tsx src/components/__tests__/SyncStatusIndicators.test.tsx src/components/__tests__/ThemeContext.test.tsx
 
-# BATCH 8 — 62 tests
+# BATCH 8 — 77 tests
 npx vitest run src/components/ui/__tests__
 ```
 
@@ -639,6 +702,27 @@ confirming. On confirm, `resourcePools` is
 included in the `onConfirm` updates object
 alongside the other level-up fields.
 
+### NPC stat block display
+
+NPC stat blocks are stored as JSON strings in
+columns U–X. They are displayed in two places:
+1. NPC Library card expanded view — via
+   `NpcStatBlockSection` (src/components/ui/)
+2. Active Encounter combatant cards — via
+   `NpcReferencePanel` (collapsible panel,
+   NPC combatants only)
+
+`formatActionMeta(action: NpcAction): string`
+is exported from NpcStatBlockSection.tsx and
+builds a compact mechanical summary line from
+structured action fields. Import it from
+`src/components/ui/NpcStatBlockSection`.
+
+NpcListEditor is the generic form component
+for editing these lists. It is generic over
+`T extends { name: string }` and uses a
+`renderFields` prop to render per-entry inputs.
+
 ---
 
 ## Architectural Decisions
@@ -650,6 +734,12 @@ column in the sheet allows any combination of
 named pools without schema changes. The schema
 stays clean and works across all character
 builds including homebrew.
+
+**NPC stat block data stored as JSON strings:**
+Traits, actions, reactions, and legendary
+actions each vary widely by NPC type. JSON
+columns allow arbitrary lists without schema
+changes. Same reasoning as resourcePools.
 
 **Audio engine lives in GMDashboard, not in
 tabs:** Audio must continue uninterrupted as
@@ -671,6 +761,7 @@ because it simplifies deployment.
 
 **Shared components live in ui/ when they
 cross feature boundaries:** NpcFormFields,
+NpcListEditor, NpcStatBlockSection,
 ResourcePoolsSection, and SpellcastingStatsRow
 are all in `src/components/ui/` rather than
 the feature directory where they were first
@@ -761,9 +852,11 @@ A 4-tab complex form for creating new characters manually:
     - Test count changes → update the baseline
       number AND the per-batch comment in the
       batch commands
-    - New batch 7B-2 explicit files or batch
-      5A/5B explicit files → update those
-      batch commands
+    - New batch 5A/5B/7A/7B-1/7B-2 explicit
+      files → update those batch commands
+    - New NPC schema columns → update the NPC
+      schema table AND the NpcTrait/NpcAction/
+      NpcReaction/NpcLegendaryAction interfaces
     - New architectural patterns → add to the
       Patterns and Conventions section
 

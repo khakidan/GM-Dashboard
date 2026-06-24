@@ -5,6 +5,7 @@ import { cn } from '../../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 import { DebouncedInput } from '../ui/DebouncedInput';
 import { DebouncedTextarea } from '../ui/DebouncedTextarea';
+import { NpcListEditor } from '../ui/NpcListEditor';
 
 // Modular Sub-components
 import { NpcCardHeader } from './NpcCardHeader';
@@ -64,6 +65,232 @@ export const NpcCard: React.FC<NpcCardProps> = ({
       return [] as NpcLegendaryAction[];
     }
   }, [npc.legendaryActionsList]);
+
+  const inputClass = "w-full bg-white border border-[#e5e1d8] rounded-xl outline-none transition-all font-serif italic text-sm px-4 py-3 focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358]";
+
+  const renderTraitFields = (item: NpcTrait, index: number, onItemChange: (updated: NpcTrait) => void) => (
+    <div className="space-y-2">
+      <input
+        type="text"
+        value={item.name}
+        onChange={e => onItemChange({ ...item, name: e.target.value })}
+        className={cn(inputClass, "py-1 px-2")}
+        placeholder="Trait name"
+      />
+      <DebouncedTextarea
+        value={item.description}
+        onChange={v => onItemChange({ ...item, description: v })}
+        placeholder="Description"
+        rows={2}
+        className="py-1 px-2 text-sm"
+      />
+    </div>
+  );
+
+  const renderActionFields = (item: NpcAction, index: number, onItemChange: (updated: NpcAction) => void) => (
+    <div className="space-y-2">
+      <div className="grid grid-cols-3 gap-2">
+        <div className="col-span-2">
+          <input
+            type="text"
+            value={item.name}
+            onChange={e => onItemChange({ ...item, name: e.target.value })}
+            className={cn(inputClass, "py-1 px-2")}
+            placeholder="Action name (e.g. Bite)"
+          />
+        </div>
+        <div>
+          <input
+            type="text"
+            value={item.recharge || ''}
+            onChange={e => onItemChange({ ...item, recharge: e.target.value || undefined })}
+            className={cn(inputClass, "py-1 px-2")}
+            placeholder="e.g. Recharge 5–6"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-4 gap-2">
+        <div>
+          <label className="block text-[10px] font-semibold text-[#5a5a40] uppercase px-1">Atk</label>
+          <input
+            type="number"
+            value={item.attackBonus !== undefined ? item.attackBonus : ''}
+            onChange={e => {
+              const val = e.target.value;
+              onItemChange({ ...item, attackBonus: val !== '' ? parseInt(val) : undefined });
+            }}
+            className={cn(inputClass, "py-1 px-2")}
+            placeholder="+N"
+          />
+        </div>
+        <div>
+          <label className="block text-[10px] font-semibold text-[#5a5a40] uppercase px-1">Dmg</label>
+          <input
+            type="text"
+            value={item.damage || ''}
+            onChange={e => onItemChange({ ...item, damage: e.target.value || undefined })}
+            className={cn(inputClass, "py-1 px-2")}
+            placeholder="2d8+5 fire"
+          />
+        </div>
+        <div>
+          <label className="block text-[10px] font-semibold text-[#5a5a40] uppercase px-1">DC</label>
+          <input
+            type="number"
+            value={item.saveDC !== undefined ? item.saveDC : ''}
+            onChange={e => {
+              const val = e.target.value;
+              onItemChange({ ...item, saveDC: val !== '' ? parseInt(val) : undefined });
+            }}
+            className={cn(inputClass, "py-1 px-2")}
+            placeholder="DC"
+          />
+        </div>
+        <div>
+          <label className="block text-[10px] font-semibold text-[#5a5a40] uppercase px-1">Save</label>
+          <input
+            type="text"
+            value={item.saveType || ''}
+            onChange={e => onItemChange({ ...item, saveType: e.target.value || undefined })}
+            className={cn(inputClass, "py-1 px-2")}
+            placeholder="Con"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-[10px] font-semibold text-[#5a5a40] uppercase px-1">Range</label>
+        <input
+          type="text"
+          value={item.range || ''}
+          onChange={e => onItemChange({ ...item, range: e.target.value || undefined })}
+          className={cn(inputClass, "py-1 px-2")}
+          placeholder="reach 10 ft. / 30 ft. cone"
+        />
+      </div>
+
+      <div>
+        <DebouncedTextarea
+          value={item.description}
+          onChange={v => onItemChange({ ...item, description: v })}
+          placeholder="Full action description"
+          rows={3}
+          className="py-1 px-2 text-sm"
+        />
+      </div>
+    </div>
+  );
+
+  const renderReactionFields = (item: NpcReaction, index: number, onItemChange: (updated: NpcReaction) => void) => (
+    <div className="space-y-2">
+      <input
+        type="text"
+        value={item.name}
+        onChange={e => onItemChange({ ...item, name: e.target.value })}
+        className={cn(inputClass, "py-1 px-2")}
+        placeholder="Reaction name"
+      />
+      <DebouncedTextarea
+        value={item.description}
+        onChange={v => onItemChange({ ...item, description: v })}
+        placeholder="Description"
+        rows={2}
+        className="py-1 px-2 text-sm"
+      />
+    </div>
+  );
+
+  const renderLegendaryActionFields = (
+    item: NpcLegendaryAction,
+    index: number,
+    onItemChange: (updated: NpcLegendaryAction) => void
+  ) => (
+    <div className="space-y-2">
+      <div className="grid grid-cols-3 gap-2">
+        <div className="col-span-2">
+          <input
+            type="text"
+            value={item.name}
+            onChange={e => onItemChange({ ...item, name: e.target.value })}
+            className={cn(inputClass, "py-1 px-2")}
+            placeholder="Action name"
+          />
+        </div>
+        <div>
+          <label className="block text-[10px] font-semibold text-[#5a5a40] uppercase px-1">Cost</label>
+          <input
+            type="number"
+            min="1"
+            max="3"
+            value={item.cost !== undefined ? item.cost : 1}
+            onChange={e => onItemChange({ ...item, cost: parseInt(e.target.value) || 1 })}
+            className={cn(inputClass, "py-1 px-2")}
+            placeholder="Cost (1-3)"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-4 gap-2">
+        <div>
+          <label className="block text-[10px] font-semibold text-[#5a5a40] uppercase px-1">Atk</label>
+          <input
+            type="number"
+            value={item.attackBonus !== undefined ? item.attackBonus : ''}
+            onChange={e => {
+              const val = e.target.value;
+              onItemChange({ ...item, attackBonus: val !== '' ? parseInt(val) : undefined });
+            }}
+            className={cn(inputClass, "py-1 px-2")}
+            placeholder="+N"
+          />
+        </div>
+        <div>
+          <label className="block text-[10px] font-semibold text-[#5a5a40] uppercase px-1">Dmg</label>
+          <input
+            type="text"
+            value={item.damage || ''}
+            onChange={e => onItemChange({ ...item, damage: e.target.value || undefined })}
+            className={cn(inputClass, "py-1 px-2")}
+            placeholder="2d8+5"
+          />
+        </div>
+        <div>
+          <label className="block text-[10px] font-semibold text-[#5a5a40] uppercase px-1">DC</label>
+          <input
+            type="number"
+            value={item.saveDC !== undefined ? item.saveDC : ''}
+            onChange={e => {
+              const val = e.target.value;
+              onItemChange({ ...item, saveDC: val !== '' ? parseInt(val) : undefined });
+            }}
+            className={cn(inputClass, "py-1 px-2")}
+            placeholder="DC"
+          />
+        </div>
+        <div>
+          <label className="block text-[10px] font-semibold text-[#5a5a40] uppercase px-1">Save</label>
+          <input
+            type="text"
+            value={item.saveType || ''}
+            onChange={e => onItemChange({ ...item, saveType: e.target.value || undefined })}
+            className={cn(inputClass, "py-1 px-2")}
+            placeholder="Con"
+          />
+        </div>
+      </div>
+
+      <div>
+        <DebouncedTextarea
+          value={item.description}
+          onChange={v => onItemChange({ ...item, description: v })}
+          placeholder="Description"
+          rows={2}
+          className="py-1 px-2 text-sm"
+        />
+      </div>
+    </div>
+  );
 
   return (
     <div className={cn(
@@ -173,6 +400,90 @@ export const NpcCard: React.FC<NpcCardProps> = ({
                   onAddAbility={(ability) => onUpdate({ rechargeAbilities: [...(npc.rechargeAbilities || []), ability] })}
                   onRemoveAbility={(idx) => onUpdate({ rechargeAbilities: (npc.rechargeAbilities || []).filter((_, i) => i !== idx) })}
                 />
+
+                {/* Plain-text Stat Block Editors */}
+                <div className="grid grid-cols-4 gap-3 pt-2 border-t border-[#e5e1d8]/40">
+                  <div className="col-span-1">
+                    <div className="text-[10px] uppercase text-[#5a5a40] font-bold tracking-widest mb-1.5 px-1">CR</div>
+                    <DebouncedInput type="text" value={npc.challengeRating || ''} onChange={(v) => onUpdate({ challengeRating: v as string })} placeholder="e.g. 1/4" className="w-full text-xs text-[#2c2c26] bg-[#fdfaf5] p-3 rounded-lg border border-[#e5e1d8] focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all placeholder:text-[#cccbcb] disabled:opacity-50" disabled={isSyncing} />
+                  </div>
+                  <div className="col-span-3">
+                    <div className="text-[10px] uppercase text-[#5a5a40] font-bold tracking-widest mb-1.5 px-1">Speed</div>
+                    <DebouncedInput type="text" value={npc.speed || ''} onChange={(v) => onUpdate({ speed: v as string })} placeholder="e.g. 30 ft., fly 60 ft." className="w-full text-xs text-[#2c2c26] bg-[#fdfaf5] p-3 rounded-lg border border-[#e5e1d8] focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all placeholder:text-[#cccbcb] disabled:opacity-50" disabled={isSyncing} />
+                  </div>
+                </div>
+
+                <div>
+                  <div className="text-[10px] uppercase text-[#5a5a40] font-bold tracking-widest mb-1.5 px-1">Senses</div>
+                  <DebouncedInput type="text" value={npc.senses || ''} onChange={(v) => onUpdate({ senses: v as string })} placeholder="e.g. darkvision 60 ft." className="w-full text-xs text-[#2c2c26] bg-[#fdfaf5] p-3 rounded-lg border border-[#e5e1d8] focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all placeholder:text-[#cccbcb] disabled:opacity-50" disabled={isSyncing} />
+                </div>
+
+                <div>
+                  <div className="text-[10px] uppercase text-[#5a5a40] font-bold tracking-widest mb-1.5 px-1">Languages</div>
+                  <DebouncedInput type="text" value={npc.languages || ''} onChange={(v) => onUpdate({ languages: v as string })} placeholder="e.g. Common" className="w-full text-xs text-[#2c2c26] bg-[#fdfaf5] p-3 rounded-lg border border-[#e5e1d8] focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all placeholder:text-[#cccbcb] disabled:opacity-50" disabled={isSyncing} />
+                </div>
+
+                {/* List Editors */}
+                <div className="space-y-4 pt-2 border-t border-[#e5e1d8]/40">
+                  <NpcListEditor<NpcTrait>
+                    title="Traits"
+                    items={traits}
+                    emptyItem={{ name: '', description: '' }}
+                    renderFields={renderTraitFields}
+                    onChange={(updated) =>
+                      onUpdate({ traits: JSON.stringify(updated) })
+                    }
+                  />
+
+                  <NpcListEditor<NpcAction>
+                    title="Actions"
+                    items={actions}
+                    emptyItem={{
+                      name: '',
+                      description: '',
+                      attackBonus: undefined,
+                      damage: undefined,
+                      saveDC: undefined,
+                      saveType: undefined,
+                      range: undefined,
+                      recharge: undefined,
+                    }}
+                    renderFields={renderActionFields}
+                    onChange={(updated) =>
+                      onUpdate({ actions: JSON.stringify(updated) })
+                    }
+                  />
+
+                  <NpcListEditor<NpcReaction>
+                    title="Reactions"
+                    items={reactions}
+                    emptyItem={{ name: '', description: '' }}
+                    renderFields={renderReactionFields}
+                    onChange={(updated) =>
+                      onUpdate({ reactions: JSON.stringify(updated) })
+                    }
+                  />
+
+                  <NpcListEditor<NpcLegendaryAction>
+                    title="Legendary Actions"
+                    items={legendaryActions}
+                    emptyItem={{
+                      name: '',
+                      description: '',
+                      cost: 1,
+                      attackBonus: undefined,
+                      damage: undefined,
+                      saveDC: undefined,
+                      saveType: undefined,
+                    }}
+                    renderFields={renderLegendaryActionFields}
+                    onChange={(updated) =>
+                      onUpdate({
+                        legendaryActionsList: JSON.stringify(updated)
+                      })
+                    }
+                  />
+                </div>
 
                 {/* Core reference row */}
                 {((npc.challengeRating && npc.challengeRating.trim() !== '') || (npc.speed && npc.speed.trim() !== '')) && (
