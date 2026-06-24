@@ -12,7 +12,6 @@ import { NpcCardHeader } from './NpcCardHeader';
 import { NpcIRVSection } from './NpcIRVSection';
 import { NpcLegendarySection } from './NpcLegendarySection';
 import { NpcRechargeSection } from './NpcRechargeSection';
-import { NpcStatBlockSection, formatActionMeta } from '../ui/NpcStatBlockSection';
 import { StatBlock } from '../ui/StatBlock';
 import { SpellcastingStatsRow } from '../ui/SpellcastingStatsRow';
 import { parseAbilityScores, parseProficiencies, serializeAbilityScores, serializeProficiencies } from '../../lib/abilityScores';
@@ -361,7 +360,7 @@ export const NpcCard: React.FC<NpcCardProps> = ({
               />
 
               {/* Stats Grid */}
-              <div className="grid grid-cols-4 gap-3">
+              <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
                 <div className="text-center p-3 bg-[#fdfaf5] border border-[#e5e1d8] rounded-xl shadow-sm">
                   <div className="text-[10px] font-bold uppercase tracking-widest text-[#5a5a40] mb-1">AC</div>
                   <DebouncedInput type="number" value={npc.ac} onFocus={(e) => (e.target as HTMLInputElement).select()} onChange={(v) => onUpdate({ ac: parseInt(v as string, 10) || 0 })} className="text-lg font-bold text-[#2c2c26] w-full text-center bg-transparent border-none focus:ring-0 p-0 disabled:opacity-50" disabled={isSyncing} />
@@ -378,194 +377,114 @@ export const NpcCard: React.FC<NpcCardProps> = ({
                   <div className="text-[10px] font-bold uppercase tracking-widest text-[#5a5a40] mb-1">Temp</div>
                   <DebouncedInput type="number" value={npc.tempHp} onFocus={(e) => (e.target as HTMLInputElement).select()} onChange={(v) => onUpdate({ tempHp: parseInt(v as string, 10) || 0 })} className="text-lg font-bold text-[#2c2c26] w-full text-center bg-transparent border-none focus:ring-0 p-0 disabled:opacity-50" disabled={isSyncing} />
                 </div>
+                <div className="text-center p-3 bg-[#fdfaf5] border border-[#e5e1d8] rounded-xl shadow-sm col-span-2 sm:col-span-1">
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-[#5a5a40] mb-1">CR</div>
+                  <DebouncedInput type="text" value={npc.challengeRating || ''} onFocus={(e) => (e.target as HTMLInputElement).select()} onChange={(v) => onUpdate({ challengeRating: v as string })} className="text-lg font-bold text-[#2c2c26] w-full text-center bg-transparent border-none focus:ring-0 p-0 disabled:opacity-50" placeholder="—" disabled={isSyncing} />
+                </div>
               </div>
 
-              <div className="space-y-4">
-                <div>
-                  <div className="text-[10px] uppercase text-[#5a5a40] font-bold tracking-widest mb-1.5 px-1">Conditions</div>
-                  <DebouncedInput type="text" value={npc.conditions || ''} onChange={(v) => onUpdate({ conditions: v as string })} placeholder="None" className="w-full text-xs text-[#2c2c26] bg-[#fdfaf5] p-3 rounded-lg border border-[#e5e1d8] focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all placeholder:text-[#cccbcb] disabled:opacity-50" disabled= {isSyncing} />
-                </div>
+              <div>
+                <div className="text-[10px] uppercase text-[#5a5a40] font-bold tracking-widest mb-1.5 px-1">Speed</div>
+                <DebouncedInput type="text" value={npc.speed || ''} onChange={(v) => onUpdate({ speed: v as string })} placeholder="e.g. 30 ft., fly 60 ft." className="w-full text-xs text-[#2c2c26] bg-[#fdfaf5] p-3 rounded-lg border border-[#e5e1d8] focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all placeholder:text-[#cccbcb] disabled:opacity-50" disabled={isSyncing} />
+              </div>
 
-                <NpcIRVSection resistances={npc.resistances || ''} immunities={npc.immunities || ''} vulnerabilities={npc.vulnerabilities || ''} onUpdate={onUpdate} />
+              <div>
+                <div className="text-[10px] uppercase text-[#5a5a40] font-bold tracking-widest mb-1.5 px-1">Senses</div>
+                <DebouncedInput type="text" value={npc.senses || ''} onChange={(v) => onUpdate({ senses: v as string })} placeholder="e.g. darkvision 60 ft." className="w-full text-xs text-[#2c2c26] bg-[#fdfaf5] p-3 rounded-lg border border-[#e5e1d8] focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all placeholder:text-[#cccbcb] disabled:opacity-50" disabled={isSyncing} />
+              </div>
 
-                <div>
-                  <div className="text-[10px] uppercase text-[#5a5a40] font-bold tracking-widest mb-1.5 px-1">Notes</div>
-                  <DebouncedTextarea value={npc.notes || ''} onChange={(v) => onUpdate({ notes: v as string })} placeholder="Special abilities or description..." rows={3} className="w-full text-xs text-[#2c2c26] bg-[#fdfaf5] p-3 rounded-lg border border-[#e5e1d8] focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all resize-none placeholder:text-[#cccbcb] disabled:opacity-50 leading-relaxed font-sans" disabled={isSyncing} />
-                </div>
+              <div>
+                <div className="text-[10px] uppercase text-[#5a5a40] font-bold tracking-widest mb-1.5 px-1">Languages</div>
+                <DebouncedInput type="text" value={npc.languages || ''} onChange={(v) => onUpdate({ languages: v as string })} placeholder="e.g. Common" className="w-full text-xs text-[#2c2c26] bg-[#fdfaf5] p-3 rounded-lg border border-[#e5e1d8] focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all placeholder:text-[#cccbcb] disabled:opacity-50" disabled={isSyncing} />
+              </div>
 
-                <NpcLegendarySection legendaryActions={npc.legendaryActions} legendaryResistances={npc.legendaryResistances} isSyncing={isSyncing} onUpdate={onUpdate} />
+              <div>
+                <div className="text-[10px] uppercase text-[#5a5a40] font-bold tracking-widest mb-1.5 px-1">Conditions</div>
+                <DebouncedInput type="text" value={npc.conditions || ''} onChange={(v) => onUpdate({ conditions: v as string })} placeholder="None" className="w-full text-xs text-[#2c2c26] bg-[#fdfaf5] p-3 rounded-lg border border-[#e5e1d8] focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all placeholder:text-[#cccbcb] disabled:opacity-50" disabled={isSyncing} />
+              </div>
 
-                <NpcRechargeSection
-                  rechargeAbilities={npc.rechargeAbilities} isSyncing={isSyncing}
-                  onAddAbility={(ability) => onUpdate({ rechargeAbilities: [...(npc.rechargeAbilities || []), ability] })}
-                  onRemoveAbility={(idx) => onUpdate({ rechargeAbilities: (npc.rechargeAbilities || []).filter((_, i) => i !== idx) })}
-                />
+              <NpcIRVSection resistances={npc.resistances || ''} immunities={npc.immunities || ''} vulnerabilities={npc.vulnerabilities || ''} onUpdate={onUpdate} />
 
-                {/* Plain-text Stat Block Editors */}
-                <div className="grid grid-cols-4 gap-3 pt-2 border-t border-[#e5e1d8]/40">
-                  <div className="col-span-1">
-                    <div className="text-[10px] uppercase text-[#5a5a40] font-bold tracking-widest mb-1.5 px-1">CR</div>
-                    <DebouncedInput type="text" value={npc.challengeRating || ''} onChange={(v) => onUpdate({ challengeRating: v as string })} placeholder="e.g. 1/4" className="w-full text-xs text-[#2c2c26] bg-[#fdfaf5] p-3 rounded-lg border border-[#e5e1d8] focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all placeholder:text-[#cccbcb] disabled:opacity-50" disabled={isSyncing} />
-                  </div>
-                  <div className="col-span-3">
-                    <div className="text-[10px] uppercase text-[#5a5a40] font-bold tracking-widest mb-1.5 px-1">Speed</div>
-                    <DebouncedInput type="text" value={npc.speed || ''} onChange={(v) => onUpdate({ speed: v as string })} placeholder="e.g. 30 ft., fly 60 ft." className="w-full text-xs text-[#2c2c26] bg-[#fdfaf5] p-3 rounded-lg border border-[#e5e1d8] focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all placeholder:text-[#cccbcb] disabled:opacity-50" disabled={isSyncing} />
-                  </div>
-                </div>
+              <div>
+                <div className="text-[10px] uppercase text-[#5a5a40] font-bold tracking-widest mb-1.5 px-1">Notes</div>
+                <DebouncedTextarea value={npc.notes || ''} onChange={(v) => onUpdate({ notes: v as string })} placeholder="Special abilities or description..." rows={3} className="w-full text-xs text-[#2c2c26] bg-[#fdfaf5] p-3 rounded-lg border border-[#e5e1d8] focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all resize-none placeholder:text-[#cccbcb] disabled:opacity-50 leading-relaxed font-sans" disabled={isSyncing} />
+              </div>
 
-                <div>
-                  <div className="text-[10px] uppercase text-[#5a5a40] font-bold tracking-widest mb-1.5 px-1">Senses</div>
-                  <DebouncedInput type="text" value={npc.senses || ''} onChange={(v) => onUpdate({ senses: v as string })} placeholder="e.g. darkvision 60 ft." className="w-full text-xs text-[#2c2c26] bg-[#fdfaf5] p-3 rounded-lg border border-[#e5e1d8] focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all placeholder:text-[#cccbcb] disabled:opacity-50" disabled={isSyncing} />
-                </div>
-
-                <div>
-                  <div className="text-[10px] uppercase text-[#5a5a40] font-bold tracking-widest mb-1.5 px-1">Languages</div>
-                  <DebouncedInput type="text" value={npc.languages || ''} onChange={(v) => onUpdate({ languages: v as string })} placeholder="e.g. Common" className="w-full text-xs text-[#2c2c26] bg-[#fdfaf5] p-3 rounded-lg border border-[#e5e1d8] focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all placeholder:text-[#cccbcb] disabled:opacity-50" disabled={isSyncing} />
-                </div>
-
-                {/* List Editors */}
-                <div className="space-y-4 pt-2 border-t border-[#e5e1d8]/40">
-                  <NpcListEditor<NpcTrait>
-                    title="Traits"
-                    items={traits}
-                    emptyItem={{ name: '', description: '' }}
-                    renderFields={renderTraitFields}
-                    onChange={(updated) =>
-                      onUpdate({ traits: JSON.stringify(updated) })
-                    }
-                  />
-
-                  <NpcListEditor<NpcAction>
-                    title="Actions"
-                    items={actions}
-                    emptyItem={{
-                      name: '',
-                      description: '',
-                      attackBonus: undefined,
-                      damage: undefined,
-                      saveDC: undefined,
-                      saveType: undefined,
-                      range: undefined,
-                      recharge: undefined,
-                    }}
-                    renderFields={renderActionFields}
-                    onChange={(updated) =>
-                      onUpdate({ actions: JSON.stringify(updated) })
-                    }
-                  />
-
-                  <NpcListEditor<NpcReaction>
-                    title="Reactions"
-                    items={reactions}
-                    emptyItem={{ name: '', description: '' }}
-                    renderFields={renderReactionFields}
-                    onChange={(updated) =>
-                      onUpdate({ reactions: JSON.stringify(updated) })
-                    }
-                  />
-
-                  <NpcListEditor<NpcLegendaryAction>
-                    title="Legendary Actions"
-                    items={legendaryActions}
-                    emptyItem={{
-                      name: '',
-                      description: '',
-                      cost: 1,
-                      attackBonus: undefined,
-                      damage: undefined,
-                      saveDC: undefined,
-                      saveType: undefined,
-                    }}
-                    renderFields={renderLegendaryActionFields}
-                    onChange={(updated) =>
-                      onUpdate({
-                        legendaryActionsList: JSON.stringify(updated)
-                      })
-                    }
-                  />
-                </div>
-
-                {/* Core reference row */}
-                {((npc.challengeRating && npc.challengeRating.trim() !== '') || (npc.speed && npc.speed.trim() !== '')) && (
-                  <div className="flex flex-wrap items-center gap-1 py-1 border-t border-[#e5e1d8]/40 mt-1">
-                    {npc.challengeRating && npc.challengeRating.trim() !== '' && (
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-xs font-semibold uppercase tracking-wider text-[#5a5a40]">CR</span>
-                        <span className="text-sm font-medium text-[#2c2c26]">{npc.challengeRating}</span>
-                      </div>
-                    )}
-                    {npc.challengeRating && npc.challengeRating.trim() !== '' && npc.speed && npc.speed.trim() !== '' && (
-                      <span className="text-xs text-[#5a5a40] font-medium mx-2">·</span>
-                    )}
-                    {npc.speed && npc.speed.trim() !== '' && (
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-xs font-semibold uppercase tracking-wider text-[#5a5a40]">Speed</span>
-                        <span className="text-sm font-medium text-[#2c2c26]">{npc.speed}</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Senses row */}
-                {npc.senses && npc.senses.trim() !== '' && (
-                  <div className="flex items-center gap-1.5 py-1">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-[#5a5a40]">Senses</span>
-                    <span className="text-sm font-medium text-[#2c2c26]">{npc.senses}</span>
-                  </div>
-                )}
-
-                {/* Languages row */}
-                {npc.languages && npc.languages.trim() !== '' && (
-                  <div className="flex items-center gap-1.5 py-1">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-[#5a5a40]">Languages</span>
-                    <span className="text-sm font-medium text-[#2c2c26]">{npc.languages}</span>
-                  </div>
-                )}
-
-                {/* Traits section */}
-                <NpcStatBlockSection
+              <div className="space-y-4 pt-4 border-t border-[#e5e1d8]/40">
+                <NpcListEditor<NpcTrait>
                   title="Traits"
-                  items={traits.map(t => ({
-                    name: t.name,
-                    description: t.description,
-                  }))}
+                  items={traits}
+                  emptyItem={{ name: '', description: '' }}
+                  renderFields={renderTraitFields}
+                  onChange={(updated) =>
+                    onUpdate({ traits: JSON.stringify(updated) })
+                  }
                 />
-
-                {/* Actions section */}
-                <NpcStatBlockSection
-                  title="Actions"
-                  items={actions.map(a => ({
-                    name: a.name,
-                    description: a.description,
-                    meta: formatActionMeta(a),
-                  }))}
-                />
-
-                {/* Reactions section */}
-                <NpcStatBlockSection
-                  title="Reactions"
-                  items={reactions.map(r => ({
-                    name: r.name,
-                    description: r.description,
-                  }))}
-                />
-
-                {/* Legendary Actions section */}
-                {legendaryActions.length > 0 && (
-                  <NpcStatBlockSection
-                    title={`Legendary Actions (${npc.legendaryActions || 0}/turn)`}
-                    items={legendaryActions.map(la => ({
-                      name: la.cost && la.cost > 1
-                        ? `${la.name} (Costs ${la.cost})`
-                        : la.name,
-                      description: la.description,
-                      meta: formatActionMeta(la),
-                    }))}
-                  />
-                )}
               </div>
 
-              <div className="flex gap-4 pt-2">
+              <div className="space-y-4 pt-4 border-t border-[#e5e1d8]/40">
+                <NpcListEditor<NpcAction>
+                  title="Actions"
+                  items={actions}
+                  emptyItem={{
+                    name: '',
+                    description: '',
+                    attackBonus: undefined,
+                    damage: undefined,
+                    saveDC: undefined,
+                    saveType: undefined,
+                    range: undefined,
+                    recharge: undefined,
+                  }}
+                  renderFields={renderActionFields}
+                  onChange={(updated) =>
+                    onUpdate({ actions: JSON.stringify(updated) })
+                  }
+                />
+              </div>
+
+              <div className="space-y-4 pt-4 border-t border-[#e5e1d8]/40">
+                <NpcListEditor<NpcReaction>
+                  title="Reactions"
+                  items={reactions}
+                  emptyItem={{ name: '', description: '' }}
+                  renderFields={renderReactionFields}
+                  onChange={(updated) =>
+                    onUpdate({ reactions: JSON.stringify(updated) })
+                  }
+                />
+              </div>
+
+              <div className="space-y-4 pt-4 border-t border-[#e5e1d8]/40">
+                <NpcLegendarySection legendaryActions={npc.legendaryActions} legendaryResistances={npc.legendaryResistances} isSyncing={isSyncing} onUpdate={onUpdate} />
+                <NpcListEditor<NpcLegendaryAction>
+                  title="Legendary Actions"
+                  items={legendaryActions}
+                  emptyItem={{
+                    name: '',
+                    description: '',
+                    cost: 1,
+                    attackBonus: undefined,
+                    damage: undefined,
+                    saveDC: undefined,
+                    saveType: undefined,
+                  }}
+                  renderFields={renderLegendaryActionFields}
+                  onChange={(updated) =>
+                    onUpdate({
+                      legendaryActionsList: JSON.stringify(updated)
+                    })
+                  }
+                />
+              </div>
+
+              <NpcRechargeSection
+                rechargeAbilities={npc.rechargeAbilities} isSyncing={isSyncing}
+                onAddAbility={(ability) => onUpdate({ rechargeAbilities: [...(npc.rechargeAbilities || []), ability] })}
+                onRemoveAbility={(idx) => onUpdate({ rechargeAbilities: (npc.rechargeAbilities || []).filter((_, i) => i !== idx) })}
+              />
+
+              <div className="flex gap-4 pt-4 border-t border-[#e5e1d8]/40">
                 {needsReset && (
                   <button onClick={onResetHp} disabled={isSyncing} className="flex-1 py-3 bg-[#c5b358]/10 text-[#2c2c26] hover:bg-[#c5b358]/20 border border-[#c5b358]/20 rounded-xl text-xs font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2 disabled:opacity-50">
                     <RotateCcw className="w-4 h-4" /> Reset HP
