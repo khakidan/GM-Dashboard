@@ -138,7 +138,7 @@ describe('useNpcLibrary', () => {
         rechargeAbilities: [],
         abilityScores: '{}',
         proficiencies: '{}',
-      });
+      } as any);
     });
 
     expect(addNpcDB).toHaveBeenCalledWith(

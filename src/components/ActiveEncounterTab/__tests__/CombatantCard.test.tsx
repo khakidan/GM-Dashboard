@@ -10,7 +10,7 @@ import { render as originalRender, screen, fireEvent, cleanup, waitFor } from '@
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import * as diceRoller from '../../../lib/diceRoller';
 import { CombatantCard } from '../CombatantCard';
-import type { Combatant } from '../../../types';
+import type { Combatant, NPC } from '../../../types';
 import { useDashboardStore } from '../../../hooks/useAppState';
 import { updateCharacterDB } from '../../../services/dbOperations';
 import { makeCombatant } from '../../../test-utils/fixtures/combatantFixtures';
@@ -1081,7 +1081,7 @@ describe('CombatantCard', () => {
 
       useDashboardStore.setState(prev => ({
         ...prev,
-        npcs: [npcMock]
+        npcs: [npcMock as NPC]
       }));
 
       const { container } = render(<CombatantCard {...defaultProps} c={npc} isExpanded={true} />);

@@ -1,5 +1,5 @@
 import React from 'react';
-import { NPC } from '../../types';
+import { NPC, NpcTrait, NpcAction, NpcReaction, NpcLegendaryAction } from '../../types';
 import { Loader2, Trash2, RotateCcw } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
@@ -11,6 +11,7 @@ import { NpcCardHeader } from './NpcCardHeader';
 import { NpcIRVSection } from './NpcIRVSection';
 import { NpcLegendarySection } from './NpcLegendarySection';
 import { NpcRechargeSection } from './NpcRechargeSection';
+import { NpcStatBlockSection, formatActionMeta } from '../ui/NpcStatBlockSection';
 import { StatBlock } from '../ui/StatBlock';
 import { SpellcastingStatsRow } from '../ui/SpellcastingStatsRow';
 import { parseAbilityScores, parseProficiencies, serializeAbilityScores, serializeProficiencies } from '../../lib/abilityScores';
@@ -31,6 +32,38 @@ export const NpcCard: React.FC<NpcCardProps> = ({
   const needsReset = npc.currentHp < npc.maxHp;
   const parsedProfs = parseProficiencies(npc.proficiencies || '');
   const parsedScores = parseAbilityScores(npc.abilityScores || '');
+
+  const traits = React.useMemo(() => {
+    try {
+      return JSON.parse(npc.traits || '[]') as NpcTrait[];
+    } catch {
+      return [] as NpcTrait[];
+    }
+  }, [npc.traits]);
+
+  const actions = React.useMemo(() => {
+    try {
+      return JSON.parse(npc.actions || '[]') as NpcAction[];
+    } catch {
+      return [] as NpcAction[];
+    }
+  }, [npc.actions]);
+
+  const reactions = React.useMemo(() => {
+    try {
+      return JSON.parse(npc.reactions || '[]') as NpcReaction[];
+    } catch {
+      return [] as NpcReaction[];
+    }
+  }, [npc.reactions]);
+
+  const legendaryActions = React.useMemo(() => {
+    try {
+      return JSON.parse(npc.legendaryActionsList || '[]') as NpcLegendaryAction[];
+    } catch {
+      return [] as NpcLegendaryAction[];
+    }
+  }, [npc.legendaryActionsList]);
 
   return (
     <div className={cn(
@@ -140,6 +173,85 @@ export const NpcCard: React.FC<NpcCardProps> = ({
                   onAddAbility={(ability) => onUpdate({ rechargeAbilities: [...(npc.rechargeAbilities || []), ability] })}
                   onRemoveAbility={(idx) => onUpdate({ rechargeAbilities: (npc.rechargeAbilities || []).filter((_, i) => i !== idx) })}
                 />
+
+                {/* Core reference row */}
+                {((npc.challengeRating && npc.challengeRating.trim() !== '') || (npc.speed && npc.speed.trim() !== '')) && (
+                  <div className="flex flex-wrap items-center gap-1 py-1 border-t border-[#e5e1d8]/40 mt-1">
+                    {npc.challengeRating && npc.challengeRating.trim() !== '' && (
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-semibold uppercase tracking-wider text-[#5a5a40]">CR</span>
+                        <span className="text-sm font-medium text-[#2c2c26]">{npc.challengeRating}</span>
+                      </div>
+                    )}
+                    {npc.challengeRating && npc.challengeRating.trim() !== '' && npc.speed && npc.speed.trim() !== '' && (
+                      <span className="text-xs text-[#5a5a40] font-medium mx-2">·</span>
+                    )}
+                    {npc.speed && npc.speed.trim() !== '' && (
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-semibold uppercase tracking-wider text-[#5a5a40]">Speed</span>
+                        <span className="text-sm font-medium text-[#2c2c26]">{npc.speed}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Senses row */}
+                {npc.senses && npc.senses.trim() !== '' && (
+                  <div className="flex items-center gap-1.5 py-1">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-[#5a5a40]">Senses</span>
+                    <span className="text-sm font-medium text-[#2c2c26]">{npc.senses}</span>
+                  </div>
+                )}
+
+                {/* Languages row */}
+                {npc.languages && npc.languages.trim() !== '' && (
+                  <div className="flex items-center gap-1.5 py-1">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-[#5a5a40]">Languages</span>
+                    <span className="text-sm font-medium text-[#2c2c26]">{npc.languages}</span>
+                  </div>
+                )}
+
+                {/* Traits section */}
+                <NpcStatBlockSection
+                  title="Traits"
+                  items={traits.map(t => ({
+                    name: t.name,
+                    description: t.description,
+                  }))}
+                />
+
+                {/* Actions section */}
+                <NpcStatBlockSection
+                  title="Actions"
+                  items={actions.map(a => ({
+                    name: a.name,
+                    description: a.description,
+                    meta: formatActionMeta(a),
+                  }))}
+                />
+
+                {/* Reactions section */}
+                <NpcStatBlockSection
+                  title="Reactions"
+                  items={reactions.map(r => ({
+                    name: r.name,
+                    description: r.description,
+                  }))}
+                />
+
+                {/* Legendary Actions section */}
+                {legendaryActions.length > 0 && (
+                  <NpcStatBlockSection
+                    title={`Legendary Actions (${npc.legendaryActions || 0}/turn)`}
+                    items={legendaryActions.map(la => ({
+                      name: la.cost && la.cost > 1
+                        ? `${la.name} (Costs ${la.cost})`
+                        : la.name,
+                      description: la.description,
+                      meta: formatActionMeta(la),
+                    }))}
+                  />
+                )}
               </div>
 
               <div className="flex gap-4 pt-2">

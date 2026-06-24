@@ -7,7 +7,7 @@ import type { NPC, Character } from '../../../types';
 
 describe('CombatSidebar', () => {
   afterEach(() => cleanup());
-  const npcs: NPC[] = [{ id: 'n1', name: 'Goblin', ac: 15, maxHp: 7, currentHp: 7, tempHp: 0, conditions: '', notes: '', abilityScores: '{}', proficiencies: '{}' }];
+  const npcs: NPC[] = [{ id: 'n1', name: 'Goblin', ac: 15, maxHp: 7, currentHp: 7, tempHp: 0, conditions: '', notes: '', abilityScores: '{}', proficiencies: '{}' } as NPC];
   const characters: Character[] = [{ id: 'p1', playerName: 'P1', characterName: 'Char1', ac: 16, maxHp: 20, currentHp: 20, tempHp: 0, conditions: '', passivePerception: 12, isActive: true, level: 1, statusId: 1, statusName: 'Active', notes: '', class: '', hitDiceConfig: '', hitDiceUsed: '{}', abilityScores: '{}', proficiencies: '{}' }];
   
   const defaultProps = {
@@ -46,8 +46,8 @@ describe('CombatSidebar', () => {
 
   it('filters the NPC list based on typing in the search input', () => {
     const customNpcs: NPC[] = [
-      { id: 'n1', name: 'Goblin', ac: 15, maxHp: 7, currentHp: 7, tempHp: 0, conditions: '', notes: '', abilityScores: '{}', proficiencies: '{}' },
-      { id: 'n2', name: 'Orc', ac: 13, maxHp: 15, currentHp: 15, tempHp: 0, conditions: '', notes: '', abilityScores: '{}', proficiencies: '{}' }
+      { id: 'n1', name: 'Goblin', ac: 15, maxHp: 7, currentHp: 7, tempHp: 0, conditions: '', notes: '', abilityScores: '{}', proficiencies: '{}' } as NPC,
+      { id: 'n2', name: 'Orc', ac: 13, maxHp: 15, currentHp: 15, tempHp: 0, conditions: '', notes: '', abilityScores: '{}', proficiencies: '{}' } as NPC
     ];
     render(<CombatSidebar {...defaultProps} npcs={customNpcs} />);
     

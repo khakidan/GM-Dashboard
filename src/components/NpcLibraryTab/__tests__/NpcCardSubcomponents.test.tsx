@@ -5,6 +5,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import { NpcLegendarySection } from '../NpcLegendarySection';
 import { NpcRechargeSection, RechargeAbility } from '../NpcRechargeSection';
 import { NpcCard } from '../NpcCard';
+import type { NPC } from '../../../types';
 
 describe('NpcCard Sub-components', () => {
   afterEach(() => {
@@ -114,7 +115,7 @@ describe('NpcCard Sub-components', () => {
 
       const { container } = render(
         <NpcCard
-          npc={mockNpc}
+          npc={mockNpc as NPC}
           isSyncing={false}
           isExpanded={true}
           onToggleExpand={handleToggleExpand}

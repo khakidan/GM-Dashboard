@@ -10,6 +10,7 @@ import { CombatantCardExpanded } from './CombatantCardExpanded';
 import { useCombatantCard } from './hooks/useCombatantCard';
 import { SpellcastingStatsRow } from '../ui/SpellcastingStatsRow';
 import { parseAbilityScores, parseProficiencies, proficiencyBonusFromLevel } from '../../lib/abilityScores';
+import { NpcReferencePanel } from './NpcReferencePanel';
 
 export interface CombatantCardProps {
   c: Combatant;
@@ -96,6 +97,12 @@ export function CombatantCard({
         onMarkSpent={handleMarkSpent}
         hpMode={hpMode}
       />
+
+      {c.type === 'npc' && (
+        <div className="px-6 pb-3">
+          <NpcReferencePanel combatant={c} />
+        </div>
+      )}
 
       {!isExpanded && (
         <div className="px-6 pb-3 -mt-1" id={`spellcasting-stats-container-${c.id}`}>
