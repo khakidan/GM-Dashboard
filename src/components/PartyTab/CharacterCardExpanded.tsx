@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { StatBlock } from '../ui/StatBlock';
 import { parseAbilityScores, parseProficiencies, serializeAbilityScores, serializeProficiencies, proficiencyBonusFromLevel } from '../../lib/abilityScores';
 import { SpellcastingStatsRow } from '../ui/SpellcastingStatsRow';
+import { serializeSpellcastingAbility } from '../../lib/spellcasting';
 
 export interface CharacterCardExpandedProps {
   character: Character;
@@ -82,6 +83,7 @@ export const CharacterCardExpanded: React.FC<CharacterCardExpandedProps> = ({
           }
           onUpdate({
             proficiencies: serializeProficiencies(updated),
+            spellcastingAbility: serializeSpellcastingAbility(ability),
           });
         }}
       />

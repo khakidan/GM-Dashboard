@@ -29,6 +29,7 @@ export interface Character {
   resourcePools?: string;
   abilityScores: string;  // JSON
   proficiencies: string;  // JSON
+  spellcastingAbility?: string;
 }
 
 export interface NpcTrait {
@@ -90,6 +91,7 @@ export interface NPC {
   actions: string;           // JSON: NpcAction[]
   reactions: string;         // JSON: NpcReaction[]
   legendaryActionsList: string; // JSON: NpcLegendaryAction[]
+  spellcastingAbility?: string;
 }
 
 export interface Encounter {

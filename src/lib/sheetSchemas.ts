@@ -37,7 +37,7 @@ const padRow = (length: number) => (val: unknown) => {
   return arr;
 };
 
-export const CharacterRowSchema = z.preprocess(padRow(25), z.tuple([
+export const CharacterRowSchema = z.preprocess(padRow(26), z.tuple([
   idSchema,                            // [0] id
   stringDefault(''),                   // [1] playerName
   nonEmptyString,                      // [2] characterName
@@ -63,9 +63,10 @@ export const CharacterRowSchema = z.preprocess(padRow(25), z.tuple([
   stringDefault('[]'),                 // [22] resourcePools
   stringDefault(JSON.stringify(DEFAULT_ABILITY_SCORES)), // [23] abilityScores
   stringDefault(JSON.stringify(DEFAULT_PROFICIENCIES)),  // [24] proficiencies
+  stringDefault(''),                   // [25] spellcastingAbility
 ]));
 
-export const NpcRowSchema = z.preprocess(padRow(24), z.tuple([
+export const NpcRowSchema = z.preprocess(padRow(25), z.tuple([
   idSchema,                            // [0] id
   stringDefault('Unknown NPC'),        // [1] name
   coerceNumber(10),                    // [2] ac
@@ -90,6 +91,7 @@ export const NpcRowSchema = z.preprocess(padRow(24), z.tuple([
   stringDefault('[]'),                 // [21] actions
   stringDefault('[]'),                 // [22] reactions
   stringDefault('[]'),                 // [23] legendaryActionsList
+  stringDefault(''),                   // [24] spellcastingAbility
 ]));
 
 export const EncounterRowSchema = z.preprocess(padRow(7), z.tuple([

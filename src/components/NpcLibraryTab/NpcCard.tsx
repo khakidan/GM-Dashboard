@@ -13,6 +13,7 @@ import { NpcIRVSection } from './NpcIRVSection';
 import { NpcLegendarySection } from './NpcLegendarySection';
 import { StatBlock } from '../ui/StatBlock';
 import { SpellcastingStatsRow } from '../ui/SpellcastingStatsRow';
+import { serializeSpellcastingAbility } from '../../lib/spellcasting';
 import { parseAbilityScores, parseProficiencies, serializeAbilityScores, serializeProficiencies } from '../../lib/abilityScores';
 
 export interface NpcCardProps {
@@ -354,6 +355,7 @@ export const NpcCard: React.FC<NpcCardProps> = ({
                   }
                   onUpdate({
                     proficiencies: serializeProficiencies(updated),
+                    spellcastingAbility: serializeSpellcastingAbility(ability),
                   });
                 }}
               />

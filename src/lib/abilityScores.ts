@@ -1,4 +1,4 @@
-import { SpellcastingAbility } from './spellcasting';
+import { SpellcastingAbility, parseSpellcastingAbility } from './spellcasting';
 
 export type AbilityName = 
   'STR' | 'DEX' | 'CON' | 
@@ -240,12 +240,17 @@ export function parseProficiencies(json: string): Proficiencies {
           : DEFAULT_PROFICIENCIES.passiveBonuses.investigation,
       };
 
+      const spellcastingAbility = parsed.hasOwnProperty('spellcastingAbility')
+        ? parseSpellcastingAbility(parsed.spellcastingAbility)
+        : undefined;
+
       return {
         proficiencyBonus,
         jackOfAllTrades,
         savingThrows,
         skills,
         passiveBonuses,
+        spellcastingAbility,
       };
     }
     return {

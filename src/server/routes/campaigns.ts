@@ -51,7 +51,7 @@ router.post('/create', async (req, res) => {
           'Temp_HP_Max', 'Temp_AC', 'Death_Saves_Fails',
           'Death_Saves_Successes', 'Class',
           'Hit_Dice_Config', 'Hit_Dice_Used', 'Resource_Pools',
-          'Ability_Scores', 'Proficiencies'
+          'Ability_Scores', 'Proficiencies', 'Spellcasting_Ability'
         ],
         rows: []
       },
@@ -64,7 +64,8 @@ router.post('/create', async (req, res) => {
           'Legendary_Actions', 'Legendary_Resistances',
           'Recharge_Abilities', 'Ability_Scores', 'Proficiencies',
           'Speed', 'Senses', 'Languages', 'Challenge_Rating',
-          'Traits', 'Actions', 'Reactions', 'Legendary_Actions_List'
+          'Traits', 'Actions', 'Reactions', 'Legendary_Actions_List',
+          'Spellcasting_Ability'
         ],
         rows: []
       },

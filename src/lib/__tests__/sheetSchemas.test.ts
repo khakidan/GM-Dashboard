@@ -22,7 +22,7 @@ describe('sheetSchemas', () => {
       const result = CharacterRowSchema.safeParse(row);
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data).toEqual(['char-1', 'Alice', 'Thor', 15, 20, 5, 25, 'Blinded', 14, 3, 1, 'Notes', '', '', '', 0, 0, 0, 0, '', '', '{}', '[]', '{"STR":10,"DEX":10,"CON":10,"INT":10,"WIS":10,"CHA":10}', '{"proficiencyBonus":2,"jackOfAllTrades":false,"savingThrows":[],"skills":{},"passiveBonuses":{"perception":0,"insight":0,"investigation":0}}']);
+        expect(result.data).toEqual(['char-1', 'Alice', 'Thor', 15, 20, 5, 25, 'Blinded', 14, 3, 1, 'Notes', '', '', '', 0, 0, 0, 0, '', '', '{}', '[]', '{"STR":10,"DEX":10,"CON":10,"INT":10,"WIS":10,"CHA":10}', '{"proficiencyBonus":2,"jackOfAllTrades":false,"savingThrows":[],"skills":{},"passiveBonuses":{"perception":0,"insight":0,"investigation":0}}', '']);
       }
     });
 
@@ -57,6 +57,7 @@ describe('sheetSchemas', () => {
          '[]', // resourcePools
          '{"STR":10,"DEX":10,"CON":10,"INT":10,"WIS":10,"CHA":10}', // abilityScores
          '{"proficiencyBonus":2,"jackOfAllTrades":false,"savingThrows":[],"skills":{},"passiveBonuses":{"perception":0,"insight":0,"investigation":0}}', // proficiencies
+         '', // spellcastingAbility
         ]);
       }
     });
@@ -206,20 +207,20 @@ describe('sheetSchemas', () => {
     });
   });
 
-  describe('NpcRowSchema', () => {
-    it('parses a fully valid row correctly', () => {
-      const row = ['npc-1', 'Goblin', 15, 7, 0, 7, '', 'Watch out', 'Fire', 'Poison', 'Cold'];
-      const result = NpcRowSchema.safeParse(row);
-      expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data).toEqual([
-          'npc-1', 'Goblin', 15, 7, 0, 7, '', 'Watch out', 'Fire', 'Poison', 'Cold', 0, 0, '',
-          '{"STR":10,"DEX":10,"CON":10,"INT":10,"WIS":10,"CHA":10}',
-          '{"proficiencyBonus":2,"jackOfAllTrades":false,"savingThrows":[],"skills":{},"passiveBonuses":{"perception":0,"insight":0,"investigation":0}}',
-          '', '', '', '', '[]', '[]', '[]', '[]'
-        ]);
-      }
-    });
+    describe('NpcRowSchema', () => {
+      it('parses a fully valid row correctly', () => {
+        const row = ['npc-1', 'Goblin', 15, 7, 0, 7, '', 'Watch out', 'Fire', 'Poison', 'Cold'];
+        const result = NpcRowSchema.safeParse(row);
+        expect(result.success).toBe(true);
+        if (result.success) {
+          expect(result.data).toEqual([
+            'npc-1', 'Goblin', 15, 7, 0, 7, '', 'Watch out', 'Fire', 'Poison', 'Cold', 0, 0, '',
+            '{"STR":10,"DEX":10,"CON":10,"INT":10,"WIS":10,"CHA":10}',
+            '{"proficiencyBonus":2,"jackOfAllTrades":false,"savingThrows":[],"skills":{},"passiveBonuses":{"perception":0,"insight":0,"investigation":0}}',
+            '', '', '', '', '[]', '[]', '[]', '[]', ''
+          ]);
+        }
+      });
 
     it('correctly parses resistances, immunities, and vulnerabilities and defaults them to empty strings when absent', () => {
       const row = ['npc-1', 'Goblin', 15, 7, 0, 7, '', 'Watch out'];

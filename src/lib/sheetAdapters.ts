@@ -6,7 +6,8 @@ import {
   EncounterCombatantRowSchema
 } from './sheetSchemas';
 import { Character, NPC, Encounter, EncounterCombatant } from '../types';
-import { DEFAULT_ABILITY_SCORES, DEFAULT_PROFICIENCIES } from './abilityScores';
+import { DEFAULT_ABILITY_SCORES, DEFAULT_PROFICIENCIES, parseProficiencies } from './abilityScores';
+import { parseSpellcastingAbility } from './spellcasting';
 
 export type CharacterRowData = z.infer<typeof CharacterRowSchema>;
 export type NpcRowData = z.infer<typeof NpcRowSchema>;
@@ -44,7 +45,20 @@ export function mapCharacterRowToCharacter(
     resourcePools,
     abilityScores,
     proficiencies,
+    spellcastingAbility,
   ] = data;
+
+  let syncedProficiencies = proficiencies ?? JSON.stringify(DEFAULT_PROFICIENCIES);
+  if (spellcastingAbility) {
+    try {
+      const parsedProfs = parseProficiencies(syncedProficiencies);
+      const parsedSpellcasting = parseSpellcastingAbility(spellcastingAbility);
+      if (parsedSpellcasting !== undefined) {
+        parsedProfs.spellcastingAbility = parsedSpellcasting;
+        syncedProficiencies = JSON.stringify(parsedProfs);
+      }
+    } catch {}
+  }
 
   return {
     id,
@@ -74,7 +88,8 @@ export function mapCharacterRowToCharacter(
     hitDiceUsed: hitDiceUsed ?? '{}',
     resourcePools: resourcePools ?? '[]',
     abilityScores: abilityScores ?? JSON.stringify(DEFAULT_ABILITY_SCORES),
-    proficiencies: proficiencies ?? JSON.stringify(DEFAULT_PROFICIENCIES),
+    proficiencies: syncedProficiencies,
+    spellcastingAbility: spellcastingAbility ?? '',
   };
 }
 
@@ -107,7 +122,20 @@ export function mapNpcRowToNpc(
     actions,
     reactions,
     legendaryActionsList,
+    spellcastingAbility,
   ] = data;
+
+  let syncedProficiencies = proficiencies ?? JSON.stringify(DEFAULT_PROFICIENCIES);
+  if (spellcastingAbility) {
+    try {
+      const parsedProfs = parseProficiencies(syncedProficiencies);
+      const parsedSpellcasting = parseSpellcastingAbility(spellcastingAbility);
+      if (parsedSpellcasting !== undefined) {
+        parsedProfs.spellcastingAbility = parsedSpellcasting;
+        syncedProficiencies = JSON.stringify(parsedProfs);
+      }
+    } catch {}
+  }
 
   return {
     id,
@@ -131,7 +159,7 @@ export function mapNpcRowToNpc(
       }
     })(),
     abilityScores: abilityScores ?? JSON.stringify(DEFAULT_ABILITY_SCORES),
-    proficiencies: proficiencies ?? JSON.stringify(DEFAULT_PROFICIENCIES),
+    proficiencies: syncedProficiencies,
     speed: speed ?? '',
     senses: senses ?? '',
     languages: languages ?? '',
@@ -140,6 +168,7 @@ export function mapNpcRowToNpc(
     actions: actions ?? '[]',
     reactions: reactions ?? '[]',
     legendaryActionsList: legendaryActionsList ?? '[]',
+    spellcastingAbility: spellcastingAbility ?? '',
   };
 }
 

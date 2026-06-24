@@ -5,6 +5,8 @@ import { SheetGrid, BatchRequest, SheetMetadataEntry } from './sheetsService';
 import * as writeQueue from './writeQueue';
 import { Character, Encounter, NPC, EncounterCombatant } from '../types';
 import { STORAGE_KEYS } from '../lib/constants';
+import { serializeSpellcastingAbility } from '../lib/spellcasting';
+import { parseProficiencies } from '../lib/abilityScores';
 
 // Local proxy wrappers to protect backward compatibility for test spies
 function queueWrite(spreadsheetId: string | undefined, range: string, values: any) {
@@ -71,6 +73,35 @@ export function castInt(val: unknown, fallback: number = 0): number {
 export function sanitizeString(val: unknown): string {
   if (!val) return '';
   return String(val).trim();
+}
+
+function getSpellcastingAbilityToSave(
+  characterPartial: { spellcastingAbility?: string; proficiencies?: string },
+  fullState: { spellcastingAbility?: string; proficiencies?: string }
+): string {
+  if (characterPartial.spellcastingAbility !== undefined) {
+    return serializeSpellcastingAbility(characterPartial.spellcastingAbility as any);
+  }
+  if (characterPartial.proficiencies) {
+    try {
+      const parsed = JSON.parse(characterPartial.proficiencies);
+      if (parsed && parsed.hasOwnProperty('spellcastingAbility')) {
+        return serializeSpellcastingAbility(parsed.spellcastingAbility);
+      }
+    } catch {}
+  }
+  if (fullState.spellcastingAbility !== undefined) {
+    return serializeSpellcastingAbility(fullState.spellcastingAbility as any);
+  }
+  if (fullState.proficiencies) {
+    try {
+      const parsed = JSON.parse(fullState.proficiencies);
+      if (parsed && parsed.hasOwnProperty('spellcastingAbility')) {
+        return serializeSpellcastingAbility(parsed.spellcastingAbility);
+      }
+    } catch {}
+  }
+  return '';
 }
 
 export async function getNextId(sheetName: string, idColumnIndex?: number): Promise<number>;
@@ -305,9 +336,10 @@ export async function addCharacterDB(
       sanitizeString(character.resourcePools || '[]'),
       sanitizeString(character.abilityScores || '{}'),
       sanitizeString(character.proficiencies || '{}'),
+      getSpellcastingAbilityToSave(character, {}),
     ];
 
-    await appendSheetData(resolvedId, 'Characters!A:Y', [rowData]);
+    await appendSheetData(resolvedId, 'Characters!A:Z', [rowData]);
     return {
       ...character,
       id: finalId,
@@ -321,6 +353,7 @@ export async function addCharacterDB(
       resourcePools: character.resourcePools ?? '[]',
       abilityScores: character.abilityScores ?? '{}',
       proficiencies: character.proficiencies ?? '{}',
+      spellcastingAbility: character.spellcastingAbility ?? getSpellcastingAbilityToSave(character, {}),
     };
   } catch (err) {
     console.error('[DB] addCharacterDB failed:', err);
@@ -381,10 +414,11 @@ export async function updateCharacterDB(
       sanitizeString(character.resourcePools ?? fullState.resourcePools ?? '[]'),
       sanitizeString(character.abilityScores ?? fullState.abilityScores ?? '{}'),
       sanitizeString(character.proficiencies ?? fullState.proficiencies ?? '{}'),
+      getSpellcastingAbilityToSave(character, fullState),
     ];
 
     const a1Row = charRowIdx + 1;
-    queueWrite(resolvedId, `Characters!A${a1Row}:Y${a1Row}`, [rowData]);
+    queueWrite(resolvedId, `Characters!A${a1Row}:Z${a1Row}`, [rowData]);
   } catch (err) {
     console.error('[DB] updateCharacterDB failed:', err);
     throw err;
@@ -497,9 +531,10 @@ export async function addNpcDB(
       '[]',               // actions
       '[]',               // reactions
       '[]',               // legendaryActionsList
+      '',                 // spellcastingAbility
     ];
 
-    await appendSheetData(resolvedId, 'NPCs!A:X', [rowData]);
+    await appendSheetData(resolvedId, 'NPCs!A:Y', [rowData]);
     return {
       id: finalId,
       name: npcName,
@@ -525,6 +560,7 @@ export async function addNpcDB(
       actions: '[]',
       reactions: '[]',
       legendaryActionsList: '[]',
+      spellcastingAbility: '',
     };
   } catch (err) {
     console.error('[DB] addNpcDB failed:', err);
@@ -580,9 +616,10 @@ export async function updateNpcFullDB(
       npc.actions ?? '[]',
       npc.reactions ?? '[]',
       npc.legendaryActionsList ?? '[]',
+      getSpellcastingAbilityToSave(npc, npc),
     ];
 
-    queueWrite(resolvedId, `NPCs!A${a1Row}:X${a1Row}`, [rowData]);
+    queueWrite(resolvedId, `NPCs!A${a1Row}:Y${a1Row}`, [rowData]);
   } catch (err) {
     console.error('[DB] updateNpcFullDB failed:', err);
     throw err;

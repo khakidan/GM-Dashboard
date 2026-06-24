@@ -173,7 +173,7 @@ describe('addCharacterDB logic', () => {
     vi.clearAllMocks();
   });
 
-  it('builds a 23-column row matching the Characters sheet schema and appends it', async () => {
+  it('builds a 26-column row matching the Characters sheet schema and appends it', async () => {
     vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({ values: [] as SheetGrid }); // For getNextId
 
     const result = await addCharacterDB({
@@ -192,7 +192,7 @@ describe('addCharacterDB logic', () => {
     });
 
     expect(result.id).toBe('pc-1');
-    expect(sheetsService.appendSheetData).toHaveBeenCalledWith('Characters!A:Y', [[
+    expect(sheetsService.appendSheetData).toHaveBeenCalledWith('Characters!A:Z', [[
       'pc-1',
       'Alice',      // trimmed playerName
       'Thorn',      // characterName
@@ -218,6 +218,7 @@ describe('addCharacterDB logic', () => {
       '[]',         // resourcePools default
       '{}',         // abilityScores default
       '{}',         // proficiencies default
+      '',           // spellcastingAbility
     ]]);
   });
 
@@ -519,7 +520,7 @@ describe('updateNpcFullDB', () => {
 
     await updateNpcFullDB(npc as any);
 
-    expect(queueWrite).toHaveBeenCalledWith('NPCs!A2:X2', [[
+    expect(queueWrite).toHaveBeenCalledWith('NPCs!A2:Y2', [[
       '101',
       'New Name',
       15,
@@ -543,7 +544,8 @@ describe('updateNpcFullDB', () => {
       '[]',
       '[]',
       '[]',
-      '[]'
+      '[]',
+      '', // spellcastingAbility
     ]]);
   });
 
@@ -646,7 +648,7 @@ describe('addNpcDB', () => {
     );
 
     expect(result.id).toBe('1');
-    expect(sheetsService.appendSheetData).toHaveBeenCalledWith('NPCs!A:X', [[
+    expect(sheetsService.appendSheetData).toHaveBeenCalledWith('NPCs!A:Y', [[
       '1',             // ID
       'Dragon',        // Name
       20,              // AC
@@ -670,7 +672,8 @@ describe('addNpcDB', () => {
       '[]',
       '[]',
       '[]',
-      '[]'
+      '[]',
+      '',              // spellcastingAbility
     ]]);
   });
 });
@@ -728,7 +731,7 @@ describe('updateCharacterDB', () => {
       characterFullState
     );
 
-    expect(queueWrite).toHaveBeenCalledWith('Characters!A4:Y4', [[
+    expect(queueWrite).toHaveBeenCalledWith('Characters!A4:Z4', [[
       'pc-2',
       'Bob',
       'Grunk',
@@ -754,6 +757,7 @@ describe('updateCharacterDB', () => {
       '[]',         // resourcePools default
       '{}',         // abilityScores default
       '{}',         // proficiencies default
+      '',           // spellcastingAbility
     ]]);
   });
 
@@ -957,5 +961,118 @@ describe('clearEncounterStateDB', () => {
 
     const { clearEncounterStateDB } = await import('../dbOperations');
     await expect(clearEncounterStateDB('enc-999')).rejects.toThrow('Encounter enc-999 not found');
+  });
+});
+
+// ─── Spellcasting Ability Persistence ─────────────────────────────────────────
+
+describe('Spellcasting Ability Persistence', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('addCharacterDB writes the spellcastingAbility field to column Z', async () => {
+    vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({ values: [] as SheetGrid });
+
+    await addCharacterDB({
+      characterName: 'Mage',
+      spellcastingAbility: 'INT',
+    });
+
+    const appendCall = vi.mocked(sheetsService.appendSheetData).mock.calls[0];
+    const row = appendCall[1][0];
+    // Column Z is index 25 (the 26th column)
+    expect(row[25]).toBe('INT');
+  });
+
+  it('updateCharacterDB writes the spellcastingAbility field to column Z when modified', async () => {
+    vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({
+      values: [
+        ['Player_ID', 'Player_Name', 'Character_Name', 'AC', 'Max_HP', 'Temp_HP', 'Current_HP', 'Current_Condition', 'Passive_Perception', 'Current_Level', 'Status', 'Notes', 'Resistances', 'Immunities', 'Vulnerabilities', 'Temp_HP_Max', 'Temp_AC'],
+        ['pc-1', 'Alice', 'Mage', '10', '10', '0', '10', '', '10', '1', '1', '', '', '', '', '0', '0'],
+      ] as SheetGrid,
+    });
+
+    const characterState = {
+      id: 'pc-1',
+      playerName: 'Alice',
+      characterName: 'Mage',
+      ac: 10,
+      maxHp: 10,
+      tempHp: 0,
+      currentHp: 10,
+      conditions: '',
+      passivePerception: 10,
+      level: 1,
+      statusId: 1,
+      notes: '',
+      class: 'Wizard',
+      spellcastingAbility: 'WIS',
+    };
+
+    await updateCharacterDB(
+      {
+        spellcastingAbility: 'INT',
+      },
+      characterState as any
+    );
+
+    const writeCall = vi.mocked(queueWrite).mock.calls[0];
+    const row = writeCall[1][0];
+    expect(row[25]).toBe('INT');
+  });
+
+  it('updateCharacterDB handles falling back to proficiencies spellcastingAbility', async () => {
+    vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({
+      values: [
+        ['Player_ID', 'Player_Name', 'Character_Name', 'AC', 'Max_HP', 'Temp_HP', 'Current_HP', 'Current_Condition', 'Passive_Perception', 'Current_Level', 'Status', 'Notes', 'Resistances', 'Immunities', 'Vulnerabilities', 'Temp_HP_Max', 'Temp_AC'],
+        ['pc-1', 'Alice', 'Mage', '10', '10', '0', '10', '', '10', '1', '1', '', '', '', '', '0', '0'],
+      ] as SheetGrid,
+    });
+
+    const characterState = {
+      id: 'pc-1',
+      playerName: 'Alice',
+      characterName: 'Mage',
+      ac: 10,
+      maxHp: 10,
+      tempHp: 0,
+      currentHp: 10,
+      conditions: '',
+      passivePerception: 10,
+      level: 1,
+      statusId: 1,
+      notes: '',
+      class: 'Wizard',
+      proficiencies: '{"spellcastingAbility":"WIS"}',
+    };
+
+    await updateCharacterDB(
+      {},
+      characterState as any
+    );
+
+    const writeCall = vi.mocked(queueWrite).mock.calls[0];
+    const row = writeCall[1][0];
+    expect(row[25]).toBe('WIS');
+  });
+
+  it('updateNpcFullDB writes the spellcastingAbility field to column Y', async () => {
+    vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({
+      values: [['101', 'Old Name', '10', '10', '0', '10', '', 'Notes', '', '', '', '0', '0', '']] as SheetGrid,
+    });
+
+    const npc = {
+      id: '101',
+      name: 'Mage NPC',
+      spellcastingAbility: 'CHA',
+    };
+
+    await updateNpcFullDB(npc as any);
+
+    const writeCall = vi.mocked(queueWrite).mock.calls[0];
+    const row = writeCall[1][0];
+    // Column Y is index 24 (the 25th column)
+    expect(row[24]).toBe('CHA');
   });
 });
