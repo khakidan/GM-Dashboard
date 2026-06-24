@@ -11,7 +11,6 @@ import { NpcListEditor } from '../ui/NpcListEditor';
 import { NpcCardHeader } from './NpcCardHeader';
 import { NpcIRVSection } from './NpcIRVSection';
 import { NpcLegendarySection } from './NpcLegendarySection';
-import { NpcRechargeSection } from './NpcRechargeSection';
 import { StatBlock } from '../ui/StatBlock';
 import { SpellcastingStatsRow } from '../ui/SpellcastingStatsRow';
 import { parseAbilityScores, parseProficiencies, serializeAbilityScores, serializeProficiencies } from '../../lib/abilityScores';
@@ -477,12 +476,6 @@ export const NpcCard: React.FC<NpcCardProps> = ({
                   }
                 />
               </div>
-
-              <NpcRechargeSection
-                rechargeAbilities={npc.rechargeAbilities} isSyncing={isSyncing}
-                onAddAbility={(ability) => onUpdate({ rechargeAbilities: [...(npc.rechargeAbilities || []), ability] })}
-                onRemoveAbility={(idx) => onUpdate({ rechargeAbilities: (npc.rechargeAbilities || []).filter((_, i) => i !== idx) })}
-              />
 
               <div className="flex gap-4 pt-4 border-t border-[#e5e1d8]/40">
                 {needsReset && (

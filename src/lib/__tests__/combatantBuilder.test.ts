@@ -1,6 +1,24 @@
 import { describe, it, expect } from 'vitest';
-import { buildCombatantsFromState } from '../combatantBuilder';
+import { buildCombatantsFromState, parseRechargeOn } from '../combatantBuilder';
 import { Encounter, EncounterCombatant, Character, NPC } from '../../types';
+
+describe('parseRechargeOn', () => {
+  it('correctly parses valid recharge strings', () => {
+    expect(parseRechargeOn('Recharge 5-6')).toBe(5);
+    expect(parseRechargeOn('Recharge 6')).toBe(6);
+    expect(parseRechargeOn('recharge 4')).toBe(4);
+    expect(parseRechargeOn('  Recharge 5  ')).toBe(5);
+  });
+
+  it('returns null for invalid or missing recharge values', () => {
+    expect(parseRechargeOn(undefined)).toBeNull();
+    expect(parseRechargeOn('')).toBeNull();
+    expect(parseRechargeOn('Bite')).toBeNull();
+    expect(parseRechargeOn('Recharge 3')).toBeNull();
+    expect(parseRechargeOn('Recharge 7')).toBeNull();
+    expect(parseRechargeOn('Recharge')).toBeNull();
+  });
+});
 
 describe('buildCombatantsFromState', () => {
   it('Returns empty array when no encounterCombatants match the encounter', () => {
@@ -101,6 +119,36 @@ describe('buildCombatantsFromState', () => {
     );
 
     expect(res[0].rechargeAbilities).toHaveLength(1);
+    expect(res[0].rechargeAbilities?.[0].isCharged).toBe(true);
+  });
+
+  it('correctly auto-derives rechargeAbilities from actions and defaults isCharged: true', () => {
+    const encounter: Partial<Encounter> = { id: 'enc-1' };
+    const npcs: Partial<NPC>[] = [{
+      id: 'npc-1',
+      name: 'Beholder',
+      actions: JSON.stringify([
+        { name: 'Eye Ray', recharge: 'Recharge 5-6' },
+        { name: 'Bite', recharge: undefined }
+      ])
+    }];
+    const ec: Partial<EncounterCombatant>[] = [{
+      id: 'ec-1',
+      encounterId: 'enc-1',
+      npcId: 'npc-1',
+      quantity: 1
+    }];
+
+    const res = buildCombatantsFromState(
+      encounter as Encounter,
+      ec as EncounterCombatant[],
+      [],
+      npcs as NPC[]
+    );
+
+    expect(res[0].rechargeAbilities).toHaveLength(1);
+    expect(res[0].rechargeAbilities?.[0].name).toBe('Eye Ray');
+    expect(res[0].rechargeAbilities?.[0].rechargeOn).toBe(5);
     expect(res[0].rechargeAbilities?.[0].isCharged).toBe(true);
   });
 

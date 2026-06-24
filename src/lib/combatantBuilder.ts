@@ -1,6 +1,26 @@
 import { Character, Encounter, Combatant, NPC, EncounterCombatant } from '../types';
 
 /**
+ * Parses "Recharge X" style strings into a rechargeOn number (4, 5, or 6) or null.
+ */
+export function parseRechargeOn(
+  text: string | undefined
+): number | null {
+  if (text === undefined || text === null || text === '') return null;
+  const normalized = text.toLowerCase().trim();
+  if (!normalized.startsWith('recharge')) return null;
+
+  const match = normalized.match(/recharge\s+(\d+)/i);
+  if (!match) return null;
+
+  const val = parseInt(match[1], 10);
+  if (val === 4 || val === 5 || val === 6) {
+    return val;
+  }
+  return null;
+}
+
+/**
  * Pure data transformation to build Combatant objects from state templates.
  */
 export function buildCombatantsFromState(
@@ -88,14 +108,45 @@ export function buildCombatantsFromState(
                     remaining: npcTemplate.legendaryResistances 
                   }
                 : undefined,
-              rechargeAbilities: 
-                npcTemplate.rechargeAbilities?.length
-                ? npcTemplate.rechargeAbilities.map(a => ({
-                    name: a.name,
-                    rechargeOn: a.rechargeOn,
+              rechargeAbilities: (() => {
+                // Try to derive from actions list
+                let derivedRecharge: Array<{
+                  name: string;
+                  rechargeOn: number;
+                  isCharged: boolean;
+                }> = [];
+
+                const parsedActions = (() => {
+                  try {
+                    return JSON.parse(npcTemplate.actions || '[]') as
+                      Array<{ name: string; recharge?: string }>;
+                  } catch { return []; }
+                })();
+
+                for (const action of parsedActions) {
+                  const rechargeOn = parseRechargeOn(action.recharge);
+                  if (rechargeOn !== null) {
+                    derivedRecharge.push({
+                      name: action.name,
+                      rechargeOn,
+                      isCharged: true,
+                    });
+                  }
+                }
+
+                // Fall back to col N data for legacy NPCs that predate the actions feature
+                if (derivedRecharge.length === 0 &&
+                    npcTemplate.rechargeAbilities &&
+                    npcTemplate.rechargeAbilities.length > 0) {
+                  derivedRecharge = npcTemplate.rechargeAbilities.map(ra => ({
+                    name: ra.name,
+                    rechargeOn: ra.rechargeOn,
                     isCharged: true,
-                  }))
-                : undefined,
+                  }));
+                }
+
+                return derivedRecharge.length > 0 ? derivedRecharge : undefined;
+              })(),
               abilityScores: npcTemplate.abilityScores,
               proficiencies: npcTemplate.proficiencies,
               speed: npcTemplate.speed,

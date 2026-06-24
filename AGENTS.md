@@ -535,7 +535,7 @@ this whitelist and to `dbOperations.ts`.
 
 ## Testing Structure — 13-Batch System
 
-**Current baseline: 1203 tests.**
+**Current baseline: 1198 tests.**
 All batches must pass with zero failures.
 No batch should exceed 35 seconds.
 
@@ -544,7 +544,7 @@ with `&&`. Never use glob patterns. Never
 run all tests at once with `npx vitest run`.
 
 ```bash
-# BATCH 1 — 392 tests
+# BATCH 1 — 395 tests
 npx vitest run src/lib/__tests__
 
 # BATCH 2 — 108 tests
@@ -559,7 +559,7 @@ npx vitest run src/server/__tests__ src/__tests__
 # BATCH 5A — 66 tests
 npx vitest run src/components/ActiveEncounterTab/__tests__/useBatchActions.test.ts src/components/ActiveEncounterTab/__tests__/useCombatSync.test.ts src/components/ActiveEncounterTab/__tests__/useCombatantCard.test.ts src/components/ActiveEncounterTab/__tests__/useEncounterPresetLoader.test.ts src/components/ActiveEncounterTab/__tests__/useHealthChange.test.ts src/components/ActiveEncounterTab/__tests__/useSelectionMode.test.ts
 
-# BATCH 5B — 131 tests
+# BATCH 5B — 125 tests
 npx vitest run src/components/ActiveEncounterTab/__tests__/AddNpcCollision.test.tsx src/components/ActiveEncounterTab/__tests__/CasterAttributionDialog.test.tsx src/components/ActiveEncounterTab/__tests__/CombatHeader.test.tsx src/components/ActiveEncounterTab/__tests__/CombatSidebar.test.tsx src/components/ActiveEncounterTab/__tests__/CombatantCard.test.tsx src/components/ActiveEncounterTab/__tests__/KeyboardShortcuts.test.tsx src/components/ActiveEncounterTab/__tests__/MultiTargetActionPanel.test.tsx src/components/ActiveEncounterTab/__tests__/NpcReferencePanel.test.tsx src/components/ActiveEncounterTab/__tests__/ShortcutCheatSheet.test.tsx src/components/ActiveEncounterTab/__tests__/index.test.tsx
 
 # BATCH 6A — 119 tests
@@ -568,7 +568,7 @@ npx vitest run src/components/PartyTab/__tests__
 # BATCH 6B — 15 tests
 npx vitest run src/components/EncountersTab/__tests__
 
-# BATCH 6C — 20 tests
+# BATCH 6C — 18 tests
 npx vitest run src/components/NpcLibraryTab/__tests__
 
 # BATCH 7A — 36 tests
