@@ -8,6 +8,8 @@ import { Combatant, DamageType } from '../../types';
 import { CombatantCardHeader } from './CombatantCardHeader';
 import { CombatantCardExpanded } from './CombatantCardExpanded';
 import { useCombatantCard } from './hooks/useCombatantCard';
+import { SpellcastingStatsRow } from '../ui/SpellcastingStatsRow';
+import { parseAbilityScores, parseProficiencies, proficiencyBonusFromLevel } from '../../lib/abilityScores';
 
 export interface CombatantCardProps {
   c: Combatant;
@@ -37,6 +39,8 @@ export function CombatantCard({
 }: CombatantCardProps) {
   const [recentRechargeRolls, setRecentRechargeRolls] = useState<Record<string, number>>({});
   const { isActiveTurn: isActive, isSelected, isSelectable, isSyncing } = useCombatantCard(c.id);
+  const parsedProfs = parseProficiencies(c.proficiencies || '');
+  const parsedScores = parseAbilityScores(c.abilityScores || '');
 
   const handleRechargeRoll = (abilityName: string, rechargeOn: number) => {
     const rolledNum = rollDice(parseDiceNotation('1d6')).total;
@@ -92,6 +96,17 @@ export function CombatantCard({
         onMarkSpent={handleMarkSpent}
         hpMode={hpMode}
       />
+
+      {!isExpanded && (
+        <div className="px-6 pb-3 -mt-1" id={`spellcasting-stats-container-${c.id}`}>
+          <SpellcastingStatsRow
+            abilityScores={parsedScores}
+            profBonus={c.type === 'pc' ? proficiencyBonusFromLevel(c.level ?? 1) : (parsedProfs.proficiencyBonus ?? 0)}
+            className={c.type === 'pc' ? c.class : undefined}
+            overrideAbility={parsedProfs.spellcastingAbility}
+          />
+        </div>
+      )}
 
       <AnimatePresence>
         {isExpanded && (

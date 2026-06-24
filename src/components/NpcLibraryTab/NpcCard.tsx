@@ -12,6 +12,7 @@ import { NpcIRVSection } from './NpcIRVSection';
 import { NpcLegendarySection } from './NpcLegendarySection';
 import { NpcRechargeSection } from './NpcRechargeSection';
 import { StatBlock } from '../ui/StatBlock';
+import { SpellcastingStatsRow } from '../ui/SpellcastingStatsRow';
 import { parseAbilityScores, parseProficiencies, serializeAbilityScores, serializeProficiencies } from '../../lib/abilityScores';
 
 export interface NpcCardProps {
@@ -28,6 +29,8 @@ export const NpcCard: React.FC<NpcCardProps> = ({
   npc, isSyncing, isExpanded, onToggleExpand, onUpdate, onDelete, onResetHp
 }) => {
   const needsReset = npc.currentHp < npc.maxHp;
+  const parsedProfs = parseProficiencies(npc.proficiencies || '');
+  const parsedScores = parseAbilityScores(npc.abilityScores || '');
 
   return (
     <div className={cn(
@@ -47,6 +50,17 @@ export const NpcCard: React.FC<NpcCardProps> = ({
         onUpdateName={(val) => onUpdate({ name: val })}
       />
 
+      {!isExpanded && (
+        <div className="px-6 pb-3 -mt-1" id={`spellcasting-stats-container-${npc.id}`}>
+          <SpellcastingStatsRow
+            abilityScores={parsedScores}
+            profBonus={parsedProfs.proficiencyBonus ?? 0}
+            className={undefined}
+            overrideAbility={parsedProfs.spellcastingAbility}
+          />
+        </div>
+      )}
+
       <AnimatePresence>
         {isExpanded && (
           <motion.div
@@ -57,13 +71,31 @@ export const NpcCard: React.FC<NpcCardProps> = ({
           >
             <div className="p-6 flex flex-col gap-6">
               <StatBlock
-                abilityScores={parseAbilityScores(npc.abilityScores || '')}
-                proficiencies={parseProficiencies(npc.proficiencies || '')}
+                abilityScores={parsedScores}
+                proficiencies={parsedProfs}
                 readOnly={false}
                 onChange={(scores, profs) => {
                   onUpdate({
                     abilityScores: serializeAbilityScores(scores),
                     proficiencies: serializeProficiencies(profs),
+                  });
+                }}
+              />
+
+              <SpellcastingStatsRow
+                abilityScores={parsedScores}
+                profBonus={parsedProfs.proficiencyBonus ?? 0}
+                className={undefined}
+                overrideAbility={parsedProfs.spellcastingAbility}
+                onOverrideChange={(ability) => {
+                  const updated = { ...parsedProfs };
+                  if (ability === undefined) {
+                    delete updated.spellcastingAbility;
+                  } else {
+                    updated.spellcastingAbility = ability;
+                  }
+                  onUpdate({
+                    proficiencies: serializeProficiencies(updated),
                   });
                 }}
               />

@@ -11,7 +11,8 @@ import { getHitDiceStatus, getTotalHitDiceCount } from '../../lib/hitDice';
 import { getResourceForEffect, parseResourcePools, spendResourcePip, serializeResourcePools } from '../../lib/resourcePools';
 import { toast } from 'sonner';
 import { StatBlock } from '../ui/StatBlock';
-import { parseAbilityScores, parseProficiencies, serializeAbilityScores, serializeProficiencies } from '../../lib/abilityScores';
+import { parseAbilityScores, parseProficiencies, serializeAbilityScores, serializeProficiencies, proficiencyBonusFromLevel } from '../../lib/abilityScores';
+import { SpellcastingStatsRow } from '../ui/SpellcastingStatsRow';
 
 export interface CharacterCardExpandedProps {
   character: Character;
@@ -63,6 +64,24 @@ export const CharacterCardExpanded: React.FC<CharacterCardExpandedProps> = ({
           onUpdate({
             abilityScores: serializeAbilityScores(scores),
             proficiencies: serializeProficiencies(profs),
+          });
+        }}
+      />
+
+      <SpellcastingStatsRow
+        abilityScores={parsedAbilityScores}
+        profBonus={proficiencyBonusFromLevel(character.level)}
+        className={character.class}
+        overrideAbility={parsedProficiencies.spellcastingAbility}
+        onOverrideChange={(ability) => {
+          const updated = { ...parsedProficiencies };
+          if (ability === undefined) {
+            delete updated.spellcastingAbility;
+          } else {
+            updated.spellcastingAbility = ability;
+          }
+          onUpdate({
+            proficiencies: serializeProficiencies(updated),
           });
         }}
       />

@@ -4,6 +4,8 @@ import { Loader2 } from 'lucide-react';
 import { Character } from '../../types';
 import { cn } from '../../lib/utils';
 import { getHealthStatus, effectiveMaxHp, effectiveAc } from '../../lib/conditions';
+import { SpellcastingStatsRow } from '../ui/SpellcastingStatsRow';
+import { parseAbilityScores, parseProficiencies, proficiencyBonusFromLevel } from '../../lib/abilityScores';
 
 // Modular Sub-components
 import { CharacterCardHeader } from './CharacterCardHeader';
@@ -102,6 +104,17 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({
           />
         }
       />
+
+      {!isExpanded && (
+        <div className="px-5 pb-3 -mt-1" id={`spellcasting-stats-container-${character.id}`}>
+          <SpellcastingStatsRow
+            abilityScores={parseAbilityScores(character.abilityScores)}
+            profBonus={proficiencyBonusFromLevel(character.level)}
+            className={character.class}
+            overrideAbility={parseProficiencies(character.proficiencies).spellcastingAbility}
+          />
+        </div>
+      )}
 
       <AnimatePresence>
         {isExpanded && (

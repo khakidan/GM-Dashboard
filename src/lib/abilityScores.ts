@@ -1,3 +1,5 @@
+import { SpellcastingAbility } from './spellcasting';
+
 export type AbilityName = 
   'STR' | 'DEX' | 'CON' | 
   'INT' | 'WIS' | 'CHA';
@@ -36,6 +38,7 @@ export interface Proficiencies {
     insight: number;
     investigation: number;
   };
+  spellcastingAbility?: SpellcastingAbility;
 }
 
 // Maps each skill to its governing ability score

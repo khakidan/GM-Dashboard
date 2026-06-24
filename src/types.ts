@@ -105,6 +105,10 @@ export interface Combatant {
     max: number;         // typically 3
     remaining: number;
   };
+  class?: string;
+  level?: number;
+  abilityScores?: string;
+  proficiencies?: string;
 }
 
 export interface CombatState {

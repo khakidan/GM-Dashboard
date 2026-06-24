@@ -42,6 +42,10 @@ export function buildCombatantsFromState(
             deathSavesFails: c.deathSavesFails || 0,
             deathSavesSuccesses: c.deathSavesSuccesses || 0,
             reactionUsed: false,
+            level: c.level,
+            class: c.class,
+            abilityScores: c.abilityScores,
+            proficiencies: c.proficiencies,
           });
         }
       } else if (ec.npcId) {
@@ -92,6 +96,8 @@ export function buildCombatantsFromState(
                     isCharged: true,
                   }))
                 : undefined,
+              abilityScores: npcTemplate.abilityScores,
+              proficiencies: npcTemplate.proficiencies,
             });
           }
         }
@@ -123,6 +129,10 @@ export function buildCombatantsFromState(
         deathSavesFails: c.deathSavesFails || 0,
         deathSavesSuccesses: c.deathSavesSuccesses || 0,
         reactionUsed: false,
+        level: c.level,
+        class: c.class,
+        abilityScores: c.abilityScores,
+        proficiencies: c.proficiencies,
       });
     });
   }
