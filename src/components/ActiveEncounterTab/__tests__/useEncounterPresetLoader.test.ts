@@ -85,7 +85,32 @@ describe('useEncounterPresetLoader', () => {
 
       await expect(
         act(async () => {
-          await result.current.handleAddNpc('Orc', 20, 10, '', '', '', '');
+          await result.current.handleAddNpc({
+            name: 'Orc',
+            ac: 10,
+            maxHp: 20,
+            tempHp: 0,
+            currentHp: 20,
+            conditions: '',
+            notes: '',
+            resistances: '',
+            immunities: '',
+            vulnerabilities: '',
+            legendaryActions: 0,
+            legendaryResistances: 0,
+            rechargeAbilities: [],
+            abilityScores: '{}',
+            proficiencies: '{}',
+            speed: '',
+            senses: '',
+            languages: '',
+            challengeRating: '',
+            traits: '[]',
+            actions: '[]',
+            reactions: '[]',
+            legendaryActionsList: '[]',
+            spellcastingAbility: '',
+          });
         })
       ).rejects.toThrow('DB Failed');
 
