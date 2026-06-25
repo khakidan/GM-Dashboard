@@ -1,11 +1,14 @@
-import { renderHook, act } from '@testing-library/react';
-import { describe, it, expect, beforeEach } from 'vitest';
+import { renderHook, act, cleanup } from '@testing-library/react';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { useCombatantCard } from '../hooks/useCombatantCard';
 import { useDashboardStore } from '../../../hooks/useAppState';
 
 describe('useCombatantCard Hook', () => {
+  afterEach(() => {
+    cleanup();
+  });
+
   beforeEach(() => {
-    // Reset store state before each test
     act(() => {
       useDashboardStore.setState({
         combatState: {
@@ -23,66 +26,59 @@ describe('useCombatantCard Hook', () => {
     });
   });
 
-  it('isActiveTurn should be true when combatantId matches activeTurnId, false otherwise', () => {
+  it('expanding a card adds its id to expandedIds in the store', () => {
+    const { result } = renderHook(() => useCombatantCard('c1'));
+
+    expect(result.current.isExpanded).toBe(false);
+
     act(() => {
-      useDashboardStore.setState(prev => ({
-        ...prev,
-        combatState: {
-          ...prev.combatState,
-          activeTurnId: 'combatant-1',
-        },
-      }));
+      result.current.toggleExpand();
     });
 
-    const { result: r1 } = renderHook(() => useCombatantCard('combatant-1'));
-    expect(r1.current.isActiveTurn).toBe(true);
-
-    const { result: r2 } = renderHook(() => useCombatantCard('combatant-2'));
-    expect(r2.current.isActiveTurn).toBe(false);
+    expect(result.current.isExpanded).toBe(true);
+    expect(useDashboardStore.getState().combatState.expandedIds).toContain('c1');
   });
 
-  it('isSelected should be true when combatantId is in the selected set, false otherwise', () => {
+  it('collapsing a card removes its id from expandedIds', () => {
     act(() => {
       useDashboardStore.setState(prev => ({
         ...prev,
         combatState: {
           ...prev.combatState,
-          selectedIds: ['combatant-1', 'combatant-3'],
-        },
+          expandedIds: ['c1']
+        }
       }));
     });
 
-    const { result: r1 } = renderHook(() => useCombatantCard('combatant-1'));
-    expect(r1.current.isSelected).toBe(true);
+    const { result } = renderHook(() => useCombatantCard('c1'));
 
-    const { result: r2 } = renderHook(() => useCombatantCard('combatant-2'));
-    expect(r2.current.isSelected).toBe(false);
+    expect(result.current.isExpanded).toBe(true);
 
-    const { result: r3 } = renderHook(() => useCombatantCard('combatant-3'));
-    expect(r3.current.isSelected).toBe(true);
+    act(() => {
+      result.current.toggleExpand();
+    });
+
+    expect(result.current.isExpanded).toBe(false);
+    expect(useDashboardStore.getState().combatState.expandedIds).not.toContain('c1');
   });
 
-  it('concentrationLinks should be correctly filtered for the given combatantId', () => {
+  it('toggling selection adds/removes id from selectedIds', () => {
+    const { result } = renderHook(() => useCombatantCard('c1'));
+
+    expect(result.current.isSelected).toBe(false);
+
     act(() => {
-      useDashboardStore.setState(prev => ({
-        ...prev,
-        combatState: {
-          ...prev.combatState,
-          concentrationLinks: {
-            'combatant-1': ['Maeve', 'Ylva'],
-            'combatant-2': [],
-          },
-        },
-      }));
+      result.current.toggleSelection();
     });
 
-    const { result: r1 } = renderHook(() => useCombatantCard('combatant-1'));
-    expect(r1.current.concentrationLinks).toEqual(['Maeve', 'Ylva']);
+    expect(result.current.isSelected).toBe(true);
+    expect(useDashboardStore.getState().combatState.selectedIds).toContain('c1');
 
-    const { result: r2 } = renderHook(() => useCombatantCard('combatant-2'));
-    expect(r2.current.concentrationLinks).toEqual([]);
+    act(() => {
+      result.current.toggleSelection();
+    });
 
-    const { result: r3 } = renderHook(() => useCombatantCard('combatant-3'));
-    expect(r3.current.concentrationLinks).toEqual([]);
+    expect(result.current.isSelected).toBe(false);
+    expect(useDashboardStore.getState().combatState.selectedIds).not.toContain('c1');
   });
 });

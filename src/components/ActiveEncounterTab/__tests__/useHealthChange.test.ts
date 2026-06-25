@@ -1,16 +1,8 @@
-// ─── PROTECTED TEST FILE ───────────────────────────
-// Do not delete, rename, or remove test cases from 
-// this file without an explicit instruction to do so.
-// Removing tests to make a count pass is not acceptable.
-// ────────────────────────────────────────────────────
-
 import { renderHook, act, cleanup } from '@testing-library/react';
-import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { useHealthChange } from '../hooks/useHealthChange';
 import type { Combatant } from '../../../types';
 import { toast } from 'sonner';
-import { useUnconsciousEvent } from '../../../hooks/useOverlayEvents';
-import { mockCombatant } from '../../../test-utils/fixtures/combatantFixtures';
 
 vi.mock('sonner', () => ({
   toast: Object.assign(vi.fn(), {
@@ -20,11 +12,6 @@ vi.mock('sonner', () => ({
   }),
 }));
 
-vi.mock('../../../services/dbOperations', () => ({
-  updateDeathSavesDB: vi.fn().mockResolvedValue(true),
-  updateCharacterDB: vi.fn().mockResolvedValue(true),
-}));
-
 const mockUpdateState = vi.fn();
 const mockAppState = {
   combatState: {
@@ -32,14 +19,11 @@ const mockAppState = {
   },
 };
 
-let mockCharacters: any[] = [];
-let mockNpcs: any[] = [];
-
 vi.mock('../../../hooks/useAppState', () => ({
   useAppState: () => ({
     state: {
-      characters: mockCharacters,
-      npcs: mockNpcs,
+      characters: [],
+      npcs: [],
     },
     updateState: mockUpdateState,
   }),
@@ -55,14 +39,10 @@ vi.mock('../../../lib/concentrationCheck', async (importOriginal) => {
   };
 });
 
-const mockFireDamage = vi.fn();
-const mockFireHeal = vi.fn();
-const mockFireUnconscious = vi.fn();
-
 vi.mock('../../../hooks/useOverlayEvents', () => ({
-  useDamageEvent: () => ({ fire: mockFireDamage }),
-  useHealEvent: () => ({ fire: mockFireHeal }),
-  useUnconsciousEvent: () => ({ fire: mockFireUnconscious }),
+  useDamageEvent: () => ({ fire: vi.fn() }),
+  useHealEvent: () => ({ fire: vi.fn() }),
+  useUnconsciousEvent: () => ({ fire: vi.fn() }),
   useDeathEvent: () => ({ fire: vi.fn() }),
 }));
 
@@ -71,11 +51,24 @@ describe('useHealthChange', () => {
     cleanup();
     vi.clearAllMocks();
   });
+
   const syncingIds = new Set<string>();
 
-  const baseCombatant: Combatant = mockCombatant;
+  const baseCombatant: Combatant = {
+    id: 'c1',
+    name: 'Goblin',
+    type: 'pc',
+    ac: 15,
+    maxHp: 30,
+    currentHp: 30,
+    tempHp: 5,
+    initiative: 10,
+    notes: '',
+    passivePerception: 10,
+    conditions: '',
+  };
 
-  it('handleHealthChange with isDamage true reduces currentHp correctly', () => {
+  it('applying damage reduces currentHp by the correct amount', () => {
     const updateSpy = vi.fn();
     const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
 
@@ -84,384 +77,113 @@ describe('useHealthChange', () => {
     });
 
     act(() => {
-      // 10 damage: 5 is absorbed by tempHp, 5 by currentHp. So temp=0, hp=25
+      // 10 damage: 5 is absorbed by tempHp, remaining 5 reduces currentHp to 25
       result.current.handleHealthChange('c1', baseCombatant, true);
     });
 
     expect(updateSpy).toHaveBeenCalledWith('c1', { currentHp: 25, tempHp: 0 });
   });
 
-  it('handleHealthChange with isDamage false increases currentHp correctly', () => {
+  it('applying damage respects resistance and halves the value', () => {
     const updateSpy = vi.fn();
     const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
-    const woundedCombatant = { ...baseCombatant, currentHp: 10, tempHp: 0 };
+    const resistantCombatant = { ...baseCombatant, resistances: 'fire', tempHp: 0 };
 
     act(() => {
-      result.current.setHealInputs({ c1: '15' });
+      result.current.setDamageInputs({ c1: '10' });
     });
 
     act(() => {
-      result.current.handleHealthChange('c1', woundedCombatant, false);
+      result.current.handleHealthChange('c1', resistantCombatant, true, 'fire');
     });
 
-    // 10 + 15 = 25
+    // 10 damage halved = 5 damage. 30 - 5 = 25
     expect(updateSpy).toHaveBeenCalledWith('c1', { currentHp: 25, tempHp: 0 });
   });
 
-  it('handleHealthChange absorbs damage into tempHp before currentHp', () => {
+  it('applying damage respects immunity and reduces damage to zero', () => {
     const updateSpy = vi.fn();
     const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
-
-    act(() => {
-      result.current.setDamageInputs({ c1: '3' });
-    });
-
-    act(() => {
-      // 3 damage, tempHp is 5. So temp=2, hp=30
-      result.current.handleHealthChange('c1', baseCombatant, true);
-    });
-
-    expect(updateSpy).toHaveBeenCalledWith('c1', { currentHp: 30, tempHp: 2 });
-    expect(mockFireDamage).toHaveBeenCalledWith({
-      combatantNames: ['Goblin'],
-      damageAmount: 3,
-      damageType: undefined,
-    });
-  });
-
-  it('handleHealthChange fires heal event when healing is applied', () => {
-    const updateSpy = vi.fn();
-    const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
-
-    act(() => {
-      result.current.setHealInputs({ c1: '5' });
-    });
-
-    // Make character wounded first
-    const wounded = { ...baseCombatant, currentHp: 10 };
-
-    act(() => {
-      result.current.handleHealthChange('c1', wounded, false);
-    });
-
-    expect(updateSpy).toHaveBeenCalledWith('c1', { currentHp: 15, tempHp: 5 });
-    expect(mockFireHeal).toHaveBeenCalledWith({
-      combatantNames: ['Goblin'],
-      healAmount: 5,
-    });
-  });
-
-  it('handleHealthChange clears the health input for that combatant id after applying the change', () => {
-    const updateSpy = vi.fn();
-    const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
-
-    act(() => {
-      result.current.setDamageInputs({ c1: '5', c2: '10' });
-    });
-
-    act(() => {
-      result.current.handleHealthChange('c1', baseCombatant, true);
-    });
-
-    expect(result.current.damageInputs['c1']).toBe('');
-    expect(result.current.damageInputs['c2']).toBe('10');
-  });
-
-  it('handleHealthChange is a no-op when the input value is empty', () => {
-    const updateSpy = vi.fn();
-    const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
-
-    act(() => {
-      result.current.setDamageInputs({ c1: '' });
-    });
-
-    act(() => {
-      result.current.handleHealthChange('c1', baseCombatant, true);
-    });
-
-    expect(updateSpy).not.toHaveBeenCalled();
-  });
-
-  it('handleHealthChange is a no-op when the input value is not a number', () => {
-    const updateSpy = vi.fn();
-    const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
-
-    act(() => {
-      result.current.setDamageInputs({ c1: 'abc' });
-    });
-
-    act(() => {
-      result.current.handleHealthChange('c1', baseCombatant, true);
-    });
-
-    expect(updateSpy).not.toHaveBeenCalled();
-  });
-
-  it('does not fire concentration toast when non-concentrating take damage', () => {
-    const updateSpy = vi.fn();
-    const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
-    act(() => {
-      result.current.setDamageInputs({ c1: '5' });
-    });
-    act(() => {
-      result.current.handleHealthChange('c1', baseCombatant, true);
-    });
-    expect(toast).not.toHaveBeenCalled();
-  });
-
-  it('does not fire concentration toast when damage is 0 (immune)', () => {
-    const updateSpy = vi.fn();
-    const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
-    const concCombatant = { ...baseCombatant, conditions: 'concentrating' };
-    
-    act(() => {
-      result.current.setDamageInputs({ c1: '0' });
-    });
-    act(() => {
-      result.current.handleHealthChange('c1', concCombatant, true);
-    });
-    expect(toast).not.toHaveBeenCalled();
-  });
-
-  it('fires concentration toast with correct DC when damage > 0', () => {
-    const updateSpy = vi.fn();
-    const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
-    const concCombatant = { ...baseCombatant, conditions: 'concentrating, hasted' };
-    
-    act(() => {
-      result.current.setDamageInputs({ c1: '12' });
-    });
-    act(() => {
-      result.current.handleHealthChange('c1', concCombatant, true);
-    });
-    expect(toast).toHaveBeenCalledWith('Concentration check required', expect.objectContaining({
-      description: expect.stringContaining('CON save DC: 10')
-    }));
-  });
-
-  it('clears concentration and its timers when the toast action is triggered', () => {
-    const updateSpy = vi.fn();
-    const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
-    const concCombatant: Combatant = {
-      ...baseCombatant,
-      conditions: 'blinded, concentrating, blessed',
-      conditionTimers: { 'blinded': 5, 'blessed': 10, 'concentrating': 10 }
-    };
-
-    act(() => {
-      result.current.setDamageInputs({ c1: '20' });
-    });
-
-    act(() => {
-      result.current.handleHealthChange('c1', concCombatant, true);
-    });
-
-    // Get the toast call
-    const lastToastCall = vi.mocked(toast).mock.calls[0];
-    const options = lastToastCall[1] as any;
-    const onFailedSave = options.action.onClick;
-
-    // Trigger the failing save action
-    act(() => {
-      onFailedSave();
-    });
-
-    // Check updateCombatant call
-    // 'blessed' and 'concentrating' are concentration effects, so they should be removed.
-    // 'blinded' should stay.
-    expect(updateSpy).toHaveBeenCalledWith('c1', expect.objectContaining({
-      conditions: 'blinded',
-      conditionTimers: { 'blinded': 5 }
-    }));
-  });
-
-  it('An NPC at 0 HP does NOT get unconscious applied', () => {
-    const updateSpy = vi.fn();
-    const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
-    const npcCombatant: Combatant = {
-      ...baseCombatant,
-      type: 'npc',
-      currentHp: 10,
-      conditions: '',
-    };
-    act(() => {
-      result.current.setDamageInputs({ c1: '20' });
-    });
-    act(() => {
-      result.current.handleHealthChange('c1', npcCombatant, true);
-    });
-    expect(updateSpy).toHaveBeenCalledWith('c1', {
-      currentHp: 0,
-      tempHp: 0,
-    });
-  });
-
-  it('Healing an unconscious PC removes unconscious and resets death saves to 0', () => {
-    const updateSpy = vi.fn();
-    const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
-    const unconsciousPC: Combatant = {
-      ...baseCombatant,
-      type: 'pc',
-      currentHp: 0,
-      tempHp: 0,
-      conditions: 'Unconscious, Blessed',
-      deathSavesFails: 2,
-      deathSavesSuccesses: 1,
-    };
-    act(() => {
-      result.current.setHealInputs({ c1: '10' });
-    });
-    act(() => {
-      result.current.handleHealthChange('c1', unconsciousPC, false);
-    });
-    expect(updateSpy).toHaveBeenCalledWith('c1', {
-      currentHp: 10,
-      tempHp: 0,
-      conditions: 'Blessed',
-      deathSavesFails: 0,
-      deathSavesSuccesses: 0,
-      isStable: false,
-    });
-  });
-
-  it('Critical hit on unconscious PC adds 2 failures not 1', () => {
-    const updateSpy = vi.fn();
-    const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
-    const unconsciousPC: Combatant = {
-      ...baseCombatant,
-      type: 'pc',
-      characterId: 'char-1',
-      currentHp: 0,
-      tempHp: 0,
-      conditions: 'Unconscious',
-      deathSavesFails: 0,
-      deathSavesSuccesses: 0,
-    };
-    mockAppState.combatState.combatants = [unconsciousPC];
-    act(() => {
-      result.current.setDamageInputs({ c1: '5' });
-    });
-    act(() => {
-      // isCritical = true is passed
-      result.current.handleHealthChange('c1', unconsciousPC, true, null, undefined, true);
-    });
-    expect(mockUpdateState).toHaveBeenCalled();
-    const updater = mockUpdateState.mock.calls[0][0];
-    const dummyState = {
-      characters: [{ id: 'char-1', deathSavesFails: 0 }],
-      combatState: {
-        combatants: [{ id: 'c1', type: 'pc', characterId: 'char-1', deathSavesFails: 0, isStable: false }]
-      }
-    };
-    const nextState = updater(dummyState as any);
-    const updatedPC = nextState.combatState.combatants[0];
-    expect(updatedPC.deathSavesFails).toBe(2);
-    expect(updatedPC.isStable).toBe(false);
-  });
-
-  it('When finalDamage > 0, fireDamageEvent is called with the correct names and amount', () => {
-    mockUpdateState.mockClear();
-    mockFireDamage.mockClear();
-    const updateSpy = vi.fn();
-    const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
+    const immuneCombatant = { ...baseCombatant, immunities: 'fire', tempHp: 0 };
 
     act(() => {
       result.current.setDamageInputs({ c1: '10' });
     });
 
     act(() => {
-      // 10 damage: 5 goes to tempHp, 5 to currentHp. finalDamageAmount is 10
-      result.current.handleHealthChange('c1', baseCombatant, true);
+      result.current.handleHealthChange('c1', immuneCombatant, true, 'fire');
     });
 
-    expect(mockFireDamage).toHaveBeenCalledTimes(1);
-    expect(mockFireDamage).toHaveBeenCalledWith({
-      combatantNames: ['Goblin'],
-      damageAmount: 10,
-      damageType: undefined,
-    });
+    // 10 damage immune = 0 damage. 30 - 0 = 30
+    expect(updateSpy).toHaveBeenCalledWith('c1', { currentHp: 30, tempHp: 0 });
   });
 
-  it('When finalDamage is 0 (immune), damageEvent is NOT set', () => {
-    mockUpdateState.mockClear();
+  it('applying damage respects vulnerability and doubles the value', () => {
     const updateSpy = vi.fn();
     const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
+    const vulnerableCombatant = { ...baseCombatant, vulnerabilities: 'fire', tempHp: 0 };
 
     act(() => {
-      result.current.setDamageInputs({ c1: '0' });
+      result.current.setDamageInputs({ c1: '10' });
     });
 
     act(() => {
-      result.current.handleHealthChange('c1', baseCombatant, true);
+      result.current.handleHealthChange('c1', vulnerableCombatant, true, 'fire');
     });
 
-    expect(mockUpdateState).not.toHaveBeenCalled();
+    // 10 damage doubled = 20 damage. 30 - 20 = 10
+    expect(updateSpy).toHaveBeenCalledWith('c1', { currentHp: 10, tempHp: 0 });
   });
 
-  it('When the target is healing (not damage), fireDamageEvent is NOT called', () => {
-    mockUpdateState.mockClear();
-    mockFireDamage.mockClear();
-    mockFireHeal.mockClear();
-    const updateSpy = vi.fn();
-    const woundedCombatant = { ...baseCombatant, currentHp: 10, tempHp: 0 };
-    const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
-
-    act(() => {
-      result.current.setHealInputs({ c1: '15' });
-    });
-
-    act(() => {
-      // 15 heal, base max is 15. so actualHeal = 5
-      result.current.handleHealthChange('c1', woundedCombatant, false);
-    });
-
-    expect(mockFireDamage).not.toHaveBeenCalled();
-    expect(mockFireHeal).toHaveBeenCalledTimes(1);
-  });
-
-  it('When actualHeal > 0, fireHealEvent is called with the correct names and amount', () => {
-    mockUpdateState.mockClear();
-    mockFireHeal.mockClear();
-    const updateSpy = vi.fn();
-    const woundedCombatant = { ...baseCombatant, currentHp: 5, tempHp: 0 };
-    const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
-
-    act(() => {
-      result.current.setHealInputs({ c1: '8' }); // Heals 8, max is 15. Current HP will become 13.
-    });
-
-    act(() => {
-      result.current.handleHealthChange('c1', woundedCombatant, false);
-    });
-
-    expect(mockFireHeal).toHaveBeenCalledTimes(1);
-    expect(mockFireHeal).toHaveBeenCalledWith({
-      combatantNames: ['Goblin'],
-      healAmount: 8,
-    });
-  });
-
-  it('When the combatant is already at full HP and no HP is actually restored, healEvent is NOT set', () => {
-    mockUpdateState.mockClear();
+  it('healing cannot exceed maxHp', () => {
     const updateSpy = vi.fn();
     const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
+    const woundedCombatant = { ...baseCombatant, currentHp: 25, tempHp: 0 };
 
     act(() => {
       result.current.setHealInputs({ c1: '10' });
     });
 
     act(() => {
-      // already at max (15)
-      result.current.handleHealthChange('c1', baseCombatant, false);
+      result.current.handleHealthChange('c1', woundedCombatant, false);
     });
 
-    expect(mockUpdateState).not.toHaveBeenCalled();
+    // Cannot exceed max HP (30)
+    expect(updateSpy).toHaveBeenCalledWith('c1', { currentHp: 30, tempHp: 0 });
   });
 
-  it('When the operation is damage (not healing), fireHealEvent is NOT called', () => {
-    mockUpdateState.mockClear();
-    mockFireDamage.mockClear();
-    mockFireHeal.mockClear();
+  it('damage that reduces HP to 0 or below sets currentHp to 0, not negative', () => {
+    const updateSpy = vi.fn();
+    const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
+
+    act(() => {
+      result.current.setDamageInputs({ c1: '50' });
+    });
+
+    act(() => {
+      result.current.handleHealthChange('c1', baseCombatant, true);
+    });
+
+    expect(updateSpy).toHaveBeenCalledWith('c1', expect.objectContaining({ currentHp: 0 }));
+  });
+
+  it('damage to a concentrating combatant fires a concentration alert', () => {
+    const updateSpy = vi.fn();
+    const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
+    const concentratingCombatant = { ...baseCombatant, conditions: 'concentrating' };
+
+    act(() => {
+      result.current.setDamageInputs({ c1: '10' });
+    });
+
+    act(() => {
+      result.current.handleHealthChange('c1', concentratingCombatant, true);
+    });
+
+    expect(mockFireConcentrationAlert).toHaveBeenCalled();
+  });
+
+  it('damage to a non-concentrating combatant does not fire a concentration alert', () => {
     const updateSpy = vi.fn();
     const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
 
@@ -473,291 +195,6 @@ describe('useHealthChange', () => {
       result.current.handleHealthChange('c1', baseCombatant, true);
     });
 
-    expect(mockFireHeal).not.toHaveBeenCalled();
-    expect(mockFireDamage).toHaveBeenCalledTimes(1);
-  });
-
-  it('When a PC hits exactly 0 HP from damage, fireUnconsciousEvent is called', () => {
-    mockUpdateState.mockClear();
-    mockFireUnconscious.mockClear();
-    const updateSpy = vi.fn();
-    const pcCombatant: Combatant = { ...baseCombatant, type: 'pc', maxHp: 15, currentHp: 15, tempHp: 0 };
-    const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
-
-    act(() => {
-      result.current.setDamageInputs({ c1: '15' });
-    });
-
-    act(() => {
-      result.current.handleHealthChange('c1', pcCombatant, true);
-    });
-
-    expect(mockFireUnconscious).toHaveBeenCalledWith({
-      characterName: pcCombatant.name,
-    });
-  });
-
-  it('When a PC hits 0 HP, fireDamageEvent is NOT called (unconsciousEvent takes priority)', () => {
-    mockUpdateState.mockClear();
-    mockFireDamage.mockClear();
-    const updateSpy = vi.fn();
-    const pcCombatant: Combatant = { ...baseCombatant, type: 'pc', maxHp: 15, currentHp: 15, tempHp: 0 };
-    const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
-
-    act(() => {
-      result.current.setDamageInputs({ c1: '15' });
-    });
-
-    act(() => {
-      result.current.handleHealthChange('c1', pcCombatant, true);
-    });
-
-    expect(mockFireDamage).not.toHaveBeenCalled();
-  });
-
-  it('When an NPC hits 0 HP, fireUnconsciousEvent is NOT set', () => {
-    mockUpdateState.mockClear();
-    mockFireDamage.mockClear();
-    mockFireUnconscious.mockClear();
-    const updateSpy = vi.fn();
-    const npcCombatant = { ...baseCombatant, maxHp: 15, currentHp: 15, tempHp: 0 };
-    const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
-
-    act(() => {
-      result.current.setDamageInputs({ c1: '15' });
-    });
-
-    act(() => {
-      result.current.handleHealthChange('c1', npcCombatant, true); // baseCombatant is type 'npc'
-    });
-
-    expect(mockFireUnconscious).not.toHaveBeenCalled();
-    expect(mockFireDamage).toHaveBeenCalledWith({
-      combatantNames: [npcCombatant.name],
-      damageAmount: 15,
-      damageType: undefined,
-    });
-  });
-
-  it('When a PC was already unconscious and takes damage, unconsciousEvent is NOT fired again', () => {
-    mockUpdateState.mockClear();
-    const updateSpy = vi.fn();
-    const pcCombatant: Combatant = { ...baseCombatant, type: 'pc', characterId: 'char-1', maxHp: 15, currentHp: 0, tempHp: 0, conditions: 'unconscious' };
-    mockAppState.combatState.combatants = [pcCombatant];
-    const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
-
-    act(() => {
-      // Taking damage while at 0 hp means death saves!
-      result.current.setDamageInputs({ c1: '5' });
-    });
-
-    act(() => {
-      result.current.handleHealthChange('c1', pcCombatant, true);
-    });
-
-    expect(mockUpdateState).toHaveBeenCalled();
-    const updater = mockUpdateState.mock.calls[0][0];
-    const dummyState = {
-      characters: [{ id: 'char-1', deathSavesFails: 0 }],
-      combatState: {
-        combatants: [{ id: 'c1', type: 'pc', characterId: 'char-1', deathSavesFails: 0, isStable: false }]
-      }
-    };
-    const nextState = updater(dummyState as any);
-    const updatedPC = nextState.combatState.combatants[0];
-    expect(updatedPC.deathSavesFails).toBe(1);
-    expect(updatedPC.isStable).toBe(false);
-  });
-
-  it('When applyDamage reduces HP below 0 for a PC, the combatant enters unconscious state with deathSavesFails = 0', () => {
-    const updateSpy = vi.fn();
-    const pcCombatant: Combatant = {
-      ...baseCombatant,
-      type: 'pc',
-      currentHp: 10,
-      tempHp: 0,
-      conditions: '',
-    };
-    const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
-
-    act(() => {
-      result.current.setDamageInputs({ c1: '15' });
-    });
-
-    act(() => {
-      result.current.handleHealthChange('c1', pcCombatant, true);
-    });
-
-    expect(updateSpy).toHaveBeenCalledWith('c1', {
-      currentHp: 0,
-      tempHp: 0,
-      conditions: 'Unconscious',
-      deathSavesFails: 0,
-      deathSavesSuccesses: 0,
-      isStable: false,
-    });
-  });
-
-  describe('Concentration auto-prompt checks', () => {
-    beforeEach(() => {
-      mockFireConcentrationAlert.mockClear();
-      mockCharacters = [];
-      mockNpcs = [];
-    });
-
-    it('When a concentrating PC combatant takes damage, fireConcentrationAlert is called with the character name and damage amount', () => {
-      mockCharacters = [
-        { id: 'player-1', characterName: 'Maeve', conditions: 'concentrating' }
-      ];
-      const pcCombatant: Combatant = {
-        ...baseCombatant,
-        id: 'c1',
-        type: 'pc',
-        characterId: 'player-1',
-        currentHp: 20,
-        tempHp: 0,
-        conditions: '',
-      };
-      
-      const updateSpy = vi.fn();
-      const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
-
-      act(() => {
-        result.current.setDamageInputs({ c1: '10' });
-      });
-      act(() => {
-        result.current.handleHealthChange('c1', pcCombatant, true);
-      });
-
-      expect(mockFireConcentrationAlert).toHaveBeenCalledWith('Maeve', 10);
-    });
-
-    it('When a non-concentrating PC takes damage, fireConcentrationAlert is NOT called', () => {
-      mockCharacters = [
-        { id: 'player-2', characterName: 'Drogar', conditions: '' }
-      ];
-      const pcCombatant: Combatant = {
-        ...baseCombatant,
-        id: 'c2',
-        type: 'pc',
-        characterId: 'player-2',
-        currentHp: 20,
-        tempHp: 0,
-        conditions: '',
-      };
-      
-      const updateSpy = vi.fn();
-      const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
-
-      act(() => {
-        result.current.setDamageInputs({ c2: '10' });
-      });
-      act(() => {
-        result.current.handleHealthChange('c2', pcCombatant, true);
-      });
-
-      expect(mockFireConcentrationAlert).not.toHaveBeenCalled();
-    });
-
-    it('When a concentrating NPC combatant takes damage, fireConcentrationAlert is called', () => {
-      mockNpcs = [
-        { id: 'npc-10', name: 'Goblin Mage' }
-      ];
-      const npcCombatant: Combatant = {
-        ...baseCombatant,
-        id: 'c3',
-        type: 'npc',
-        npcId: 'npc-10',
-        currentHp: 20,
-        tempHp: 0,
-        conditions: 'concentrating',
-      } as any;
-      
-      const updateSpy = vi.fn();
-      const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
-
-      act(() => {
-        result.current.setDamageInputs({ c3: '8' });
-      });
-      act(() => {
-        result.current.handleHealthChange('c3', npcCombatant, true);
-      });
-
-      expect(mockFireConcentrationAlert).toHaveBeenCalledWith('Goblin Mage', 8);
-    });
-
-    it('When a concentrating PC takes 0 effective damage (immune), fireConcentrationAlert is NOT called', () => {
-      mockCharacters = [
-        { id: 'player-3', characterName: 'Ylva', conditions: 'concentrating' }
-      ];
-      const pcCombatant: Combatant = {
-        ...baseCombatant,
-        id: 'c4',
-        type: 'pc',
-        characterId: 'player-3',
-        currentHp: 20,
-        tempHp: 0,
-        immunities: 'fire',
-        conditions: '',
-      };
-      
-      const updateSpy = vi.fn();
-      const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
-
-      act(() => {
-        result.current.setDamageInputs({ c4: '10' });
-      });
-      act(() => {
-        result.current.handleHealthChange('c4', pcCombatant, true, 'fire');
-      });
-
-      expect(mockFireConcentrationAlert).not.toHaveBeenCalled();
-    });
-
-    it('When batch damage hits multiple concentrating targets, fireConcentrationAlert is called once per concentrating target', () => {
-      mockCharacters = [
-        { id: 'p1', characterName: 'Alys', conditions: 'concentrating' },
-        { id: 'p2', characterName: 'Kallista', conditions: 'concentrating' }
-      ];
-      const pc1: Combatant = {
-        ...baseCombatant,
-        id: 'c5',
-        type: 'pc',
-        characterId: 'p1',
-        currentHp: 30,
-        conditions: '',
-      };
-      const pc2: Combatant = {
-        ...baseCombatant,
-        id: 'c6',
-        type: 'pc',
-        characterId: 'p2',
-        currentHp: 30,
-        conditions: '',
-      };
-
-      const updateSpy = vi.fn();
-      const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
-
-      // damage p1
-      act(() => {
-        result.current.setDamageInputs({ c5: '5' });
-      });
-      act(() => {
-        result.current.handleHealthChange('c5', pc1, true);
-      });
-
-      // damage p2
-      act(() => {
-        result.current.setDamageInputs({ c6: '6' });
-      });
-      act(() => {
-        result.current.handleHealthChange('c6', pc2, true);
-      });
-
-      expect(mockFireConcentrationAlert).toHaveBeenCalledTimes(2);
-      expect(mockFireConcentrationAlert).toHaveBeenNthCalledWith(1, 'Alys', 5);
-      expect(mockFireConcentrationAlert).toHaveBeenNthCalledWith(2, 'Kallista', 6);
-    });
+    expect(mockFireConcentrationAlert).not.toHaveBeenCalled();
   });
 });

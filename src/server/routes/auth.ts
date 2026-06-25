@@ -26,6 +26,9 @@ router.get('/config', (req, res) => {
 router.post('/google-token', authLimiter, async (req, res) => {
   try {
     const { code, redirect_uri, refresh_token } = req.body;
+    if (!code && !refresh_token) {
+      return res.status(400).json({ error: 'Code or refresh_token is required' });
+    }
     const clientId =
       process.env.VITE_GOOGLE_CLIENT_ID ||
       process.env.CLIENT_ID ||

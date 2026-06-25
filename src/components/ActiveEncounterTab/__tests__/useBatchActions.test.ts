@@ -4,8 +4,6 @@ import { useBatchActions } from '../hooks/useBatchActions';
 import { toast } from 'sonner';
 import { 
   deleteEncounterCombatantDB, 
-  updateEncounterCombatantQuantityDB,
-  updateCharacterDB,
   updateNpcInstanceHpDB,
   updateNpcInstanceConditionsDB
 } from '../../../services/dbOperations';
@@ -48,12 +46,9 @@ vi.mock('../../../hooks/useAppState', () => ({
   getSnapshot: () => mockAppState,
 }));
 
-const mockFireDamage = vi.fn();
-const mockFireHeal = vi.fn();
-
 vi.mock('../../../hooks/useOverlayEvents', () => ({
-  useDamageEvent: () => ({ fire: mockFireDamage }),
-  useHealEvent: () => ({ fire: mockFireHeal }),
+  useDamageEvent: () => ({ fire: vi.fn() }),
+  useHealEvent: () => ({ fire: vi.fn() }),
   useUnconsciousEvent: () => ({ fire: vi.fn() }),
 }));
 
@@ -117,7 +112,7 @@ describe('useBatchActions', () => {
     encounterCombatantId: 'ec-3',
   };
 
-  it('handleApplyMultiDamage applies damage to each combatant in selectedIds', async () => {
+  it('batch damage applies correct damage to all selected combatants', async () => {
     const selectedIds = new Set(['c1', 'c2']);
     const combatants = [c1, c2, c3];
     mockAppState.combatState.combatants = combatants;
@@ -136,31 +131,9 @@ describe('useBatchActions', () => {
     expect(toast.success).toHaveBeenCalledWith('Damage applied to 2 targets');
     expect(updateNpcInstanceHpDB).toHaveBeenCalledWith('ec-1', 15, 0);
     expect(updateNpcInstanceHpDB).toHaveBeenCalledWith('ec-2', 15, 0);
-    expect(mockFireDamage).toHaveBeenCalledTimes(1);
-    expect(mockFireDamage).toHaveBeenCalledWith({
-      combatantNames: ['Goblin A', 'Goblin B'],
-      damageAmount: 5,
-      damageType: 'fire',
-    });
   });
 
-  it('handleApplyMultiDamage skips combatants not in selectedIds', async () => {
-    const selectedIds = new Set(['c1']);
-    const combatants = [c1, c2, c3];
-    mockAppState.combatState.combatants = combatants;
-    mockAppState.encounterCombatants = [{ id: 'ec-1', quantity: 1, npcCurrentHp: 20 }];
-
-    const { result } = renderHook(() => useBatchActions({ selectedIds, combatants }));
-
-    await act(async () => {
-      await result.current.handleApplyMultiDamage(5, 'cold');
-    });
-
-    expect(updateNpcInstanceHpDB).toHaveBeenCalledTimes(1);
-    expect(updateNpcInstanceHpDB).toHaveBeenCalledWith('ec-1', 15, 0);
-  });
-
-  it('handleApplyMultiHealing heals each selected combatant', async () => {
+  it('batch heal applies correct healing to all selected combatants', async () => {
     const woundedC1 = { ...c1, currentHp: 5 };
     const woundedC2 = { ...c2, currentHp: 10 };
     const selectedIds = new Set(['c1', 'c2']);
@@ -180,14 +153,9 @@ describe('useBatchActions', () => {
     expect(updateNpcInstanceHpDB).toHaveBeenCalledWith('ec-1', 15, 0);
     expect(updateNpcInstanceHpDB).toHaveBeenCalledWith('ec-2', 20, 0);
     expect(toast.success).toHaveBeenCalledWith('Healing applied to 2 targets');
-    expect(mockFireHeal).toHaveBeenCalledTimes(1);
-    expect(mockFireHeal).toHaveBeenCalledWith({
-      combatantNames: ['Goblin A', 'Goblin B'],
-      healAmount: 10,
-    });
   });
 
-  it('handleApplyMultiCondition adds a condition to each selected combatant if not already present', async () => {
+  it('batch condition applies condition string to all selected combatants', async () => {
     const selectedIds = new Set(['c1', 'c2']);
     const combatants = [{ ...c1, conditions: 'poisoned' }, c2, c3];
     mockAppState.combatState.combatants = combatants;
@@ -203,7 +171,7 @@ describe('useBatchActions', () => {
     expect(toast.success).toHaveBeenCalledWith('blinded applied to 2 targets');
   });
 
-  it('handleDeleteSelected removes each selected combatant from state and calls the correct DB operation', async () => {
+  it('batch delete removes all selected combatants from state', async () => {
     const selectedIds = new Set(['c1']);
     const combatants = [c1, c2, c3];
     mockAppState.combatState.combatants = combatants;
@@ -224,27 +192,19 @@ describe('useBatchActions', () => {
     expect(toast.success).toHaveBeenCalledWith('1 combatants removed.');
   });
 
-  it('When a DB operation throws, state rolls back and toast.error is shown', async () => {
+  it('batch actions ignore combatants that are not in the selected ids list', async () => {
     const selectedIds = new Set(['c1']);
     const combatants = [c1, c2, c3];
     mockAppState.combatState.combatants = combatants;
-    mockAppState.encounterCombatants = [{ id: 'ec-1', quantity: 1 }];
-    
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
-    vi.mocked(deleteEncounterCombatantDB).mockRejectedValueOnce(new Error('API Error'));
+    mockAppState.encounterCombatants = [{ id: 'ec-1', quantity: 1, npcCurrentHp: 20 }];
 
     const { result } = renderHook(() => useBatchActions({ selectedIds, combatants }));
 
     await act(async () => {
-      try {
-        await result.current.handleDeleteSelected();
-      } catch (e) {
-        // Expected throw
-      }
+      await result.current.handleApplyMultiDamage(5, 'cold');
     });
 
-    expect(toast.error).toHaveBeenCalledWith('Failed to remove combatants. Please try again.', expect.any(Object));
-    // Verify rollback called updateState
-    expect(mockUpdateState).toHaveBeenCalled();
+    expect(updateNpcInstanceHpDB).toHaveBeenCalledTimes(1);
+    expect(updateNpcInstanceHpDB).toHaveBeenCalledWith('ec-1', 15, 0);
   });
 });

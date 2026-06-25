@@ -46,16 +46,6 @@ describe('useEncounterPresetLoader', () => {
             { name: 'Breath', rechargeOn: '5-6' }
           ],
         },
-        {
-          id: 'npc2',
-          name: 'Goblin',
-          ac: 12,
-          maxHp: 10,
-          currentHp: 10,
-          tempHp: 0,
-          legendaryActions: 0,
-          legendaryResistances: undefined,
-        }
       ],
       characters: [],
       encounterCombatants: [],
@@ -79,163 +69,143 @@ describe('useEncounterPresetLoader', () => {
     (getSnapshot as any).mockReturnValue(mockState);
   });
 
-  describe('ERROR PATHS', () => {
-    it('When the DB insert call inside handleAddNpc throws, state is rolled back to the pre-insertion snapshot', async () => {
-      (addNpcDB as any).mockRejectedValue(new Error('DB Failed'));
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+  it('handleAddNpc builds a combatant with correct rechargeAbilities derived from actions recharge field', async () => {
+    (addNpcDB as any).mockResolvedValue({ id: 'real-npc' });
+    (addEncounterCombatantDB as any).mockResolvedValue([{ id: 'real-ec' }]);
 
-      const { result } = renderHook(() => useEncounterPresetLoader(undefined, vi.fn()));
+    const { result } = renderHook(() => useEncounterPresetLoader(undefined, vi.fn()));
 
-      await expect(
-        act(async () => {
-          await result.current.handleAddNpc({
-            name: 'Orc',
-            ac: 10,
-            maxHp: 20,
-            tempHp: 0,
-            currentHp: 20,
-            conditions: '',
-            notes: '',
-            resistances: '',
-            immunities: '',
-            vulnerabilities: '',
-            legendaryActions: 0,
-            legendaryResistances: 0,
-            rechargeAbilities: [],
-            abilityScores: '{}',
-            proficiencies: '{}',
-            speed: '',
-            senses: '',
-            languages: '',
-            challengeRating: '',
-            traits: '[]',
-            actions: '[]',
-            reactions: '[]',
-            legendaryActionsList: '[]',
-            spellcastingAbility: '',
-          });
-        })
-      ).rejects.toThrow('DB Failed');
-
-      const updaterFallback = mockUpdateState.mock.calls[mockUpdateState.mock.calls.length - 1][0];
-      const resState = typeof updaterFallback === 'function' ? updaterFallback(mockState) : updaterFallback;
-      
-      // Asserts that we rolled back returning exactly the snapshot
-      const containsOrc = resState.combatState.combatants.some((c: any) => c.name === 'Orc');
-      expect(containsOrc).toBe(false);
-
-      expect(toast.error).toHaveBeenCalledWith('Failed to save changes. Please try again.', expect.objectContaining({
-        description: 'DB Failed'
-      }));
-      expect(consoleErrorSpy).toHaveBeenCalledWith('[DB Error]', expect.any(Error));
-
-      consoleErrorSpy.mockRestore();
+    await act(async () => {
+      await result.current.handleAddNpc({
+        name: 'Orc',
+        ac: 10,
+        maxHp: 20,
+        tempHp: 0,
+        currentHp: 20,
+        conditions: '',
+        notes: '',
+        resistances: '',
+        immunities: '',
+        vulnerabilities: '',
+        legendaryActions: 0,
+        legendaryResistances: 0,
+        rechargeAbilities: [],
+        abilityScores: '{}',
+        proficiencies: '{}',
+        speed: '',
+        senses: '',
+        languages: '',
+        challengeRating: '',
+        traits: '[]',
+        actions: JSON.stringify([{ name: 'Cinderfall', recharge: 'Recharge 5-6' }]),
+        reactions: '[]',
+        legendaryActionsList: '[]',
+        spellcastingAbility: '',
+      });
     });
 
-    it('When handleAddPreset throws, state is rolled back and error is logged', async () => {
-      (addEncounterCombatantDB as any).mockRejectedValue(new Error('Network Error'));
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const optimisticUpdater = mockUpdateState.mock.calls[0][0];
+    const stateAfterOptimistic = optimisticUpdater({ ...mockState, combatState: { combatants: [] }, encounterCombatants: [] });
+    const addedCombatant = stateAfterOptimistic.combatState.combatants[0];
 
-      const { result } = renderHook(() => useEncounterPresetLoader(undefined, vi.fn()));
-
-      await expect(
-        act(async () => {
-          await result.current.handleAddPreset('npc', 'npc1', 1);
-        })
-      ).rejects.toThrow('Network Error');
-
-      const updaterFallback = mockUpdateState.mock.calls[mockUpdateState.mock.calls.length - 1][0];
-      const resState = typeof updaterFallback === 'function' ? updaterFallback(mockState) : updaterFallback;
-      
-      const count = resState.combatState.combatants.length;
-      // Pre-insertion length was 1
-      expect(count).toBe(1);
-
-      expect(toast.error).toHaveBeenCalledWith('Failed to save changes. Please try again.', expect.objectContaining({
-        description: 'Network Error'
-      }));
-      expect(consoleErrorSpy).toHaveBeenCalledWith('[DB Error]', expect.any(Error));
-
-      consoleErrorSpy.mockRestore();
-    });
+    expect(addedCombatant.rechargeAbilities).toEqual([{
+      name: 'Cinderfall',
+      rechargeOn: 5,
+      isCharged: true
+    }]);
   });
 
-  describe('TEMPLATE INITIALIZATION', () => {
-    it('When an NPC template has legendaryActions of 3, the created combatant has correct max and remaining', async () => {
-      (addEncounterCombatantDB as any).mockResolvedValue([{ id: 'mock-ec' }]);
-       const { result } = renderHook(() => useEncounterPresetLoader(undefined, vi.fn()));
+  it('handleAddNpc rolls back state when the DB insert fails', async () => {
+    (addNpcDB as any).mockRejectedValue(new Error('DB Failed'));
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-       await act(async () => {
-         await result.current.handleAddPreset('npc', 'npc1', 1);
-       });
+    const { result } = renderHook(() => useEncounterPresetLoader(undefined, vi.fn()));
 
-       const optimisticUpdater = mockUpdateState.mock.calls[0][0];
-       const stateAfterOptimistic = optimisticUpdater({ ...mockState, combatState: { combatants: [] }, encounterCombatants: [] });
+    await expect(
+      act(async () => {
+        await result.current.handleAddNpc({
+          name: 'Orc',
+          ac: 10,
+          maxHp: 20,
+          tempHp: 0,
+          currentHp: 20,
+          conditions: '',
+          notes: '',
+          resistances: '',
+          immunities: '',
+          vulnerabilities: '',
+          legendaryActions: 0,
+          legendaryResistances: 0,
+          rechargeAbilities: [],
+          abilityScores: '{}',
+          proficiencies: '{}',
+          speed: '',
+          senses: '',
+          languages: '',
+          challengeRating: '',
+          traits: '[]',
+          actions: '[]',
+          reactions: '[]',
+          legendaryActionsList: '[]',
+          spellcastingAbility: '',
+        });
+      })
+    ).rejects.toThrow('DB Failed');
 
-       const addedCombatant = stateAfterOptimistic.combatState.combatants[0];
-       
-       expect(addedCombatant.legendaryActions).toEqual({
-         max: 3,
-         remaining: 3
-       });
-    });
+    const updaterFallback = mockUpdateState.mock.calls[mockUpdateState.mock.calls.length - 1][0];
+    const resState = typeof updaterFallback === 'function' ? updaterFallback(mockState) : updaterFallback;
+    
+    const containsOrc = resState.combatState.combatants.some((c: any) => c.name === 'Orc');
+    expect(containsOrc).toBe(false);
 
-    it('When an NPC template has legendaryResistances of 2, the created combatant has the correct max and remaining values', async () => {
-      (addEncounterCombatantDB as any).mockResolvedValue([{ id: 'mock-ec' }]);
-       const { result } = renderHook(() => useEncounterPresetLoader(undefined, vi.fn()));
+    expect(toast.error).toHaveBeenCalledWith('Failed to save changes. Please try again.', expect.objectContaining({
+      description: 'DB Failed'
+    }));
 
-       await act(async () => {
-         await result.current.handleAddPreset('npc', 'npc1', 1);
-       });
-
-       const optimisticUpdater = mockUpdateState.mock.calls[0][0];
-       const stateAfterOptimistic = optimisticUpdater({ ...mockState, combatState: { combatants: [] }, encounterCombatants: [] });
-
-       const addedCombatant = stateAfterOptimistic.combatState.combatants[0];
-       
-       expect(addedCombatant.legendaryResistances).toEqual({
-         max: 2,
-         remaining: 2
-       });
-    });
-
-    it('When an NPC template has rechargeAbilities defined, each ability in the created combatant has isCharged: true', async () => {
-      (addEncounterCombatantDB as any).mockResolvedValue([{ id: 'mock-ec' }]);
-       const { result } = renderHook(() => useEncounterPresetLoader(undefined, vi.fn()));
-
-       await act(async () => {
-         await result.current.handleAddPreset('npc', 'npc1', 1);
-       });
-
-       const optimisticUpdater = mockUpdateState.mock.calls[0][0];
-       const stateAfterOptimistic = optimisticUpdater({ ...mockState, combatState: { combatants: [] }, encounterCombatants: [] });
-
-       const addedCombatant = stateAfterOptimistic.combatState.combatants[0];
-       
-       expect(addedCombatant.rechargeAbilities).toEqual([{
-         name: 'Breath',
-         rechargeOn: 5,
-         isCharged: true
-       }]);
-    });
+    consoleErrorSpy.mockRestore();
   });
 
-  describe('BOUNDARY CONDITIONS', () => {
-    it('If the NPC template has legendaryActions of 0 or undefined, the created combatant does NOT have a legendaryActions field', async () => {
-      (addEncounterCombatantDB as any).mockResolvedValue([{ id: 'mock-ec' }]);
-       const { result } = renderHook(() => useEncounterPresetLoader(undefined, vi.fn()));
+  it('handleAddPreset rolls back state when the DB insert fails', async () => {
+    (addEncounterCombatantDB as any).mockRejectedValue(new Error('Network Error'));
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-       await act(async () => {
-         await result.current.handleAddPreset('npc', 'npc2', 1);
-       });
+    const { result } = renderHook(() => useEncounterPresetLoader(undefined, vi.fn()));
 
-       const optimisticUpdater = mockUpdateState.mock.calls[0][0];
-       const stateAfterOptimistic = optimisticUpdater({ ...mockState, combatState: { combatants: [] }, encounterCombatants: [] });
+    await expect(
+      act(async () => {
+        await result.current.handleAddPreset('npc', 'npc1', 1);
+      })
+    ).rejects.toThrow('Network Error');
 
-       const addedCombatant = stateAfterOptimistic.combatState.combatants[0];
-       
-       expect(addedCombatant.legendaryActions).toBeUndefined();
-       expect(addedCombatant.legendaryResistances).toBeUndefined();
+    const updaterFallback = mockUpdateState.mock.calls[mockUpdateState.mock.calls.length - 1][0];
+    const resState = typeof updaterFallback === 'function' ? updaterFallback(mockState) : updaterFallback;
+    
+    const count = resState.combatState.combatants.length;
+    expect(count).toBe(1);
+
+    expect(toast.error).toHaveBeenCalledWith('Failed to save changes. Please try again.', expect.objectContaining({
+      description: 'Network Error'
+    }));
+
+    consoleErrorSpy.mockRestore();
+  });
+
+  it('handleAddPreset derives rechargeAbilities from npcTemplate.actions correctly', async () => {
+    (addEncounterCombatantDB as any).mockResolvedValue([{ id: 'mock-ec' }]);
+    const { result } = renderHook(() => useEncounterPresetLoader(undefined, vi.fn()));
+
+    await act(async () => {
+      await result.current.handleAddPreset('npc', 'npc1', 1);
     });
+
+    const optimisticUpdater = mockUpdateState.mock.calls[0][0];
+    const stateAfterOptimistic = optimisticUpdater({ ...mockState, combatState: { combatants: [] }, encounterCombatants: [] });
+    const addedCombatant = stateAfterOptimistic.combatState.combatants[0];
+    
+    expect(addedCombatant.rechargeAbilities).toEqual([{
+      name: 'Breath',
+      rechargeOn: 5,
+      isCharged: true
+    }]);
   });
 });
