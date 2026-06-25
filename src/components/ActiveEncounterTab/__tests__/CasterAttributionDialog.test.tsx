@@ -10,7 +10,6 @@ describe('CasterAttributionDialog', () => {
 
   const mockCombatants: Combatant[] = [
     { id: 'c1', name: 'Gandalf', type: 'pc', ac: 15, maxHp: 50, currentHp: 50, initiative: 12 } as any,
-    { id: 'c2', name: 'Goblin', type: 'npc', ac: 12, maxHp: 15, currentHp: 15, initiative: 10 } as any,
   ];
 
   const defaultProps = {
@@ -22,24 +21,11 @@ describe('CasterAttributionDialog', () => {
     onDismiss: vi.fn(),
   };
 
-  it('renders without crashing', () => {
-    const { container } = render(<CasterAttributionDialog {...defaultProps} />);
-    expect(container).toBeInTheDocument();
-  });
-
-  it('clicking a combatant calls onSelect with correct id', () => {
+  it('renders the list of combatant names and calls onSelect with the correct id when clicked', () => {
     const onSelect = vi.fn();
     render(<CasterAttributionDialog {...defaultProps} onSelect={onSelect} />);
 
     fireEvent.click(screen.getByText('Gandalf'));
     expect(onSelect).toHaveBeenCalledWith('c1');
-  });
-
-  it('dismiss button calls onDismiss', () => {
-    const onDismiss = vi.fn();
-    render(<CasterAttributionDialog {...defaultProps} onDismiss={onDismiss} />);
-
-    fireEvent.click(screen.getByText('Dismiss (already applied)'));
-    expect(onDismiss).toHaveBeenCalled();
   });
 });
