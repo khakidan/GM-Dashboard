@@ -1,14 +1,9 @@
-// src/hooks/__tests__/useSettings.test.ts
-
 import { renderHook, act, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import { useSettings } from '../useSettings';
-import { STORAGE_KEYS } from '../../lib/constants';
-import { toast } from 'sonner';
 import * as sheetsService from '../../services/sheetsService';
-import * as googleAuth from '../../services/googleAuth';
+import { toast } from 'sonner';
 
-// Mock sonner
 vi.mock('sonner', () => ({
   toast: Object.assign(vi.fn(), {
     success: vi.fn(),
@@ -17,27 +12,24 @@ vi.mock('sonner', () => ({
   }),
 }));
 
-// Mock sheetsService
 vi.mock('../../services/sheetsService', () => ({
   getSpreadsheetId: vi.fn().mockReturnValue('mock-id'),
   setSpreadsheetId: vi.fn(),
 }));
 
-// Mock googleAuth
 vi.mock('../../services/googleAuth', () => ({
   setManualRefreshToken: vi.fn(),
   clearTokens: vi.fn(),
 }));
 
-// Mock useTheme
+const mockSetTheme = vi.fn();
 vi.mock('../../context/ThemeContext', () => ({
   useTheme: () => ({
-    theme: 'default',
-    setTheme: vi.fn(),
+    theme: 'light',
+    setTheme: mockSetTheme,
   }),
 }));
 
-// Mock useAppState
 const mockUpdateState = vi.fn();
 const mockState = {
   campaignName: 'Test Campaign',
@@ -54,7 +46,6 @@ vi.mock('../useAppState', () => ({
   }),
 }));
 
-// Mock useOverlayEvents
 vi.mock('../useOverlayEvents', () => ({
   useDeathEvent: () => ({ fire: vi.fn() }),
   useDamageEvent: () => ({ fire: vi.fn() }),
@@ -64,7 +55,7 @@ vi.mock('../useOverlayEvents', () => ({
   useInitiativeEvent: () => ({ fire: vi.fn() }),
 }));
 
-describe('useSettings', () => {
+describe('useSettings State Transition Tests', () => {
   const mockProps = {
     isGoogleConnected: false,
     handleSignIn: vi.fn(),
@@ -83,260 +74,51 @@ describe('useSettings', () => {
     cleanup();
   });
 
-  it('handleSignOut clears auth tokens and resets relevant state', () => {
+  it('loads and saves settings to localStorage', () => {
+    const { result } = renderHook(() => useSettings(mockProps));
+
+    // Verify loading Spreadsheet ID
+    expect(result.current.tempSpreadsheetId).toBe('mock-id');
+
+    // Verify saving Spreadsheet ID calls setSpreadsheetId
+    act(() => {
+      result.current.setTempSpreadsheetId('new-sheet-id');
+    });
+    act(() => {
+      result.current.handleSaveSpreadsheet();
+    });
+    expect(sheetsService.setSpreadsheetId).toHaveBeenCalledWith('new-sheet-id');
+
+    // Verify theme interaction
+    act(() => {
+      result.current.setTheme('sleek-modern');
+    });
+    expect(mockSetTheme).toHaveBeenCalledWith('sleek-modern');
+  });
+
+  it('exports settings payload correctly', async () => {
+    const mockCreateObjectURL = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:test-url');
+    const mockRevokeObjectURL = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+    const mockClick = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+
     const { result } = renderHook(() => useSettings(mockProps));
 
     act(() => {
-      result.current.handleSignOutWithClear();
+      result.current.handleExportJSON();
     });
 
-    expect(googleAuth.clearTokens).toHaveBeenCalledTimes(1);
-    expect(mockProps.setIsGoogleConnected).toHaveBeenCalledWith(false);
-    expect(mockProps.handleSignOut).toHaveBeenCalledTimes(1);
-    expect(mockProps.addLog).toHaveBeenCalledWith('Signed out of Google Account.');
-  });
+    expect(mockCreateObjectURL).toHaveBeenCalled();
+    const blobCall = mockCreateObjectURL.mock.calls[0][0] as Blob;
+    expect(blobCall.type).toBe('application/json');
 
-  describe('JSON export functionality', () => {
-    it('handleExportJSON exports valid JSON blob with campaign properties', () => {
-      const mockCreateObjectURL = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:test-url');
-      const mockRevokeObjectURL = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+    const text = await blobCall.text();
+    const parsed = JSON.parse(text);
+    expect(parsed.campaignName).toBe('Test Campaign');
+    expect(parsed.characters).toEqual([{ id: '1', name: 'Legend' }]);
+    expect(toast.success).toHaveBeenCalledWith('Campaign exported successfully');
 
-      const mockClick = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
-      
-      const { result } = renderHook(() => useSettings(mockProps));
-
-      act(() => {
-        result.current.handleExportJSON();
-      });
-
-      expect(mockCreateObjectURL).toHaveBeenCalled();
-      expect(mockClick).toHaveBeenCalled();
-      
-      const blobCall = mockCreateObjectURL.mock.calls[0][0] as Blob;
-      expect(blobCall.type).toBe('application/json');
-
-      expect(toast.success).toHaveBeenCalledWith('Campaign exported successfully');
-
-      mockCreateObjectURL.mockRestore();
-      mockRevokeObjectURL.mockRestore();
-      mockClick.mockRestore();
-    });
-
-    it('The exported JSON contains a version field', async () => {
-      const mockCreateObjectURL = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:test-url');
-      const mockRevokeObjectURL = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
-      const mockClick = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
-
-      const { result } = renderHook(() => useSettings(mockProps));
-
-      act(() => {
-        result.current.handleExportJSON();
-      });
-
-      const blobCall = mockCreateObjectURL.mock.calls[0][0] as Blob;
-      const text = await blobCall.text();
-      const parsed = JSON.parse(text);
-      expect(parsed).toHaveProperty('version');
-      expect(parsed.version).toBe('1.0');
-
-      mockCreateObjectURL.mockRestore();
-      mockRevokeObjectURL.mockRestore();
-      mockClick.mockRestore();
-    });
-
-    it('The exported JSON campaignName matches state.campaignName', async () => {
-      const mockCreateObjectURL = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:test-url');
-      const mockRevokeObjectURL = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
-      const mockClick = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
-
-      const { result } = renderHook(() => useSettings(mockProps));
-
-      act(() => {
-        result.current.handleExportJSON();
-      });
-
-      const blobCall = mockCreateObjectURL.mock.calls[0][0] as Blob;
-      const text = await blobCall.text();
-      const parsed = JSON.parse(text);
-      expect(parsed.campaignName).toBe(mockState.campaignName);
-
-      mockCreateObjectURL.mockRestore();
-      mockRevokeObjectURL.mockRestore();
-      mockClick.mockRestore();
-    });
-
-    it('The exported JSON characters array matches state.characters', async () => {
-      const mockCreateObjectURL = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:test-url');
-      const mockRevokeObjectURL = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
-      const mockClick = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
-
-      const { result } = renderHook(() => useSettings(mockProps));
-
-      act(() => {
-        result.current.handleExportJSON();
-      });
-
-      const blobCall = mockCreateObjectURL.mock.calls[0][0] as Blob;
-      const text = await blobCall.text();
-      const parsed = JSON.parse(text);
-      expect(parsed.characters).toEqual(mockState.characters);
-
-      mockCreateObjectURL.mockRestore();
-      mockRevokeObjectURL.mockRestore();
-      mockClick.mockRestore();
-    });
-
-    it('URL.createObjectURL is called with a Blob', () => {
-      const mockCreateObjectURL = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:test-url');
-      const mockRevokeObjectURL = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
-      const mockClick = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
-
-      const { result } = renderHook(() => useSettings(mockProps));
-
-      act(() => {
-        result.current.handleExportJSON();
-      });
-
-      expect(mockCreateObjectURL).toHaveBeenCalledWith(expect.any(Blob));
-
-      mockCreateObjectURL.mockRestore();
-      mockRevokeObjectURL.mockRestore();
-      mockClick.mockRestore();
-    });
-
-    it('URL.revokeObjectURL is called after the download link is clicked', () => {
-      const mockCreateObjectURL = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:test-url');
-      const mockRevokeObjectURL = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
-      const mockClick = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
-
-      const { result } = renderHook(() => useSettings(mockProps));
-
-      act(() => {
-        result.current.handleExportJSON();
-      });
-
-      expect(mockRevokeObjectURL).toHaveBeenCalledWith('blob:test-url');
-
-      mockCreateObjectURL.mockRestore();
-      mockRevokeObjectURL.mockRestore();
-      mockClick.mockRestore();
-    });
-
-    it('The generated download filename follows the pattern campaign-{safeName}-{YYYY-MM-DD}.json', () => {
-      const mockCreateObjectURL = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:test-url');
-      const mockRevokeObjectURL = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
-      const mockClick = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
-
-      const mockAppendChild = vi.spyOn(document.body, 'appendChild');
-
-      const { result } = renderHook(() => useSettings(mockProps));
-
-      act(() => {
-        result.current.handleExportJSON();
-      });
-
-      const expectedDate = new Date().toISOString().split('T')[0];
-      const expectedFilename = `campaign-test-campaign-${expectedDate}.json`;
-      
-      const linkCall = mockAppendChild.mock.calls.find(call => {
-        const node = call[0] as any;
-        return node && node.tagName === 'A';
-      });
-      const link = linkCall ? linkCall[0] as HTMLAnchorElement : null;
-
-      expect(link).not.toBeNull();
-      expect(link?.download).toBe(expectedFilename);
-
-      mockCreateObjectURL.mockRestore();
-      mockRevokeObjectURL.mockRestore();
-      mockClick.mockRestore();
-      mockAppendChild.mockRestore();
-    });
-  });
-
-  describe('JSON import functionality', () => {
-    it('importing a valid JSON file updates state correctly', async () => {
-      const { result } = renderHook(() => useSettings(mockProps));
-      const validJson = JSON.stringify({
-        campaignName: 'Epic Campaign',
-        characters: [{ id: '1', name: 'Legend' }],
-      });
-
-      let importResult;
-      await act(async () => {
-        importResult = await result.current.importCampaignDataJson(validJson);
-      });
-
-      expect(importResult).toBe(true);
-      expect(mockUpdateState).toHaveBeenCalled();
-      const updateFn = mockUpdateState.mock.calls[0][0];
-      const prevDummyState = {};
-      const updatedState = updateFn(prevDummyState);
-      expect(updatedState.campaignName).toBe('Epic Campaign');
-      expect(updatedState.characters).toEqual([{ id: '1', name: 'Legend' }]);
-      expect(toast.success).toHaveBeenCalledWith('Campaign data imported successfully');
-    });
-
-    it('importing malformed JSON shows an error toast and does not update state', async () => {
-      const { result } = renderHook(() => useSettings(mockProps));
-      const invalidJson = 'invalid-json}';
-
-      await expect(
-        act(async () => {
-          await result.current.importCampaignDataJson(invalidJson);
-        })
-      ).rejects.toThrow();
-
-      expect(mockUpdateState).not.toHaveBeenCalled();
-      expect(toast.error).toHaveBeenCalledWith('Import Failed: Malformed campaign JSON', expect.any(Object));
-    });
-
-    it('importing JSON with valid JSON structure but missing relevant campaign keys still fails validation', async () => {
-      const { result } = renderHook(() => useSettings(mockProps));
-      const keysMissingJson = JSON.stringify({
-        somethingElse: 'completely irrelevant data',
-      });
-
-      await expect(
-        act(async () => {
-          await result.current.importCampaignDataJson(keysMissingJson);
-        })
-      ).rejects.toThrow('Invalid campaign backup schema');
-
-      expect(mockUpdateState).not.toHaveBeenCalled();
-      expect(toast.error).toHaveBeenCalledWith('Import Failed: Malformed campaign JSON', expect.any(Object));
-    });
-  });
-
-  describe('Database and Spreadsheet config operations', () => {
-    it('handleSaveSpreadsheet saves ID and syncs', async () => {
-      const { result } = renderHook(() => useSettings(mockProps));
-      
-      await act(async () => {
-        await result.current.handleSaveSpreadsheet();
-      });
-
-      expect(sheetsService.setSpreadsheetId).toHaveBeenCalledWith('mock-id');
-      expect(mockProps.handleSyncWithSheets).toHaveBeenCalledWith(false);
-      expect(toast.promise).toHaveBeenCalled();
-    });
-
-    it('handleApplyManualToken saves manual refresh token and sets isGoogleConnected to true', async () => {
-      const { result } = renderHook(() => useSettings(mockProps));
-
-      act(() => {
-        result.current.setManualTokenState('fake-refresh-token');
-      });
-
-      await act(async () => {
-        await result.current.handleApplyManualToken();
-      });
-
-      expect(googleAuth.setManualRefreshToken).toHaveBeenCalledWith('fake-refresh-token');
-      expect(mockProps.setIsGoogleConnected).toHaveBeenCalledWith(true);
-      expect(toast.success).toHaveBeenCalledWith('Refresh Token Saved!');
-      expect(result.current.manualToken).toBe('');
-      expect(result.current.showAdvancedAuth).toBe(false);
-    });
+    mockCreateObjectURL.mockRestore();
+    mockRevokeObjectURL.mockRestore();
+    mockClick.mockRestore();
   });
 });

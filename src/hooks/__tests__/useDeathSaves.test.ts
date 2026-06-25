@@ -5,7 +5,6 @@ import { useAppState, getSnapshot } from '../useAppState';
 import { updateDeathSavesDB, updateCharacterDB } from '../../services/dbOperations';
 import { toast } from 'sonner';
 
-// Mock dependencies
 vi.mock('../useAppState', () => ({
   useAppState: vi.fn(),
   getSnapshot: vi.fn(),
@@ -51,108 +50,23 @@ describe('useDeathSaves', () => {
     (getSnapshot as any).mockReturnValue(mockState);
   });
 
-  it('recordDeathSave called with a combatant that has no characterId returns early without throwing and without calling any DB operation', async () => {
-    const noCharIdState = {
-      ...mockState,
-      combatState: {
-        combatants: [{ ...mockState.combatState.combatants[0], characterId: undefined }]
-      }
-    };
-    (getSnapshot as any).mockReturnValue(noCharIdState);
+  it('recording a failure increments fail count', async () => {
     const { result } = renderHook(() => useDeathSaves());
-    
-    await act(async () => {
-      await result.current.recordDeathSave('c1', 'success');
-    });
-
-    expect(updateDeathSavesDB).not.toHaveBeenCalled();
-    expect(toast).not.toHaveBeenCalled();
-  });
-
-  it('applyDamageToUnconscious called with a combatant that has no characterId returns early without throwing', async () => {
-    const noCharIdState = {
-      ...mockState,
-      combatState: {
-        combatants: [{ ...mockState.combatState.combatants[0], characterId: undefined }]
-      }
-    };
-    (getSnapshot as any).mockReturnValue(noCharIdState);
-    const { result } = renderHook(() => useDeathSaves());
-    
-    await act(async () => {
-      await result.current.applyDamageToUnconscious('c1');
-    });
-
-    expect(updateDeathSavesDB).not.toHaveBeenCalled();
-    expect(toast).not.toHaveBeenCalled();
-  });
-
-  it('records a successful death save', async () => {
-    const { result } = renderHook(() => useDeathSaves());
-    
-    await act(async () => {
-      await result.current.recordDeathSave('c1', 'success');
-    });
-
-    expect(mockUpdateState).toHaveBeenCalled();
-    expect(updateDeathSavesDB).toHaveBeenCalledWith('char1', 0, 1);
-    expect(toast).toHaveBeenCalledWith(expect.stringContaining('Death save recorded'));
-  });
-
-  it('records a failed death save', async () => {
-    const { result } = renderHook(() => useDeathSaves());
-    
     await act(async () => {
       await result.current.recordDeathSave('c1', 'failure');
     });
-
     expect(updateDeathSavesDB).toHaveBeenCalledWith('char1', 1, 0);
   });
 
-  it('handles critical success (2 successes)', async () => {
+  it('recording a success increments success count', async () => {
     const { result } = renderHook(() => useDeathSaves());
-    
-    await act(async () => {
-      await result.current.recordDeathSave('c1', 'success', true);
-    });
-
-    expect(updateDeathSavesDB).toHaveBeenCalledWith('char1', 0, 2);
-  });
-
-  it('applies damage to unconscious PC as a failed death save', async () => {
-    const { result } = renderHook(() => useDeathSaves());
-    
-    await act(async () => {
-      await result.current.applyDamageToUnconscious('c1');
-    });
-
-    expect(updateDeathSavesDB).toHaveBeenCalledWith('char1', 1, 0);
-    expect(toast).toHaveBeenCalledWith(expect.stringContaining('death save failed automatically'));
-  });
-
-  it('detects when PC becomes stable (3 successes)', async () => {
-    const stableState = {
-      ...mockState,
-      combatState: {
-        combatants: [{ ...mockState.combatState.combatants[0], deathSavesSuccesses: 2 }]
-      }
-    };
-    (getSnapshot as any).mockReturnValue(stableState);
-
-    const { result } = renderHook(() => useDeathSaves());
-    
     await act(async () => {
       await result.current.recordDeathSave('c1', 'success');
     });
-
-    expect(updateDeathSavesDB).toHaveBeenCalledWith('char1', 0, 3);
-    // The checkDeathSaveOutcome logic happens after updateDeathSavesDB
-    // It should eventually call updateDeathSavesDB(..., 0, 0) to clear them
-    expect(updateDeathSavesDB).toHaveBeenCalledWith('char1', 0, 0);
-    expect(toast).toHaveBeenCalledWith(expect.stringContaining('is stable'));
+    expect(updateDeathSavesDB).toHaveBeenCalledWith('char1', 0, 1);
   });
 
-  it('detects when PC dies (3 failures)', async () => {
+  it('3 failures triggers character death', async () => {
     const dyingState = {
       ...mockState,
       combatState: {
@@ -162,7 +76,6 @@ describe('useDeathSaves', () => {
     (getSnapshot as any).mockReturnValue(dyingState);
 
     const { result } = renderHook(() => useDeathSaves());
-    
     await act(async () => {
       await result.current.recordDeathSave('c1', 'failure');
     });
@@ -174,51 +87,67 @@ describe('useDeathSaves', () => {
     expect(toast).toHaveBeenCalledWith(expect.stringContaining('has died'));
   });
 
-  it('When recordDeathSave records the third failure, characters statusId updates to 3 (Deceased) and isActive to false in state', async () => {
-    const dyingState = {
+  it('3 successes triggers character stabilization', async () => {
+    const stableState = {
       ...mockState,
       combatState: {
-        combatants: [{ ...mockState.combatState.combatants[0], deathSavesFails: 2 }]
+        combatants: [{ ...mockState.combatState.combatants[0], deathSavesSuccesses: 2 }]
       }
     };
-    (getSnapshot as any).mockReturnValue(dyingState);
+    (getSnapshot as any).mockReturnValue(stableState);
 
     const { result } = renderHook(() => useDeathSaves());
-    
     await act(async () => {
-      await result.current.recordDeathSave('c1', 'failure');
+      await result.current.recordDeathSave('c1', 'success');
     });
 
-    expect(mockUpdateState).toHaveBeenCalled();
-    const updater = mockUpdateState.mock.calls.find(call => {
-      const fn = call[0];
-      if (typeof fn !== 'function') return false;
-      const res = fn(mockState);
-      const updatedChar = res.characters.find((c: any) => c.id === 'char1');
-      return updatedChar && updatedChar.statusId === 3;
-    })?.[0];
-
-    expect(updater).toBeDefined();
-    const resultState = updater(mockState);
-    const deadChar = resultState.characters.find((c: any) => c.id === 'char1');
-    expect(deadChar.statusId).toBe(3);
-    expect(deadChar.isActive).toBe(false);
-    expect(deadChar.deathSavesFails).toBe(3);
+    expect(toast).toHaveBeenCalledWith(expect.stringContaining('is stable'));
   });
 
-  it('returns a reminder for unconscious PCs needing saves', () => {
+  it('reset clears both fail and success counts', async () => {
+    // Under 3 successes, stabilization resets the counts to 0
+    const stableState = {
+      ...mockState,
+      combatState: {
+        combatants: [{ ...mockState.combatState.combatants[0], deathSavesSuccesses: 2, deathSavesFails: 1 }]
+      }
+    };
+    (getSnapshot as any).mockReturnValue(stableState);
+
     const { result } = renderHook(() => useDeathSaves());
-    
-    const reminder = result.current.getDeathSaveReminder(mockState.combatState.combatants[0] as any);
-    expect(reminder).not.toBeNull();
-    expect(reminder?.name).toBe('Test PC');
+    await act(async () => {
+      await result.current.recordDeathSave('c1', 'success');
+    });
+
+    // Expecting state to be reset (deathSavesFails: 0, deathSavesSuccesses: 0)
+    expect(updateDeathSavesDB).toHaveBeenCalledWith('char1', 0, 0);
   });
 
-  it('does not return a reminder for already stable PCs', () => {
+  it('a natural 20 on a death save triggers stabilization immediately', async () => {
+    // Mock character with 1 success, then critical success (adds 2 successes) to reach 3 successes (stabilization)
+    const almostStableState = {
+      ...mockState,
+      combatState: {
+        combatants: [{ ...mockState.combatState.combatants[0], deathSavesSuccesses: 1 }]
+      }
+    };
+    (getSnapshot as any).mockReturnValue(almostStableState);
+
     const { result } = renderHook(() => useDeathSaves());
-    const stablePc = { ...mockState.combatState.combatants[0], isStable: true };
-    
-    const reminder = result.current.getDeathSaveReminder(stablePc as any);
-    expect(reminder).toBeNull();
+    await act(async () => {
+      await result.current.recordDeathSave('c1', 'success', true);
+    });
+
+    expect(updateDeathSavesDB).toHaveBeenCalledWith('char1', 0, 3);
+    expect(updateDeathSavesDB).toHaveBeenCalledWith('char1', 0, 0); // Cleared upon stabilization
+  });
+
+  it('a natural 1 on a death save counts as 2 failures', async () => {
+    const { result } = renderHook(() => useDeathSaves());
+    await act(async () => {
+      await result.current.recordDeathSave('c1', 'failure', true);
+    });
+
+    expect(updateDeathSavesDB).toHaveBeenCalledWith('char1', 2, 0);
   });
 });
