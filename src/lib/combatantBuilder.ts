@@ -109,43 +109,27 @@ export function buildCombatantsFromState(
                   }
                 : undefined,
               rechargeAbilities: (() => {
-                // Try to derive from actions list
-                let derivedRecharge: Array<{
+                const derived: Array<{
                   name: string;
                   rechargeOn: number;
                   isCharged: boolean;
                 }> = [];
-
-                const parsedActions = (() => {
-                  try {
-                    return JSON.parse(npcTemplate.actions || '[]') as
-                      Array<{ name: string; recharge?: string }>;
-                  } catch { return []; }
-                })();
-
-                for (const action of parsedActions) {
-                  const rechargeOn = parseRechargeOn(action.recharge);
-                  if (rechargeOn !== null) {
-                    derivedRecharge.push({
-                      name: action.name,
-                      rechargeOn,
-                      isCharged: true,
-                    });
+                try {
+                  const parsedActions = JSON.parse(
+                    npcTemplate.actions || '[]'
+                  ) as Array<{ name: string; recharge?: string }>;
+                  for (const action of parsedActions) {
+                    const rechargeOn = parseRechargeOn(action.recharge);
+                    if (rechargeOn !== null) {
+                      derived.push({
+                        name: action.name,
+                        rechargeOn,
+                        isCharged: true,
+                      });
+                    }
                   }
-                }
-
-                // Fall back to col N data for legacy NPCs that predate the actions feature
-                if (derivedRecharge.length === 0 &&
-                    npcTemplate.rechargeAbilities &&
-                    npcTemplate.rechargeAbilities.length > 0) {
-                  derivedRecharge = npcTemplate.rechargeAbilities.map(ra => ({
-                    name: ra.name,
-                    rechargeOn: ra.rechargeOn,
-                    isCharged: true,
-                  }));
-                }
-
-                return derivedRecharge.length > 0 ? derivedRecharge : undefined;
+                } catch {}
+                return derived.length > 0 ? derived : undefined;
               })(),
               abilityScores: npcTemplate.abilityScores,
               proficiencies: npcTemplate.proficiencies,

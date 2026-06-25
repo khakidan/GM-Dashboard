@@ -39,6 +39,9 @@ describe('useEncounterPresetLoader', () => {
           tempHp: 0,
           legendaryActions: 3,
           legendaryResistances: 2,
+          actions: JSON.stringify([
+            { name: 'Breath', recharge: 'Recharge 5-6' }
+          ]),
           rechargeAbilities: [
             { name: 'Breath', rechargeOn: '5-6' }
           ],
@@ -211,7 +214,7 @@ describe('useEncounterPresetLoader', () => {
        
        expect(addedCombatant.rechargeAbilities).toEqual([{
          name: 'Breath',
-         rechargeOn: '5-6',
+         rechargeOn: 5,
          isCharged: true
        }]);
     });

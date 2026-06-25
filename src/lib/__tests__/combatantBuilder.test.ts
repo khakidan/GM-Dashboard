@@ -95,7 +95,7 @@ describe('buildCombatantsFromState', () => {
     expect(res[0].legendaryActions).toEqual({ max: 3, remaining: 3 });
   });
 
-  it('Correctly builds NPC combatants with rechargeAbilities all set to isCharged: true', () => {
+  it('Does NOT build NPC combatants with legacy Column N rechargeAbilities (Column N is ignored)', () => {
     const encounter: Partial<Encounter> = { id: 'enc-1' };
     const npcs: Partial<NPC>[] = [{
       id: 'npc-1',
@@ -118,8 +118,41 @@ describe('buildCombatantsFromState', () => {
       npcs as NPC[]
     );
 
+    expect(res[0].rechargeAbilities).toBeUndefined();
+  });
+
+  it('derives rechargeAbilities from actions recharge field, ignoring Column N entirely', () => {
+    const encounter: Partial<Encounter> = { id: 'enc-1' };
+    const npcs: Partial<NPC>[] = [{
+      id: 'npc-1',
+      name: 'Dragon',
+      actions: JSON.stringify([
+        { name: 'Cinderfall', description: 'test', recharge: 'Recharge 5-6' },
+        { name: 'Bite', description: 'test', recharge: '' }
+      ]),
+      rechargeAbilities: [
+        { name: 'LegacyAbility', rechargeOn: 6 }
+      ]
+    }];
+    const ec: Partial<EncounterCombatant>[] = [{
+      id: 'ec-1',
+      encounterId: 'enc-1',
+      npcId: 'npc-1',
+      quantity: 1
+    }];
+
+    const res = buildCombatantsFromState(
+      encounter as Encounter,
+      ec as EncounterCombatant[],
+      [],
+      npcs as NPC[]
+    );
+
     expect(res[0].rechargeAbilities).toHaveLength(1);
+    expect(res[0].rechargeAbilities?.[0].name).toBe('Cinderfall');
+    expect(res[0].rechargeAbilities?.[0].rechargeOn).toBe(5);
     expect(res[0].rechargeAbilities?.[0].isCharged).toBe(true);
+    expect(res[0].rechargeAbilities?.some(ra => ra.name === 'LegacyAbility')).toBe(false);
   });
 
   it('correctly auto-derives rechargeAbilities from actions and defaults isCharged: true', () => {

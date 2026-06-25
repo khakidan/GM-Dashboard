@@ -2,6 +2,7 @@ import { useAppState, getSnapshot } from '../../../hooks/useAppState';
 import { toast } from 'sonner';
 import { Combatant, Encounter, EncounterCombatant, NPC } from '../../../types';
 import { addNpcDB, addEncounterCombatantDB } from '../../../services/dbOperations';
+import { parseRechargeOn } from '../../../lib/combatantBuilder';
 
 export function useEncounterPresetLoader(
   encounter: Encounter | undefined,
@@ -82,14 +83,29 @@ export function useEncounterPresetLoader(
                     remaining: npcTemplate.legendaryResistances 
                   }
                 : undefined,
-              rechargeAbilities: 
-                npcTemplate.rechargeAbilities?.length
-                ? npcTemplate.rechargeAbilities.map(a => ({
-                    name: a.name,
-                    rechargeOn: a.rechargeOn,
-                    isCharged: true,
-                  }))
-                : undefined,
+              rechargeAbilities: (() => {
+                const derived: Array<{
+                  name: string;
+                  rechargeOn: number;
+                  isCharged: boolean;
+                }> = [];
+                try {
+                  const parsedActions = JSON.parse(
+                    npcTemplate.actions || '[]'
+                  ) as Array<{ name: string; recharge?: string }>;
+                  for (const action of parsedActions) {
+                    const rechargeOn = parseRechargeOn(action.recharge);
+                    if (rechargeOn !== null) {
+                      derived.push({
+                        name: action.name,
+                        rechargeOn,
+                        isCharged: true,
+                      });
+                    }
+                  }
+                } catch {}
+                return derived.length > 0 ? derived : undefined;
+              })(),
             });
             newEcObjects.push({
               id: tempEcIds[i],
@@ -204,14 +220,29 @@ export function useEncounterPresetLoader(
               remaining: npcData.legendaryResistances 
             }
           : undefined,
-        rechargeAbilities: 
-          npcData.rechargeAbilities?.length
-          ? npcData.rechargeAbilities.map(a => ({
-              name: a.name,
-              rechargeOn: a.rechargeOn,
-              isCharged: true,
-            }))
-          : undefined,
+        rechargeAbilities: (() => {
+          const derived: Array<{
+            name: string;
+            rechargeOn: number;
+            isCharged: boolean;
+          }> = [];
+          try {
+            const parsedActions = JSON.parse(
+              npcData.actions || '[]'
+            ) as Array<{ name: string; recharge?: string }>;
+            for (const action of parsedActions) {
+              const rechargeOn = parseRechargeOn(action.recharge);
+              if (rechargeOn !== null) {
+                derived.push({
+                  name: action.name,
+                  rechargeOn,
+                  isCharged: true,
+                });
+              }
+            }
+          } catch {}
+          return derived.length > 0 ? derived : undefined;
+        })(),
       };
 
       updateState(prev => ({
