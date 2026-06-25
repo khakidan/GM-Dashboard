@@ -535,9 +535,9 @@ this whitelist and to `dbOperations.ts`.
 
 ---
 
-## Testing Structure — 13-Batch System
+## Testing Structure — 12-Batch System
 
-**Current baseline: 1205 tests.**
+**Current baseline: 552 tests.**
 All batches must pass with zero failures.
 No batch should exceed 35 seconds.
 
@@ -545,44 +545,57 @@ Run each batch individually. Never chain
 with `&&`. Never use glob patterns. Never
 run all tests at once with `npx vitest run`.
 
+| Batch | Description | Test Count |
+|-------|-------------|------------|
+| 1     | Lib         | 400        |
+| 2     | Services    | 27         |
+| 3     | Hooks       | 31         |
+| 4     | Server      | 7          |
+| 5A    | AET Hooks   | 27         |
+| 5B    | AET Comp    | 22         |
+| 6A    | PartyTab    | 16         |
+| 6B    | Encounters  | 4          |
+| 6C    | NpcLibrary  | 8          |
+| 7B-1  | Top-Level 1 | 4          |
+| 7B-2  | Top-Level 2 | 4          |
+| 8     | UI          | 2          |
+| **Total** | | **552** |
+
 ```bash
-# BATCH 1 — 395 tests
+# BATCH 1 — 400 tests
 npx vitest run src/lib/__tests__
 
-# BATCH 2 — 114 tests
+# BATCH 2 — 27 tests
 npx vitest run src/services/__tests__
 
-# BATCH 3 — 103 tests
+# BATCH 3 — 31 tests
 npx vitest run src/hooks/__tests__
 
-# BATCH 4 — 11 tests
+# BATCH 4 — 7 tests
 npx vitest run src/server/__tests__ src/__tests__
 
-# BATCH 5A — 66 tests
+# BATCH 5A — 27 tests
 npx vitest run src/components/ActiveEncounterTab/__tests__/useBatchActions.test.ts src/components/ActiveEncounterTab/__tests__/useCombatSync.test.ts src/components/ActiveEncounterTab/__tests__/useCombatantCard.test.ts src/components/ActiveEncounterTab/__tests__/useEncounterPresetLoader.test.ts src/components/ActiveEncounterTab/__tests__/useHealthChange.test.ts src/components/ActiveEncounterTab/__tests__/useSelectionMode.test.ts
 
-# BATCH 5B — 132 tests
+# BATCH 5B — 22 tests
 npx vitest run src/components/ActiveEncounterTab/__tests__/AddNpcCollision.test.tsx src/components/ActiveEncounterTab/__tests__/CasterAttributionDialog.test.tsx src/components/ActiveEncounterTab/__tests__/CombatHeader.test.tsx src/components/ActiveEncounterTab/__tests__/CombatSidebar.test.tsx src/components/ActiveEncounterTab/__tests__/CombatantCard.test.tsx src/components/ActiveEncounterTab/__tests__/KeyboardShortcuts.test.tsx src/components/ActiveEncounterTab/__tests__/MultiTargetActionPanel.test.tsx src/components/ActiveEncounterTab/__tests__/NpcReferencePanel.test.tsx src/components/ActiveEncounterTab/__tests__/ShortcutCheatSheet.test.tsx src/components/ActiveEncounterTab/__tests__/index.test.tsx
 
-# BATCH 6A — 119 tests
+# BATCH 6A — 16 tests
 npx vitest run src/components/PartyTab/__tests__
 
-# BATCH 6B — 15 tests
+# BATCH 6B — 4 tests
 npx vitest run src/components/EncountersTab/__tests__
 
-# BATCH 6C — 20 tests
+# BATCH 6C — 8 tests
 npx vitest run src/components/NpcLibraryTab/__tests__
 
-# BATCH 7A — 36 tests
-npx vitest run src/components/__tests__/DeathOverlay.test.tsx src/components/__tests__/DamageOverlay.test.tsx src/components/__tests__/HealOverlay.test.tsx src/components/__tests__/RageOverlay.test.tsx src/components/__tests__/UnconsciousOverlay.test.tsx src/components/__tests__/InitiativeOverlay.test.tsx
+# BATCH 7B-1 — 4 tests
+npx vitest run src/components/__tests__/CommandPalette.test.tsx src/components/__tests__/ErrorBoundary.test.tsx src/components/__tests__/GMDashboard.test.tsx src/components/__tests__/GMDashboardSidebar.test.tsx
 
-# BATCH 7B-1 — 72 tests
-npx vitest run src/components/__tests__/AmbientPlayer.test.tsx src/components/__tests__/AudioLibrary.test.tsx src/components/__tests__/AudioPanel.test.tsx src/components/__tests__/CommandPalette.test.tsx src/components/__tests__/ErrorBoundary.test.tsx src/components/__tests__/GMDashboard.test.tsx src/components/__tests__/GMDashboardSidebar.test.tsx
+# BATCH 7B-2 — 4 tests
+npx vitest run src/components/__tests__/CampaignSelector.test.tsx src/components/__tests__/GMTabContent.test.tsx src/components/__tests__/PlayerView.test.tsx src/components/__tests__/ThemeContext.test.tsx
 
-# BATCH 7B-2 — 53 tests
-npx vitest run src/components/__tests__/CampaignSelector.test.tsx src/components/__tests__/GMLoadingScreen.test.tsx src/components/__tests__/GMTabContent.test.tsx src/components/__tests__/PlayerView.test.tsx src/components/__tests__/SettingsModal.test.tsx src/components/__tests__/SidebarIcon.test.tsx src/components/__tests__/Soundboard.test.tsx src/components/__tests__/SyncStatusIndicators.test.tsx src/components/__tests__/ThemeContext.test.tsx
-
-# BATCH 8 — 77 tests
+# BATCH 8 — 2 tests
 npx vitest run src/components/ui/__tests__
 ```
 
@@ -598,7 +611,6 @@ npx vitest run src/components/ui/__tests__
 | PartyTab | Batch 6A (auto-picked up) |
 | EncountersTab | Batch 6B (auto-picked up) |
 | NpcLibraryTab | Batch 6C (auto-picked up) |
-| Overlay component | Add to Batch 7A explicitly |
 | Audio or main dashboard | Add to Batch 7B-1 explicitly |
 | Other top-level component | Add to Batch 7B-2 explicitly |
 | src/components/ui/ | Batch 8 (auto-picked up) |
@@ -656,6 +668,15 @@ When any combatant or character with the
   HP changes
 - Each source fires independently. No
   double-firing between tabs.
+
+### Recharge pattern
+
+When defining a recharge ability in an NPC,
+parseRechargeOn accepts both full format
+('Recharge 5-6') and bare format ('5-6',
+'5-', '6', '4-6'). The GM should enter
+bare format in the recharge field. Do not
+revert to requiring the 'Recharge' prefix.
 
 ### Resource pool auto-decrement
 
@@ -836,7 +857,7 @@ A 4-tab complex form for creating new characters manually:
    to include the new column header. Otherwise
    new campaigns will have the wrong schema.
 
-9. **Report all 13 batch counts individually**
+9. **Report all 12 batch counts individually**
    after any change. Never report a combined
    total without the per-batch breakdown.
 
@@ -858,7 +879,7 @@ A 4-tab complex form for creating new characters manually:
     - Test count changes → update the baseline
       number AND the per-batch comment in the
       batch commands
-    - New batch 5A/5B/7A/7B-1/7B-2 explicit
+    - New batch 5A/5B/7B-1/7B-2 explicit
       files → update those batch commands
     - New NPC schema columns → update the NPC
       schema table AND the NpcTrait/NpcAction/
