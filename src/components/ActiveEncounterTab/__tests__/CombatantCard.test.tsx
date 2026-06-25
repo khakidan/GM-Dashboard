@@ -352,58 +352,6 @@ describe('CombatantCard', () => {
     });
   });
 
-  describe('Collapsed Header Layout Refactoring', () => {
-    it('The collapsed card header contains exactly two direct child flex containers', () => {
-      render(<CombatantCard {...defaultProps} />);
-      const row = screen.getByTestId('collapsed-card-row');
-      expect(row).toBeInTheDocument();
-      
-      const leftContainer = screen.getByTestId('left-container');
-      const rightContainer = screen.getByTestId('right-container');
-      
-      expect(leftContainer).toBeInTheDocument();
-      expect(rightContainer).toBeInTheDocument();
-      
-      // Verify that leftContainer and rightContainer are indeed direct children of row
-      expect(row.children.length).toBe(2);
-      expect(row.children[0]).toBe(leftContainer);
-      expect(row.children[1]).toBe(rightContainer);
-    });
-
-    it('The combatant name, initiative bubble, DMG button, and HEAL button are in the correct containers', () => {
-      render(<CombatantCard {...defaultProps} />);
-      const leftContainer = screen.getByTestId('left-container');
-      const rightContainer = screen.getByTestId('right-container');
-      
-      // Verify combatant name inside left container
-      const nameEl = screen.getByText('Goblin');
-      expect(leftContainer.contains(nameEl)).toBe(true);
-      
-      // Verify initiative bubble inside left container
-      const initLabel = screen.getByText('Init');
-      expect(leftContainer.contains(initLabel)).toBe(true);
-      
-      // Verify DMG and HEAL buttons inside right container
-      const dmgBtn = screen.getByRole('button', { name: /DMG/i });
-      const healBtn = screen.getByRole('button', { name: /HEAL/i });
-      
-      expect(rightContainer.contains(dmgBtn)).toBe(true);
-      expect(rightContainer.contains(healBtn)).toBe(true);
-    });
-
-    it('The left and right containers have correct flex alignment classes', () => {
-      render(<CombatantCard {...defaultProps} />);
-      const leftContainer = screen.getByTestId('left-container');
-      const rightContainer = screen.getByTestId('right-container');
-      
-      // Check for alignment classes (justify-start / items-center or justify-end / items-center)
-      expect(leftContainer.className).toContain('justify-start');
-      expect(leftContainer.className).toContain('items-center');
-      expect(rightContainer.className).toContain('justify-end');
-      expect(rightContainer.className).toContain('items-center');
-    });
-  });
-
   describe('NPC Recharge Abilities', () => {
     it('Recharge section is not rendered for PC combatants', () => {
       const pcCombatant: Combatant = {

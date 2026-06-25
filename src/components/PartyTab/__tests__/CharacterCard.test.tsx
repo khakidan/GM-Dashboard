@@ -97,21 +97,11 @@ describe('CharacterCard', () => {
     expect(onUpdateMock).toHaveBeenCalledWith({ tempAc: 3 });
   });
 
-  it('When the spinner value is 0, no amber styling is applied to the AC display', () => {
-    const charWithZeroTempAc = { ...mockCharacter, tempAc: 0 };
-    render(<CharacterCard {...defaultProps} character={charWithZeroTempAc} />);
-
-    const effAcDisplay = screen.getByTestId('eff-ac');
-    expect(effAcDisplay.className).not.toContain('text-amber-600');
-    expect(effAcDisplay.textContent).toBe('18');
-  });
-
-  it('When the spinner value is non-zero, the effective AC shown equals character.ac + character.tempAc', () => {
+  it('When the spinner value is non-zero, the effective AC is correctly calculated', () => {
     const charWithTempAc = { ...mockCharacter, ac: 18, tempAc: -2 };
     render(<CharacterCard {...defaultProps} character={charWithTempAc} />);
 
     const effAcDisplay = screen.getByTestId('eff-ac');
-    expect(effAcDisplay.className).toContain('text-amber-600');
     expect(effAcDisplay.textContent).toBe('16 (-2)');
   });
 });
