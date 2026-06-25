@@ -8,15 +8,27 @@ export function parseRechargeOn(
 ): number | null {
   if (text === undefined || text === null || text === '') return null;
   const normalized = text.toLowerCase().trim();
-  if (!normalized.startsWith('recharge')) return null;
 
-  const match = normalized.match(/recharge\s+(\d+)/i);
-  if (!match) return null;
-
-  const val = parseInt(match[1], 10);
-  if (val === 4 || val === 5 || val === 6) {
-    return val;
+  // Format 1: "Recharge 5-6", "Recharge 5",
+  //           "recharge 5-6", "recharge 5–6"
+  const rechargeMatch = normalized.match(
+    /recharge\s+([456])/
+  );
+  if (rechargeMatch) {
+    return parseInt(rechargeMatch[1], 10);
   }
+
+  // Format 2: bare range or number that starts
+  // with 4, 5, or 6 — "5-6", "5-", "6", "4-6"
+  // Must start with the digit (not part of a
+  // larger number like "16" or "6d8")
+  const bareMatch = normalized.match(
+    /^([456])(?:-\d*)?$/
+  );
+  if (bareMatch) {
+    return parseInt(bareMatch[1], 10);
+  }
+
   return null;
 }
 

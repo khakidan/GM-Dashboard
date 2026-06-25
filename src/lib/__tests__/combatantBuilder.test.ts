@@ -8,6 +8,13 @@ describe('parseRechargeOn', () => {
     expect(parseRechargeOn('Recharge 6')).toBe(6);
     expect(parseRechargeOn('recharge 4')).toBe(4);
     expect(parseRechargeOn('  Recharge 5  ')).toBe(5);
+
+    // Bare range formats
+    expect(parseRechargeOn('5-6')).toBe(5);
+    expect(parseRechargeOn('5-')).toBe(5);
+    expect(parseRechargeOn('5')).toBe(5);
+    expect(parseRechargeOn('6')).toBe(6);
+    expect(parseRechargeOn('4-6')).toBe(4);
   });
 
   it('returns null for invalid or missing recharge values', () => {
@@ -17,6 +24,12 @@ describe('parseRechargeOn', () => {
     expect(parseRechargeOn('Recharge 3')).toBeNull();
     expect(parseRechargeOn('Recharge 7')).toBeNull();
     expect(parseRechargeOn('Recharge')).toBeNull();
+
+    // Should still return null
+    expect(parseRechargeOn('6d8')).toBeNull();
+    expect(parseRechargeOn('DC 16')).toBeNull();
+    expect(parseRechargeOn('1/Day')).toBeNull();
+    expect(parseRechargeOn('16')).toBeNull();
   });
 });
 
