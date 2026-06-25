@@ -86,7 +86,7 @@ which calls a service.
 
 ## Google Sheets Schema
 
-### Characters (A2:Y — 25 columns)
+### Characters (A2:Z — 26 columns)
 
 | Col | Index | Field | Notes |
 |-----|-------|-------|-------|
@@ -115,6 +115,7 @@ which calls a service.
 | W | 22 | resourcePools | JSON string, default [] |
 | X | 23 | abilityScores | JSON string |
 | Y | 24 | proficiencies | JSON string |
+| Z | 25 | spellcastingAbility | Text, e.g. 'INT', 'WIS', 'CHA', '' |
 
 ### NPCs (A2:Y — 25 columns)
 
@@ -693,6 +694,8 @@ The undefined vs null distinction is critical:
 Do not flatten both to null in any handler.
 
 NPC spellcastingAbility is stored at col Y (index 24) and read back via SHEET_RANGES.npcs = 'NPCs!A2:Y'. NpcCard's onOverrideChange dual-writes to both spellcastingAbility (col Y) and proficiencies JSON for resilience. Do not revert SHEET_RANGES.npcs to A2:X.
+
+Character spellcastingAbility is stored at col Z (index 25) and also embedded in the proficiencies JSON at col Y. Both paths are written by CharacterCardExpanded's onOverrideChange handler. SHEET_RANGES.characters = 'Characters!A2:Z' reads both. Do not revert the read range to A2:Y.
 
 ### Resource pool scaling on level-up
 
