@@ -12,16 +12,7 @@ interface CombatSidebarProps {
   characters: Character[];
   onAddPreset: (type: 'pc' | 'npc', presetId: string, quantity: number) => Promise<void>;
   onAddNpc: (
-    name: string, 
-    hp: number | '', 
-    ac: number | '', 
-    notes: string,
-    resistances: string,
-    immunities: string,
-    vulnerabilities: string,
-    legendaryActions: number,
-    legendaryResistances: number,
-    rechargeAbilities: Array<{ name: string, rechargeOn: number }>
+    npcData: Omit<Npc, 'id' | 'sheetRowIndex'>
   ) => Promise<void>;
   combatants?: Combatant[];
 }
@@ -105,18 +96,34 @@ export function CombatSidebar({
     e.preventDefault();
     if (createNpcData.name.trim() === '') return;
     setIsCreatingNpc(true);
-    await onAddNpc(
-      createNpcData.name,
-      Number(createNpcData.maxHp),
-      Number(createNpcData.ac),
-      createNpcData.notes,
-      createNpcData.resistances,
-      createNpcData.immunities,
-      createNpcData.vulnerabilities,
-      createNpcData.legendaryActions,
-      createNpcData.legendaryResistances,
-      createNpcData.rechargeAbilities
-    );
+    await onAddNpc({
+      name: createNpcData.name,
+      ac: Number(createNpcData.ac),
+      maxHp: Number(createNpcData.maxHp),
+      tempHp: 0,
+      currentHp: Number(createNpcData.maxHp),
+      conditions: '',
+      notes: createNpcData.notes,
+      resistances: createNpcData.resistances ?? '',
+      immunities: createNpcData.immunities ?? '',
+      vulnerabilities: createNpcData.vulnerabilities ?? '',
+      legendaryActions: Number(createNpcData.legendaryActions ?? 0),
+      legendaryResistances: Number(createNpcData.legendaryResistances ?? 0),
+      rechargeAbilities: (createNpcData.rechargeAbilities ?? []).map(
+        r => ({ name: r.name, rechargeOn: r.rechargeOn })
+      ),
+      abilityScores: '{}',
+      proficiencies: '{}',
+      speed: createNpcData.speed ?? '',
+      senses: createNpcData.senses ?? '',
+      languages: createNpcData.languages ?? '',
+      challengeRating: createNpcData.challengeRating ?? '',
+      traits: createNpcData.traits ?? '[]',
+      actions: createNpcData.actions ?? '[]',
+      reactions: createNpcData.reactions ?? '[]',
+      legendaryActionsList: createNpcData.legendaryActionsList ?? '[]',
+      spellcastingAbility: '',
+    });
     setIsCreatingNpc(false);
     setCreateNpcData(DEFAULT_NPC_FORM_DATA);
     handleClose();

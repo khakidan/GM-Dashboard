@@ -133,4 +133,27 @@ describe('CombatSidebar', () => {
     const char2Checkbox = checkboxes[1] as HTMLInputElement;
     expect(char2Checkbox).not.toBeDisabled();
   });
+
+  it('handles submitting the Create NPC form with the new onAddNpc signature', async () => {
+    const onAddNpc = vi.fn();
+    render(<CombatSidebar {...defaultProps} onAddNpc={onAddNpc} />);
+    
+    // Switch to Create NPC tab
+    fireEvent.click(screen.getByText('Create NPC'));
+
+    // Fill out the required fields
+    fireEvent.change(screen.getByLabelText(/Name/), { target: { value: 'New Test NPC' } });
+    fireEvent.change(screen.getByLabelText(/AC/), { target: { value: '18' } });
+    fireEvent.change(screen.getByLabelText(/HP/), { target: { value: '45' } });
+
+    // Submit form
+    const createBtn = screen.getByText('Create & Add to Encounter');
+    fireEvent.click(createBtn);
+
+    expect(onAddNpc).toHaveBeenCalledWith(expect.objectContaining({
+      name: 'New Test NPC',
+      ac: 18,
+      maxHp: 45,
+    }));
+  });
 });

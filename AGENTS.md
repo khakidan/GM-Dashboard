@@ -116,7 +116,7 @@ which calls a service.
 | X | 23 | abilityScores | JSON string |
 | Y | 24 | proficiencies | JSON string |
 
-### NPCs (A2:X — 24 columns)
+### NPCs (A2:Y — 25 columns)
 
 | Col | Index | Field | Notes |
 |-----|-------|-------|-------|
@@ -144,6 +144,7 @@ which calls a service.
 | V | 21 | actions | JSON: NpcAction[] |
 | W | 22 | reactions | JSON: NpcReaction[] |
 | X | 23 | legendaryActionsList | JSON: NpcLegendaryAction[] |
+| Y | 24 | spellcastingAbility | String |
 
 **NPC TypeScript interfaces** (in src/types.ts):
 
@@ -220,7 +221,7 @@ schema.
   MOODS, AUDIO, `campaignKey()` helper
 - `sheetSchemas.ts` — Zod validation for
   each sheet row. Defines defaults for every
-  column. NPC schema covers 24 columns (0–23).
+  column. NPC schema covers 25 columns (0–24).
 - `sheetAdapters.ts` — Maps raw row arrays
   from the API into typed model objects
 - `sheetSyncParser.ts` — Validates full
@@ -535,7 +536,7 @@ this whitelist and to `dbOperations.ts`.
 
 ## Testing Structure — 13-Batch System
 
-**Current baseline: 1198 tests.**
+**Current baseline: 1205 tests.**
 All batches must pass with zero failures.
 No batch should exceed 35 seconds.
 
@@ -547,7 +548,7 @@ run all tests at once with `npx vitest run`.
 # BATCH 1 — 395 tests
 npx vitest run src/lib/__tests__
 
-# BATCH 2 — 108 tests
+# BATCH 2 — 114 tests
 npx vitest run src/services/__tests__
 
 # BATCH 3 — 103 tests
@@ -559,7 +560,7 @@ npx vitest run src/server/__tests__ src/__tests__
 # BATCH 5A — 66 tests
 npx vitest run src/components/ActiveEncounterTab/__tests__/useBatchActions.test.ts src/components/ActiveEncounterTab/__tests__/useCombatSync.test.ts src/components/ActiveEncounterTab/__tests__/useCombatantCard.test.ts src/components/ActiveEncounterTab/__tests__/useEncounterPresetLoader.test.ts src/components/ActiveEncounterTab/__tests__/useHealthChange.test.ts src/components/ActiveEncounterTab/__tests__/useSelectionMode.test.ts
 
-# BATCH 5B — 125 tests
+# BATCH 5B — 132 tests
 npx vitest run src/components/ActiveEncounterTab/__tests__/AddNpcCollision.test.tsx src/components/ActiveEncounterTab/__tests__/CasterAttributionDialog.test.tsx src/components/ActiveEncounterTab/__tests__/CombatHeader.test.tsx src/components/ActiveEncounterTab/__tests__/CombatSidebar.test.tsx src/components/ActiveEncounterTab/__tests__/CombatantCard.test.tsx src/components/ActiveEncounterTab/__tests__/KeyboardShortcuts.test.tsx src/components/ActiveEncounterTab/__tests__/MultiTargetActionPanel.test.tsx src/components/ActiveEncounterTab/__tests__/NpcReferencePanel.test.tsx src/components/ActiveEncounterTab/__tests__/ShortcutCheatSheet.test.tsx src/components/ActiveEncounterTab/__tests__/index.test.tsx
 
 # BATCH 6A — 119 tests
@@ -568,7 +569,7 @@ npx vitest run src/components/PartyTab/__tests__
 # BATCH 6B — 15 tests
 npx vitest run src/components/EncountersTab/__tests__
 
-# BATCH 6C — 18 tests
+# BATCH 6C — 20 tests
 npx vitest run src/components/NpcLibraryTab/__tests__
 
 # BATCH 7A — 36 tests
@@ -690,6 +691,8 @@ The undefined vs null distinction is critical:
   (non-caster override, beats auto-derive)
 
 Do not flatten both to null in any handler.
+
+NPC spellcastingAbility is stored at col Y (index 24) and read back via SHEET_RANGES.npcs = 'NPCs!A2:Y'. NpcCard's onOverrideChange dual-writes to both spellcastingAbility (col Y) and proficiencies JSON for resilience. Do not revert SHEET_RANGES.npcs to A2:X.
 
 ### Resource pool scaling on level-up
 

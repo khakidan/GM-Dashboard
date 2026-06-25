@@ -630,22 +630,22 @@ describe('addNpcDB', () => {
     vi.clearAllMocks();
   });
 
-  it('builds a 14-column row and appends to NPCs!A:N', async () => {
+  it('builds a 25-column row and appends to NPCs!A:Y', async () => {
     vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({ values: [] as SheetGrid }); // ID 1
 
     const rechargeAbilities = [{ name: 'Fire Breath', rechargeOn: 5 }];
-    const result = await addNpcDB(
-      'Dragon',
-      100,
-      20,
-      'Big dragon',
-      'fire',
-      'poison',
-      'cold',
-      3,
-      3,
-      rechargeAbilities
-    );
+    const result = await addNpcDB({
+      name: 'Dragon',
+      maxHp: 100,
+      ac: 20,
+      notes: 'Big dragon',
+      resistances: 'fire',
+      immunities: 'poison',
+      vulnerabilities: 'cold',
+      legendaryActions: 3,
+      legendaryResistances: 3,
+      rechargeAbilities,
+    } as any);
 
     expect(result.id).toBe('1');
     expect(sheetsService.appendSheetData).toHaveBeenCalledWith('NPCs!A:Y', [[
@@ -675,6 +675,56 @@ describe('addNpcDB', () => {
       '[]',
       '',              // spellcastingAbility
     ]]);
+  });
+
+  it('addNpcDB writes all stat block fields to the sheet row', async () => {
+    vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({ values: [] as SheetGrid }); // ID 1
+
+    const result = await addNpcDB({
+      name: 'Wizard NPC',
+      maxHp: 50,
+      ac: 15,
+      notes: '',
+      speed: '30 ft., fly 60 ft.',
+      senses: 'darkvision 60 ft.',
+      languages: 'Common, Draconic',
+      challengeRating: '5',
+      traits: '[{"name":"Magic Resistance","description":"Advantage on spells"}]',
+      actions: '[{"name":"Fireball","description":"Boom","recharge":"Recharge 5-6"}]',
+      reactions: '[{"name":"Shield","description":"+5 AC"}]',
+      legendaryActionsList: '[{"name":"Teleport","description":"Move 30ft"}]',
+      spellcastingAbility: 'INT',
+    } as any);
+
+    expect(result.id).toBe('1');
+    const appendCall = vi.mocked(sheetsService.appendSheetData).mock.calls[0];
+    const row = appendCall[1][0];
+
+    expect(row[16]).toBe('30 ft., fly 60 ft.');
+    expect(row[17]).toBe('darkvision 60 ft.');
+    expect(row[18]).toBe('Common, Draconic');
+    expect(row[19]).toBe('5');
+    expect(row[20]).toBe('[{"name":"Magic Resistance","description":"Advantage on spells"}]');
+    expect(row[21]).toBe('[{"name":"Fireball","description":"Boom","recharge":"Recharge 5-6"}]');
+    expect(row[22]).toBe('[{"name":"Shield","description":"+5 AC"}]');
+    expect(row[23]).toBe('[{"name":"Teleport","description":"Move 30ft"}]');
+    expect(row[24]).toBe('INT');
+  });
+
+  it('addNpcDB preserves actions JSON including recharge fields in col V', async () => {
+    vi.mocked(sheetsService.fetchSheetData).mockResolvedValueOnce({ values: [] as SheetGrid }); // ID 1
+
+    const actionsJson = JSON.stringify([{name: 'Fireball', description: 'test', recharge: 'Recharge 5-6'}]);
+    await addNpcDB({
+      name: 'Dragon',
+      maxHp: 100,
+      ac: 20,
+      actions: actionsJson
+    } as any);
+
+    const appendCall = vi.mocked(sheetsService.appendSheetData).mock.calls[0];
+    const row = appendCall[1][0];
+    expect(row[21]).toBe(actionsJson);
   });
 });
 

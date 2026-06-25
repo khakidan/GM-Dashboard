@@ -39,7 +39,7 @@ export const RECHARGE_DIE_SIDES = 6;
 
 export const SHEET_RANGES = {
   characters: 'Characters!A2:Y',
-  npcs: 'NPCs!A2:X',
+  npcs: 'NPCs!A2:Y',
   encounters: 'Encounters!A2:G',
   encounterCombatants: 'Encounter_Combatants!A2:K',
   statuses: 'Status!A2:B',

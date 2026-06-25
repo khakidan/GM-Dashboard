@@ -1,6 +1,6 @@
 import { useAppState, getSnapshot } from '../../../hooks/useAppState';
 import { toast } from 'sonner';
-import { Combatant, Encounter, EncounterCombatant } from '../../../types';
+import { Combatant, Encounter, EncounterCombatant, NPC } from '../../../types';
 import { addNpcDB, addEncounterCombatantDB } from '../../../services/dbOperations';
 
 export function useEncounterPresetLoader(
@@ -169,13 +169,7 @@ export function useEncounterPresetLoader(
   };
 
   const handleAddNpc = async (
-    npcName: string, 
-    npcHp: number | '', 
-    npcAc: number | '', 
-    npcNotes: string,
-    resistances: string,
-    immunities: string,
-    vulnerabilities: string
+    npcData: Omit<NPC, 'id' | 'sheetRowIndex'>
   ) => {
     try {
       const nextIdStr = `temp-npc-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
@@ -184,18 +178,40 @@ export function useEncounterPresetLoader(
       const newNpcCombatant: Combatant = {
         id: `combat-npc-${nextIdStr}-0-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
         encounterCombatantId: nextEcId.toString(),
-        name: npcName,
+        name: npcData.name,
         type: 'npc',
-        ac: npcAc === '' ? 10 : npcAc,
-        maxHp: npcHp as number,
-        currentHp: npcHp as number,
+        ac: npcData.ac,
+        maxHp: npcData.maxHp,
+        currentHp: npcData.maxHp,
         passivePerception: 10,
         initiative: 0,
-        notes: npcNotes,
-        resistances: resistances,
-        immunities: immunities,
-        vulnerabilities: vulnerabilities,
+        notes: npcData.notes,
+        resistances: npcData.resistances,
+        immunities: npcData.immunities,
+        vulnerabilities: npcData.vulnerabilities,
         reactionUsed: false,
+        legendaryActions: 
+          npcData.legendaryActions && npcData.legendaryActions > 0
+          ? { 
+              max: npcData.legendaryActions, 
+              remaining: npcData.legendaryActions 
+            }
+          : undefined,
+        legendaryResistances: 
+          npcData.legendaryResistances && npcData.legendaryResistances > 0
+          ? { 
+              max: npcData.legendaryResistances, 
+              remaining: npcData.legendaryResistances 
+            }
+          : undefined,
+        rechargeAbilities: 
+          npcData.rechargeAbilities?.length
+          ? npcData.rechargeAbilities.map(a => ({
+              name: a.name,
+              rechargeOn: a.rechargeOn,
+              isCharged: true,
+            }))
+          : undefined,
       };
 
       updateState(prev => ({
@@ -203,27 +219,11 @@ export function useEncounterPresetLoader(
         npcs: [
           ...prev.npcs,
           {
+            ...npcData,
             id: nextIdStr,
-            name: npcName,
-            ac: npcAc === '' ? 10 : npcAc,
-            maxHp: npcHp as number,
             tempHp: 0,
-            currentHp: npcHp as number,
+            currentHp: npcData.maxHp,
             conditions: '',
-            notes: npcNotes,
-            resistances: resistances,
-            immunities: immunities,
-            vulnerabilities: vulnerabilities,
-            abilityScores: '{}',
-            proficiencies: '{}',
-            speed: '',
-            senses: '',
-            languages: '',
-            challengeRating: '',
-            traits: '[]',
-            actions: '[]',
-            reactions: '[]',
-            legendaryActionsList: '[]',
           },
         ],
         encounterCombatants: [
@@ -246,15 +246,7 @@ export function useEncounterPresetLoader(
         },
       }));
 
-      const newNpc = await addNpcDB(
-        npcName, 
-        npcHp as number, 
-        npcAc === '' ? 10 : npcAc, 
-        npcNotes, 
-        resistances, 
-        immunities, 
-        vulnerabilities
-      );
+      const newNpc = await addNpcDB(npcData);
       const newEcArray = await addEncounterCombatantDB(encounter?.id || '', null, newNpc.id, 1);
       const newEc = newEcArray[0];
 

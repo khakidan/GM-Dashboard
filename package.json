@@ -17,8 +17,7 @@
     "test:batch4": "npx vitest run src/components/ActiveEncounterTab/__tests__",
     "test:batch5": "npx vitest run src/components/PartyTab/__tests__ src/components/EncountersTab/__tests__ src/components/NpcLibraryTab/__tests__",
     "test:batch6": "npx vitest run src/components/__tests__ src/components/ui/__tests__",
-    "test:full": "npx vitest run src/lib/__tests__ && npx vitest run src/services/__tests__ && npx vitest run src/hooks/__tests__ src/server/__tests__ src/__tests__ && npx vitest run src/components/ActiveEncounterTab/__tests__ && npx vitest run src/components/PartyTab/__tests__ src/components/EncountersTab/__tests__ src/components/NpcLibraryTab/__tests__ && npx vitest run src/components/__tests__ src/components/ui/__tests__",
-    "test:e2e": "playwright test"
+    "test:full": "npx vitest run src/lib/__tests__ && npx vitest run src/services/__tests__ && npx vitest run src/hooks/__tests__ src/server/__tests__ src/__tests__ && npx vitest run src/components/ActiveEncounterTab/__tests__ && npx vitest run src/components/PartyTab/__tests__ src/components/EncountersTab/__tests__ src/components/NpcLibraryTab/__tests__ && npx vitest run src/components/__tests__ src/components/ui/__tests__"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.14",
@@ -42,7 +41,6 @@
     "zustand": "^4.5.7"
   },
   "devDependencies": {
-    "@playwright/test": "^1.60.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/express": "^4.17.21",

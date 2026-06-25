@@ -57,18 +57,32 @@ export function useNpcLibrary() {
     }));
 
     try {
-      const savedNpc = await addNpcDB(
-        newNpcData.name,
-        newNpcData.maxHp,
-        newNpcData.ac,
-        newNpcData.notes,
-        newNpcData.resistances,
-        newNpcData.immunities,
-        newNpcData.vulnerabilities,
-        newNpcData.legendaryActions,
-        newNpcData.legendaryResistances,
-        newNpcData.rechargeAbilities
-      );
+      const savedNpc = await addNpcDB({
+        name: newNpcData.name,
+        ac: newNpcData.ac,
+        maxHp: newNpcData.maxHp,
+        tempHp: 0,
+        currentHp: newNpcData.maxHp,
+        conditions: '',
+        notes: newNpcData.notes,
+        resistances: newNpcData.resistances ?? '',
+        immunities: newNpcData.immunities ?? '',
+        vulnerabilities: newNpcData.vulnerabilities ?? '',
+        legendaryActions: newNpcData.legendaryActions ?? 0,
+        legendaryResistances: newNpcData.legendaryResistances ?? 0,
+        rechargeAbilities: newNpcData.rechargeAbilities ?? [],
+        abilityScores: newNpcData.abilityScores ?? '{}',
+        proficiencies: newNpcData.proficiencies ?? '{}',
+        speed: newNpcData.speed ?? '',
+        senses: newNpcData.senses ?? '',
+        languages: newNpcData.languages ?? '',
+        challengeRating: newNpcData.challengeRating ?? '',
+        traits: newNpcData.traits ?? '[]',
+        actions: newNpcData.actions ?? '[]',
+        reactions: newNpcData.reactions ?? '[]',
+        legendaryActionsList: newNpcData.legendaryActionsList ?? '[]',
+        spellcastingAbility: newNpcData.spellcastingAbility ?? '',
+      });
       // Replace temp with real
       updateState(prev => ({
         ...prev,

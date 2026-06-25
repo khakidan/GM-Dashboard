@@ -426,79 +426,25 @@ export async function updateCharacterDB(
 }
 
 export async function addNpcDB(
-  npcName: string,
-  npcHp: number,
-  npcAc: number,
-  npcNotes: string,
-  resistances?: string,
-  immunities?: string,
-  vulnerabilities?: string,
-  legendaryActions?: number,
-  legendaryResistances?: number,
-  rechargeAbilities?: Array<{ name: string; rechargeOn: number }>
-): Promise<any>;
+  npcData: Omit<NPC, 'id' | 'sheetRowIndex'>
+): Promise<NPC>;
 export async function addNpcDB(
   spreadsheetId: string | undefined,
-  npcName: string,
-  npcHp: number,
-  npcAc: number,
-  npcNotes: string,
-  resistances?: string,
-  immunities?: string,
-  vulnerabilities?: string,
-  legendaryActions?: number,
-  legendaryResistances?: number,
-  rechargeAbilities?: Array<{ name: string; rechargeOn: number }>
-): Promise<any>;
+  npcData: Omit<NPC, 'id' | 'sheetRowIndex'>
+): Promise<NPC>;
 export async function addNpcDB(
   arg1: any,
-  arg2: any,
-  arg3?: any,
-  arg4?: any,
-  arg5?: any,
-  arg6?: any,
-  arg7?: any,
-  arg8?: any,
-  arg9?: any,
-  arg10?: any,
-  arg11?: any
-) {
+  arg2?: any
+): Promise<NPC> {
   let spreadsheetId: string | undefined;
-  let npcName: string;
-  let npcHp: number;
-  let npcAc: number;
-  let npcNotes: string;
-  let resistances = '';
-  let immunities = '';
-  let vulnerabilities = '';
-  let legendaryActions = 0;
-  let legendaryResistances = 0;
-  let rechargeAbilities: any[] = [];
+  let npcData: Omit<NPC, 'id' | 'sheetRowIndex'>;
 
-  if (typeof arg2 === 'number') {
+  if (arg2 === undefined) {
     spreadsheetId = undefined;
-    npcName = arg1;
-    npcHp = arg2;
-    npcAc = arg3;
-    npcNotes = arg4;
-    resistances = arg5 ?? '';
-    immunities = arg6 ?? '';
-    vulnerabilities = arg7 ?? '';
-    legendaryActions = arg8 ?? 0;
-    legendaryResistances = arg9 ?? 0;
-    rechargeAbilities = arg10 ?? [];
+    npcData = arg1;
   } else {
     spreadsheetId = arg1;
-    npcName = arg2;
-    npcHp = arg3;
-    npcAc = arg4;
-    npcNotes = arg5;
-    resistances = arg6 ?? '';
-    immunities = arg7 ?? '';
-    vulnerabilities = arg8 ?? '';
-    legendaryActions = arg9 ?? 0;
-    legendaryResistances = arg10 ?? 0;
-    rechargeAbilities = arg11 ?? [];
+    npcData = arg2;
   }
 
   try {
@@ -508,59 +454,59 @@ export async function addNpcDB(
 
     const rowData = [
       finalId,
-      sanitizeString(npcName),
-      castInt(npcAc, 10),
-      castInt(npcHp, 1),
+      sanitizeString(npcData.name),
+      castInt(npcData.ac, 10),
+      castInt(npcData.maxHp, 1),
       0,                  // Temp HP
-      castInt(npcHp, 1),  // Current HP
+      castInt(npcData.maxHp, 1),  // Current HP
       '',                 // Condition
-      sanitizeString(npcNotes),
-      sanitizeString(resistances),
-      sanitizeString(immunities),
-      sanitizeString(vulnerabilities),
-      castInt(legendaryActions, 0),
-      castInt(legendaryResistances, 0),
-      JSON.stringify(rechargeAbilities ?? []),
-      '{}',               // npc.abilityScores -> '{}'
-      '{}',               // npc.proficiencies -> '{}'
-      '',                 // speed
-      '',                 // senses
-      '',                 // languages
-      '',                 // challengeRating
-      '[]',               // traits
-      '[]',               // actions
-      '[]',               // reactions
-      '[]',               // legendaryActionsList
-      '',                 // spellcastingAbility
+      sanitizeString(npcData.notes),
+      sanitizeString(npcData.resistances ?? ''),
+      sanitizeString(npcData.immunities ?? ''),
+      sanitizeString(npcData.vulnerabilities ?? ''),
+      castInt(npcData.legendaryActions ?? 0, 0),
+      castInt(npcData.legendaryResistances ?? 0, 0),
+      JSON.stringify(npcData.rechargeAbilities ?? []),
+      sanitizeString(npcData.abilityScores ?? '{}'),
+      sanitizeString(npcData.proficiencies ?? '{}'),
+      sanitizeString(npcData.speed ?? ''),
+      sanitizeString(npcData.senses ?? ''),
+      sanitizeString(npcData.languages ?? ''),
+      sanitizeString(npcData.challengeRating ?? ''),
+      sanitizeString(npcData.traits ?? '[]'),
+      sanitizeString(npcData.actions ?? '[]'),
+      sanitizeString(npcData.reactions ?? '[]'),
+      sanitizeString(npcData.legendaryActionsList ?? '[]'),
+      sanitizeString(npcData.spellcastingAbility ?? ''),
     ];
 
     await appendSheetData(resolvedId, 'NPCs!A:Y', [rowData]);
     return {
       id: finalId,
-      name: npcName,
-      maxHp: npcHp,
-      ac: npcAc,
-      notes: npcNotes,
+      name: npcData.name,
+      ac: npcData.ac,
+      maxHp: npcData.maxHp,
       tempHp: 0,
-      currentHp: npcHp,
+      currentHp: npcData.maxHp,
       conditions: '',
-      resistances,
-      immunities,
-      vulnerabilities,
-      legendaryActions,
-      legendaryResistances,
-      rechargeAbilities,
-      abilityScores: '{}',
-      proficiencies: '{}',
-      speed: '',
-      senses: '',
-      languages: '',
-      challengeRating: '',
-      traits: '[]',
-      actions: '[]',
-      reactions: '[]',
-      legendaryActionsList: '[]',
-      spellcastingAbility: '',
+      notes: npcData.notes,
+      resistances: npcData.resistances ?? '',
+      immunities: npcData.immunities ?? '',
+      vulnerabilities: npcData.vulnerabilities ?? '',
+      legendaryActions: npcData.legendaryActions ?? 0,
+      legendaryResistances: npcData.legendaryResistances ?? 0,
+      rechargeAbilities: npcData.rechargeAbilities ?? [],
+      abilityScores: npcData.abilityScores ?? '{}',
+      proficiencies: npcData.proficiencies ?? '{}',
+      speed: npcData.speed ?? '',
+      senses: npcData.senses ?? '',
+      languages: npcData.languages ?? '',
+      challengeRating: npcData.challengeRating ?? '',
+      traits: npcData.traits ?? '[]',
+      actions: npcData.actions ?? '[]',
+      reactions: npcData.reactions ?? '[]',
+      legendaryActionsList: npcData.legendaryActionsList ?? '[]',
+      spellcastingAbility: npcData.spellcastingAbility ?? '',
     };
   } catch (err) {
     console.error('[DB] addNpcDB failed:', err);
