@@ -3,6 +3,7 @@ import { useAppState, getSnapshot } from '../../../hooks/useAppState';
 import { resetNpcHpDB, addNpcDB, updateNpcFullDB, deleteNpcDB } from '../../../services/dbOperations';
 import { toast } from 'sonner';
 import { NPC } from '../../../types';
+import { parseRechargeOn } from '../../../lib/combatantBuilder';
 
 export function useNpcLibrary() {
   const { state, updateState } = useAppState();
@@ -139,6 +140,34 @@ export function useNpcLibrary() {
             ...(updates.resistances !== undefined ? { resistances: updates.resistances } : {}),
             ...(updates.immunities !== undefined ? { immunities: updates.immunities } : {}),
             ...(updates.vulnerabilities !== undefined ? { vulnerabilities: updates.vulnerabilities } : {}),
+            // Re-derive rechargeAbilities if actions changed
+            ...(updates.actions !== undefined ? {
+              rechargeAbilities: (() => {
+                let derived: Array<{
+                  name: string;
+                  rechargeOn: number;
+                  isCharged: boolean;
+                }> = [];
+                try {
+                  const parsedActions = JSON.parse(
+                    updates.actions || '[]'
+                  ) as Array<{ name: string; recharge?: string }>;
+                  for (const action of parsedActions) {
+                    const rechargeOn = parseRechargeOn(
+                      action.recharge
+                    );
+                    if (rechargeOn !== null) {
+                      derived.push({
+                        name: action.name,
+                        rechargeOn,
+                        isCharged: true,
+                      });
+                    }
+                  }
+                } catch {}
+                return derived.length > 0 ? derived : undefined;
+              })(),
+            } : {}),
           };
         }
         return c;

@@ -41,7 +41,8 @@ export function calculateSpellAttackBonus(abilityMod: number, profBonus: number)
 }
 
 export function parseSpellcastingAbility(val: string | null | undefined): SpellcastingAbility | undefined {
-  if (val === undefined || val === null) return undefined;
+  if (val === null) return null;
+  if (val === undefined) return undefined;
   const normalized = val.trim().toLowerCase();
   if (normalized === '' || normalized === 'auto') return undefined;
   if (normalized === 'none') return null;

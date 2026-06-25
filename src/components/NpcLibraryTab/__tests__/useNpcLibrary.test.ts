@@ -204,4 +204,73 @@ describe('useNpcLibrary', () => {
 
     expect(updateNpcFullDB).toHaveBeenCalled();
   });
+
+  it('re-derives rechargeAbilities on active combatants when NPC actions are updated', async () => {
+    const mockNpc = { id: 'npc-1', name: 'Goblin', ac: 10, maxHp: 10, actions: '[]' };
+    const mockEC = { id: 'ec-1', npcId: 'npc-1', npcCurrentHp: 10, npcTempHp: 0 };
+    const mockCombatant = { id: 'comb-1', type: 'npc', encounterCombatantId: 'ec-1', name: 'Goblin 1', ac: 10, maxHp: 10, currentHp: 10, conditions: 'prone' };
+    const mockState = {
+      npcs: [mockNpc],
+      encounterCombatants: [mockEC],
+      combatState: {
+        combatants: [mockCombatant]
+      }
+    };
+
+    const updateSpy = vi.fn();
+    vi.mocked(useAppState).mockReturnValue({
+      state: mockState as any,
+      updateState: updateSpy,
+      getSnapshot: vi.fn(),
+    } as any);
+    vi.mocked(getSnapshot).mockReturnValue({ npcs: [{ ...mockNpc, actions: '[{"name":"Cinderfall","recharge":"Recharge 5-6"}]' }] } as any);
+
+    const { result } = renderHook(() => useNpcLibrary());
+
+    await act(async () => {
+      await result.current.handleUpdateNpc('npc-1', { actions: '[{"name":"Cinderfall","recharge":"Recharge 5-6"}]' });
+    });
+
+    expect(updateSpy).toHaveBeenCalled();
+    const stateUpdater = updateSpy.mock.calls[0][0];
+    const nextState = stateUpdater(mockState);
+
+    expect(nextState.combatState.combatants[0].rechargeAbilities).toBeDefined();
+    expect(nextState.combatState.combatants[0].rechargeAbilities).toEqual([
+      { name: 'Cinderfall', rechargeOn: 5, isCharged: true }
+    ]);
+  });
+
+  it('clears rechargeAbilities on active combatants when all recharge actions are removed', async () => {
+    const mockNpc = { id: 'npc-1', name: 'Goblin', ac: 10, maxHp: 10, actions: '[{"name":"Cinderfall","recharge":"Recharge 5-6"}]' };
+    const mockEC = { id: 'ec-1', npcId: 'npc-1', npcCurrentHp: 10, npcTempHp: 0 };
+    const mockCombatant = { id: 'comb-1', type: 'npc', encounterCombatantId: 'ec-1', name: 'Goblin 1', ac: 10, maxHp: 10, currentHp: 10, conditions: 'prone', rechargeAbilities: [{ name: 'Cinderfall', rechargeOn: 5, isCharged: true }] };
+    const mockState = {
+      npcs: [mockNpc],
+      encounterCombatants: [mockEC],
+      combatState: {
+        combatants: [mockCombatant]
+      }
+    };
+
+    const updateSpy = vi.fn();
+    vi.mocked(useAppState).mockReturnValue({
+      state: mockState as any,
+      updateState: updateSpy,
+      getSnapshot: vi.fn(),
+    } as any);
+    vi.mocked(getSnapshot).mockReturnValue({ npcs: [{ ...mockNpc, actions: '[]' }] } as any);
+
+    const { result } = renderHook(() => useNpcLibrary());
+
+    await act(async () => {
+      await result.current.handleUpdateNpc('npc-1', { actions: '[]' });
+    });
+
+    expect(updateSpy).toHaveBeenCalled();
+    const stateUpdater = updateSpy.mock.calls[0][0];
+    const nextState = stateUpdater(mockState);
+
+    expect(nextState.combatState.combatants[0].rechargeAbilities).toBeUndefined();
+  });
 });

@@ -4,6 +4,7 @@ import {
   getEffectiveSpellcastingAbility,
   calculateSpellSaveDC,
   calculateSpellAttackBonus,
+  parseSpellcastingAbility,
 } from '../spellcasting';
 
 describe('getAutoSpellcastingAbility', () => {
@@ -123,5 +124,23 @@ describe('calculateSpellAttackBonus', () => {
 
   it('returns 0 for mod 0, prof 0', () => {
     expect(calculateSpellAttackBonus(0, 0)).toBe(0);
+  });
+});
+
+describe('parseSpellcastingAbility', () => {
+  it('returns null when passed null (explicit non-caster override)', () => {
+    expect(parseSpellcastingAbility(null)).toBe(null);
+  });
+
+  it('returns undefined when passed undefined', () => {
+    expect(parseSpellcastingAbility(undefined)).toBe(undefined);
+  });
+
+  it('returns null when passed the string "none"', () => {
+    expect(parseSpellcastingAbility("none")).toBe(null);
+  });
+
+  it('returns INT when passed "INT"', () => {
+    expect(parseSpellcastingAbility("INT")).toBe("INT");
   });
 });
