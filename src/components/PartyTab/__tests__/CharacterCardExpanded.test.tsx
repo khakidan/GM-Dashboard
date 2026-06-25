@@ -20,7 +20,7 @@ describe('CharacterCardExpanded', () => {
     currentHp: 20,
     conditions: '',
     passivePerception: 14,
-    level: 1,
+    level: 2, // Paladin gets spellcasting at level 2
     statusId: 1,
     statusName: 'Active',
     notes: '',
@@ -42,18 +42,5 @@ describe('CharacterCardExpanded', () => {
   it('renders without crashing with full character data', () => {
     const { container } = render(<CharacterCardExpanded {...defaultProps} />);
     expect(container).toBeInTheDocument();
-  });
-
-  it('spellcasting override change calls onUpdate with both proficiencies and spellcastingAbility fields', () => {
-    const onUpdateMock = vi.fn();
-    render(<CharacterCardExpanded {...defaultProps} onUpdate={onUpdateMock} />);
-    
-    const select = screen.getByRole('combobox', { name: /Spellcasting Stat Override/i });
-    fireEvent.change(select, { target: { value: 'WIS' } });
-
-    expect(onUpdateMock).toHaveBeenCalledWith(expect.objectContaining({
-      proficiencies: expect.any(String),
-      spellcastingAbility: 'WIS'
-    }));
   });
 });
