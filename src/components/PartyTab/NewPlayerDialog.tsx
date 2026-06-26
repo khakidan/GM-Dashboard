@@ -206,7 +206,7 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="bg-[#f5f4f0] w-full max-w-2xl max-h-[90vh] rounded-xl shadow-2xl border border-stone-200 flex flex-col mx-4"
+            className="bg-[#fdfaf5] w-full max-w-2xl max-h-[90vh] rounded-xl shadow-2xl border border-[#e5e1d8] flex flex-col mx-4"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 bg-stone-900 rounded-t-xl transition-colors">
@@ -252,7 +252,7 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                 {activeTab === 'identity' && (
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-stone-700 mb-1.5">
+                      <label className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40] mb-1.5 px-1">
                         Player Name
                       </label>
                       <input
@@ -265,7 +265,7 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-stone-700 mb-1.5">
+                      <label className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40] mb-1.5 px-1">
                         Character Name
                       </label>
                       <input
@@ -278,7 +278,7 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-stone-700 mb-1.5">
+                      <label className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40] mb-1.5 px-1">
                         Class
                       </label>
                       <input
@@ -294,7 +294,7 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-stone-700 mb-1.5">
+                        <label className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40] mb-1.5 px-1">
                           Level
                         </label>
                         <input
@@ -307,7 +307,7 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-stone-700 mb-1.5">
+                        <label className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40] mb-1.5 px-1">
                           Status
                         </label>
                         <select
@@ -327,7 +327,7 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                   <div className="space-y-6">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-stone-700 mb-1.5">
+                        <label className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40] mb-1.5 px-1">
                           Armor Class
                         </label>
                         <input
@@ -340,7 +340,7 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-stone-700 mb-1.5">
+                        <label className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40] mb-1.5 px-1">
                           Max HP
                         </label>
                         <input
@@ -354,7 +354,7 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-stone-700 mb-1.5">
+                      <label className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40] mb-1.5 px-1">
                         Hit Dice
                       </label>
                       <input
@@ -381,7 +381,7 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                     </div>
 
                     <div>
-                      <label className="block text-xs font-medium uppercase tracking-wide text-stone-600 mb-2">
+                      <label className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40] mb-1.5 px-1">
                         RESISTANCES / IMMUNITIES / VULNERABILITIES
                       </label>
                       <div className="grid grid-cols-3 gap-3">
@@ -407,7 +407,7 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-stone-700 mb-1.5">
+                      <label className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40] mb-1.5 px-1">
                         Notes
                       </label>
                       <textarea
@@ -494,7 +494,7 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                                 </div>
                                 <div className="flex justify-end gap-2 text-xs">
                                   <button type="button" onClick={() => setEditingResourceId(null)} className="px-3 py-1.5 text-stone-500 hover:text-stone-700">Cancel</button>
-                                  <button type="button" onClick={() => handleSaveEditResource(pool.name)} className="px-3 py-1.5 bg-amber-100 text-amber-700 hover:bg-amber-200 font-medium rounded transition-colors">Save</button>
+                                  <button type="button" onClick={() => handleSaveEditResource(pool.name)} className="px-3 py-1.5 bg-[#c5b358] text-[#2c2c26] hover:bg-[#b0a04f] font-medium rounded-xl transition-colors">Save</button>
                                 </div>
                               </div>
                             ) : (
@@ -585,7 +585,7 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                         </div>
                         <div className="flex justify-end gap-2 text-xs">
                           <button type="button" onClick={() => setIsAddingResource(false)} className="px-3 py-1.5 text-stone-500 hover:text-stone-700">Cancel</button>
-                          <button type="button" onClick={handleAddResource} disabled={!newResourceName.trim()} className="px-3 py-1.5 bg-amber-600 text-white hover:bg-amber-500 font-medium rounded disabled:opacity-50 transition-colors">Add</button>
+                          <button type="button" onClick={handleAddResource} disabled={!newResourceName.trim()} className="px-3 py-1.5 bg-[#c5b358] text-[#2c2c26] hover:bg-[#b0a04f] font-medium rounded-xl disabled:opacity-50 transition-colors">Add</button>
                         </div>
                       </div>
                     )}
@@ -635,14 +635,14 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                   <button
                     type="button"
                     onClick={onClose}
-                    className="text-sm text-stone-500 hover:text-stone-700 mr-3 px-3 py-2 transition-colors"
+                    className="bg-[#e5e1d8] hover:bg-[#d4cfc1] text-[#2c2c26] text-sm font-medium px-4 py-2 rounded-xl mr-3 transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={!isFormValid}
-                    className="bg-amber-600 hover:bg-amber-500 text-white font-medium px-4 py-2 rounded-lg text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-stone-200 disabled:text-stone-400 flex items-center justify-center shadow-lg"
+                    className="bg-[#c5b358] hover:bg-[#b0a04f] text-[#2c2c26] font-medium px-4 py-2 rounded-xl text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-stone-200 disabled:text-stone-400 flex items-center justify-center shadow-lg"
                   >
                     Add Character
                   </button>

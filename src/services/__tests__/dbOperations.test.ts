@@ -287,6 +287,75 @@ describe('addCharacterDB — row structure', () => {
   });
 });
 
+describe('addCharacterDB — row array integrity', () => {
+  const charData = {
+    playerName: 'Player One',
+    characterName: 'Paladin Hero',
+    ac: 18,
+    maxHp: 50,
+    tempHp: 0,
+    currentHp: 50,
+    conditions: 'Inspired',
+    passivePerception: 14,
+    level: 5,
+    statusId: 1,
+    notes: 'A noble hero',
+    resistances: 'Radiant',
+    immunities: 'Poisoned',
+    vulnerabilities: 'Necrotic',
+    tempHpMax: 10,
+    tempAc: 2,
+    deathSavesFails: 1,
+    deathSavesSuccesses: 2,
+    class: 'Paladin',
+    hitDiceConfig: '5d10',
+    hitDiceUsed: '{"d10":2}',
+    resourcePools: '[{"name":"Lay on Hands","current":25,"max":25}]',
+    abilityScores: '{"STR":18,"CHA":16}',
+    proficiencies: '{"athletics":true}',
+    spellcastingAbility: 'CHA',
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('writes all 26 fields at correct column indices (0–25)', async () => {
+    vi.mocked(sheetsService.fetchSheetData).mockResolvedValue({ values: [] });
+    await addCharacterDB(charData as any);
+    
+    expect(sheetsService.appendSheetData).toHaveBeenCalled();
+    const row = vi.mocked(sheetsService.appendSheetData).mock.calls[0][2][0];
+    
+    expect(row).toHaveLength(26);
+    expect(row[1]).toBe('Player One'); // playerName
+    expect(row[2]).toBe('Paladin Hero'); // characterName
+    expect(row[3]).toBe(18); // ac
+    expect(row[4]).toBe(50); // maxHp
+    expect(row[5]).toBe(0); // tempHp
+    expect(row[6]).toBe(50); // currentHp
+    expect(row[7]).toBe('Inspired'); // conditions
+    expect(row[8]).toBe(14); // passivePerception
+    expect(row[9]).toBe(5); // level
+    expect(row[10]).toBe(1); // statusId
+    expect(row[11]).toBe('A noble hero'); // notes
+    expect(row[12]).toBe('Radiant'); // resistances
+    expect(row[13]).toBe('Poisoned'); // immunities
+    expect(row[14]).toBe('Necrotic'); // vulnerabilities
+    expect(row[15]).toBe(10); // tempHpMax
+    expect(row[16]).toBe(2); // tempAc
+    expect(row[17]).toBe(1); // deathSavesFails
+    expect(row[18]).toBe(2); // deathSavesSuccesses
+    expect(row[19]).toBe('Paladin'); // class
+    expect(row[20]).toBe('5d10'); // hitDiceConfig
+    expect(row[21]).toBe('{"d10":2}'); // hitDiceUsed
+    expect(row[22]).toBe('[{"name":"Lay on Hands","current":25,"max":25}]'); // resourcePools
+    expect(row[23]).toBe('{"STR":18,"CHA":16}'); // abilityScores
+    expect(row[24]).toBe('{"athletics":true}'); // proficiencies
+    expect(row[25]).toBe('CHA'); // spellcastingAbility
+  });
+});
+
 describe('deleteNpcDB and resetNpcHpDB', () => {
   it('deleteNpcDB throws when NPC not found', async () => {
     vi.mocked(sheetsService.fetchSheetData).mockResolvedValue({ values: [] });
@@ -301,5 +370,25 @@ describe('deleteNpcDB and resetNpcHpDB', () => {
       'NPCs!F2',
       [['100']]
     );
+  });
+});
+
+describe('NPC spellcastingAbility dual-write', () => {
+  it('writes spellcastingAbility in both addNpcDB and updateNpcFullDB', async () => {
+    vi.mocked(sheetsService.fetchSheetData).mockResolvedValue({ values: [['npc-1']] });
+    const npc = { id: 'npc-1', name: 'Mage', spellcastingAbility: 'WIS' };
+    
+    // Test update
+    await updateNpcFullDB(npc as any);
+    expect(writeQueue.queueWrite).toHaveBeenCalled();
+    const updateRow = vi.mocked(writeQueue.queueWrite).mock.calls[0][2][0];
+    expect(updateRow[24]).toBe('WIS');
+    
+    // Test add
+    vi.clearAllMocks();
+    vi.mocked(sheetsService.fetchSheetData).mockResolvedValue({ values: [] });
+    await addNpcDB(npc as any);
+    const appendRow = vi.mocked(sheetsService.appendSheetData).mock.calls[0][2][0];
+    expect(appendRow[24]).toBe('WIS');
   });
 });

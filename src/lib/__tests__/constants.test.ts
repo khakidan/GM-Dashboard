@@ -63,4 +63,12 @@ describe('constants', () => {
   it('STORAGE_KEYS.instructionsDismissed equals "gm_instructions_dismissed"', () => {
     expect(STORAGE_KEYS.instructionsDismissed).toBe('gm_instructions_dismissed');
   });
+
+  it('SHEET_RANGES.characters ends in Z', () => {
+    expect(SHEET_RANGES.characters).toMatch(/:Z$/);
+  });
+
+  it('SHEET_RANGES.npcs ends in Y', () => {
+    expect(SHEET_RANGES.npcs).toMatch(/:Y$/);
+  });
 });

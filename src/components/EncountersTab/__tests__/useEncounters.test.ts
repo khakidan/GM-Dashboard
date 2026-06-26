@@ -54,4 +54,56 @@ describe('useEncounters', () => {
     expect(deleteEncounterFully).toHaveBeenCalled();
     expect(updateStateSpy).toHaveBeenCalled();
   });
+
+  it('handleCreateEncounter writes all required fields and appears in store', async () => {
+    const updateStateSpy = vi.fn();
+    const initialState = { encounters: [], difficulties: { 3: 'Hard' } };
+    vi.mocked(useAppState).mockReturnValue({
+      state: initialState as any,
+      updateState: updateStateSpy,
+      getSnapshot: vi.fn().mockReturnValue(initialState),
+    } as any);
+
+    const { result } = renderHook(() => useEncounters({ onSelectEncounter: vi.fn(), onSyncRequested: vi.fn() }));
+    const encounterData = { name: 'Goblin Ambush', location: 'Dark Forest', difficultyId: 3 };
+
+    await act(async () => {
+      await result.current.handleCreateEncounter(encounterData);
+    });
+
+    expect(addEncounterDB).toHaveBeenCalledWith(
+      'Goblin Ambush',
+      'Dark Forest',
+      3,
+      0
+    );
+    
+    // Check optimistic update
+    const stateUpdater = updateStateSpy.mock.calls[0][0];
+    const nextState = stateUpdater(initialState);
+    expect(nextState.encounters.length).toBe(1);
+    expect(nextState.encounters[0].name).toBe('Goblin Ambush');
+  });
+
+  it('Failed encounter creation rolls back state', async () => {
+    const updateStateSpy = vi.fn();
+    const initialState = { encounters: [], difficulties: { 1: 'Easy' } };
+    vi.mocked(useAppState).mockReturnValue({
+      state: initialState as any,
+      updateState: updateStateSpy,
+      getSnapshot: vi.fn().mockReturnValue(initialState),
+    } as any);
+
+    vi.mocked(addEncounterDB).mockRejectedValue(new Error('Fail'));
+
+    const { result } = renderHook(() => useEncounters({ onSelectEncounter: vi.fn(), onSyncRequested: vi.fn() }));
+    
+    await act(async () => {
+      await result.current.handleCreateEncounter({ name: 'Fail', location: '', difficultyId: 1 });
+    });
+
+    // Optimistic update + rollback
+    expect(updateStateSpy).toHaveBeenCalledTimes(2);
+    expect(updateStateSpy).toHaveBeenLastCalledWith(initialState);
+  });
 });

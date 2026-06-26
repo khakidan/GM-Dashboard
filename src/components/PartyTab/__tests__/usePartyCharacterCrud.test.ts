@@ -80,4 +80,47 @@ describe('useParty - Character CRUD', () => {
     expect(deleteCharacterFully).toHaveBeenCalled();
     expect(updateStateSpy).toHaveBeenCalledTimes(1); // optimistic update
   });
+
+  describe('Level Up Flow', () => {
+    it('handleUpdate includes level-up fields', async () => {
+      const mockChar = { 
+        id: 'pc-1', 
+        characterName: 'Barbarian', 
+        class: 'Barbarian', 
+        level: 4, 
+        maxHp: 44,
+        resourcePools: JSON.stringify([{ name: 'Rage', current: 3, max: 3, reset: 'short' }])
+      };
+      vi.mocked(useAppState).mockReturnValue({
+        state: { characters: [mockChar] } as any,
+        updateState: vi.fn(),
+        getSnapshot: vi.fn(),
+      } as any);
+      vi.mocked(getSnapshot).mockReturnValue({ characters: [mockChar] } as any);
+
+      const { result } = renderHook(() => useParty());
+
+      const levelUpData = {
+        level: 5,
+        maxHp: 54,
+        currentHp: 54,
+        hitDiceConfig: '5d12',
+        resourcePools: JSON.stringify([{ name: 'Rage', current: 3, max: 3, reset: 'short' }]),
+        proficiencies: '{}'
+      };
+
+      await act(async () => {
+        await result.current.handleUpdate('pc-1', levelUpData);
+      });
+
+      expect(updateCharacterDB).toHaveBeenCalledWith(
+        expect.objectContaining({
+          ...levelUpData,
+          passivePerception: 10,
+          proficiencies: expect.stringContaining('"proficiencyBonus":3')
+        }),
+        expect.objectContaining({ id: 'pc-1' })
+      );
+    });
+  });
 });

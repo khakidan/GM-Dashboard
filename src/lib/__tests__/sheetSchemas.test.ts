@@ -398,4 +398,16 @@ describe('sheetSchemas', () => {
       }
     });
   });
+
+  it('CharacterRowSchema pads results to 26 columns', () => {
+    const row = ['char-1', 'Player', 'Hero'];
+    const result = CharacterRowSchema.parse(row);
+    expect(result).toHaveLength(26);
+  });
+
+  it('NpcRowSchema pads results to 25 columns', () => {
+    const row = ['npc-1', 'Goblin'];
+    const result = NpcRowSchema.parse(row);
+    expect(result).toHaveLength(25);
+  });
 });
