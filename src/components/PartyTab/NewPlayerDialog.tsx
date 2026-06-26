@@ -22,6 +22,7 @@ import {
   updateResourcePool
 } from '../../lib/resourcePools';
 import { getClassResourceSuggestions } from '../../lib/classResources';
+import { getResourcePoolSuggestions } from '../../lib/resourcePoolScaling';
 
 interface NewPlayerDialogProps {
   isOpen: boolean;
@@ -95,12 +96,24 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
   // Auto-suggest resource pools
   useEffect(() => {
     if (!poolsCustomized.current && formData.class) {
-      const suggestions = getClassResourceSuggestions(formData.class);
-      // only update if suggestions exist (allow empty array to pass if they delete them, but wait, customization handles that)
-      // Actually we just replace it
-      handleChange('resourcePools', suggestions);
+      const level = typeof formData.level === 'number' ? formData.level : (parseInt(formData.level) || 1);
+      const suggestions = getResourcePoolSuggestions(
+        formData.class,
+        level,
+        []
+      );
+      if (suggestions.length > 0) {
+        handleChange('resourcePools',
+          suggestions.map(s => ({
+            name: s.name,
+            current: s.suggestedMax,
+            max: s.suggestedMax,
+            reset: s.reset,
+          }))
+        );
+      }
     }
-  }, [formData.class, handleChange]);
+  }, [formData.class, formData.level]);
 
   const isTab1Valid = formData.playerName.trim() !== '' && formData.characterName.trim() !== '';
   const isHitDiceValid = formData.hitDiceConfig.trim() === '' || /^\d+d\d+(\+\d+d\d+)*$/.test(formData.hitDiceConfig.trim());

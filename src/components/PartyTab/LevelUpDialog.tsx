@@ -133,6 +133,17 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
 
     const updates: Partial<Character> = {
       level: Number(newLevel),
+      proficiencies: (() => {
+        try {
+          const existing = parseProficiencies(
+            character.proficiencies ?? '{}'
+          );
+          existing.proficiencyBonus = newProfBonus;
+          return serializeProficiencies(existing);
+        } catch {
+          return character.proficiencies ?? '{}';
+        }
+      })(),
     };
 
     // Proficiency tier sync logic

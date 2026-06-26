@@ -4,6 +4,11 @@ import { motion, AnimatePresence } from 'motion/react';
 import { NPC } from '../../types';
 import { cn } from '../../lib/utils';
 import { NpcFormFields, NpcFormData, DEFAULT_NPC_FORM_DATA } from '../ui/NpcFormFields';
+import {
+  proficiencyBonusFromCR,
+  parseProficiencies,
+  serializeProficiencies,
+} from '../../lib/abilityScores';
 
 interface NewNpcDialogProps {
   isOpen: boolean;
@@ -55,8 +60,26 @@ export function NewNpcDialog({ isOpen, onClose, onConfirm }: NewNpcDialogProps) 
       legendaryActions: formData.legendaryActions,
       legendaryResistances: formData.legendaryResistances,
       rechargeAbilities: formData.rechargeAbilities.map(r => ({ name: r.name, rechargeOn: r.rechargeOn })),
-      abilityScores: '{}',
-      proficiencies: '{}',
+      abilityScores: formData.abilityScores,
+      proficiencies: (() => {
+        // Embed CR-derived proficiency bonus into
+        // proficiencies JSON before saving.
+        // This ensures the stored proficiencies
+        // reflect the NPC's actual CR even if the
+        // GM did not manually edit the prof bonus.
+        try {
+          const parsed = parseProficiencies(
+            formData.proficiencies
+          );
+          parsed.proficiencyBonus =
+            proficiencyBonusFromCR(
+              formData.challengeRating
+            );
+          return serializeProficiencies(parsed);
+        } catch {
+          return formData.proficiencies;
+        }
+      })(),
       speed: formData.speed,
       senses: formData.senses,
       languages: formData.languages,

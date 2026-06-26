@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Shield, Heart, Plus, Trash2 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { IrvMultiSelect } from '../ui/IrvMultiSelect';
@@ -12,7 +12,8 @@ import {
   serializeAbilityScores,
   serializeProficiencies,
   DEFAULT_ABILITY_SCORES,
-  DEFAULT_PROFICIENCIES
+  DEFAULT_PROFICIENCIES,
+  proficiencyBonusFromCR
 } from '../../lib/abilityScores';
 import type { NpcTrait, NpcAction, NpcReaction, NpcLegendaryAction } from '../../types';
 
@@ -400,6 +401,32 @@ export function NpcFormFields({ data, onChange, errors = {}, compact = false }: 
       </div>
     </div>
   );
+
+  useEffect(() => {
+    if (!data.challengeRating) return;
+    try {
+      const profBonus = proficiencyBonusFromCR(
+        data.challengeRating
+      );
+      const parsed = parseProficiencies(
+        data.proficiencies
+      );
+      if (parsed.proficiencyBonus === profBonus)
+        return; // already correct, no update
+      const updated = {
+        ...parsed,
+        proficiencyBonus: profBonus,
+      };
+      onChange({
+        ...data,
+        proficiencies: serializeProficiencies(
+          updated
+        ),
+      });
+    } catch {
+      // silently ignore invalid CR strings
+    }
+  }, [data.challengeRating]);
 
   return (
     <div className={cn("space-y-4", compact && "space-y-2")}>
