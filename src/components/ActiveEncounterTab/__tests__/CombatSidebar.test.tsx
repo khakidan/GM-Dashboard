@@ -46,4 +46,30 @@ describe('CombatSidebar', () => {
       maxHp: 45,
     }));
   });
+
+  it('CREATE NPC tab embeds CR-derived proficiency bonus in proficiencies', () => {
+    const onAddNpcMock = vi.fn();
+    render(<CombatSidebar {...defaultProps} onAddNpc={onAddNpcMock} />);
+    
+    // Switch to Create NPC tab
+    fireEvent.click(screen.getByText('Create NPC'));
+
+    // Fill in the NPC name field (required for submit)
+    fireEvent.change(screen.getByLabelText(/Name/), { target: { value: 'Test CR NPC' } });
+
+    // CR is on the Identity tab.
+    const crInput = screen.getByLabelText(/CR/);
+    fireEvent.change(crInput, { target: { value: '5' } });
+    fireEvent.blur(crInput);
+
+    // Submit form
+    const createBtn = screen.getByText('Create & Add to Encounter');
+    fireEvent.click(createBtn);
+
+    expect(onAddNpcMock).toHaveBeenCalledTimes(1);
+    const call = onAddNpcMock.mock.calls[0][0];
+    const profs = JSON.parse(call.proficiencies);
+    expect(profs.proficiencyBonus).toBe(3);
+    expect(call.abilityScores).not.toBe('{}');
+  });
 });

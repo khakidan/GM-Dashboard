@@ -168,6 +168,45 @@ describe('Ability Scores & Proficiencies Utilities', () => {
       expect(parsed.skills.Perception).toBe('expertise');
       expect(parsed.jackOfAllTrades).toBe(false); // default
     });
+
+    it('defaults toughFeat to false when not present in JSON', () => {
+      const result = parseProficiencies(
+        JSON.stringify({
+          proficiencyBonus: 3,
+          jackOfAllTrades: false,
+          savingThrows: [],
+          skills: {},
+          passiveBonuses: {
+            perception: 0,
+            insight: 0,
+            investigation: 0
+          }
+        })
+      );
+      expect(result.toughFeat).toBe(false);
+    });
+
+    it('reads toughFeat: true from JSON', () => {
+      const result = parseProficiencies(
+        JSON.stringify({
+          proficiencyBonus: 2,
+          jackOfAllTrades: false,
+          savingThrows: [],
+          skills: {},
+          passiveBonuses: {
+            perception: 0,
+            insight: 0,
+            investigation: 0
+          },
+          toughFeat: true
+        })
+      );
+      expect(result.toughFeat).toBe(true);
+    });
+
+    it('DEFAULT_PROFICIENCIES has toughFeat false', () => {
+      expect(DEFAULT_PROFICIENCIES.toughFeat).toBe(false);
+    });
   });
 
   describe('serializeAbilityScores', () => {

@@ -150,4 +150,96 @@ describe('LevelUpDialog', () => {
     expect(profs.proficiencyBonus).toBe(4);
     expect(profs.skills.Perception).toBe('proficient');
   });
+
+  describe('HP and Tough Feat calculations', () => {
+    const hpMockCharacter: Character = {
+      ...mockCharacter,
+      level: 4,
+      abilityScores: JSON.stringify({ STR: 10, DEX: 10, CON: 14, INT: 10, WIS: 10, CHA: 10 }),
+      proficiencies: JSON.stringify({
+        proficiencyBonus: 2,
+        jackOfAllTrades: false,
+        savingThrows: [],
+        skills: {},
+        passiveBonuses: { perception: 0, insight: 0, investigation: 0 },
+        toughFeat: false
+      })
+    };
+
+    it('totalHpGained = hpRoll + CON mod', () => {
+      const onConfirmMock = vi.fn();
+      const { container } = render(
+        <LevelUpDialog {...defaultProps} character={hpMockCharacter} onConfirm={onConfirmMock} />
+      );
+
+      const hpRollInput = container.querySelector('input[type="number"][min="1"]') as HTMLInputElement;
+      fireEvent.change(hpRollInput, { target: { value: '6' } });
+
+      const confirmBtn = container.querySelector('#confirm-level-up-btn') as HTMLButtonElement;
+      fireEvent.click(confirmBtn);
+
+      expect(onConfirmMock).toHaveBeenCalledTimes(1);
+      const call = onConfirmMock.mock.calls[0][0];
+      expect(call.maxHp).toBe(hpMockCharacter.maxHp + 8);
+      expect(call.currentHp).toBe(hpMockCharacter.currentHp + 8);
+    });
+
+    it('Tough feat checkbox adds +2', () => {
+      const onConfirmMock = vi.fn();
+      const { container } = render(
+        <LevelUpDialog {...defaultProps} character={hpMockCharacter} onConfirm={onConfirmMock} />
+      );
+
+      const hpRollInput = container.querySelector('input[type="number"][min="1"]') as HTMLInputElement;
+      fireEvent.change(hpRollInput, { target: { value: '6' } });
+
+      const toughFeatCheckbox = screen.getByRole('checkbox', { name: /Tough feat/i });
+      fireEvent.click(toughFeatCheckbox);
+
+      const confirmBtn = container.querySelector('#confirm-level-up-btn') as HTMLButtonElement;
+      fireEvent.click(confirmBtn);
+
+      expect(onConfirmMock).toHaveBeenCalledTimes(1);
+      const call = onConfirmMock.mock.calls[0][0];
+      expect(call.maxHp).toBe(hpMockCharacter.maxHp + 10);
+      expect(call.currentHp).toBe(hpMockCharacter.currentHp + 10);
+    });
+
+    it('toughFeat persists in proficiencies when checkbox checked', () => {
+      const onConfirmMock = vi.fn();
+      const { container } = render(
+        <LevelUpDialog {...defaultProps} character={hpMockCharacter} onConfirm={onConfirmMock} />
+      );
+
+      const toughFeatCheckbox = screen.getByRole('checkbox', { name: /Tough feat/i });
+      fireEvent.click(toughFeatCheckbox);
+
+      const confirmBtn = container.querySelector('#confirm-level-up-btn') as HTMLButtonElement;
+      fireEvent.click(confirmBtn);
+
+      expect(onConfirmMock).toHaveBeenCalledTimes(1);
+      const call = onConfirmMock.mock.calls[0][0];
+      const profs = JSON.parse(call.proficiencies);
+      expect(profs.toughFeat).toBe(true);
+    });
+
+    it('hasToughFeat initializes from character.proficiencies', () => {
+      const charWithToughFeat: Character = {
+        ...hpMockCharacter,
+        proficiencies: JSON.stringify({
+          proficiencyBonus: 2,
+          jackOfAllTrades: false,
+          savingThrows: [],
+          skills: {},
+          passiveBonuses: { perception: 0, insight: 0, investigation: 0 },
+          toughFeat: true
+        })
+      };
+
+      render(<LevelUpDialog {...defaultProps} character={charWithToughFeat} />);
+
+      const checkbox = screen.getByRole('checkbox', { name: /Tough feat/i });
+      expect(checkbox).toBeChecked();
+    });
+  });
 });
