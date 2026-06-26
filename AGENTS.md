@@ -292,7 +292,9 @@ schema.
   skill/save helpers, parse/serialize helpers.
   Proficiencies includes optional
   `spellcastingAbility?: SpellcastingAbility`
-  for GM override of auto-derived caster stat.
+  for GM override of auto-derived caster stat,
+  and an optional `toughFeat?: boolean` field
+  (defaulting to false in DEFAULT_PROFICIENCIES).
 - `audioFileStore.ts` — IndexedDB persistence
   for audio blobs, scoped per campaign
 - `diceRoller.ts` — Parses dice notation
@@ -404,7 +406,12 @@ test files. Not tests themselves.
 - `NpcFormFields.tsx` — Shared form fields
   used in both NewNpcDialog AND CombatSidebar
   Create NPC tab. Must stay in sync with both
-  usage sites. Contains: plain text fields
+  usage sites. Now contains internal 4-tab
+  navigation (Identity, Combat, Abilities,
+  Stat Block) with tab state living inside
+  the component. External API (data, onChange,
+  errors, compact props) is unchanged.
+  Contains: plain text fields
   (name, AC, HP, notes, IRV, CR, speed,
   senses, languages) and four list editors
   (traits, actions, reactions, legendary
@@ -461,8 +468,13 @@ test files. Not tests themselves.
   currentHp, ac, passivePerception,
   resistances, immunities, vulnerabilities,
   notes, proficiencies, resourcePools.
-  The Resource Pools section shows pre-filled
-  scaling suggestions (via
+  HP increase is now entered as a dice roll
+  input (not a Max HP total). CON modifier is
+  auto-added with helper text. Tough feat
+  checkbox persists hasToughFeat in the
+  proficiencies JSON (col Y) as toughFeat:
+  boolean. The Resource Pools section shows
+  pre-filled scaling suggestions (via
   `getResourcePoolSuggestions`) that the GM
   can edit before confirming. New pools the
   character should gain at the new level are
@@ -755,6 +767,11 @@ NpcListEditor is the generic form component
 for editing these lists. It is generic over
 `T extends { name: string }` and uses a
 `renderFields` prop to render per-entry inputs.
+
+Note: the notes field on NpcFormData was
+previously missing from the NpcFormFields
+JSX and has been added to the Combat tab as
+a DebouncedTextarea.
 
 ### Ability Score Input Pattern
 
