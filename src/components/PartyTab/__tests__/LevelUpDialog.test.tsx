@@ -79,4 +79,75 @@ describe('LevelUpDialog', () => {
       expect.any(Array)
     );
   });
+
+  it('Level up confirm payload includes proficiencies with updated proficiency bonus', () => {
+    const onConfirmMock = vi.fn();
+    const char: Character = {
+      ...mockCharacter,
+      level: 4,
+      proficiencies: JSON.stringify({
+        proficiencyBonus: 2,
+        jackOfAllTrades: false,
+        savingThrows: [],
+        skills: {},
+        passiveBonuses: {
+          perception: 0,
+          insight: 0,
+          investigation: 0
+        }
+      })
+    };
+
+    const { container } = render(
+      <LevelUpDialog
+        {...defaultProps}
+        character={char}
+        onConfirm={onConfirmMock}
+      />
+    );
+
+    const confirmBtn = container.querySelector('#confirm-level-up-btn') as HTMLButtonElement;
+    fireEvent.click(confirmBtn);
+
+    expect(onConfirmMock).toHaveBeenCalledTimes(1);
+    const call = onConfirmMock.mock.calls[0][0];
+    const profs = JSON.parse(call.proficiencies);
+    expect(profs.proficiencyBonus).toBe(3);
+  });
+
+  it('Level up preserves existing skill proficiencies when updating bonus', () => {
+    const onConfirmMock = vi.fn();
+    const char: Character = {
+      ...mockCharacter,
+      level: 8,
+      proficiencies: JSON.stringify({
+        proficiencyBonus: 3,
+        jackOfAllTrades: false,
+        savingThrows: [],
+        skills: { Perception: 'proficient' },
+        passiveBonuses: {
+          perception: 0,
+          insight: 0,
+          investigation: 0
+        }
+      })
+    };
+
+    const { container } = render(
+      <LevelUpDialog
+        {...defaultProps}
+        character={char}
+        onConfirm={onConfirmMock}
+      />
+    );
+
+    const confirmBtn = container.querySelector('#confirm-level-up-btn') as HTMLButtonElement;
+    fireEvent.click(confirmBtn);
+
+    expect(onConfirmMock).toHaveBeenCalledTimes(1);
+    const call = onConfirmMock.mock.calls[0][0];
+    const profs = JSON.parse(call.proficiencies);
+    expect(profs.proficiencyBonus).toBe(4);
+    expect(profs.skills.Perception).toBe('proficient');
+  });
 });

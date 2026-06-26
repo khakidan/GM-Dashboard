@@ -25,4 +25,52 @@ describe('NewNpcDialog', () => {
       legendaryResistances: 0,
     }));
   });
+
+  it('NPC creation passes abilityScores from form data, not hardcoded "{}"', () => {
+    const onConfirmMock = vi.fn();
+    const { getByLabelText, getByRole } = render(
+      <NewNpcDialog isOpen={true} onClose={vi.fn()} onConfirm={onConfirmMock} />
+    );
+
+    fireEvent.change(getByLabelText(/^NPC Name/i), { target: { value: 'Goblin' } });
+    fireEvent.click(getByRole('button', { name: /Add NPC/i }));
+
+    expect(onConfirmMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        abilityScores: expect.not.stringMatching(/^{}$/),
+      })
+    );
+  });
+
+  it('NPC creation derives proficiency bonus from CR', () => {
+    const onConfirmMock = vi.fn();
+    const { getByLabelText, getByRole } = render(
+      <NewNpcDialog isOpen={true} onClose={vi.fn()} onConfirm={onConfirmMock} />
+    );
+
+    fireEvent.change(getByLabelText(/^NPC Name/i), { target: { value: 'Dragon' } });
+    fireEvent.change(getByLabelText(/^CR/i), { target: { value: '5' } });
+    fireEvent.click(getByRole('button', { name: /Add NPC/i }));
+
+    expect(onConfirmMock).toHaveBeenCalledTimes(1);
+    const call = onConfirmMock.mock.calls[0][0];
+    const profs = JSON.parse(call.proficiencies);
+    expect(profs.proficiencyBonus).toBe(3);
+  });
+
+  it('NPC creation with fractional CR uses correct proficiency bonus', () => {
+    const onConfirmMock = vi.fn();
+    const { getByLabelText, getByRole } = render(
+      <NewNpcDialog isOpen={true} onClose={vi.fn()} onConfirm={onConfirmMock} />
+    );
+
+    fireEvent.change(getByLabelText(/^NPC Name/i), { target: { value: 'Goblin' } });
+    fireEvent.change(getByLabelText(/^CR/i), { target: { value: '1/4' } });
+    fireEvent.click(getByRole('button', { name: /Add NPC/i }));
+
+    expect(onConfirmMock).toHaveBeenCalledTimes(1);
+    const call = onConfirmMock.mock.calls[0][0];
+    const profs = JSON.parse(call.proficiencies);
+    expect(profs.proficiencyBonus).toBe(2);
+  });
 });

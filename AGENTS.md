@@ -538,7 +538,7 @@ this whitelist and to `dbOperations.ts`.
 
 ## Testing Structure — 12-Batch System
 
-**Current baseline: 597 tests.**
+**Current baseline: 605 tests.**
 All batches must pass with zero failures.
 No batch should exceed 35 seconds.
 
@@ -554,13 +554,13 @@ run all tests at once with `npx vitest run`.
 | 4     | Server      | 7          |
 | 5A    | AET Hooks   | 27         |
 | 5B    | AET Comp    | 22         |
-| 6A    | PartyTab    | 25         |
+| 6A    | PartyTab    | 30         |
 | 6B    | Encounters  | 6          |
-| 6C    | NpcLibrary  | 8          |
+| 6C    | NpcLibrary  | 11         |
 | 7B-1  | Top-Level 1 | 4          |
 | 7B-2  | Top-Level 2 | 4          |
 | 8     | UI          | 2          |
-| **Total** | | **597** |
+| **Total** | | **605** |
 
 ```bash
 # BATCH 1 — 431 tests
@@ -581,13 +581,13 @@ npx vitest run src/components/ActiveEncounterTab/__tests__/useBatchActions.test.
 # BATCH 5B — 22 tests
 npx vitest run src/components/ActiveEncounterTab/__tests__/AddNpcCollision.test.tsx src/components/ActiveEncounterTab/__tests__/CasterAttributionDialog.test.tsx src/components/ActiveEncounterTab/__tests__/CombatHeader.test.tsx src/components/ActiveEncounterTab/__tests__/CombatSidebar.test.tsx src/components/ActiveEncounterTab/__tests__/CombatantCard.test.tsx src/components/ActiveEncounterTab/__tests__/KeyboardShortcuts.test.tsx src/components/ActiveEncounterTab/__tests__/MultiTargetActionPanel.test.tsx src/components/ActiveEncounterTab/__tests__/NpcReferencePanel.test.tsx src/components/ActiveEncounterTab/__tests__/ShortcutCheatSheet.test.tsx src/components/ActiveEncounterTab/__tests__/index.test.tsx
 
-# BATCH 6A — 25 tests
+# BATCH 6A — 30 tests
 npx vitest run src/components/PartyTab/__tests__
 
 # BATCH 6B — 6 tests
 npx vitest run src/components/EncountersTab/__tests__
 
-# BATCH 6C — 8 tests
+# BATCH 6C — 11 tests
 npx vitest run src/components/NpcLibraryTab/__tests__
 
 # BATCH 7B-1 — 4 tests
