@@ -33,19 +33,6 @@ export function NewNpcDialog({ isOpen, onClose, onConfirm }: NewNpcDialogProps) 
     // ... basic validation logic
     if (formData.name.trim() === '') return;
 
-    // Validate recharge abilities
-    const newErrors: Record<string, string> = {};
-    formData.rechargeAbilities.forEach(ability => {
-      if (!ability.name.trim()) {
-        newErrors[ability.id] = 'Ability name is required.';
-      }
-    });
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-
     onConfirm({
       name: formData.name,
       ac: Number(formData.ac),
@@ -59,7 +46,6 @@ export function NewNpcDialog({ isOpen, onClose, onConfirm }: NewNpcDialogProps) 
       vulnerabilities: formData.vulnerabilities,
       legendaryActions: formData.legendaryActions,
       legendaryResistances: formData.legendaryResistances,
-      rechargeAbilities: formData.rechargeAbilities.map(r => ({ name: r.name, rechargeOn: r.rechargeOn })),
       abilityScores: formData.abilityScores,
       proficiencies: (() => {
         // Embed CR-derived proficiency bonus into

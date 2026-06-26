@@ -17,12 +17,6 @@ import {
 } from '../../lib/abilityScores';
 import type { NpcTrait, NpcAction, NpcReaction, NpcLegendaryAction } from '../../types';
 
-export interface RechargeAbility {
-  id: string;
-  name: string;
-  rechargeOn: number;
-}
-
 export interface NpcFormData {
   name: string;
   ac: string | number;
@@ -33,7 +27,6 @@ export interface NpcFormData {
   vulnerabilities: string;
   legendaryActions: number;
   legendaryResistances: number;
-  rechargeAbilities: RechargeAbility[];
   abilityScores: string;
   proficiencies: string;
   speed: string;
@@ -56,7 +49,6 @@ export const DEFAULT_NPC_FORM_DATA: NpcFormData = {
   vulnerabilities: '',
   legendaryActions: 0,
   legendaryResistances: 0,
-  rechargeAbilities: [],
   abilityScores: serializeAbilityScores(DEFAULT_ABILITY_SCORES),
   proficiencies: serializeProficiencies(DEFAULT_PROFICIENCIES),
   speed: '',
@@ -79,21 +71,6 @@ interface NpcFormFieldsProps {
 export function NpcFormFields({ data, onChange, errors = {}, compact = false }: NpcFormFieldsProps) {
   const handleChange = <K extends keyof NpcFormData>(key: K, value: NpcFormData[K]) => {
     onChange({ ...data, [key]: value });
-  };
-
-  const handleAddRecharge = () => {
-    handleChange('rechargeAbilities', [
-      ...data.rechargeAbilities,
-      { id: Date.now().toString(), name: '', rechargeOn: 5 },
-    ]);
-  };
-
-  const handleRemoveRecharge = (id: string) => {
-    handleChange('rechargeAbilities', data.rechargeAbilities.filter(r => r.id !== id));
-  };
-
-  const handleRechargeChange = (id: string, field: keyof RechargeAbility, value: any) => {
-    handleChange('rechargeAbilities', data.rechargeAbilities.map(r => r.id === id ? { ...r, [field]: value } : r));
   };
 
   const handleTraitsChange = (updated: NpcTrait[]) => {
@@ -591,45 +568,6 @@ export function NpcFormFields({ data, onChange, errors = {}, compact = false }: 
             onChange={e => handleChange('legendaryResistances', parseInt(e.target.value) || 0)}
             className={inputClass}
           />
-        </div>
-      </div>
-
-      <div>
-        <label className={labelClass}>Recharge Abilities</label>
-        <div className="space-y-2">
-          {data.rechargeAbilities.map(r => (
-            <div key={r.id} className="space-y-1">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={r.name}
-                  onChange={e => handleRechargeChange(r.id, 'name', e.target.value)}
-                  className={cn(inputClass, "flex-1", errors[r.id] && "border-red-500")}
-                  placeholder="Ability name"
-                />
-                <select 
-                  value={r.rechargeOn}
-                  onChange={e => handleRechargeChange(r.id, 'rechargeOn', parseInt(e.target.value))}
-                  className="bg-white border border-[#e5e1d8] rounded-xl px-2 py-1 text-sm outline-none focus:border-[#c5b358]"
-                >
-                  <option value={2}>2-6</option>
-                  <option value={3}>3-6</option>
-                  <option value={4}>4-6</option>
-                  <option value={5}>5-6</option>
-                  <option value={6}>6</option>
-                </select>
-                <button type="button" aria-label="Remove ability" onClick={() => handleRemoveRecharge(r.id)} className="text-red-400 hover:text-red-600 p-2">
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-              {errors[r.id] && (
-                <p className="text-xs text-red-500 px-1">{errors[r.id]}</p>
-              )}
-            </div>
-          ))}
-          <button type="button" onClick={handleAddRecharge} className="flex items-center gap-1 text-[10px] uppercase font-bold text-[#c5b358] hover:text-[#b0a04f]">
-            <Plus className="w-3 h-3" /> Add Recharge Ability
-          </button>
         </div>
       </div>
 

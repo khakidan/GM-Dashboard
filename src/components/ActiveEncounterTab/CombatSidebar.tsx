@@ -109,9 +109,7 @@ export function CombatSidebar({
       vulnerabilities: createNpcData.vulnerabilities ?? '',
       legendaryActions: Number(createNpcData.legendaryActions ?? 0),
       legendaryResistances: Number(createNpcData.legendaryResistances ?? 0),
-      rechargeAbilities: (createNpcData.rechargeAbilities ?? []).map(
-        r => ({ name: r.name, rechargeOn: r.rechargeOn })
-      ),
+      rechargeAbilities: [],
       abilityScores: '{}',
       proficiencies: '{}',
       speed: createNpcData.speed ?? '',
