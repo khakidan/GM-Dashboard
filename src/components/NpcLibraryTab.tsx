@@ -158,15 +158,22 @@ export function NpcLibraryTab() {
 
         <div className="space-y-4">
           {filteredNpcs.length === 0 ? (
-          <div className="bg-white py-12 text-center text-[#5a5a40] italic flex flex-col items-center justify-center border border-dashed border-[#e5e1d8] rounded-2xl bg-gray-50/50">
-            <BookOpen className="w-10 h-10 text-gray-300 mb-2" />
-            {state.npcs.length === 0 ? (
-              <span>No NPCs loaded in library. Click "Add New NPC" to begin.</span>
-            ) : (
-              <span>No NPCs match your filters.</span>
-            )}
-          </div>
-        ) : (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <BookOpen className="w-12 h-12 text-[#5a5a40] opacity-20 mb-4" />
+              <h3 className="text-lg font-serif font-bold text-[#2c2c26] mb-2">
+                No NPCs in library
+              </h3>
+              <p className="text-sm text-[#5a5a40] mb-6 max-w-xs">
+                Add NPCs to build your library. They will be available to add to any encounter.
+              </p>
+              <button
+                onClick={() => setIsNewNpcDialogOpen(true)}
+                className="bg-[#c5b358] hover:bg-[#b0a04f] text-[#2c2c26] font-bold font-sans uppercase tracking-widest text-xs px-6 py-3 rounded-xl transition-all shadow-md active:scale-95"
+              >
+                Add New NPC
+              </button>
+            </div>
+          ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {filteredNpcs.map(npc => (
               <NpcCard

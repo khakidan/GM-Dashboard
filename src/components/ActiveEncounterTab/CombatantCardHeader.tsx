@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Eye, Zap, ZapOff, Shield } from 'lucide-react';
+import { ChevronDown, Zap, ZapOff, Shield } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { Combatant, DamageType } from '../../types';
 import { getHealthStatus, effectiveAc, effectiveMaxHp } from '../../lib/conditions';
@@ -458,7 +458,7 @@ export function CombatantCardHeader({
             className="p-2 text-[#5a5a40] opacity-40 hover:opacity-100 hover:bg-[#f5f5f0] rounded transition-all shrink-0 cursor-pointer"
           >
             <motion.div animate={{ rotate: isExpanded ? 180 : 0 }}>
-              <Eye className="w-5 h-5" />
+              <ChevronDown className="w-5 h-5" />
             </motion.div>
           </button>
 

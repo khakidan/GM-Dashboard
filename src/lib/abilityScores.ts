@@ -101,6 +101,31 @@ export function proficiencyBonusFromLevel(level: number): number {
   return 6;
 }
 
+/**
+ * Returns the proficiency bonus for an NPC
+ * based on its Challenge Rating per D&D 5e rules.
+ * CR is stored as a string (e.g. "1/4", "5", "20").
+ * Returns 2 for unknown or unparseable values.
+ */
+export function proficiencyBonusFromCR(
+  cr: string | undefined
+): number {
+  if (!cr) return 2;
+  // Handle fractional CRs
+  if (cr === '1/8' || cr === '1/4' ||
+      cr === '1/2') return 2;
+  const num = parseFloat(cr);
+  if (isNaN(num)) return 2;
+  if (num <= 4)  return 2;
+  if (num <= 8)  return 3;
+  if (num <= 12) return 4;
+  if (num <= 16) return 5;
+  if (num <= 20) return 6;
+  if (num <= 24) return 7;
+  if (num <= 28) return 8;
+  return 9; // CR 29-30
+}
+
 // modifier + profBonus if proficient
 // modifier only if not proficient
 export function getSavingThrowBonus(

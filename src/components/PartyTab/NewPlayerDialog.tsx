@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { X, UserPlus, AlertCircle, Edit2 } from 'lucide-react';
+import { X, UserPlus, AlertCircle, Edit2, Plus, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Character } from '../../types';
 import { cn } from '../../lib/utils';
@@ -534,8 +534,8 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                                     <button type="button" onClick={() => startEditResource(pool)} className="p-1.5 text-stone-400 hover:text-amber-600 rounded transition-colors" title="Edit">
                                       <Edit2 className="w-3.5 h-3.5" />
                                     </button>
-                                    <button type="button" onClick={() => handleDeleteResource(pool.name)} className="p-1.5 text-stone-400 hover:text-red-500 rounded transition-colors" title="Delete">
-                                      <X className="w-4 h-4" />
+                                    <button type="button" onClick={() => handleDeleteResource(pool.name)} className="text-red-400 hover:text-red-600 p-2" title="Delete">
+                                      <Trash2 className="w-4 h-4" />
                                     </button>
                                   </div>
                                 </div>
@@ -594,9 +594,9 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                       <button
                         type="button"
                         onClick={() => setIsAddingResource(true)}
-                        className="w-full py-2.5 border border-dashed border-stone-300 rounded-lg text-stone-400 hover:text-amber-600 hover:border-amber-400 transition-colors text-sm font-medium flex items-center justify-center gap-1"
+                        className="flex items-center gap-1 text-[10px] uppercase font-bold text-[#c5b358] hover:text-[#b0a04f]"
                       >
-                        <span className="text-lg leading-none">+</span> Add Resource
+                        <Plus className="w-3 h-3" /> Add Resource
                       </button>
                     )}
 

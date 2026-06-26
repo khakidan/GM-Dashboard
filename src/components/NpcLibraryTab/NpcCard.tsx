@@ -14,7 +14,7 @@ import { NpcLegendarySection } from './NpcLegendarySection';
 import { StatBlock } from '../ui/StatBlock';
 import { SpellcastingStatsRow } from '../ui/SpellcastingStatsRow';
 import { serializeSpellcastingAbility } from '../../lib/spellcasting';
-import { parseAbilityScores, parseProficiencies, serializeAbilityScores, serializeProficiencies } from '../../lib/abilityScores';
+import { parseAbilityScores, parseProficiencies, serializeAbilityScores, serializeProficiencies, proficiencyBonusFromCR } from '../../lib/abilityScores';
 
 export interface NpcCardProps {
   npc: NPC;
@@ -313,7 +313,7 @@ export const NpcCard: React.FC<NpcCardProps> = ({
         <div className="px-6 pb-3 -mt-1" id={`spellcasting-stats-container-${npc.id}`}>
           <SpellcastingStatsRow
             abilityScores={parsedScores}
-            profBonus={parsedProfs.proficiencyBonus ?? 0}
+            profBonus={proficiencyBonusFromCR(npc.challengeRating)}
             className={undefined}
             overrideAbility={parsedProfs.spellcastingAbility}
           />
@@ -343,7 +343,7 @@ export const NpcCard: React.FC<NpcCardProps> = ({
 
               <SpellcastingStatsRow
                 abilityScores={parsedScores}
-                profBonus={parsedProfs.proficiencyBonus ?? 0}
+                profBonus={proficiencyBonusFromCR(npc.challengeRating)}
                 className={undefined}
                 overrideAbility={parsedProfs.spellcastingAbility}
                 onOverrideChange={(ability) => {

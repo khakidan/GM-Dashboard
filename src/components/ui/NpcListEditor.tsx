@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, X } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 
 interface NpcListEditorProps<T extends { name: string }> {
   title: string;           // section header e.g. "Traits"
@@ -63,9 +63,9 @@ export function NpcListEditor<T extends { name: string }>({
                 type="button"
                 aria-label={`Remove ${singularTitle}`}
                 onClick={() => handleRemoveItem(index)}
-                className="absolute top-2 right-2 text-[#5a5a40] hover:text-[#2c2c26]"
+                className="absolute top-2 right-2 text-red-400 hover:text-red-600 p-2"
               >
-                <X className="w-4 h-4" />
+                <Trash2 className="w-4 h-4" />
               </button>
               <div className="pr-6">
                 {renderFields(item, index, (updated) =>

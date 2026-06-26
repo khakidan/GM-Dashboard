@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   calculateModifier,
   proficiencyBonusFromLevel,
+  proficiencyBonusFromCR,
   getSavingThrowBonus,
   getSkillBonus,
   getPassiveScore,
@@ -46,6 +47,37 @@ describe('Ability Scores & Proficiencies Utilities', () => {
       expect(proficiencyBonusFromLevel(20)).toBe(6);
       expect(proficiencyBonusFromLevel(25)).toBe(6); // above 20 clamp
     });
+  });
+
+  describe('proficiencyBonusFromCR', () => {
+    it('returns 2 for CR 0', () =>
+      expect(proficiencyBonusFromCR('0')).toBe(2));
+    it('returns 2 for CR 1/8', () =>
+      expect(proficiencyBonusFromCR('1/8')).toBe(2));
+    it('returns 2 for CR 1/4', () =>
+      expect(proficiencyBonusFromCR('1/4')).toBe(2));
+    it('returns 2 for CR 1/2', () =>
+      expect(proficiencyBonusFromCR('1/2')).toBe(2));
+    it('returns 2 for CR 1', () =>
+      expect(proficiencyBonusFromCR('1')).toBe(2));
+    it('returns 2 for CR 4', () =>
+      expect(proficiencyBonusFromCR('4')).toBe(2));
+    it('returns 3 for CR 5', () =>
+      expect(proficiencyBonusFromCR('5')).toBe(3));
+    it('returns 3 for CR 8', () =>
+      expect(proficiencyBonusFromCR('8')).toBe(3));
+    it('returns 4 for CR 9', () =>
+      expect(proficiencyBonusFromCR('9')).toBe(4));
+    it('returns 4 for CR 12', () =>
+      expect(proficiencyBonusFromCR('12')).toBe(4));
+    it('returns 5 for CR 13', () =>
+      expect(proficiencyBonusFromCR('13')).toBe(5));
+    it('returns 5 for CR 16', () =>
+      expect(proficiencyBonusFromCR('16')).toBe(5));
+    it('returns 6 for CR 17', () =>
+      expect(proficiencyBonusFromCR('17')).toBe(6));
+    it('returns 9 for CR 30', () =>
+      expect(proficiencyBonusFromCR('30')).toBe(9));
   });
 
   describe('getSavingThrowBonus', () => {
