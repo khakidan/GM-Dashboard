@@ -240,11 +240,18 @@ schema.
   the NPC source. Includes `buildSingleNpcCombatant()`
   helper for adding NPC instances to combat.
 - `classResources.ts` — CLASS_RESOURCE_SUGGESTIONS
-  mapping for 12 standard 5e classes and
-  `getClassResourceSuggestions()` helper.
-  Returns deep-copied ResourcePool[] suggestions.
-  Returns [] for unknown/custom classes
-  (e.g. Vitalist).
+  mapping for 13 standard 5e classes and
+  `getClassResourceSuggestions()` helper. Now
+  includes Rogue (Sneak Attack d6), updated
+  Paladin (Lay on Hands), and updated Warlock
+  (Warlock Spell Slots, short rest). Pools that
+  unlock after level 1 (Ki Points, Sorcery
+  Points, Action Surge, Channel Divinity) are
+  absent from level 1 suggestions and appear
+  automatically via `getResourcePoolSuggestions`
+  on level up. Returns deep-copied
+  ResourcePool[] suggestions. Returns [] for
+  unknown/custom classes (e.g. Vitalist).
 - `hitDice.ts` — Hit dice parsing, spending,
   recovery. Includes `CLASS_HIT_DIE_MAP`
 - `resourcePools.ts` — ResourcePool interface
@@ -257,9 +264,13 @@ schema.
 - `resourcePoolScaling.ts` — Level-based
   resource pool scaling. Exports
   `ResourcePoolSuggestion` interface,
-  `POOL_LEVEL_TABLES` (Rage, Ki Points,
-  Sorcery Points), `getAutoScaledMax()`,
-  and `getResourcePoolSuggestions()`. Used by
+  `POOL_LEVEL_TABLES` (covering 8 pools: Rage,
+  Ki Points, Sorcery Points, Action Surge,
+  Channel Divinity, Lay on Hands, Warlock
+  Spell Slots, and Sneak Attack (d6)),
+  `getAutoScaledMax()`, and
+  `getResourcePoolSuggestions()`. All values
+  follow D&D 5e 2014 rules. Used by
   LevelUpDialog to pre-fill pool max suggestions
   when a character levels up. Returns both
   scaled existing pools and new pools the
@@ -564,7 +575,7 @@ this whitelist and to `dbOperations.ts`.
 
 ## Testing Structure — 12-Batch System
 
-**Current baseline: 610 tests.**
+**Current baseline: 611 tests.**
 All batches must pass with zero failures.
 No batch should exceed 35 seconds.
 
@@ -574,7 +585,7 @@ run all tests at once with `npx vitest run`.
 
 | Batch | Description | Test Count |
 |-------|-------------|------------|
-| 1     | Lib         | 431        |
+| 1     | Lib         | 432        |
 | 2     | Services    | 29         |
 | 3     | Hooks       | 32         |
 | 4     | Server      | 7          |
@@ -586,10 +597,10 @@ run all tests at once with `npx vitest run`.
 | 7B-1  | Top-Level 1 | 4          |
 | 7B-2  | Top-Level 2 | 4          |
 | 8     | UI          | 2          |
-| **Total** | | **610** |
+| **Total** | | **611** |
 
 ```bash
-# BATCH 1 — 431 tests
+# BATCH 1 — 432 tests
 npx vitest run src/lib/__tests__
 
 # BATCH 2 — 29 tests

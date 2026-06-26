@@ -64,8 +64,8 @@ describe('classResources', () => {
   });
 
   describe('CLASS_RESOURCE_SUGGESTIONS', () => {
-    it('has exactly 12 entries', () => {
-      expect(Object.keys(CLASS_RESOURCE_SUGGESTIONS)).toHaveLength(12);
+    it('has exactly 13 entries', () => {
+      expect(Object.keys(CLASS_RESOURCE_SUGGESTIONS)).toHaveLength(13);
     });
 
     it('every pool has name, current, max, and reset defined', () => {

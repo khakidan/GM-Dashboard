@@ -8,33 +8,36 @@ export const CLASS_RESOURCE_SUGGESTIONS: Record<string, ResourcePool[]> = {
     { name: 'Bardic Inspiration', current: 3, max: 3, reset: 'long' },
   ],
   'Cleric': [
-    { name: 'Channel Divinity', current: 1, max: 1, reset: 'short' },
+    { name: 'Channel Divinity', current: 0, max: 0, reset: 'short' },
     { name: 'Spell Slots', current: 4, max: 4, reset: 'long' },
   ],
   'Druid': [
-    { name: 'Wild Shape', current: 2, max: 2, reset: 'short' },
     { name: 'Spell Slots', current: 4, max: 4, reset: 'long' },
   ],
   'Fighter': [
-    { name: 'Action Surge', current: 1, max: 1, reset: 'short' },
+    { name: 'Action Surge', current: 0, max: 0, reset: 'short' },
     { name: 'Second Wind', current: 1, max: 1, reset: 'short' },
   ],
   'Monk': [
-    { name: 'Ki Points', current: 1, max: 1, reset: 'short' },
+    { name: 'Ki Points', current: 0, max: 0, reset: 'short' },
   ],
   'Paladin': [
-    { name: 'Channel Divinity', current: 1, max: 1, reset: 'short' },
+    { name: 'Channel Divinity', current: 0, max: 0, reset: 'short' },
+    { name: 'Lay on Hands', current: 5, max: 5, reset: 'long' },
     { name: 'Spell Slots', current: 4, max: 4, reset: 'long' },
   ],
   'Ranger': [
     { name: 'Spell Slots', current: 4, max: 4, reset: 'long' },
   ],
   'Sorcerer': [
-    { name: 'Sorcery Points', current: 2, max: 2, reset: 'long' },
+    { name: 'Sorcery Points', current: 0, max: 0, reset: 'long' },
     { name: 'Spell Slots', current: 4, max: 4, reset: 'long' },
   ],
+  'Rogue': [
+    { name: 'Sneak Attack (d6)', current: 1, max: 1, reset: 'long' },
+  ],
   'Warlock': [
-    { name: 'Spell Slots', current: 2, max: 2, reset: 'short' },
+    { name: 'Warlock Spell Slots', current: 1, max: 1, reset: 'short' },
   ],
   'Wizard': [
     { name: 'Spell Slots', current: 4, max: 4, reset: 'long' },
