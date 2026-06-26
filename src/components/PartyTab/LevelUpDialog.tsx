@@ -3,7 +3,7 @@ import { Character } from '../../types';
 import { X, ArrowRight, CheckSquare, Square } from 'lucide-react';
 import { IrvMultiSelect } from '../ui/IrvMultiSelect';
 import { parseClassString, getHitDieForClass, addHitDieToConfig } from '../../lib/hitDice';
-import { proficiencyBonusFromLevel, parseProficiencies, serializeProficiencies } from '../../lib/abilityScores';
+import { proficiencyBonusFromLevel, parseProficiencies, serializeProficiencies, calculateModifier, parseAbilityScores } from '../../lib/abilityScores';
 import { getResourcePoolSuggestions } from '../../lib/resourcePoolScaling';
 import { ResourcePool, parseResourcePools, serializeResourcePools } from '../../lib/resourcePools';
 
@@ -42,8 +42,10 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
 
   // Section B updated values states
   const [newLevel, setNewLevel] = useState<number>(character.level + 1);
-  const [newMaxHp, setNewMaxHp] = useState<number>(character.maxHp);
-  const [alsoIncreaseCurrentHp, setAlsoIncreaseCurrentHp] = useState(true);
+  const [hpRoll, setHpRoll] = useState<number>(1);
+  const [hasToughFeat, setHasToughFeat] = useState<boolean>(() =>
+    parseProficiencies(character.proficiencies ?? '{}').toughFeat ?? false
+  );
   const [newAc, setNewAc] = useState<number>(character.ac);
   const [newNotes, setNewNotes] = useState<string>(character.notes || '');
   const [newResistances, setNewResistances] = useState<string>(character.resistances || '');
@@ -91,8 +93,8 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
   useEffect(() => {
     if (isOpen) {
       setNewLevel(character.level + 1);
-      setNewMaxHp(character.maxHp);
-      setAlsoIncreaseCurrentHp(true);
+      setHpRoll(1);
+      setHasToughFeat(parseProficiencies(character.proficiencies ?? '{}').toughFeat ?? false);
       setNewAc(character.ac);
       setNewNotes(character.notes || '');
       setNewResistances(character.resistances || '');
@@ -119,8 +121,22 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
 
   if (!isOpen) return null;
 
-  // Derive HP Gain (can be negative or positive, but we're mostly interested in positive increase)
-  const hpIncrease = Math.max(0, newMaxHp - character.maxHp);
+  const conScore = parseAbilityScores(
+    character.abilityScores ?? '{}'
+  ).CON ?? 10;
+  const conModifier = calculateModifier(
+    conScore
+  );
+
+  const currentToughFeat = parseProficiencies(
+    character.proficiencies ?? '{}'
+  ).toughFeat ?? false;
+
+  const totalHpGained = hpRoll
+    + conModifier
+    + (hasToughFeat ? 2 : 0);
+
+  const hpIncrease = totalHpGained;
 
   const handleConfirm = () => {
     const finalClass = levelUpOption === 'newClass'
@@ -142,6 +158,7 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
             character.proficiencies ?? '{}'
           );
           existing.proficiencyBonus = newProfBonus;
+          existing.toughFeat = hasToughFeat;
           return serializeProficiencies(existing);
         } catch {
           return character.proficiencies ?? '{}';
@@ -158,16 +175,8 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
       updates.hitDiceConfig = newHitDiceConfig;
     }
 
-    if (Number(newMaxHp) !== character.maxHp) {
-      updates.maxHp = Number(newMaxHp);
-    }
-
-    if (alsoIncreaseCurrentHp && hpIncrease > 0) {
-      const finalCurrentHp = Math.min(Number(newMaxHp), character.currentHp + hpIncrease);
-      if (finalCurrentHp !== character.currentHp) {
-        updates.currentHp = finalCurrentHp;
-      }
-    }
+    updates.maxHp = character.maxHp + totalHpGained;
+    updates.currentHp = character.currentHp + totalHpGained;
 
     if (Number(newAc) !== character.ac) {
       updates.ac = Number(newAc);
@@ -442,48 +451,57 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 bg-[#fdfaf5] border border-[#e5e1d8] rounded-2xl p-4">
-              <div>
-                <label htmlFor="new-max-hp-input" className="block text-[9px] font-bold uppercase tracking-wider text-[#5a5a40] mb-1">
-                  New Max HP
-                </label>
-                <input
-                  id="new-max-hp-input"
-                  type="number"
-                  value={newMaxHp}
-                  onFocus={(e) => e.target.select()}
-                  onChange={e => setNewMaxHp(Math.max(1, parseInt(e.target.value) || 0))}
-                  className="bg-white border border-[#e5e1d8] rounded-xl text-[#2c2c26] placeholder:text-[#5a5a40] focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358]/50 focus:outline-none w-full px-3 py-2 text-sm transition-all"
-                />
-              </div>
-
-              <div>
-                <span className="block text-[9px] font-bold uppercase tracking-wider text-[#5a5a40] mb-1">
-                  HP Increase
+            <div>
+              <label className="block text-[9px]
+                font-bold uppercase tracking-wider
+                text-[#5a5a40] mb-1">
+                HP Roll
+              </label>
+              <input
+                type="number"
+                min="1"
+                value={hpRoll}
+                onChange={e => setHpRoll(
+                  Math.max(1, parseInt(e.target.value)
+                    || 1)
+                )}
+                onFocus={e => e.target.select()}
+                className="bg-white border
+                  border-[#e5e1d8] rounded-xl
+                  text-[#2c2c26] focus:border-[#c5b358]
+                  focus:ring-1 focus:ring-[#c5b358]/50
+                  focus:outline-none w-full px-3 py-2
+                  text-sm transition-all"
+              />
+              <p className="text-xs text-[#5a5a40]
+                mt-1">
+                {conModifier >= 0 ? '+' : ''}
+                {conModifier} from CON modifier
+                {hasToughFeat ? ', +2 from Tough feat'
+                  : ''}
+                 — total HP gained:{' '}
+                <span className="font-bold
+                  text-[#2c2c26]">
+                  {totalHpGained}
                 </span>
-                <div className="bg-gray-100/70 text-gray-700 rounded-xl px-3 py-2 text-sm font-bold border border-[#e5e1d8] h-[38px] flex items-center justify-between">
-                  <span id="hp-increase-display">{hpIncrease}</span>
-                  <span className="text-[9px] font-normal text-gray-400">gained this level</span>
-                </div>
-              </div>
-
-              <div className="col-span-2">
-                <label
-                  htmlFor="also-increase-hp"
-                  className="flex items-center gap-2.5 text-xs text-[#5a5a40] select-none cursor-pointer hover:text-[#2c2c26]"
-                >
-                  <input
-                    id="also-increase-hp"
-                    type="checkbox"
-                    checked={alsoIncreaseCurrentHp}
-                    onChange={e => setAlsoIncreaseCurrentHp(e.target.checked)}
-                    className="w-4 h-4 accent-[#c5b358] cursor-pointer"
-                  />
-                  <span>
-                    Also increase Current HP by <strong className="text-[#c5b358]">{hpIncrease}</strong>
-                  </span>
-                </label>
-              </div>
+              </p>
+              <label className="flex items-center
+                gap-2 mt-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={hasToughFeat}
+                  onChange={e => setHasToughFeat(
+                    e.target.checked
+                  )}
+                  className="rounded border-[#e5e1d8]
+                    text-[#c5b358] focus:ring-[#c5b358]
+                    w-4 h-4"
+                />
+                <span className="text-xs
+                  text-[#5a5a40] font-medium">
+                  Tough feat (+2 HP per level)
+                </span>
+              </label>
             </div>
 
             <div className="grid grid-cols-1 gap-4">

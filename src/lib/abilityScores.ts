@@ -39,6 +39,7 @@ export interface Proficiencies {
     investigation: number;
   };
   spellcastingAbility?: SpellcastingAbility;
+  toughFeat?: boolean;
 }
 
 // Maps each skill to its governing ability score
@@ -81,6 +82,7 @@ export const DEFAULT_PROFICIENCIES: Proficiencies = {
     insight: 0,
     investigation: 0,
   },
+  toughFeat: false,
 };
 
 // floor((score - 10) / 2)
@@ -235,6 +237,7 @@ export function parseProficiencies(json: string): Proficiencies {
       savingThrows: [...DEFAULT_PROFICIENCIES.savingThrows],
       skills: { ...DEFAULT_PROFICIENCIES.skills },
       passiveBonuses: { ...DEFAULT_PROFICIENCIES.passiveBonuses },
+      toughFeat: false,
     };
   }
   try {
@@ -269,6 +272,8 @@ export function parseProficiencies(json: string): Proficiencies {
         ? parseSpellcastingAbility(parsed.spellcastingAbility)
         : undefined;
 
+      const toughFeat = typeof parsed.toughFeat === 'boolean' ? parsed.toughFeat : false;
+
       return {
         proficiencyBonus,
         jackOfAllTrades,
@@ -276,6 +281,7 @@ export function parseProficiencies(json: string): Proficiencies {
         skills,
         passiveBonuses,
         spellcastingAbility,
+        toughFeat,
       };
     }
     return {
@@ -284,6 +290,7 @@ export function parseProficiencies(json: string): Proficiencies {
       savingThrows: [...DEFAULT_PROFICIENCIES.savingThrows],
       skills: { ...DEFAULT_PROFICIENCIES.skills },
       passiveBonuses: { ...DEFAULT_PROFICIENCIES.passiveBonuses },
+      toughFeat: false,
     };
   } catch {
     return {
@@ -292,6 +299,7 @@ export function parseProficiencies(json: string): Proficiencies {
       savingThrows: [...DEFAULT_PROFICIENCIES.savingThrows],
       skills: { ...DEFAULT_PROFICIENCIES.skills },
       passiveBonuses: { ...DEFAULT_PROFICIENCIES.passiveBonuses },
+      toughFeat: false,
     };
   }
 }
