@@ -4,6 +4,7 @@ import { Loader2, Trash2, RotateCcw } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 import { DebouncedInput } from '../ui/DebouncedInput';
+import { CardNumberInput } from '../ui/CardNumberInput';
 import { DebouncedTextarea } from '../ui/DebouncedTextarea';
 import { NpcListEditor } from '../ui/NpcListEditor';
 
@@ -364,19 +365,49 @@ export const NpcCard: React.FC<NpcCardProps> = ({
               <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
                 <div className="text-center p-3 bg-[#fdfaf5] border border-[#e5e1d8] rounded-xl shadow-sm">
                   <div className="text-[10px] font-bold uppercase tracking-widest text-[#5a5a40] mb-1">AC</div>
-                  <DebouncedInput type="number" value={npc.ac} onFocus={(e) => (e.target as HTMLInputElement).select()} onChange={(v) => onUpdate({ ac: parseInt(v as string, 10) || 0 })} className="text-lg font-bold text-[#2c2c26] w-full text-center bg-transparent border-none focus:ring-0 p-0 disabled:opacity-50" disabled={isSyncing} />
+                  <CardNumberInput
+                    value={npc.ac}
+                    onChange={v => onUpdate({ ac: v })}
+                    fallback={0}
+                    min={0}
+                    className="text-lg font-bold text-[#2c2c26] w-full text-center bg-transparent border-none focus:ring-0 p-0 disabled:opacity-50"
+                    disabled={isSyncing}
+                  />
                 </div>
                 <div className="text-center p-3 bg-[#fdfaf5] border border-[#e5e1d8] rounded-xl shadow-sm">
                   <div className="text-[10px] font-bold uppercase tracking-widest text-[#5a5a40] mb-1">Max HP</div>
-                  <DebouncedInput type="number" value={npc.maxHp} onFocus={(e) => (e.target as HTMLInputElement).select()} onChange={(v) => onUpdate({ maxHp: parseInt(v as string, 10) || 1 })} className="text-lg font-bold text-[#2c2c26] w-full text-center bg-transparent border-none focus:ring-0 p-0 disabled:opacity-50" disabled={isSyncing} />
+                  <CardNumberInput
+                    value={npc.maxHp}
+                    onChange={v => onUpdate({ maxHp: v })}
+                    fallback={1}
+                    min={1}
+                    className="text-lg font-bold text-[#2c2c26] w-full text-center bg-transparent border-none focus:ring-0 p-0 disabled:opacity-50"
+                    disabled={isSyncing}
+                  />
                 </div>
                 <div className="text-center p-3 bg-[#fdfaf5] border border-[#e5e1d8] rounded-xl shadow-sm">
                   <div className="text-[10px] font-bold uppercase tracking-widest text-[#5a5a40] mb-1">HP</div>
-                  <DebouncedInput type="number" value={npc.currentHp} onFocus={(e) => (e.target as HTMLInputElement).select()} onChange={(v) => onUpdate({ currentHp: parseInt(v as string, 10) || 0 })} className={cn("text-lg font-bold w-full text-center bg-transparent border-none focus:ring-0 p-0 disabled:opacity-50", npc.currentHp <= 0 ? "text-red-600" : "text-[#2c2c26]")} disabled={isSyncing} />
+                  <CardNumberInput
+                    value={npc.currentHp}
+                    onChange={v => onUpdate({ currentHp: v })}
+                    fallback={0}
+                    className={cn(
+                      "text-lg font-bold w-full text-center bg-transparent border-none focus:ring-0 p-0 disabled:opacity-50",
+                      npc.currentHp <= 0 ? "text-red-600" : "text-[#2c2c26]"
+                    )}
+                    disabled={isSyncing}
+                  />
                 </div>
                 <div className="text-center p-3 bg-[#fdfaf5] border border-[#e5e1d8] rounded-xl shadow-sm">
                   <div className="text-[10px] font-bold uppercase tracking-widest text-[#5a5a40] mb-1">Temp</div>
-                  <DebouncedInput type="number" value={npc.tempHp} onFocus={(e) => (e.target as HTMLInputElement).select()} onChange={(v) => onUpdate({ tempHp: parseInt(v as string, 10) || 0 })} className="text-lg font-bold text-[#2c2c26] w-full text-center bg-transparent border-none focus:ring-0 p-0 disabled:opacity-50" disabled={isSyncing} />
+                  <CardNumberInput
+                    value={npc.tempHp}
+                    onChange={v => onUpdate({ tempHp: v })}
+                    fallback={0}
+                    min={0}
+                    className="text-lg font-bold text-[#2c2c26] w-full text-center bg-transparent border-none focus:ring-0 p-0 disabled:opacity-50"
+                    disabled={isSyncing}
+                  />
                 </div>
                 <div className="text-center p-3 bg-[#fdfaf5] border border-[#e5e1d8] rounded-xl shadow-sm col-span-2 sm:col-span-1">
                   <div className="text-[10px] font-bold uppercase tracking-widest text-[#5a5a40] mb-1">CR</div>

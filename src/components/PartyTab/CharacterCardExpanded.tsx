@@ -3,6 +3,7 @@ import { X } from 'lucide-react';
 import { Character } from '../../types';
 import { cn } from '../../lib/utils';
 import { DebouncedInput } from '../ui/DebouncedInput';
+import { CardNumberInput } from '../ui/CardNumberInput';
 import { DebouncedTextarea } from '../ui/DebouncedTextarea';
 import { CharacterResourceSection } from './CharacterResourceSection';
 import { CharacterIRVSection } from './CharacterIRVSection';
@@ -91,22 +92,22 @@ export const CharacterCardExpanded: React.FC<CharacterCardExpandedProps> = ({
       <div className="grid grid-cols-3 md:grid-cols-6 gap-3 sm:gap-4">
         <div className="text-center p-3 bg-[#fdfaf5] border border-[#e5e1d8] rounded-xl shadow-sm">
           <div className="text-[10px] font-bold uppercase tracking-widest text-[#5a5a40] mb-1">AC</div>
-          <DebouncedInput 
-            type="number"
-            value={character.ac || ''}
-            onFocus={(e) => (e.target as HTMLInputElement).select()}
-            onChange={(v) => onUpdate({ ac: parseInt(v as string, 10) || 0 })}
+          <CardNumberInput
+            value={character.ac || 0}
+            onChange={v => onUpdate({ ac: v })}
+            fallback={0}
+            min={0}
             className="text-lg font-bold text-[#2c2c26] w-full text-center bg-transparent border border-transparent outline-none focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] rounded transition-all disabled:opacity-50"
             disabled={isSyncing}
           />
         </div>
         <div className="text-center p-3 bg-[#fdfaf5] border border-[#e5e1d8] rounded-xl shadow-sm">
           <div className="text-[10px] font-bold uppercase tracking-widest text-[#5a5a40] mb-1">Max HP</div>
-          <DebouncedInput 
-            type="number"
-            value={character.maxHp || ''}
-            onFocus={(e) => (e.target as HTMLInputElement).select()}
-            onChange={(v) => onUpdate({ maxHp: parseInt(v as string, 10) || 1 })}
+          <CardNumberInput
+            value={character.maxHp || 0}
+            onChange={v => onUpdate({ maxHp: v })}
+            fallback={1}
+            min={1}
             className={cn(
               "text-lg font-bold w-full text-center bg-transparent border border-transparent outline-none focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] rounded transition-all disabled:opacity-50",
               character.tempHpMax && character.tempHpMax > 0 ? "text-amber-600 cursor-help" : "text-[#2c2c26]"
@@ -117,33 +118,33 @@ export const CharacterCardExpanded: React.FC<CharacterCardExpandedProps> = ({
         </div>
         <div className="text-center p-3 bg-[#fdfaf5] border border-[#e5e1d8] rounded-xl shadow-sm">
           <div className="text-[10px] font-bold uppercase tracking-widest text-[#5a5a40] mb-1">HP</div>
-          <DebouncedInput 
-            type="number"
-            value={character.currentHp === undefined ? '' : character.currentHp}
-            onFocus={(e) => (e.target as HTMLInputElement).select()}
-            onChange={(v) => onUpdate({ currentHp: parseInt(v as string, 10) || 0 })}
+          <CardNumberInput
+            value={character.currentHp ?? 0}
+            onChange={v => onUpdate({ currentHp: v })}
+            fallback={0}
             className="text-lg font-bold text-[#2c2c26] w-full text-center bg-transparent border border-transparent outline-none focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] rounded transition-all disabled:opacity-50"
             disabled={isSyncing}
           />
         </div>
         <div className="text-center p-3 bg-[#fdfaf5] border border-[#e5e1d8] rounded-xl shadow-sm">
           <div className="text-[10px] font-bold uppercase tracking-widest text-[#5a5a40] mb-1">Temp</div>
-          <DebouncedInput 
-            type="number"
-            value={character.tempHp === undefined ? '' : character.tempHp}
-            onFocus={(e) => (e.target as HTMLInputElement).select()}
-            onChange={(v) => onUpdate({ tempHp: parseInt(v as string, 10) || 0 })}
+          <CardNumberInput
+            value={character.tempHp ?? 0}
+            onChange={v => onUpdate({ tempHp: v })}
+            fallback={0}
+            min={0}
             className="text-lg font-bold text-[#2c2c26] w-full text-center bg-transparent border border-transparent outline-none focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] rounded transition-all disabled:opacity-50"
             disabled={isSyncing}
           />
         </div>
         <div className="text-center p-3 bg-[#fdfaf5] border border-[#e5e1d8] rounded-xl shadow-sm group/lvl">
           <div className="text-[10px] font-bold uppercase tracking-widest text-[#5a5a40] mb-1">Level</div>
-          <DebouncedInput 
-            type="number"
-            value={character.level || ''}
-            onFocus={(e) => (e.target as HTMLInputElement).select()}
-            onChange={(v) => onUpdate({ level: parseInt(v as string, 10) || 1 })}
+          <CardNumberInput
+            value={character.level || 1}
+            onChange={v => onUpdate({ level: v })}
+            fallback={1}
+            min={1}
+            max={20}
             placeholder="1"
             className="text-lg font-bold text-[#2c2c26] w-full text-center bg-transparent border border-transparent rounded hover:bg-white focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-colors disabled:opacity-50"
             disabled={isSyncing}
@@ -151,11 +152,11 @@ export const CharacterCardExpanded: React.FC<CharacterCardExpandedProps> = ({
         </div>
         <div className="text-center p-3 bg-[#fdfaf5] border border-[#e5e1d8] rounded-xl shadow-sm">
           <div className="text-[10px] font-bold uppercase tracking-widest text-[#5a5a40] mb-1">Passive</div>
-          <DebouncedInput 
-            type="number"
-            value={character.passivePerception === undefined ? '' : character.passivePerception}
-            onFocus={(e) => (e.target as HTMLInputElement).select()}
-            onChange={(v) => onUpdate({ passivePerception: parseInt(v as string, 10) || 0 })}
+          <CardNumberInput
+            value={character.passivePerception ?? 0}
+            onChange={v => onUpdate({ passivePerception: v })}
+            fallback={0}
+            min={0}
             className="text-lg font-bold text-[#2c2c26] w-full text-center bg-transparent border border-transparent outline-none focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] rounded transition-all disabled:opacity-50"
             disabled={isSyncing}
           />
