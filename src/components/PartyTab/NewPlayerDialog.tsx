@@ -12,7 +12,8 @@ import {
   DEFAULT_PROFICIENCIES, 
   serializeAbilityScores, 
   serializeProficiencies,
-  getPassiveScore
+  getPassiveScore,
+  proficiencyBonusFromLevel
 } from '../../lib/abilityScores';
 import {
   ResourcePool,
@@ -148,7 +149,16 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
       hitDiceConfig: formData.hitDiceConfig,
       hitDiceUsed: '{}',
       abilityScores: serializeAbilityScores(formData.abilityScores),
-      proficiencies: serializeProficiencies(formData.proficiencies),
+      proficiencies: (() => {
+        const level = typeof formData.level === 'number'
+          ? formData.level
+          : (parseInt(String(formData.level), 10) || 1);
+        const parsed = {
+          ...formData.proficiencies,
+          proficiencyBonus: proficiencyBonusFromLevel(level),
+        };
+        return serializeProficiencies(parsed);
+      })(),
       resourcePools: serializeResourcePools(formData.resourcePools),
     });
   };

@@ -129,6 +129,11 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
 
     const hasClassUpdate = levelUpOption !== 'newClass' || newClassName.trim() !== '';
 
+    // Proficiency tier sync logic
+    const nextLevel = Number(newLevel);
+    const newProfBonus = proficiencyBonusFromLevel(nextLevel);
+    const oldProfBonus = proficiencyBonusFromLevel(character.level);
+
     const updates: Partial<Character> = {
       level: Number(newLevel),
       proficiencies: (() => {
@@ -143,28 +148,6 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
         }
       })(),
     };
-
-    // Proficiency tier sync logic
-    const nextLevel = Number(newLevel);
-    const newProfBonus = proficiencyBonusFromLevel(nextLevel);
-    const oldProfBonus = proficiencyBonusFromLevel(character.level);
-
-    if (newProfBonus !== oldProfBonus) {
-      const currentProfs = parseProficiencies(character.proficiencies || '{}');
-      const storedBonus = currentProfs.proficiencyBonus;
-
-      // Only update if not manually overridden
-      // (stored value matches old calculated value OR is unset/0)
-      const wasAutoCalculated = storedBonus === 0 || storedBonus === oldProfBonus;
-
-      if (wasAutoCalculated) {
-        const updatedProfs = {
-          ...currentProfs,
-          proficiencyBonus: newProfBonus,
-        };
-        updates.proficiencies = serializeProficiencies(updatedProfs);
-      }
-    }
 
     if (hasClassUpdate) {
       const hitDieSize = levelUpOption === 'newClass'

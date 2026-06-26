@@ -4,6 +4,11 @@ import { resetNpcHpDB, addNpcDB, updateNpcFullDB, deleteNpcDB } from '../../../s
 import { toast } from 'sonner';
 import { NPC } from '../../../types';
 import { parseRechargeOn } from '../../../lib/combatantBuilder';
+import {
+  proficiencyBonusFromCR,
+  parseProficiencies,
+  serializeProficiencies,
+} from '../../../lib/abilityScores';
 
 export function useNpcLibrary() {
   const { state, updateState } = useAppState();
@@ -109,6 +114,29 @@ export function useNpcLibrary() {
   };
 
   const handleUpdateNpc = async (npcId: string, updates: Partial<NPC>) => {
+    // If CR changed, recalculate and embed the
+    // proficiency bonus in proficiencies JSON
+    if (updates.challengeRating !== undefined) {
+      try {
+        const currentNpc = state.npcs.find(
+          n => n.id === npcId
+        );
+        const existingProfs = parseProficiencies(
+          updates.proficiencies
+          ?? currentNpc?.proficiencies
+          ?? '{}'
+        );
+        existingProfs.proficiencyBonus =
+          proficiencyBonusFromCR(
+            updates.challengeRating
+          );
+        updates.proficiencies =
+          serializeProficiencies(existingProfs);
+      } catch {
+        // silently ignore parse errors
+      }
+    }
+
     const previousState = state;
     // Optimistically update local state
     updateState(prev => {
