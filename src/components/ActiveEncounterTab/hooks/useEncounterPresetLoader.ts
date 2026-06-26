@@ -2,7 +2,7 @@ import { useAppState, getSnapshot } from '../../../hooks/useAppState';
 import { toast } from 'sonner';
 import { Combatant, Encounter, EncounterCombatant, NPC } from '../../../types';
 import { addNpcDB, addEncounterCombatantDB } from '../../../services/dbOperations';
-import { parseRechargeOn } from '../../../lib/combatantBuilder';
+import { parseRechargeOn, buildSingleNpcCombatant } from '../../../lib/combatantBuilder';
 
 export function useEncounterPresetLoader(
   encounter: Encounter | undefined,
@@ -52,61 +52,16 @@ export function useEncounterPresetLoader(
         if (npcTemplate) {
           for (let i = 0; i < actualQty; i++) {
             const combatantId = `combat-npc-${npcTemplate.id}-${i}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-            newCombatants.push({
-              id: combatantId,
-              encounterCombatantId: tempEcIds[i],
-              name: `${npcTemplate.name}${actualQty > 1 ? ` ${i + 1}` : ''}`,
-              type: 'npc',
-              initiative: 0,
-              ac: npcTemplate.ac,
-              maxHp: npcTemplate.maxHp,
-              currentHp: npcTemplate.currentHp,
-              tempHp: npcTemplate.tempHp,
-              conditions: npcTemplate.conditions,
-              notes: npcTemplate.notes,
-              passivePerception: 10,
-              resistances: npcTemplate.resistances,
-              immunities: npcTemplate.immunities,
-              vulnerabilities: npcTemplate.vulnerabilities,
-              reactionUsed: false,
-              legendaryActions: 
-                npcTemplate.legendaryActions && npcTemplate.legendaryActions > 0
-                ? { 
-                    max: npcTemplate.legendaryActions, 
-                    remaining: npcTemplate.legendaryActions 
-                  }
-                : undefined,
-              legendaryResistances: 
-                npcTemplate.legendaryResistances && npcTemplate.legendaryResistances > 0
-                ? { 
-                    max: npcTemplate.legendaryResistances, 
-                    remaining: npcTemplate.legendaryResistances 
-                  }
-                : undefined,
-              rechargeAbilities: (() => {
-                const derived: Array<{
-                  name: string;
-                  rechargeOn: number;
-                  isCharged: boolean;
-                }> = [];
-                try {
-                  const parsedActions = JSON.parse(
-                    npcTemplate.actions || '[]'
-                  ) as Array<{ name: string; recharge?: string }>;
-                  for (const action of parsedActions) {
-                    const rechargeOn = parseRechargeOn(action.recharge);
-                    if (rechargeOn !== null) {
-                      derived.push({
-                        name: action.name,
-                        rechargeOn,
-                        isCharged: true,
-                      });
-                    }
-                  }
-                } catch {}
-                return derived.length > 0 ? derived : undefined;
-              })(),
-            });
+            const combatant = buildSingleNpcCombatant(
+              npcTemplate,
+              {
+                id: combatantId,
+                encounterCombatantId: tempEcIds[i],
+                name: `${npcTemplate.name}${actualQty > 1 ? ` ${i + 1}` : ''}`,
+                npcId: npcTemplate.id,
+              }
+            );
+            newCombatants.push(combatant);
             newEcObjects.push({
               id: tempEcIds[i],
               encounterId: encounter?.id || '',
@@ -191,59 +146,17 @@ export function useEncounterPresetLoader(
       const nextIdStr = `temp-npc-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
       const nextEcId = `temp-ec-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
-      const newNpcCombatant: Combatant = {
-        id: `combat-npc-${nextIdStr}-0-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-        encounterCombatantId: nextEcId.toString(),
-        name: npcData.name,
-        type: 'npc',
-        ac: npcData.ac,
-        maxHp: npcData.maxHp,
-        currentHp: npcData.maxHp,
-        passivePerception: 10,
-        initiative: 0,
-        notes: npcData.notes,
-        resistances: npcData.resistances,
-        immunities: npcData.immunities,
-        vulnerabilities: npcData.vulnerabilities,
-        reactionUsed: false,
-        legendaryActions: 
-          npcData.legendaryActions && npcData.legendaryActions > 0
-          ? { 
-              max: npcData.legendaryActions, 
-              remaining: npcData.legendaryActions 
-            }
-          : undefined,
-        legendaryResistances: 
-          npcData.legendaryResistances && npcData.legendaryResistances > 0
-          ? { 
-              max: npcData.legendaryResistances, 
-              remaining: npcData.legendaryResistances 
-            }
-          : undefined,
-        rechargeAbilities: (() => {
-          const derived: Array<{
-            name: string;
-            rechargeOn: number;
-            isCharged: boolean;
-          }> = [];
-          try {
-            const parsedActions = JSON.parse(
-              npcData.actions || '[]'
-            ) as Array<{ name: string; recharge?: string }>;
-            for (const action of parsedActions) {
-              const rechargeOn = parseRechargeOn(action.recharge);
-              if (rechargeOn !== null) {
-                derived.push({
-                  name: action.name,
-                  rechargeOn,
-                  isCharged: true,
-                });
-              }
-            }
-          } catch {}
-          return derived.length > 0 ? derived : undefined;
-        })(),
-      };
+      const combatantId = `combat-npc-${nextIdStr}-0-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+      const newNpcCombatant = buildSingleNpcCombatant(
+        npcData as NPC,
+        {
+          id: combatantId,
+          encounterCombatantId: nextEcId.toString(),
+          name: npcData.name,
+          npcId: nextIdStr,
+          currentHp: npcData.maxHp, // handleAddNpc explicitly sets currentHp to maxHp
+        }
+      );
 
       updateState(prev => ({
         ...prev,

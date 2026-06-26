@@ -351,7 +351,7 @@ describe('addCharacterDB — row array integrity', () => {
     expect(row[21]).toBe('{"d10":2}'); // hitDiceUsed
     expect(row[22]).toBe('[{"name":"Lay on Hands","current":25,"max":25}]'); // resourcePools
     expect(row[23]).toBe('{"STR":18,"CHA":16}'); // abilityScores
-    expect(row[24]).toBe('{"athletics":true}'); // proficiencies
+    expect(row[24]).toBe('{"athletics":true,"spellcastingAbility":"CHA"}'); // proficiencies
     expect(row[25]).toBe('CHA'); // spellcastingAbility
   });
 });
@@ -383,6 +383,9 @@ describe('NPC spellcastingAbility dual-write', () => {
     expect(writeQueue.queueWrite).toHaveBeenCalled();
     const updateRow = vi.mocked(writeQueue.queueWrite).mock.calls[0][2][0];
     expect(updateRow[24]).toBe('WIS');
+    expect(
+      JSON.parse(updateRow[15]).spellcastingAbility
+    ).toBe('WIS');
     
     // Test add
     vi.clearAllMocks();

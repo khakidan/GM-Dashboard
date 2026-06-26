@@ -33,6 +33,94 @@ export function parseRechargeOn(
 }
 
 /**
+ * Shared logic to build a single NPC combatant object from a template and overrides.
+ */
+export function buildSingleNpcCombatant(
+  npcTemplate: NPC,
+  options: {
+    id: string;
+    encounterCombatantId: string;
+    name: string;
+    npcId: string;
+    initiative?: number;
+    currentHp?: number;
+    tempHp?: number;
+    conditions?: string;
+    tempAcModifier?: number;
+    conditionTimers?: Record<string, number>;
+  }
+): Combatant {
+  return {
+    id: options.id,
+    encounterCombatantId: options.encounterCombatantId,
+    name: options.name,
+    type: 'npc',
+    initiative: options.initiative ?? 0,
+    ac: npcTemplate.ac,
+    maxHp: npcTemplate.maxHp,
+    currentHp: options.currentHp !== undefined ? options.currentHp : npcTemplate.currentHp,
+    tempHp: options.tempHp !== undefined ? options.tempHp : (npcTemplate.tempHp ?? 0),
+    conditions: options.conditions !== undefined ? options.conditions : (npcTemplate.conditions || ''),
+    notes: npcTemplate.notes,
+    passivePerception: 10,
+    resistances: npcTemplate.resistances,
+    immunities: npcTemplate.immunities,
+    vulnerabilities: npcTemplate.vulnerabilities,
+    conditionTimers: options.conditionTimers || {},
+    tempAcModifier: options.tempAcModifier || 0,
+    reactionUsed: false,
+    npcId: options.npcId,
+    legendaryActions: 
+      npcTemplate.legendaryActions && npcTemplate.legendaryActions > 0
+      ? { 
+          max: npcTemplate.legendaryActions, 
+          remaining: npcTemplate.legendaryActions 
+        }
+      : undefined,
+    legendaryResistances: 
+      npcTemplate.legendaryResistances && npcTemplate.legendaryResistances > 0
+      ? { 
+          max: npcTemplate.legendaryResistances, 
+          remaining: npcTemplate.legendaryResistances 
+        }
+      : undefined,
+    rechargeAbilities: (() => {
+      const derived: Array<{
+        name: string;
+        rechargeOn: number;
+        isCharged: boolean;
+      }> = [];
+      try {
+        const parsedActions = JSON.parse(
+          npcTemplate.actions || '[]'
+        ) as Array<{ name: string; recharge?: string }>;
+        for (const action of parsedActions) {
+          const rechargeOn = parseRechargeOn(action.recharge);
+          if (rechargeOn !== null) {
+            derived.push({
+              name: action.name,
+              rechargeOn,
+              isCharged: true,
+            });
+          }
+        }
+      } catch {}
+      return derived.length > 0 ? derived : undefined;
+    })(),
+    abilityScores: npcTemplate.abilityScores,
+    proficiencies: npcTemplate.proficiencies,
+    speed: npcTemplate.speed,
+    senses: npcTemplate.senses,
+    languages: npcTemplate.languages,
+    challengeRating: npcTemplate.challengeRating,
+    traits: npcTemplate.traits,
+    actions: npcTemplate.actions,
+    reactions: npcTemplate.reactions,
+    legendaryActionsList: npcTemplate.legendaryActionsList,
+  };
+}
+
+/**
  * Pure data transformation to build Combatant objects from state templates.
  */
 export function buildCombatantsFromState(
@@ -84,76 +172,25 @@ export function buildCombatantsFromState(
         const npcTemplate = npcs.find(n => n.id === ec.npcId);
         if (npcTemplate) {
           for (let i = 0; i < ec.quantity; i++) {
-            combatants.push({
-              id: `combat-npc-${npcTemplate.id}-${i}-${Date.now()}`,
-              encounterCombatantId: ec.id,
-              npcId: npcTemplate.id,
-              name: `${npcTemplate.name}${ec.quantity > 1 ? ` ${i + 1}` : ''}`,
-              type: 'npc',
-              initiative: ec.initiative || 0,
-              ac: npcTemplate.ac,
-              maxHp: npcTemplate.maxHp,
-              currentHp: ec.npcCurrentHp !== undefined && ec.npcCurrentHp >= 0 
-                ? ec.npcCurrentHp 
-                : npcTemplate.maxHp,
-              tempHp: ec.npcTempHp ?? 0,
-              conditions: ec.npcCurrentConditions?.trim() ? ec.npcCurrentConditions : (npcTemplate.conditions || ''),
-              notes: npcTemplate.notes,
-              passivePerception: 10,
-              resistances: npcTemplate.resistances,
-              immunities: npcTemplate.immunities,
-              vulnerabilities: npcTemplate.vulnerabilities,
-              conditionTimers: parsedTimers,
-              tempAcModifier: ec.npcTempAcMod || 0,
-              reactionUsed: false,
-              legendaryActions: 
-                npcTemplate.legendaryActions && npcTemplate.legendaryActions > 0
-                ? { 
-                    max: npcTemplate.legendaryActions, 
-                    remaining: npcTemplate.legendaryActions 
-                  }
-                : undefined,
-              legendaryResistances: 
-                npcTemplate.legendaryResistances && npcTemplate.legendaryResistances > 0
-                ? { 
-                    max: npcTemplate.legendaryResistances, 
-                    remaining: npcTemplate.legendaryResistances 
-                  }
-                : undefined,
-              rechargeAbilities: (() => {
-                const derived: Array<{
-                  name: string;
-                  rechargeOn: number;
-                  isCharged: boolean;
-                }> = [];
-                try {
-                  const parsedActions = JSON.parse(
-                    npcTemplate.actions || '[]'
-                  ) as Array<{ name: string; recharge?: string }>;
-                  for (const action of parsedActions) {
-                    const rechargeOn = parseRechargeOn(action.recharge);
-                    if (rechargeOn !== null) {
-                      derived.push({
-                        name: action.name,
-                        rechargeOn,
-                        isCharged: true,
-                      });
-                    }
-                  }
-                } catch {}
-                return derived.length > 0 ? derived : undefined;
-              })(),
-              abilityScores: npcTemplate.abilityScores,
-              proficiencies: npcTemplate.proficiencies,
-              speed: npcTemplate.speed,
-              senses: npcTemplate.senses,
-              languages: npcTemplate.languages,
-              challengeRating: npcTemplate.challengeRating,
-              traits: npcTemplate.traits,
-              actions: npcTemplate.actions,
-              reactions: npcTemplate.reactions,
-              legendaryActionsList: npcTemplate.legendaryActionsList,
-            });
+            const combatantId = `combat-npc-${npcTemplate.id}-${i}-${Date.now()}`;
+            const combatant = buildSingleNpcCombatant(
+              npcTemplate,
+              {
+                id: combatantId,
+                encounterCombatantId: ec.id,
+                name: `${npcTemplate.name}${ec.quantity > 1 ? ` ${i + 1}` : ''}`,
+                npcId: npcTemplate.id,
+                initiative: ec.initiative || 0,
+                currentHp: ec.npcCurrentHp !== undefined && ec.npcCurrentHp >= 0 
+                  ? ec.npcCurrentHp 
+                  : npcTemplate.maxHp,
+                tempHp: ec.npcTempHp ?? 0,
+                conditions: ec.npcCurrentConditions?.trim() ? ec.npcCurrentConditions : (npcTemplate.conditions || ''),
+                conditionTimers: parsedTimers,
+                tempAcModifier: ec.npcTempAcMod || 0,
+              }
+            );
+            combatants.push(combatant);
           }
         }
       }

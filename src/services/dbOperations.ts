@@ -104,6 +104,17 @@ function getSpellcastingAbilityToSave(
   return '';
 }
 
+function injectSpellcastingAbility(profJson: string, ability: string): string {
+  if (!ability) return profJson;
+  try {
+    const parsed = JSON.parse(profJson || '{}');
+    parsed.spellcastingAbility = ability;
+    return JSON.stringify(parsed);
+  } catch {
+    return profJson;
+  }
+}
+
 export async function getNextId(sheetName: string, idColumnIndex?: number): Promise<number>;
 export async function getNextId(spreadsheetId: string | undefined, sheetName: string, idColumnIndex?: number): Promise<number>;
 export async function getNextId(
@@ -335,7 +346,10 @@ export async function addCharacterDB(
       sanitizeString(character.hitDiceUsed || '{}'),
       sanitizeString(character.resourcePools || '[]'),
       sanitizeString(character.abilityScores || '{}'),
-      sanitizeString(character.proficiencies || '{}'),
+      injectSpellcastingAbility(
+        sanitizeString(character.proficiencies || '{}'),
+        getSpellcastingAbilityToSave(character, {})
+      ),
       getSpellcastingAbilityToSave(character, {}),
     ];
 
@@ -413,7 +427,10 @@ export async function updateCharacterDB(
       sanitizeString(character.hitDiceUsed ?? fullState.hitDiceUsed ?? '{}'),
       sanitizeString(character.resourcePools ?? fullState.resourcePools ?? '[]'),
       sanitizeString(character.abilityScores ?? fullState.abilityScores ?? '{}'),
-      sanitizeString(character.proficiencies ?? fullState.proficiencies ?? '{}'),
+      injectSpellcastingAbility(
+        sanitizeString(character.proficiencies ?? fullState.proficiencies ?? '{}'),
+        getSpellcastingAbilityToSave(character, fullState)
+      ),
       getSpellcastingAbilityToSave(character, fullState),
     ];
 
@@ -468,7 +485,10 @@ export async function addNpcDB(
       castInt(npcData.legendaryResistances ?? 0, 0),
       JSON.stringify(npcData.rechargeAbilities ?? []),
       sanitizeString(npcData.abilityScores ?? '{}'),
-      sanitizeString(npcData.proficiencies ?? '{}'),
+      injectSpellcastingAbility(
+        sanitizeString(npcData.proficiencies ?? '{}'),
+        getSpellcastingAbilityToSave(npcData, npcData)
+      ),
       sanitizeString(npcData.speed ?? ''),
       sanitizeString(npcData.senses ?? ''),
       sanitizeString(npcData.languages ?? ''),
@@ -477,7 +497,7 @@ export async function addNpcDB(
       sanitizeString(npcData.actions ?? '[]'),
       sanitizeString(npcData.reactions ?? '[]'),
       sanitizeString(npcData.legendaryActionsList ?? '[]'),
-      sanitizeString(npcData.spellcastingAbility ?? ''),
+      getSpellcastingAbilityToSave(npcData, npcData),
     ];
 
     await appendSheetData(resolvedId, 'NPCs!A:Y', [rowData]);
@@ -553,7 +573,10 @@ export async function updateNpcFullDB(
       castInt(npc.legendaryResistances ?? 0, 0),
       JSON.stringify(npc.rechargeAbilities ?? []),
       sanitizeString(npc.abilityScores || '{}'),
-      sanitizeString(npc.proficiencies || '{}'),
+      injectSpellcastingAbility(
+        sanitizeString(npc.proficiencies || '{}'),
+        getSpellcastingAbilityToSave(npc, npc)
+      ),
       npc.speed ?? '',
       npc.senses ?? '',
       npc.languages ?? '',

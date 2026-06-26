@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildCombatantsFromState, parseRechargeOn } from '../combatantBuilder';
+import { buildCombatantsFromState, parseRechargeOn, buildSingleNpcCombatant } from '../combatantBuilder';
 import { Encounter, EncounterCombatant, Character, NPC } from '../../types';
 
 describe('parseRechargeOn', () => {
@@ -351,5 +351,142 @@ describe('buildCombatantsFromState', () => {
 describe('parseRechargeOn additional coverage', () => {
   it('handles "5-" correctly', () => {
     expect(parseRechargeOn('5-')).toBe(5);
+  });
+});
+
+describe('buildSingleNpcCombatant', () => {
+  const baseNpc: NPC = {
+    id: 'npc-1',
+    name: 'Test Dragon',
+    ac: 18,
+    maxHp: 200,
+    currentHp: 200,
+    tempHp: 0,
+    conditions: '',
+    notes: '',
+    resistances: 'fire',
+    immunities: '',
+    vulnerabilities: 'cold',
+    legendaryActions: 3,
+    legendaryResistances: 2,
+    rechargeAbilities: [],
+    abilityScores: '{"STR":26}',
+    proficiencies: '{}',
+    speed: '40 ft.',
+    senses: 'darkvision 120 ft.',
+    languages: 'Draconic',
+    challengeRating: '20',
+    traits: '[]',
+    actions: JSON.stringify([{
+      name: 'Fire Breath',
+      description: 'Exhales fire',
+      recharge: '5-6'
+    }, {
+      name: 'Bite',
+      description: 'Melee attack',
+      recharge: ''
+    }]),
+    reactions: '[]',
+    legendaryActionsList: '[]',
+    spellcastingAbility: 'INT',
+  };
+
+  const baseOptions = {
+    id: 'combat-npc-1',
+    encounterCombatantId: 'ec-1',
+    name: 'Test Dragon',
+    npcId: 'npc-1',
+  };
+
+  it('returns a combatant with correct basic fields from npc template', () => {
+    const combatant = buildSingleNpcCombatant(
+      baseNpc, baseOptions
+    );
+    expect(combatant.id).toBe('combat-npc-1');
+    expect(combatant.type).toBe('npc');
+    expect(combatant.ac).toBe(18);
+    expect(combatant.maxHp).toBe(200);
+    expect(combatant.resistances).toBe('fire');
+    expect(combatant.vulnerabilities).toBe('cold');
+    expect(combatant.reactionUsed).toBe(false);
+  });
+
+  it('initializes legendaryActions correctly when legendaryActions > 0', () => {
+    const combatant = buildSingleNpcCombatant(
+      baseNpc, baseOptions
+    );
+    expect(combatant.legendaryActions).toEqual({
+      max: 3, remaining: 3
+    });
+  });
+
+  it('sets legendaryActions to undefined when legendaryActions is 0', () => {
+    const npc = { ...baseNpc, legendaryActions: 0 };
+    const combatant = buildSingleNpcCombatant(
+      npc, baseOptions
+    );
+    expect(combatant.legendaryActions).toBeUndefined();
+  });
+
+  it('initializes legendaryResistances correctly when legendaryResistances > 0', () => {
+    const combatant = buildSingleNpcCombatant(
+      baseNpc, baseOptions
+    );
+    expect(combatant.legendaryResistances).toEqual({ max: 2, remaining: 2 });
+  });
+
+  it('derives rechargeAbilities from actions JSON — only actions with valid recharge values are included', () => {
+    const combatant = buildSingleNpcCombatant(
+      baseNpc, baseOptions
+    );
+    expect(combatant.rechargeAbilities).toHaveLength(1);
+    expect(combatant.rechargeAbilities![0].name).toBe('Fire Breath');
+    expect(combatant.rechargeAbilities![0].rechargeOn).toBe(5);
+    expect(combatant.rechargeAbilities![0].isCharged).toBe(true);
+  });
+
+  it('sets rechargeAbilities to undefined when no actions have a valid recharge', () => {
+    const npc = {
+      ...baseNpc,
+      actions: JSON.stringify([{
+        name: 'Bite',
+        description: 'Attack',
+        recharge: ''
+      }])
+    };
+    const combatant = buildSingleNpcCombatant(
+      npc, baseOptions
+    );
+    expect(combatant.rechargeAbilities).toBeUndefined();
+  });
+
+  it('uses the name from options not from npcTemplate (supports " 2", " 3" suffixes)', () => {
+    const opts = {
+      ...baseOptions,
+      name: 'Test Dragon 2'
+    };
+    const combatant = buildSingleNpcCombatant(
+      baseNpc, opts
+    );
+    expect(combatant.name).toBe('Test Dragon 2');
+  });
+
+  it('accepts overrides for HP, conditions, and initiative', () => {
+    const opts = {
+      ...baseOptions,
+      currentHp: 50,
+      tempHp: 10,
+      conditions: 'Stunned',
+      initiative: 15,
+      tempAcModifier: 2,
+    };
+    const combatant = buildSingleNpcCombatant(
+      baseNpc, opts
+    );
+    expect(combatant.currentHp).toBe(50);
+    expect(combatant.tempHp).toBe(10);
+    expect(combatant.conditions).toBe('Stunned');
+    expect(combatant.initiative).toBe(15);
+    expect(combatant.tempAcModifier).toBe(2);
   });
 });

@@ -237,7 +237,8 @@ schema.
   fields (speed, senses, languages,
   challengeRating, traits, actions, reactions,
   legendaryActionsList) passed through from
-  the NPC source.
+  the NPC source. Includes `buildSingleNpcCombatant()`
+  helper for adding NPC instances to combat.
 - `classResources.ts` — CLASS_RESOURCE_SUGGESTIONS
   mapping for 12 standard 5e classes and
   `getClassResourceSuggestions()` helper.
@@ -287,8 +288,8 @@ schema.
   CONDITION_IMMUNITY_MAP, IRV_OPTIONS
 - `abilityScores.ts` — AbilityScores and
   Proficiencies types, `calculateModifier()`,
-  `proficiencyBonusFromLevel()`, skill/save
-  helpers, parse/serialize helpers.
+  `proficiencyBonusFromLevel()`, `proficiencyBonusFromCR()`,
+  skill/save helpers, parse/serialize helpers.
   Proficiencies includes optional
   `spellcastingAbility?: SpellcastingAbility`
   for GM override of auto-derived caster stat.
@@ -537,7 +538,7 @@ this whitelist and to `dbOperations.ts`.
 
 ## Testing Structure — 12-Batch System
 
-**Current baseline: 552 tests.**
+**Current baseline: 597 tests.**
 All batches must pass with zero failures.
 No batch should exceed 35 seconds.
 
@@ -547,28 +548,28 @@ run all tests at once with `npx vitest run`.
 
 | Batch | Description | Test Count |
 |-------|-------------|------------|
-| 1     | Lib         | 400        |
-| 2     | Services    | 27         |
-| 3     | Hooks       | 31         |
+| 1     | Lib         | 431        |
+| 2     | Services    | 29         |
+| 3     | Hooks       | 32         |
 | 4     | Server      | 7          |
 | 5A    | AET Hooks   | 27         |
 | 5B    | AET Comp    | 22         |
-| 6A    | PartyTab    | 16         |
-| 6B    | Encounters  | 4          |
+| 6A    | PartyTab    | 25         |
+| 6B    | Encounters  | 6          |
 | 6C    | NpcLibrary  | 8          |
 | 7B-1  | Top-Level 1 | 4          |
 | 7B-2  | Top-Level 2 | 4          |
 | 8     | UI          | 2          |
-| **Total** | | **552** |
+| **Total** | | **597** |
 
 ```bash
-# BATCH 1 — 400 tests
+# BATCH 1 — 431 tests
 npx vitest run src/lib/__tests__
 
-# BATCH 2 — 27 tests
+# BATCH 2 — 29 tests
 npx vitest run src/services/__tests__
 
-# BATCH 3 — 31 tests
+# BATCH 3 — 32 tests
 npx vitest run src/hooks/__tests__
 
 # BATCH 4 — 7 tests
@@ -580,10 +581,10 @@ npx vitest run src/components/ActiveEncounterTab/__tests__/useBatchActions.test.
 # BATCH 5B — 22 tests
 npx vitest run src/components/ActiveEncounterTab/__tests__/AddNpcCollision.test.tsx src/components/ActiveEncounterTab/__tests__/CasterAttributionDialog.test.tsx src/components/ActiveEncounterTab/__tests__/CombatHeader.test.tsx src/components/ActiveEncounterTab/__tests__/CombatSidebar.test.tsx src/components/ActiveEncounterTab/__tests__/CombatantCard.test.tsx src/components/ActiveEncounterTab/__tests__/KeyboardShortcuts.test.tsx src/components/ActiveEncounterTab/__tests__/MultiTargetActionPanel.test.tsx src/components/ActiveEncounterTab/__tests__/NpcReferencePanel.test.tsx src/components/ActiveEncounterTab/__tests__/ShortcutCheatSheet.test.tsx src/components/ActiveEncounterTab/__tests__/index.test.tsx
 
-# BATCH 6A — 16 tests
+# BATCH 6A — 25 tests
 npx vitest run src/components/PartyTab/__tests__
 
-# BATCH 6B — 4 tests
+# BATCH 6B — 6 tests
 npx vitest run src/components/EncountersTab/__tests__
 
 # BATCH 6C — 8 tests

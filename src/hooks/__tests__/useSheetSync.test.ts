@@ -46,6 +46,7 @@ describe('useSheetSync State Transition Tests', () => {
     expect(updateStateCalledWith).not.toBeNull();
     expect(updateStateCalledWith.characters).toBeDefined();
     expect(updateStateCalledWith.npcs).toBeDefined();
+    expect(updateStateCalledWith.npcs).toHaveLength(1);
     expect(updateStateCalledWith.encounters).toBeDefined();
   });
 
@@ -89,5 +90,50 @@ describe('useSheetSync State Transition Tests', () => {
 
     expect(updateStateCalledWith).toBeNull(); // No state update upon failure
     expect(result.current.syncError).toBe('API failure');
+  });
+
+  it('does not overwrite combatState when an encounter is already active', async () => {
+    const localActiveTurnId = 'local-turn-1';
+    let capturedState: any = null;
+
+    vi.mocked(useAppState).mockReturnValue({
+      state: {
+        hasInitialSynced: true,
+        combatState: {
+          activeTurnId: localActiveTurnId,
+          activeEncounterId: 'enc-1',
+          combatants: [{ id: 'c1' }],
+        }
+      },
+      updateState: (fn: any) => {
+        const prev = {
+          combatState: {
+            activeTurnId: localActiveTurnId,
+            activeEncounterId: 'enc-1',
+            combatants: [{ id: 'c1' }],
+          }
+        };
+        capturedState = typeof fn === 'function'
+          ? fn(prev) : fn;
+      }
+    } as any);
+
+    vi.mocked(sheetsService.initializeDatabaseSchema)
+      .mockResolvedValue(undefined);
+    vi.mocked(sheetsService.fetchSheetData)
+      .mockResolvedValue({ values: [] });
+
+    const { result } = renderHook(
+      () => useSheetSync({ setIsGoogleConnected })
+    );
+
+    await act(async () => {
+      await result.current.handleSyncWithSheets(
+        false
+      );
+    });
+
+    expect(capturedState?.combatState?.activeTurnId)
+      .toBe(localActiveTurnId);
   });
 });
