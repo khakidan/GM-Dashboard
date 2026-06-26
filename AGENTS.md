@@ -389,6 +389,15 @@ test files. Not tests themselves.
 - `AuthRelay.tsx` — OAuth relay handler
 
 ### src/components/ui/ (shared components)
+- `CardNumberInput.tsx` — Local-state wrapper for
+  numeric inline edit fields on character and NPC cards.
+  Commits on blur or Enter, reverts to
+  last valid value if cleared without
+  entering a number. Used by
+  CharacterCardExpanded and NpcCard.
+  Same pattern as AbilityScoreInput but
+  without the 1-30 clamp and with a
+  configurable fallback value.
 - `ConditionChips.tsx` — Condition/effect
   chip input with popover, immunity checking,
   timer prompts, and `onConditionAdded`
@@ -555,7 +564,7 @@ this whitelist and to `dbOperations.ts`.
 
 ## Testing Structure — 12-Batch System
 
-**Current baseline: 605 tests.**
+**Current baseline: 613 tests.**
 All batches must pass with zero failures.
 No batch should exceed 35 seconds.
 
@@ -565,22 +574,22 @@ run all tests at once with `npx vitest run`.
 
 | Batch | Description | Test Count |
 |-------|-------------|------------|
-| 1     | Lib         | 431        |
+| 1     | Lib         | 434        |
 | 2     | Services    | 29         |
 | 3     | Hooks       | 32         |
 | 4     | Server      | 7          |
 | 5A    | AET Hooks   | 27         |
-| 5B    | AET Comp    | 22         |
-| 6A    | PartyTab    | 30         |
+| 5B    | AET Comp    | 23         |
+| 6A    | PartyTab    | 34         |
 | 6B    | Encounters  | 6          |
 | 6C    | NpcLibrary  | 11         |
 | 7B-1  | Top-Level 1 | 4          |
 | 7B-2  | Top-Level 2 | 4          |
 | 8     | UI          | 2          |
-| **Total** | | **605** |
+| **Total** | | **613** |
 
 ```bash
-# BATCH 1 — 431 tests
+# BATCH 1 — 434 tests
 npx vitest run src/lib/__tests__
 
 # BATCH 2 — 29 tests
@@ -595,10 +604,10 @@ npx vitest run src/server/__tests__ src/__tests__
 # BATCH 5A — 27 tests
 npx vitest run src/components/ActiveEncounterTab/__tests__/useBatchActions.test.ts src/components/ActiveEncounterTab/__tests__/useCombatSync.test.ts src/components/ActiveEncounterTab/__tests__/useCombatantCard.test.ts src/components/ActiveEncounterTab/__tests__/useEncounterPresetLoader.test.ts src/components/ActiveEncounterTab/__tests__/useHealthChange.test.ts src/components/ActiveEncounterTab/__tests__/useSelectionMode.test.ts
 
-# BATCH 5B — 22 tests
+# BATCH 5B — 23 tests
 npx vitest run src/components/ActiveEncounterTab/__tests__/AddNpcCollision.test.tsx src/components/ActiveEncounterTab/__tests__/CasterAttributionDialog.test.tsx src/components/ActiveEncounterTab/__tests__/CombatHeader.test.tsx src/components/ActiveEncounterTab/__tests__/CombatSidebar.test.tsx src/components/ActiveEncounterTab/__tests__/CombatantCard.test.tsx src/components/ActiveEncounterTab/__tests__/KeyboardShortcuts.test.tsx src/components/ActiveEncounterTab/__tests__/MultiTargetActionPanel.test.tsx src/components/ActiveEncounterTab/__tests__/NpcReferencePanel.test.tsx src/components/ActiveEncounterTab/__tests__/ShortcutCheatSheet.test.tsx src/components/ActiveEncounterTab/__tests__/index.test.tsx
 
-# BATCH 6A — 30 tests
+# BATCH 6A — 34 tests
 npx vitest run src/components/PartyTab/__tests__
 
 # BATCH 6B — 6 tests
@@ -935,3 +944,4 @@ npx tsc -p tsconfig.build.json --noEmit
 
 Exit code must be 0. Any type errors are
 blocking — do not proceed until resolved.
+

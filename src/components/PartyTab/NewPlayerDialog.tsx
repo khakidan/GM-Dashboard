@@ -7,7 +7,7 @@ import { useFormState } from '../../hooks/useFormState';
 import { suggestHitDiceConfig } from '../../lib/hitDice';
 import { IrvMultiSelect } from '../ui/IrvMultiSelect';
 import { StatBlock } from '../ui/StatBlock';
-import { 
+import {
   DEFAULT_ABILITY_SCORES, 
   DEFAULT_PROFICIENCIES, 
   serializeAbilityScores, 
@@ -22,7 +22,7 @@ import {
   removeResourcePool,
   updateResourcePool
 } from '../../lib/resourcePools';
-import { getClassResourceSuggestions } from '../../lib/classResources';
+import { CLASS_RESOURCE_SUGGESTIONS } from '../../lib/classResources';
 import { getResourcePoolSuggestions } from '../../lib/resourcePoolScaling';
 
 interface NewPlayerDialogProps {
@@ -464,7 +464,7 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                 )}
                 {activeTab === 'resources' && (
                   <div className="space-y-4">
-                    {formData.class && getClassResourceSuggestions(formData.class).length > 0 ? (
+                    {formData.class && (CLASS_RESOURCE_SUGGESTIONS[formData.class]?.length ?? 0) > 0 ? (
                       <p className="text-xs text-stone-500 italic mb-3">
                         Suggested pools for {formData.class}. Adjust max values to match your character.
                       </p>

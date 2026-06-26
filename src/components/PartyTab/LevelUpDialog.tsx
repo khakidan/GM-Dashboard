@@ -148,7 +148,6 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
     // Proficiency tier sync logic
     const nextLevel = Number(newLevel);
     const newProfBonus = proficiencyBonusFromLevel(nextLevel);
-    const oldProfBonus = proficiencyBonusFromLevel(character.level);
 
     const updates: Partial<Character> = {
       level: Number(newLevel),
