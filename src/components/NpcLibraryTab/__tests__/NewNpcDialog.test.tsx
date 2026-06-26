@@ -50,6 +50,7 @@ describe('NewNpcDialog', () => {
 
     fireEvent.change(getByLabelText(/^NPC Name/i), { target: { value: 'Dragon' } });
     fireEvent.change(getByLabelText(/^CR/i), { target: { value: '5' } });
+    fireEvent.blur(getByLabelText(/^CR/i));
     fireEvent.click(getByRole('button', { name: /Add NPC/i }));
 
     expect(onConfirmMock).toHaveBeenCalledTimes(1);
@@ -66,6 +67,7 @@ describe('NewNpcDialog', () => {
 
     fireEvent.change(getByLabelText(/^NPC Name/i), { target: { value: 'Goblin' } });
     fireEvent.change(getByLabelText(/^CR/i), { target: { value: '1/4' } });
+    fireEvent.blur(getByLabelText(/^CR/i));
     fireEvent.click(getByRole('button', { name: /Add NPC/i }));
 
     expect(onConfirmMock).toHaveBeenCalledTimes(1);

@@ -10,6 +10,51 @@ export const formatBonus = (val: number): string => {
 
 export const abilitiesInOrder: AbilityName[] = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'];
 
+function AbilityScoreInput({
+  value,
+  onChange,
+  id,
+}: {
+  value: number;
+  onChange: (val: number) => void;
+  id?: string;
+}) {
+  const [local, setLocal] = React.useState(String(value));
+
+  React.useEffect(() => {
+    setLocal(String(value));
+  }, [value]);
+
+  const commit = () => {
+    const parsed = parseInt(local, 10);
+    if (!isNaN(parsed)) {
+      onChange(Math.max(1, Math.min(30, parsed)));
+    } else {
+      setLocal(String(value));
+    }
+  };
+
+  return (
+    <input
+      type="number"
+      min="1"
+      max="30"
+      value={local}
+      onChange={e => setLocal(e.target.value)}
+      onBlur={commit}
+      onKeyDown={e => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          commit();
+        }
+      }}
+      onFocus={e => e.target.select()}
+      className="bg-white border border-[#e5e1d8] rounded text-[#2c2c26] text-2xl font-bold text-center w-full focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358]/50 focus:outline-none"
+      id={id}
+    />
+  );
+}
+
 export interface StatBlockScoresProps {
   abilityScores: AbilityScores;
   effectiveProfBonus: number;
@@ -55,14 +100,9 @@ export const StatBlockScores: React.FC<StatBlockScoresProps> = ({
                     {score}
                   </span>
                 ) : (
-                  <input
-                    type="number"
-                    min="1"
-                    max="30"
+                  <AbilityScoreInput
                     value={score}
-                    onChange={(e) => onAbilityChange(ability, e.target.value)}
-                    onFocus={(e) => e.target.select()}
-                    className="bg-white border border-[#e5e1d8] rounded text-[#2c2c26] text-2xl font-bold text-center w-full focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358]/50 focus:outline-none appearance-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    onChange={(val) => onAbilityChange(ability, String(val))}
                     id={`ability-score-${ability.toLowerCase()}`}
                   />
                 )}

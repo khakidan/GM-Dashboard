@@ -61,6 +61,48 @@ export const DEFAULT_NPC_FORM_DATA: NpcFormData = {
   legendaryActionsList: '[]',
 };
 
+function CrInput({
+  value,
+  onChange,
+  className,
+  placeholder,
+  id,
+}: {
+  value: string;
+  onChange: (val: string) => void;
+  className?: string;
+  placeholder?: string;
+  id?: string;
+}) {
+  const [local, setLocal] = React.useState(value);
+
+  React.useEffect(() => {
+    setLocal(value);
+  }, [value]);
+
+  const commit = () => {
+    if (local !== value) onChange(local);
+  };
+
+  return (
+    <input
+      type="text"
+      value={local}
+      onChange={e => setLocal(e.target.value)}
+      onBlur={commit}
+      onKeyDown={e => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          commit();
+        }
+      }}
+      className={className}
+      placeholder={placeholder}
+      id={id}
+    />
+  );
+}
+
 interface NpcFormFieldsProps {
   data: NpcFormData;
   onChange: (data: NpcFormData) => void;
@@ -463,11 +505,10 @@ export function NpcFormFields({ data, onChange, errors = {}, compact = false }: 
           <label htmlFor="new-npc-cr" className={labelClass}>
             CR
           </label>
-          <input
+          <CrInput
             id="new-npc-cr"
-            type="text"
             value={data.challengeRating}
-            onChange={e => handleChange('challengeRating', e.target.value)}
+            onChange={val => handleChange('challengeRating', val)}
             className={inputClass}
             placeholder="e.g. 1/4"
           />
