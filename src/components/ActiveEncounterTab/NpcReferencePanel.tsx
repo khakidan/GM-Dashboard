@@ -70,7 +70,7 @@ export const NpcReferencePanel: React.FC<NpcReferencePanelProps> = ({ combatant 
       </button>
 
       {isOpen && (
-        <div className="bg-[#fdfaf5] border border-[#e5e1d8] rounded p-3 mt-1 space-y-3 text-sm text-left">
+        <div className="bg-white border border-[#e5e1d8] rounded p-3 mt-1 space-y-3 text-sm text-left">
           {/* Row 1: CR and Speed */}
           {((combatant.challengeRating && combatant.challengeRating.trim() !== '') || (combatant.speed && combatant.speed.trim() !== '')) && (
             <div className="flex flex-wrap items-center gap-1.5 py-1 border-b border-[#e5e1d8]/40 pb-2 mb-1">

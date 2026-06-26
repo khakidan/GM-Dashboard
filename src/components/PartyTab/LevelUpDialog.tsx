@@ -45,7 +45,6 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
   const [newMaxHp, setNewMaxHp] = useState<number>(character.maxHp);
   const [alsoIncreaseCurrentHp, setAlsoIncreaseCurrentHp] = useState(true);
   const [newAc, setNewAc] = useState<number>(character.ac);
-  const [newPassivePerception, setNewPassivePerception] = useState<number>(character.passivePerception);
   const [newNotes, setNewNotes] = useState<string>(character.notes || '');
   const [newResistances, setNewResistances] = useState<string>(character.resistances || '');
   const [newImmunities, setNewImmunities] = useState<string>(character.immunities || '');
@@ -95,7 +94,6 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
       setNewMaxHp(character.maxHp);
       setAlsoIncreaseCurrentHp(true);
       setNewAc(character.ac);
-      setNewPassivePerception(character.passivePerception);
       setNewNotes(character.notes || '');
       setNewResistances(character.resistances || '');
       setNewImmunities(character.immunities || '');
@@ -190,10 +188,6 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
 
     if (Number(newAc) !== character.ac) {
       updates.ac = Number(newAc);
-    }
-
-    if (Number(newPassivePerception) !== character.passivePerception) {
-      updates.passivePerception = Number(newPassivePerception);
     }
 
     if (newResistances !== (character.resistances || '')) {
@@ -510,20 +504,6 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
             </div>
 
             <div className="grid grid-cols-1 gap-4">
-              <div>
-                <label htmlFor="new-passive-perception" className="block text-[9px] font-bold uppercase tracking-wider text-[#5a5a40] mb-1">
-                  New Passive Perception
-                </label>
-                <input
-                  id="new-passive-perception"
-                  type="number"
-                  value={newPassivePerception}
-                  onFocus={(e) => e.target.select()}
-                  onChange={e => setNewPassivePerception(Math.max(0, parseInt(e.target.value) || 0))}
-                  className="bg-white border border-[#e5e1d8] rounded-xl text-[#2c2c26] placeholder:text-[#5a5a40] focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358]/50 focus:outline-none w-full px-3 py-2 text-sm transition-all"
-                />
-              </div>
-
               <IrvMultiSelect
                 label="Resistances"
                 value={newResistances}
