@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { ResourcePool } from '../resourcePools';
 import {
-  getAutoScaledMax,
   getResourcePoolSuggestions,
   ResourcePoolSuggestion
 } from '../resourcePoolScaling';
@@ -17,49 +16,73 @@ describe('resourcePoolScaling', () => {
     name: 'Portent Dice', max: 2, current: 2, reset: 'long'
   };
 
-  describe('getAutoScaledMax', () => {
-    it('returns 2 for Rage at level 1', () => {
-      expect(getAutoScaledMax('Rage', 1)).toBe(2);
+  describe('pool scaling behaviors via getResourcePoolSuggestions', () => {
+    it('Rage max at level 20 is 99 (unlimited sentinel)', () => {
+      const suggestions = getResourcePoolSuggestions('Barbarian', 20, []);
+      const rage = suggestions.find(s => s.name.toLowerCase() === 'rage');
+      expect(rage?.suggestedMax).toBe(99);
     });
 
-    it('returns 3 for Rage at level 3', () => {
-      expect(getAutoScaledMax('Rage', 3)).toBe(3);
+    it('Ki Points max at level 10 is 10', () => {
+      const suggestions = getResourcePoolSuggestions('Monk', 10, []);
+      const ki = suggestions.find(s => s.name.toLowerCase() === 'ki points');
+      expect(ki?.suggestedMax).toBe(10);
     });
 
-    it('returns 99 for Rage at level 20', () => {
-      expect(getAutoScaledMax('Rage', 20)).toBe(99);
+    it('Sorcery Points max at level 5 is 5', () => {
+      const suggestions = getResourcePoolSuggestions('Sorcerer', 5, []);
+      const sp = suggestions.find(s => s.name.toLowerCase() === 'sorcery points');
+      expect(sp?.suggestedMax).toBe(5);
     });
 
-    it('returns 2 for Ki Points at level 2', () => {
-      expect(getAutoScaledMax('Ki Points', 2)).toBe(2);
+    it('matches existing pool names case-insensitively', () => {
+      const currentPools: ResourcePool[] = [{
+        name: 'RAGE',
+        current: 2,
+        max: 2,
+        reset: 'long',
+      }];
+      const suggestions = getResourcePoolSuggestions('Barbarian', 6, currentPools);
+      const rage = suggestions.find(s => s.name === 'RAGE');
+      expect(rage?.suggestedMax).toBe(4);
     });
 
-    it('returns 10 for Ki Points at level 10', () => {
-      expect(getAutoScaledMax('Ki Points', 10)).toBe(10);
+    it('matches existing pool names with surrounding whitespace', () => {
+      const currentPools: ResourcePool[] = [{
+        name: ' ki points ',
+        current: 2,
+        max: 2,
+        reset: 'long',
+      }];
+      const suggestions = getResourcePoolSuggestions('Monk', 4, currentPools);
+      const ki = suggestions.find(s => s.name === ' ki points ');
+      expect(ki?.suggestedMax).toBe(4);
     });
 
-    it('returns 5 for Sorcery Points at level 5', () => {
-      expect(getAutoScaledMax('Sorcery Points', 5)).toBe(5);
+    it('does not auto-scale unknown pool names like Portent Dice', () => {
+      const currentPools: ResourcePool[] = [{
+        name: 'Portent Dice',
+        current: 3,
+        max: 3,
+        reset: 'long',
+      }];
+      const suggestions = getResourcePoolSuggestions('Barbarian', 5, currentPools);
+      const portent = suggestions.find(s => s.name === 'Portent Dice');
+      expect(portent?.isAutoDerived).toBe(false);
     });
 
-    it('handles case-insensitivity (RAGE)', () => {
-      expect(getAutoScaledMax('RAGE', 6)).toBe(4);
+    it('clamps level 0 to level 1 values', () => {
+      const suggestions = getResourcePoolSuggestions('Barbarian', 0, []);
+      const rage = suggestions.find(s => s.name.toLowerCase() === 'rage');
+      // Level 1 Rage = 2; if clamping works, level 0 also gives 2
+      expect(rage?.suggestedMax).toBe(2);
     });
 
-    it('trims whitespace ( ki points )', () => {
-      expect(getAutoScaledMax(' ki points ', 4)).toBe(4);
-    });
-
-    it('returns null for Portent Dice', () => {
-      expect(getAutoScaledMax('Portent Dice', 5)).toBeNull();
-    });
-
-    it('clamps level below 1 to 1', () => {
-      expect(getAutoScaledMax('Rage', 0)).toBe(2);
-    });
-
-    it('clamps level above 20 to 20', () => {
-      expect(getAutoScaledMax('Rage', 25)).toBe(99);
+    it('clamps level 25 to level 20 values', () => {
+      const suggestions = getResourcePoolSuggestions('Barbarian', 25, []);
+      const rage = suggestions.find(s => s.name.toLowerCase() === 'rage');
+      // Level 20 Rage = 99; if clamping works, level 25 also gives 99
+      expect(rage?.suggestedMax).toBe(99);
     });
   });
 

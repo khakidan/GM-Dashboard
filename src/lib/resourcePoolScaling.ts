@@ -15,7 +15,7 @@ export interface ResourcePoolSuggestion {
     // true = pool does not exist on character yet
 }
 
-export const POOL_LEVEL_TABLES: Record<string, Record<number, number>> = {
+const POOL_LEVEL_TABLES: Record<string, Record<number, number>> = {
   'rage': {
     1: 2, 2: 2, 3: 3, 4: 3, 5: 3, 6: 4, 7: 4, 8: 4,
     9: 4, 10: 4, 11: 4, 12: 5, 13: 5, 14: 5, 15: 5,
@@ -34,7 +34,7 @@ export const POOL_LEVEL_TABLES: Record<string, Record<number, number>> = {
   }
 };
 
-export function getAutoScaledMax(
+function getAutoScaledMax(
   poolName: string,
   level: number
 ): number | null {
