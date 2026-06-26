@@ -101,9 +101,12 @@ describe('ActiveEncounterTab ID Uniqueness', () => {
     // Navigate to Create NPC tab
     fireEvent.click(screen.getByText('Create NPC'));
 
-    // Fill in Quick NPC form
+    // Fill in Quick NPC form (Name is on Identity tab)
     const nameInput = screen.getByPlaceholderText(/e.g. Ancient Red Dragon/i);
     fireEvent.change(nameInput, { target: { value: 'Custom Goblin' } });
+
+    // Switch to Combat tab for HP and AC
+    fireEvent.click(screen.getByRole('button', { name: 'Combat' }));
 
     const hpInput = screen.getByLabelText(/Max HP/i);
     fireEvent.change(hpInput, { target: { value: '15' } });

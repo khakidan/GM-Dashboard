@@ -8,12 +8,14 @@ describe('NpcFormFields', () => {
   afterEach(() => cleanup());
 
   it('renders all essential fields', () => {
-    const { getByLabelText } = render(<NpcFormFields data={DEFAULT_NPC_FORM_DATA} onChange={vi.fn()} />);
+    const { getByLabelText, getByRole } = render(<NpcFormFields data={DEFAULT_NPC_FORM_DATA} onChange={vi.fn()} />);
     
     expect(getByLabelText(/^NPC Name/i)).toBeInTheDocument();
+    expect(getByLabelText(/^CR/i)).toBeInTheDocument();
+
+    fireEvent.click(getByRole('button', { name: 'Combat' }));
     expect(getByLabelText(/^AC\b/i)).toBeInTheDocument();
     expect(getByLabelText(/^Max HP/i)).toBeInTheDocument();
-    expect(getByLabelText(/^CR/i)).toBeInTheDocument();
   });
 
   it('calls onChange when input values change', () => {

@@ -28,8 +28,11 @@ describe('CombatSidebar', () => {
     // Switch to Create NPC tab
     fireEvent.click(screen.getByText('Create NPC'));
 
-    // Fill out the required fields
+    // Fill out the required fields (Name is on Identity tab)
     fireEvent.change(screen.getByLabelText(/Name/), { target: { value: 'New Test NPC' } });
+
+    // Switch to Combat tab for AC and HP
+    fireEvent.click(screen.getByRole('button', { name: 'Combat' }));
     fireEvent.change(screen.getByLabelText(/AC/), { target: { value: '18' } });
     fireEvent.change(screen.getByLabelText(/HP/), { target: { value: '45' } });
 

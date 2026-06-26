@@ -14,6 +14,7 @@ describe('NewNpcDialog', () => {
     );
 
     fireEvent.change(getByLabelText(/^NPC Name/i), { target: { value: 'Dragon' } });
+    fireEvent.click(getByRole('button', { name: 'Combat' }));
     fireEvent.change(getByLabelText(/^Max HP/i), { target: { value: '100' } });
 
     fireEvent.click(getByRole('button', { name: /Add NPC/i }));

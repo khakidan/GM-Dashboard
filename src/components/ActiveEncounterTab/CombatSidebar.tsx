@@ -1,4 +1,8 @@
-import { RECHARGE_THRESHOLDS } from '../../lib/constants';
+import {
+  proficiencyBonusFromCR,
+  parseProficiencies,
+  serializeProficiencies,
+} from '../../lib/abilityScores';
 import React, { useState, useEffect } from 'react';
 import { X, Library, Plus, Users, UserPlus } from 'lucide-react';
 import { cn } from '../../lib/utils';
@@ -109,9 +113,21 @@ export function CombatSidebar({
       vulnerabilities: createNpcData.vulnerabilities ?? '',
       legendaryActions: Number(createNpcData.legendaryActions ?? 0),
       legendaryResistances: Number(createNpcData.legendaryResistances ?? 0),
-      rechargeAbilities: [],
-      abilityScores: '{}',
-      proficiencies: '{}',
+      abilityScores: createNpcData.abilityScores,
+      proficiencies: (() => {
+        try {
+          const parsed = parseProficiencies(
+            createNpcData.proficiencies
+          );
+          parsed.proficiencyBonus =
+            proficiencyBonusFromCR(
+              createNpcData.challengeRating
+            );
+          return serializeProficiencies(parsed);
+        } catch {
+          return createNpcData.proficiencies;
+        }
+      })(),
       speed: createNpcData.speed ?? '',
       senses: createNpcData.senses ?? '',
       languages: createNpcData.languages ?? '',
