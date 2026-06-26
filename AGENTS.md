@@ -408,7 +408,12 @@ test files. Not tests themselves.
   (name, AC, HP, notes, IRV, CR, speed,
   senses, languages) and four list editors
   (traits, actions, reactions, legendary
-  actions) using NpcListEditor.
+  actions) using NpcListEditor. Note that
+  rechargeAbilities has been removed from
+  NpcFormData, DEFAULT_NPC_FORM_DATA, and
+  all associated handlers. Recharge is now
+  defined solely via the recharge field on
+  NpcAction entries in the actions JSON.
 - `NpcListEditor.tsx` — Generic list editor
   component used by NpcFormFields for traits,
   actions, reactions, and legendary actions.
@@ -750,6 +755,19 @@ NpcListEditor is the generic form component
 for editing these lists. It is generic over
 `T extends { name: string }` and uses a
 `renderFields` prop to render per-entry inputs.
+
+### Ability Score Input Pattern
+
+AbilityScoreInput is a local-state wrapper
+component defined in StatBlockScores.tsx.
+It holds the raw typed value locally and
+only commits to the parent onChange on
+blur or Enter. This prevents mid-keystroke
+snap-to-default behavior. Do not replace
+it with DebouncedInput (different contract)
+or revert to a direct <input onChange>.
+CrInput in NpcFormFields.tsx follows the
+same pattern for the CR text field.
 
 ---
 
