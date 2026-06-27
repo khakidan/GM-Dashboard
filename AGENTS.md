@@ -945,6 +945,232 @@ A 4-tab complex form for creating new characters manually:
 
 ---
 
+## Pending Features
+
+Features and bugs that have been discussed
+and approved but not yet implemented.
+Each entry includes enough context to
+implement without re-discussion.
+
+---
+
+### 🔴 Bugs to Fix — NewPlayerDialog
+Resource Pools
+
+All five bugs below are in the same area
+of the codebase. Fix them together in one
+prompt for efficiency. Primary files:
+src/lib/classResources.ts,
+src/lib/resourcePoolScaling.ts,
+src/components/PartyTab/NewPlayerDialog.tsx
+
+#### Bug 1: Spell slots wrong at level 1
+
+Full casters (Wizard, Cleric, Druid,
+Sorcerer, Bard) show Spell Slots: 4/4 at
+level 1. Correct value is 2/2.
+
+Paladin and Ranger show Spell Slots at
+level 1 when they should have none —
+spellcasting for both classes unlocks at
+level 2. Confirmed from official 2014 PHB
+level tables (Ranger table shows "-" for
+all spell slot columns at level 1).
+
+Fix: Update CLASS_RESOURCE_SUGGESTIONS so
+full casters start at max: 2. Remove Spell
+Slots entirely from Paladin and Ranger
+level 1 entries. The Level Up dialog will
+suggest adding spell slots when those
+classes reach level 2.
+
+#### Bug 2: Bardic Inspiration ignores
+CHA modifier
+
+Currently always shows 3/3 regardless of
+the Bard's Charisma score. Correct
+behavior per 2014 PHB: Bardic Inspiration
+uses = Charisma modifier (minimum 1).
+
+Fix: In NewPlayerDialog, add a useEffect
+that watches formData.abilityScores.CHA
+and formData.class. When class is 'Bard'
+and poolsCustomized.current is false,
+calculate the CHA modifier using
+calculateModifier(CHA) (minimum 1) and
+update the Bardic Inspiration pool max
+and current to that value.
+
+This fires dynamically as the GM fills in
+the Abilities tab — before they reach the
+Resources tab — so the correct value is
+already shown when they get there. The
+pattern mirrors how passive perception is
+already auto-calculated from WIS in
+NewPlayerDialog.
+
+The poolsCustomized.current guard is
+critical: if the GM has already manually
+edited the Bardic Inspiration value on
+the Resources tab, the CHA-watching
+effect must not overwrite their change.
+This is the same guard used by the
+class-change pool suggestion effect.
+
+#### Bug 3: Proficiency bonus display does
+not update with level
+
+The proficiency bonus shown in the
+creation overlay is static and does not
+update when the GM changes the level
+field.
+
+Correct behavior: Proficiency bonus should
+update live as the GM changes the level
+field. proficiencyBonusFromLevel already
+exists and is used elsewhere — it just
+needs to be wired to the level field in
+the display.
+
+Note: The proficiency bonus IS correctly
+embedded in the proficiencies JSON at
+submit time (fixed previously). This is
+purely a display issue in the UI.
+
+#### Bug 4: Wild Shape never suggested
+for Druids
+
+Wild Shape is correctly absent at level 1
+but also never appears when a Druid levels
+up to level 2 via LevelUpDialog.
+
+Correct behavior per 2014 PHB: Wild Shape
+unlocks at level 2 with 2 uses (short
+rest). It is flat at 2 uses for all levels
+— it does not scale further.
+
+Fix: Add 'wild shape' to POOL_LEVEL_TABLES:
+  'wild shape': {
+    1: 0, 2: 2, 3: 2, 4: 2, 5: 2, 6: 2,
+    7: 2, 8: 2, 9: 2, 10: 2, 11: 2,
+    12: 2, 13: 2, 14: 2, 15: 2, 16: 2,
+    17: 2, 18: 2, 19: 2, 20: 2
+  }
+
+The 0 at level 1 ensures it is filtered
+at creation. The 2 from level 2 onward
+ensures LevelUpDialog suggests it when a
+Druid reaches level 2. Reset type: short.
+
+Also add Wild Shape back to Druid in
+CLASS_RESOURCE_SUGGESTIONS at max: 0
+(so getResourcePoolSuggestions knows to
+watch for it):
+  'Druid': [
+    { name: 'Wild Shape', current: 0,
+      max: 0, reset: 'short' },
+    { name: 'Spell Slots', current: 2,
+      max: 2, reset: 'long' },
+  ],
+
+#### Bug 5: Ranger gets spell slots at
+level 1
+
+Rangers have no spellcasting until level
+2. The current CLASS_RESOURCE_SUGGESTIONS
+incorrectly suggests Spell Slots for
+Ranger at level 1.
+
+Fix: Remove Spell Slots from Ranger in
+CLASS_RESOURCE_SUGGESTIONS entirely.
+Spell slots will be suggested by
+LevelUpDialog when the Ranger reaches
+level 2. Correct Ranger entry:
+  'Ranger': [],
+
+---
+
+### 🟡 Features to Add
+
+#### Auto-assign saving throw proficiencies
+at character creation
+
+When a GM selects a class in
+NewPlayerDialog, the two saving throw
+proficiencies for that class should be
+automatically checked in the Abilities
+tab (StatBlock saving throws section),
+just like spellcasting ability is already
+auto-derived from class.
+
+Class to saving throw mapping (2014 PHB):
+  Barbarian:  STR, CON
+  Bard:       DEX, CHA
+  Cleric:     WIS, CHA
+  Druid:      INT, WIS
+  Fighter:    STR, CON
+  Monk:       STR, DEX
+  Paladin:    WIS, CHA
+  Ranger:     STR, DEX
+  Rogue:      DEX, INT
+  Sorcerer:   CON, CHA
+  Warlock:    WIS, CHA
+  Wizard:     INT, WIS
+  Artificer:  CON, INT
+
+Implementation notes:
+- Add CLASS_SAVING_THROW_MAP to
+  src/lib/spellcasting.ts or a new
+  src/lib/classProficiencies.ts
+- Add a useEffect in NewPlayerDialog.tsx
+  that watches formData.class and calls
+  parseProficiencies on
+  formData.proficiencies, sets the two
+  saving throws to 'proficient', clears
+  any previously auto-set saving throws
+  if the class changes, and updates
+  formData.proficiencies via handleChange
+- The GM can still manually override any
+  saving throw after auto-population
+- Only applies at creation time —
+  LevelUpDialog multiclass flow does not
+  need to change saving throws
+  automatically
+
+---
+
+### 🔵 Architecture / Technical Debt
+
+#### Fix components importing directly
+from services
+
+Three components violate the layer
+dependency rule (lib → services → hooks →
+components) by importing database
+functions directly instead of going
+through hooks:
+
+  CombatantCardHeader.tsx →
+    imports updateCharacterDB
+  CommandPalette.tsx →
+    imports updateCharacterDB
+  EncounterCard.tsx →
+    imports updateEncounterDB
+
+Fix: Move the database call logic for
+each component into its respective hook
+(useEncounterLifecycle, useParty, or a
+new hook as appropriate), and have the
+component call the hook function instead.
+
+This is a dedicated refactor session —
+tackle separately from feature work since
+it touches multiple files and requires
+careful testing of all affected batches
+after completion.
+
+---
+
 ## TypeScript Build Check
 
 Always run after making changes:
