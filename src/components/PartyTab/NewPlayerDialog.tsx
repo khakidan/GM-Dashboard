@@ -26,6 +26,7 @@ import {
 } from '../../lib/resourcePools';
 import { CLASS_RESOURCE_SUGGESTIONS } from '../../lib/classResources';
 import { getResourcePoolSuggestions } from '../../lib/resourcePoolScaling';
+import { CLASS_SAVING_THROW_MAP } from '../../lib/spellcasting';
 
 interface NewPlayerDialogProps {
   isOpen: boolean;
@@ -166,6 +167,32 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
       // silently ignore
     }
   }, [formData.level]);
+
+  // Auto-assign saving throws on class change
+  useEffect(() => {
+    if (!formData.class) return;
+
+    const autoThrows = CLASS_SAVING_THROW_MAP[formData.class] ?? [];
+
+    // Preserve any existing saving throws the GM manually added, then add the class-derived ones
+    const existing = formData.proficiencies?.savingThrows ?? [];
+
+    // Merge: start with auto throws, then add any manual ones not already included.
+    // This ensures class throws are always present while preserving GM customizations.
+    const merged = [
+      ...autoThrows,
+      ...existing.filter(t => !autoThrows.includes(t)),
+    ];
+
+    // Only update if the saving throws actually changed to avoid loops
+    const same = merged.length === existing.length && merged.every(t => existing.includes(t));
+    if (same) return;
+
+    handleChange('proficiencies', {
+      ...formData.proficiencies,
+      savingThrows: merged,
+    });
+  }, [formData.class]);
 
   const isTab1Valid = formData.playerName.trim() !== '' && formData.characterName.trim() !== '';
   const isHitDiceValid = formData.hitDiceConfig.trim() === '' || /^\d+d\d+(\+\d+d\d+)*$/.test(formData.hitDiceConfig.trim());

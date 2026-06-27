@@ -1,4 +1,4 @@
-import { calculateModifier, proficiencyBonusFromLevel } from './abilityScores';
+import { calculateModifier, proficiencyBonusFromLevel, AbilityName } from './abilityScores';
 
 export type SpellcastingAbility = 'STR' | 'DEX' | 'CON' | 'INT' | 'WIS' | 'CHA' | null;
 
@@ -16,6 +16,22 @@ export const SPELLCASTING_ABILITY_MAP: Record<string, SpellcastingAbility> = {
   Warlock: 'CHA',
   Wizard: 'INT',
   Artificer: 'INT',
+};
+
+export const CLASS_SAVING_THROW_MAP: Record<string, AbilityName[]> = {
+  'Barbarian': ['STR', 'CON'],
+  'Bard':      ['DEX', 'CHA'],
+  'Cleric':    ['WIS', 'CHA'],
+  'Druid':     ['INT', 'WIS'],
+  'Fighter':   ['STR', 'CON'],
+  'Monk':      ['STR', 'DEX'],
+  'Paladin':   ['WIS', 'CHA'],
+  'Ranger':    ['STR', 'DEX'],
+  'Rogue':     ['DEX', 'INT'],
+  'Sorcerer':  ['CON', 'CHA'],
+  'Warlock':   ['WIS', 'CHA'],
+  'Wizard':    ['INT', 'WIS'],
+  'Artificer': ['CON', 'INT'],
 };
 
 export function getAutoSpellcastingAbility(className: string): SpellcastingAbility {
