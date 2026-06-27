@@ -502,6 +502,10 @@ test files. Not tests themselves.
   can edit before confirming. New pools the
   character should gain at the new level are
   suggested with an include toggle.
+- `NewPlayerDialog.tsx` — 4-tab complex form
+  for creating new characters manually. All
+  Identity tab form inputs now have proper id
+  and htmlFor attributes for accessibility.
 
 ### src/components/ActiveEncounterTab/
 - `CombatantCardHeader.tsx` — Compact
@@ -544,6 +548,11 @@ test files. Not tests themselves.
 - `hooks/useCombatSync.ts` — Turn/round/
   combatant sync. NPC initiative uses DEX
   modifier (1d20 + DEX mod).
+- `hooks/useEncounterKeyboard.ts` — Global
+  keyboard shortcuts for combat. Pressing
+  Escape now correctly calls exitSelectionMode
+  in addition to clearing expandedIds and
+  closing modals.
 
 ### src/components/NpcLibraryTab/
 - `NpcCard.tsx` — NPC library card. Expanded
