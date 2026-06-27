@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act, cleanup } from '@testing-library/react';
 import { useCombatSync } from '../hooks/useCombatSync';
 import { useDashboardStore, getSnapshot } from '../../../hooks/useAppState';
+import { updateEncounterStateDB } from '../../../services/dbOperations';
 
 vi.mock('sonner', () => ({
   toast: Object.assign(vi.fn(), {
@@ -115,5 +116,44 @@ describe('useCombatSync', () => {
 
     // NPC 1 (c2) should have legendaryActions.remaining reset to max (3)
     expect(c2?.legendaryActions?.remaining).toBe(3);
+  });
+
+  it('nextTurn calls updateEncounterStateDB with the new activeTurnId', async () => {
+    const { result } = renderHook(() => useCombatSync());
+
+    await act(async () => {
+      await result.current.nextTurn();
+    });
+
+    expect(vi.mocked(updateEncounterStateDB)).toHaveBeenCalledWith(
+      'enc-1',        // encounter ID
+      1,              // round (still 1)
+      'c2'            // NEW active turn
+    );
+  });
+
+  it('nextTurn calls updateEncounterStateDB with incremented round on wrap', async () => {
+    // Set active turn to the last combatant (c3)
+    act(() => {
+      useDashboardStore.setState(prev => ({
+        ...prev,
+        combatState: {
+          ...prev.combatState,
+          activeTurnId: 'c3'
+        }
+      }));
+    });
+
+    const { result } = renderHook(() => useCombatSync());
+
+    await act(async () => {
+      await result.current.nextTurn();
+    });
+
+    expect(vi.mocked(updateEncounterStateDB)).toHaveBeenCalledWith(
+      'enc-1',        // encounter ID
+      2,              // incremented round
+      'c1'            // wraps to first
+    );
   });
 });

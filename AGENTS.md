@@ -578,7 +578,7 @@ this whitelist and to `dbOperations.ts`.
 
 ## Testing Structure — 12-Batch System
 
-**Current baseline: 617 tests.**
+**Current baseline: 619 tests.**
 All batches must pass with zero failures.
 No batch should exceed 35 seconds.
 
@@ -592,7 +592,7 @@ run all tests at once with `npx vitest run`.
 | 2     | Services    | 29         |
 | 3     | Hooks       | 32         |
 | 4     | Server      | 7          |
-| 5A    | AET Hooks   | 28         |
+| 5A    | AET Hooks   | 30         |
 | 5B    | AET Comp    | 23         |
 | 6A    | PartyTab    | 35         |
 | 6B    | Encounters  | 8          |
@@ -600,7 +600,7 @@ run all tests at once with `npx vitest run`.
 | 7B-1  | Top-Level 1 | 5          |
 | 7B-2  | Top-Level 2 | 4          |
 | 8     | UI          | 2          |
-| **Total** | | **617** |
+| **Total** | | **619** |
 
 ```bash
 # BATCH 1 — 432 tests
@@ -615,7 +615,7 @@ npx vitest run src/hooks/__tests__
 # BATCH 4 — 7 tests
 npx vitest run src/server/__tests__ src/__tests__
 
-# BATCH 5A — 28 tests
+# BATCH 5A — 30 tests
 npx vitest run src/components/ActiveEncounterTab/__tests__/useBatchActions.test.ts src/components/ActiveEncounterTab/__tests__/useCombatSync.test.ts src/components/ActiveEncounterTab/__tests__/useCombatantCard.test.ts src/components/ActiveEncounterTab/__tests__/useEncounterPresetLoader.test.ts src/components/ActiveEncounterTab/__tests__/useHealthChange.test.ts src/components/ActiveEncounterTab/__tests__/useSelectionMode.test.ts
 
 # BATCH 5B — 23 tests
