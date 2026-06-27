@@ -6,7 +6,6 @@ import { cn } from '../../lib/utils';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'motion/react';
 import { DebouncedInput } from '../ui/DebouncedInput';
-import { updateEncounterDB } from '../../services/dbOperations';
 
 export interface EncounterCardProps {
   enc: Encounter;
@@ -14,6 +13,12 @@ export interface EncounterCardProps {
   onDelete: (enc: Encounter) => void;
   onStart: (enc: Encounter) => void;
   onSyncRequested: () => Promise<void>;
+  onUpdate: (
+    encounterId: string,
+    name: string,
+    location: string,
+    difficultyId: number
+  ) => Promise<void>;
 }
 
 export const EncounterCard: React.FC<EncounterCardProps> = ({ 
@@ -21,7 +26,8 @@ export const EncounterCard: React.FC<EncounterCardProps> = ({
   isDeleting,
   onDelete, 
   onStart, 
-  onSyncRequested 
+  onSyncRequested,
+  onUpdate
 }) => {
   const { state, updateState } = useAppState();
   const [name, setName] = useState(enc.name || '');
@@ -56,22 +62,11 @@ export const EncounterCard: React.FC<EncounterCardProps> = ({
     setIsUpdating(true);
     setErrorStatus(null);
     
-    const previousState = state;
-    updateState(prev => ({
-      ...prev,
-      encounters: prev.encounters.map(e => 
-        e.id === enc.id 
-          ? { ...e, name: trimmedName, location: trimmedLocation, difficultyId: activeDifficultyId }
-          : e
-      )
-    }));
-
     try {
-      await updateEncounterDB(enc.id, trimmedName, trimmedLocation, activeDifficultyId);
+      await onUpdate(enc.id, trimmedName, trimmedLocation, activeDifficultyId);
       onSyncRequested().catch(console.error);
     } catch (err: unknown) {
       console.error("Failed to update encounter", err);
-      updateState(previousState);
       setName(enc.name);
       setLocation(enc.location);
       setDifficultyId(enc.difficultyId);

@@ -9,8 +9,7 @@ import { CombatantCardBadges } from './CombatantCardBadges';
 import { DeathSaveTrackerDisplay } from './DeathSaveTrackerDisplay';
 import { useCombatantCard } from './hooks/useCombatantCard';
 import { useAppState } from '../../hooks/useAppState';
-import { updateCharacterDB } from '../../services/dbOperations';
-import { parseResourcePools, spendResourcePip, recoverResourcePip, serializeResourcePools } from '../../lib/resourcePools';
+import { parseResourcePools, spendResourcePip, recoverResourcePip, serializeResourcePools, ResourcePool } from '../../lib/resourcePools';
 
 const AnimatedHpDisplay = ({
   value,
@@ -127,6 +126,7 @@ export interface CombatantCardHeaderProps {
   onMarkSpent?: (abilityName: string) => void;
   hpMode?: 'damage' | 'heal';
   selectionCheckbox?: React.ReactNode;
+  onUpdateResourcePools?: (combatant: Combatant, pools: ResourcePool[]) => void;
 }
 
 export function CombatantCardHeader({
@@ -143,6 +143,7 @@ export function CombatantCardHeader({
   onMarkSpent,
   hpMode,
   selectionCheckbox,
+  onUpdateResourcePools,
 }: CombatantCardHeaderProps) {
   const { isActiveTurn, isSelected, isSelectable, isSyncing } = useCombatantCard(c.id);
   const { state, updateState } = useAppState();
@@ -484,21 +485,10 @@ export function CombatantCardHeader({
                 {pool.name.length > 10 ? `${pool.name.slice(0, 10)}...` : pool.name}
               </span>
               <button
-                onClick={async () => {
+                onClick={() => {
                   if (pool.current <= 0 || isSyncing) return;
                   const updatedPools = spendResourcePip(pools, pool.name, 1);
-                  const serialized = serializeResourcePools(updatedPools);
-                  updateState(prev => ({
-                    ...prev,
-                    characters: prev.characters.map(charItem =>
-                      charItem.id === char.id ? { ...charItem, resourcePools: serialized } : charItem
-                    )
-                  }));
-                  try {
-                    await updateCharacterDB({ resourcePools: serialized }, char);
-                  } catch (err) {
-                    console.error("Failed to update resource: ", err);
-                  }
+                  onUpdateResourcePools?.(c, updatedPools);
                 }}
                 disabled={pool.current <= 0 || isSyncing}
                 className="w-4 h-4 inline-flex items-center justify-center border border-[#e5e1d8] rounded text-[10px] font-bold text-red-600 hover:bg-red-50 disabled:opacity-30 cursor-pointer select-none leading-none"
@@ -511,21 +501,10 @@ export function CombatantCardHeader({
                 {pool.current}/{pool.max}
               </span>
               <button
-                onClick={async () => {
+                onClick={() => {
                   if (pool.current >= pool.max || isSyncing) return;
                   const updatedPools = recoverResourcePip(pools, pool.name, 1);
-                  const serialized = serializeResourcePools(updatedPools);
-                  updateState(prev => ({
-                    ...prev,
-                    characters: prev.characters.map(charItem =>
-                      charItem.id === char.id ? { ...charItem, resourcePools: serialized } : charItem
-                    )
-                  }));
-                  try {
-                    await updateCharacterDB({ resourcePools: serialized }, char);
-                  } catch (err) {
-                    console.error("Failed to update resource: ", err);
-                  }
+                  onUpdateResourcePools?.(c, updatedPools);
                 }}
                 disabled={pool.current >= pool.max || isSyncing}
                 className="w-4 h-4 inline-flex items-center justify-center border border-[#e5e1d8] rounded text-[10px] font-bold text-green-700 hover:bg-green-50 disabled:opacity-30 cursor-pointer select-none leading-none"

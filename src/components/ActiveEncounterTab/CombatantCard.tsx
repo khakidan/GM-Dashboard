@@ -8,6 +8,8 @@ import { Combatant, DamageType } from '../../types';
 import { CombatantCardHeader } from './CombatantCardHeader';
 import { CombatantCardExpanded } from './CombatantCardExpanded';
 import { useCombatantCard } from './hooks/useCombatantCard';
+import { useCombatantExpanded } from './hooks/useCombatantExpanded';
+import { ResourcePool, serializeResourcePools } from '../../lib/resourcePools';
 import { SpellcastingStatsRow } from '../ui/SpellcastingStatsRow';
 import { parseAbilityScores, parseProficiencies, proficiencyBonusFromLevel } from '../../lib/abilityScores';
 import { NpcReferencePanel } from './NpcReferencePanel';
@@ -42,6 +44,12 @@ export function CombatantCard({
   const { isActiveTurn: isActive, isSelected, isSelectable, isSyncing } = useCombatantCard(c.id);
   const parsedProfs = parseProficiencies(c.proficiencies || '');
   const parsedScores = parseAbilityScores(c.abilityScores || '');
+  const { handleResourcePoolUpdate } = useCombatantExpanded(c);
+
+  const handleUpdateResourcePools = (combatant: Combatant, updatedPools: ResourcePool[]) => {
+    const serialized = serializeResourcePools(updatedPools);
+    handleResourcePoolUpdate({ resourcePools: serialized });
+  };
 
   const handleRechargeRoll = (abilityName: string, rechargeOn: number) => {
     const rolledNum = rollDice(parseDiceNotation('1d6')).total;
@@ -96,6 +104,7 @@ export function CombatantCard({
         onToggleSelect={onToggleSelect}
         onMarkSpent={handleMarkSpent}
         hpMode={hpMode}
+        onUpdateResourcePools={handleUpdateResourcePools}
       />
 
       {c.type === 'npc' && (

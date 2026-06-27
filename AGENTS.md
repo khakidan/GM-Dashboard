@@ -279,6 +279,9 @@ schema.
   utilities. Exports `SpellcastingAbility`
   type (`'STR'|'DEX'|'CON'|'INT'|'WIS'|'CHA'|null`),
   `SPELLCASTING_ABILITY_MAP` (12 classes),
+  `CLASS_SAVING_THROW_MAP` (a Record mapping
+  each class name to its two 2014 PHB saving
+  throw proficiencies as AbilityName[]),
   `getAutoSpellcastingAbility()`,
   `getEffectiveSpellcastingAbility()`,
   `calculateSpellSaveDC()`, and
@@ -962,51 +965,13 @@ history for details.
 ---
 
 ### 🟡 Features to Add
-
-#### Auto-assign saving throw proficiencies
-at character creation
-
-When a GM selects a class in
-NewPlayerDialog, the two saving throw
-proficiencies for that class should be
-automatically checked in the Abilities
-tab (StatBlock saving throws section),
-just like spellcasting ability is already
-auto-derived from class.
-
-Class to saving throw mapping (2014 PHB):
-  Barbarian:  STR, CON
-  Bard:       DEX, CHA
-  Cleric:     WIS, CHA
-  Druid:      INT, WIS
-  Fighter:    STR, CON
-  Monk:       STR, DEX
-  Paladin:    WIS, CHA
-  Ranger:     STR, DEX
-  Rogue:      DEX, INT
-  Sorcerer:   CON, CHA
-  Warlock:    WIS, CHA
-  Wizard:     INT, WIS
-  Artificer:  CON, INT
-
-Implementation notes:
-- Add CLASS_SAVING_THROW_MAP to
-  src/lib/spellcasting.ts or a new
-  src/lib/classProficiencies.ts
-- Add a useEffect in NewPlayerDialog.tsx
-  that watches formData.class and calls
-  parseProficiencies on
-  formData.proficiencies, sets the two
-  saving throws to 'proficient', clears
-  any previously auto-set saving throws
-  if the class changes, and updates
-  formData.proficiencies via handleChange
-- The GM can still manually override any
-  saving throw after auto-population
-- Only applies at creation time —
-  LevelUpDialog multiclass flow does not
-  need to change saving throws
-  automatically
+Auto-assign saving throw proficiencies
+at character creation — resolved.
+CLASS_SAVING_THROW_MAP added to
+src/lib/spellcasting.ts. useEffect in
+NewPlayerDialog watches formData.class
+and sets savingThrows in proficiencies
+automatically. See session history.
 
 ---
 

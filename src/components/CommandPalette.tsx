@@ -21,7 +21,7 @@ import {
   Sparkles,
   Music
 } from 'lucide-react';
-import { updateCharacterDB } from '../services/dbOperations';
+import { useParty } from './PartyTab/hooks/useParty';
 import { useDeathEvent, useDamageEvent, useHealEvent, useInitiativeEvent } from '../hooks/useOverlayEvents';
 import { StoredAudioFile } from '../lib/audioFileStore';
 import { cn } from '../lib/utils';
@@ -53,6 +53,7 @@ export function CommandPalette({
   activateMood
 }: CommandPaletteProps) {
   const { state, updateState } = useAppState();
+  const { handleLongRest: triggerLongRest } = useParty();
   const { fire: fireDeathEvent } = useDeathEvent();
   const { fire: fireDamageEvent } = useDamageEvent();
   const { fire: fireHealEvent } = useHealEvent();
@@ -94,102 +95,8 @@ export function CommandPalette({
 
   const handleLongRest = async () => {
     if (!confirm("Are you sure you want the party to take a long rest? This will reset all Current HP to Max HP and clear all Temp HP.")) return;
-    
-    const previousState = { ...state };
-    
-    // 1. Update local state optimistically
-    updateState(prev => {
-      const updatedCharacters = prev.characters.map(c => {
-        if (!c.isActive) return c;
-        const { remaining, newExhaustionLevel } = applyLongRestToConditions(c.conditions || '');
-        const updates: Partial<typeof c> = {
-          currentHp: effectiveMaxHp(c.maxHp, c.tempHpMax),
-          tempHp: 0,
-        };
-        if (remaining !== c.conditions) {
-          updates.conditions = remaining;
-        }
-        const hadHpHalvingExhaustion = [4, 5, 6].some(
-          n => (c.conditions || '').toLowerCase().includes(`exhaustion ${n}`)
-        );
-        const stillHasHpHalvingExhaustion = newExhaustionLevel !== null && newExhaustionLevel >= 4;
-        if (hadHpHalvingExhaustion && !stillHasHpHalvingExhaustion) {
-          updates.tempHpMax = 0;
-          updates.currentHp = c.maxHp;
-        }
-        return { ...c, ...updates };
-      });
-
-      // Mirror the changes into any active PC combatants
-      const updatedCombatants = (prev.combatState?.combatants || []).map(combatant => {
-        if (combatant.type !== 'pc' || !combatant.characterId) {
-          return combatant;
-        }
-        const updatedChar = updatedCharacters.find(c => c.id === combatant.characterId);
-        if (!updatedChar) return combatant;
-        return {
-          ...combatant,
-          currentHp: updatedChar.currentHp,
-          tempHp: updatedChar.tempHp ?? 0,
-          maxHp: updatedChar.maxHp,
-          conditions: updatedChar.conditions || '',
-          conditionTimers: {},
-        };
-      });
-
-      return {
-        ...prev,
-        characters: updatedCharacters,
-        combatState: {
-          ...prev.combatState,
-          combatants: updatedCombatants,
-        },
-      };
-    });
-
-    try {
-      const preRestActivePCs = previousState.characters.filter(c => c.isActive);
-      let anyExhaustionReduced = false;
-      const removedEffects: string[] = [];
-
-      const updatePromises = preRestActivePCs.map(char => {
-        const { remaining, removed, exhaustionReduced, newExhaustionLevel } = applyLongRestToConditions(char.conditions || '');
-        if (exhaustionReduced) anyExhaustionReduced = true;
-        if (removed.length > 0) removedEffects.push(...removed);
-
-        const updates: Partial<typeof char> = {
-          currentHp: effectiveMaxHp(char.maxHp, char.tempHpMax),
-          tempHp: 0,
-        };
-        if (remaining !== char.conditions) {
-          updates.conditions = remaining;
-        }
-        const hadHpHalvingExhaustion = [4, 5, 6].some(
-          n => (char.conditions || '').toLowerCase().includes(`exhaustion ${n}`)
-        );
-        const stillHasHpHalvingExhaustion = newExhaustionLevel !== null && newExhaustionLevel >= 4;
-        if (hadHpHalvingExhaustion && !stillHasHpHalvingExhaustion) {
-          updates.tempHpMax = 0;
-          updates.currentHp = char.maxHp;
-        }
-        return updateCharacterDB(updates, char);
-      });
-
-      await Promise.all(updatePromises);
-
-      const lines: string[] = [];
-      if (anyExhaustionReduced) lines.push('Exhaustion reduced by 1 for affected characters.');
-      if (removedEffects.length > 0) lines.push(`Effects cleared: ${[...new Set(removedEffects)].join(', ')}.`);
-
-      toast.success('Long rest complete', {
-        description: lines.length > 0 ? lines.join(' ') : 'All HP restored. No conditions were changed.',
-        duration: 8000,
-      });
-    } catch (err) {
-      console.error("Long rest from palette failed", err);
-      updateState(previousState);
-      toast.error("Failed to sync long rest to sheets.");
-    }
+    const activeCharIds = state.characters.filter(c => c.isActive).map(c => c.id);
+    await triggerLongRest(activeCharIds);
   };
 
   if (!isOpen) return null;

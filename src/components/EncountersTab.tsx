@@ -21,6 +21,7 @@ export function EncountersTab({
     globalError,
     handleCreateEncounter,
     handleDelete,
+    handleUpdateEncounter,
   } = useEncounters({ onSelectEncounter, onSyncRequested });
 
   const [isNewDialogOpen, setIsNewDialogOpen] = useState(false);
@@ -91,6 +92,7 @@ export function EncountersTab({
               onDelete={handleDelete} 
               onStart={(e) => onSelectEncounter(e.id)} 
               onSyncRequested={onSyncRequested} 
+              onUpdate={handleUpdateEncounter}
             />
           ))}
         </div>

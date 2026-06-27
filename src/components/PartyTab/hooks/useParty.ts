@@ -178,6 +178,7 @@ export function useParty() {
         const currentPools = parseResourcePools(c.resourcePools || '[]');
         const updatedPools = resetResourcesOnLongRest(currentPools);
         const serializedPools = serializeResourcePools(updatedPools);
+        const { remaining, newExhaustionLevel } = applyLongRestToConditions(c.conditions || '');
 
         const updates: Partial<Character> = {
           currentHp: effectiveMaxHp(c.maxHp, c.tempHpMax),
@@ -187,6 +188,19 @@ export function useParty() {
           deathSavesSuccesses: 0,
           resourcePools: serializedPools,
         };
+
+        if (remaining !== c.conditions) {
+          updates.conditions = remaining;
+        }
+
+        const hadHpHalvingExhaustion = [4, 5, 6].some(
+          n => (c.conditions || '').toLowerCase().includes(`exhaustion ${n}`)
+        );
+        const stillHasHpHalvingExhaustion = newExhaustionLevel !== null && newExhaustionLevel >= 4;
+        if (hadHpHalvingExhaustion && !stillHasHpHalvingExhaustion) {
+          updates.tempHpMax = 0;
+          updates.currentHp = c.maxHp;
+        }
 
         return { ...c, ...updates };
       });
@@ -207,6 +221,8 @@ export function useParty() {
             currentHp: updatedChar.currentHp,
             tempHp: updatedChar.tempHp ?? 0,
             maxHp: updatedChar.maxHp,
+            conditions: updatedChar.conditions || '',
+            conditionTimers: {},
           };
         }
       );
@@ -232,6 +248,7 @@ export function useParty() {
         const currentPools = parseResourcePools(char.resourcePools || '[]');
         const updatedPools = resetResourcesOnLongRest(currentPools);
         const serializedPools = serializeResourcePools(updatedPools);
+        const { remaining, newExhaustionLevel } = applyLongRestToConditions(char.conditions || '');
 
         const updates: Partial<Character> = {
           currentHp: effectiveMaxHp(char.maxHp, char.tempHpMax),
@@ -242,13 +259,39 @@ export function useParty() {
           resourcePools: serializedPools,
         };
 
+        if (remaining !== char.conditions) {
+          updates.conditions = remaining;
+        }
+
+        const hadHpHalvingExhaustion = [4, 5, 6].some(
+          n => (char.conditions || '').toLowerCase().includes(`exhaustion ${n}`)
+        );
+        const stillHasHpHalvingExhaustion = newExhaustionLevel !== null && newExhaustionLevel >= 4;
+        if (hadHpHalvingExhaustion && !stillHasHpHalvingExhaustion) {
+          updates.tempHpMax = 0;
+          updates.currentHp = char.maxHp;
+        }
+
         return updateCharacterDB(updates, char);
       });
 
       await Promise.all(updatePromises);
 
+      let anyExhaustionReduced = false;
+      const removedEffects: string[] = [];
+      selectedChars.forEach(char => {
+        const { removed, exhaustionReduced } = applyLongRestToConditions(char.conditions || '');
+        if (exhaustionReduced) anyExhaustionReduced = true;
+        if (removed.length > 0) removedEffects.push(...removed);
+      });
+
+      const lines: string[] = [];
+      lines.push(`Long rest applied to ${selectedChars.length} character(s).`);
+      if (anyExhaustionReduced) lines.push('Exhaustion reduced by 1 for affected characters.');
+      if (removedEffects.length > 0) lines.push(`Effects cleared: ${[...new Set(removedEffects)].join(', ')}.`);
+
       toast.success('Long rest complete', {
-        description: `Long rest applied to ${selectedChars.length} character(s).`,
+        description: lines.join(' '),
         duration: 8000,
       });
 

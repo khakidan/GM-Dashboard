@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAppState, getSnapshot } from '../../../hooks/useAppState';
 import { Encounter } from '../../../types';
-import { addEncounterDB, deleteEncounterFully } from '../../../services/dbOperations';
+import { addEncounterDB, deleteEncounterFully, updateEncounterDB } from '../../../services/dbOperations';
 import { toast } from 'sonner';
 
 interface UseEncountersProps {
@@ -105,6 +105,36 @@ export function useEncounters({ onSelectEncounter, onSyncRequested }: UseEncount
     }
   };
 
+  const handleUpdateEncounter = async (
+    encounterId: string,
+    name: string,
+    location: string,
+    difficultyId: number
+  ): Promise<void> => {
+    // Optimistic update
+    const previous = state;
+    updateState(prev => ({
+      ...prev,
+      encounters: prev.encounters.map(e =>
+        e.id === encounterId
+          ? { ...e, name, location, difficultyId }
+          : e
+      ),
+    }));
+    try {
+      await updateEncounterDB(
+        encounterId, name, location,
+        difficultyId
+      );
+    } catch (err) {
+      updateState(previous);
+      toast.error(
+        'Failed to update encounter.'
+      );
+      throw err;
+    }
+  };
+
   return {
     state,
     isAdding,
@@ -112,5 +142,6 @@ export function useEncounters({ onSelectEncounter, onSyncRequested }: UseEncount
     globalError,
     handleCreateEncounter,
     handleDelete,
+    handleUpdateEncounter,
   };
 }

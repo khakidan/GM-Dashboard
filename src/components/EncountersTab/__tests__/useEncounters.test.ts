@@ -2,11 +2,12 @@ import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useEncounters } from '../hooks/useEncounters';
 import { useAppState, getSnapshot } from '../../../hooks/useAppState';
-import { addEncounterDB, deleteEncounterFully } from '../../../services/dbOperations';
+import { addEncounterDB, deleteEncounterFully, updateEncounterDB } from '../../../services/dbOperations';
 
 vi.mock('../../../services/dbOperations', () => ({
   addEncounterDB: vi.fn().mockResolvedValue({ id: 'real-enc-1', name: 'Goblin Ambush', location: 'Woods', difficultyId: 2, status: 'planned', difficultyName: 'Medium' }),
   deleteEncounterFully: vi.fn().mockResolvedValue(undefined),
+  updateEncounterDB: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock('../../../hooks/useAppState', () => ({
@@ -105,5 +106,33 @@ describe('useEncounters', () => {
     // Optimistic update + rollback
     expect(updateStateSpy).toHaveBeenCalledTimes(2);
     expect(updateStateSpy).toHaveBeenLastCalledWith(initialState);
+  });
+
+  it('handleUpdateEncounter updates encounter in state and calls the DB', async () => {
+    const updateStateSpy = vi.fn();
+    const initialState = {
+      encounters: [{ id: 'enc-1', name: 'Goblin Ambush', location: 'Woods', difficultyId: 2 }],
+      difficulties: { 1: 'Easy', 2: 'Medium', 3: 'Hard' }
+    };
+    vi.mocked(useAppState).mockReturnValue({
+      state: initialState as any,
+      updateState: updateStateSpy,
+      getSnapshot: vi.fn().mockReturnValue(initialState),
+    } as any);
+
+    const { result } = renderHook(() => useEncounters({ onSelectEncounter: vi.fn(), onSyncRequested: vi.fn() }));
+    
+    await act(async () => {
+      await result.current.handleUpdateEncounter('enc-1', 'Dragon Lair', 'Cave', 3);
+    });
+
+    expect(updateEncounterDB).toHaveBeenCalledWith('enc-1', 'Dragon Lair', 'Cave', 3);
+    
+    // Check optimistic update
+    const stateUpdater = updateStateSpy.mock.calls[0][0];
+    const nextState = stateUpdater(initialState);
+    expect(nextState.encounters[0].name).toBe('Dragon Lair');
+    expect(nextState.encounters[0].location).toBe('Cave');
+    expect(nextState.encounters[0].difficultyId).toBe(3);
   });
 });
