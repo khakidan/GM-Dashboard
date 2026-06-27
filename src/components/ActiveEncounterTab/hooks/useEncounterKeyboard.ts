@@ -6,6 +6,7 @@ export interface UseEncounterKeyboardOptions {
   rollInitForNPCs: () => void;
   setIsToolsModalOpen: (updater: (prev: boolean) => boolean) => void;
   toggleMultiTargetMode: () => void;
+  exitSelectionMode: () => void;
   handleCallInitiative: () => void;
   setHpMode: (mode: 'damage' | 'heal') => void;
   combatants: Combatant[];
@@ -20,6 +21,7 @@ export function useEncounterKeyboard({
   rollInitForNPCs,
   setIsToolsModalOpen,
   toggleMultiTargetMode,
+  exitSelectionMode,
   handleCallInitiative,
   setHpMode,
   combatants,
@@ -129,6 +131,7 @@ export function useEncounterKeyboard({
           setExpandedIds(() => new Set());
           setIsToolsModalOpen(() => false);
           setIsCheatSheetOpen(() => false);
+          exitSelectionMode();
           break;
         }
         default:

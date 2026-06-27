@@ -44,7 +44,7 @@ describe('LevelUpDialog', () => {
 
   it('renders without crashing when isOpen is true', () => {
     const { container } = render(<LevelUpDialog {...defaultProps} />);
-    expect(container).toBeInTheDocument();
+    expect(screen.getByText('Level Up Wizard')).toBeInTheDocument();
   });
 
   it('resource pools section shows suggested pool names when character has a class with pools', () => {
@@ -312,5 +312,155 @@ describe('LevelUpDialog', () => {
       const checkbox = screen.getByRole('checkbox', { name: /Tough feat/i });
       expect(checkbox).toBeChecked();
     });
+  });
+
+  it('GM-edited pool max value is serialized into resourcePools on confirm', () => {
+    // Override the mock to return a Rage suggestion for this test
+    vi.mocked(getResourcePoolSuggestions).mockReturnValueOnce([{
+      name: 'Rage',
+      suggestedMax: 3,
+      reset: 'long',
+      isNew: false,
+      isAutoDerived: true,
+    }] as any);
+
+    const onConfirmMock = vi.fn();
+    const charWithPools = {
+      ...defaultProps.character,
+      class: 'Barbarian',
+      level: 4,
+      resourcePools: '[]',
+    };
+
+    const { container } = render(
+      <LevelUpDialog
+        {...defaultProps}
+        character={charWithPools}
+        isOpen={true}
+        onConfirm={onConfirmMock}
+      />
+    );
+
+    // Find the Rage max input by its id
+    const rageInput = container.querySelector('#pool-input-rage') as HTMLInputElement;
+    expect(rageInput).not.toBeNull();
+
+    // GM changes the max value to 5
+    fireEvent.change(rageInput, {
+      target: { value: '5' }
+    });
+
+    // Confirm
+    const confirmBtn = container.querySelector('#confirm-level-up-btn') as HTMLButtonElement;
+    fireEvent.click(confirmBtn);
+
+    expect(onConfirmMock).toHaveBeenCalled();
+    const call = onConfirmMock.mock.calls[0][0];
+    const pools = JSON.parse(call.resourcePools);
+
+    // Pool should contain Rage with the GM-edited max of 5
+    expect(pools).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: 'Rage',
+          max: 5,
+        })
+      ])
+    );
+  });
+
+  it('new pool with include unchecked is excluded from resourcePools on confirm', () => {
+    // Return a new pool suggestion (isNew: true means it has the include checkbox)
+    vi.mocked(getResourcePoolSuggestions).mockReturnValueOnce([{
+      name: 'Rage',
+      suggestedMax: 3,
+      reset: 'long',
+      isNew: true,
+      isAutoDerived: true,
+    }] as any);
+
+    const onConfirmMock = vi.fn();
+    const charWithPools = {
+      ...defaultProps.character,
+      class: 'Barbarian',
+      level: 4,
+      resourcePools: '[]',
+    };
+
+    const { container } = render(
+      <LevelUpDialog
+        {...defaultProps}
+        character={charWithPools}
+        isOpen={true}
+        onConfirm={onConfirmMock}
+      />
+    );
+
+    // Find and uncheck the include checkbox for Rage
+    const rageCheckbox = container.querySelector('#pool-checkbox-rage') as HTMLInputElement;
+    expect(rageCheckbox).not.toBeNull();
+
+    // Uncheck it (it starts checked because include defaults to true when suggestedMax > 0)
+    fireEvent.click(rageCheckbox);
+
+    // Confirm
+    const confirmBtn = container.querySelector('#confirm-level-up-btn') as HTMLButtonElement;
+    fireEvent.click(confirmBtn);
+
+    expect(onConfirmMock).toHaveBeenCalled();
+    const call = onConfirmMock.mock.calls[0][0];
+    const pools = JSON.parse(call.resourcePools);
+
+    // Rage should NOT be in the payload because the GM unchecked it
+    const ragePool = pools.find((p: any) => p.name === 'Rage');
+    expect(ragePool).toBeUndefined();
+  });
+
+  it('existing pool is included in resourcePools payload when include is checked', () => {
+    vi.mocked(getResourcePoolSuggestions).mockReturnValueOnce([{
+      name: 'Rage',
+      suggestedMax: 3,
+      reset: 'long',
+      isNew: false,
+      isAutoDerived: true,
+    }] as any);
+
+    const onConfirmMock = vi.fn();
+    const charWithPools = {
+      ...defaultProps.character,
+      class: 'Barbarian',
+      level: 4,
+      resourcePools: JSON.stringify([{
+        name: 'Rage',
+        current: 2,
+        max: 2,
+        reset: 'long',
+      }]),
+    };
+
+    const { container } = render(
+      <LevelUpDialog
+        {...defaultProps}
+        character={charWithPools}
+        isOpen={true}
+        onConfirm={onConfirmMock}
+      />
+    );
+
+    const confirmBtn = container.querySelector('#confirm-level-up-btn') as HTMLButtonElement;
+    fireEvent.click(confirmBtn);
+
+    expect(onConfirmMock).toHaveBeenCalled();
+    const call = onConfirmMock.mock.calls[0][0];
+    const pools = JSON.parse(call.resourcePools);
+
+    expect(pools).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: 'Rage',
+          max: 3,
+        })
+      ])
+    );
   });
 });

@@ -23,7 +23,22 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
   const encounter = state.encounters.find(e => e.id === state.combatState.activeEncounterId);
 
   const [isToolsModalOpen, setIsToolsModalOpen] = useState(false);
-  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const expandedIdsSet = React.useMemo(() => new Set(state.combatState.expandedIds || []), [state.combatState.expandedIds]);
+
+  const setExpandedIds = (updater: (prev: Set<string>) => Set<string>) => {
+    updateState(prev => {
+      const currentSet = new Set(prev.combatState.expandedIds || []);
+      const nextSet = updater(currentSet);
+      return {
+        ...prev,
+        combatState: {
+          ...prev.combatState,
+          expandedIds: Array.from(nextSet),
+        }
+      };
+    });
+  };
+
   const [hpMode, setHpMode] = useState<'damage' | 'heal'>('damage');
   const [isCheatSheetOpen, setIsCheatSheetOpen] = useState(false);
 
@@ -117,6 +132,7 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
     rollInitForNPCs,
     setIsToolsModalOpen,
     toggleMultiTargetMode,
+    exitSelectionMode,
     handleCallInitiative,
     setHpMode,
     combatants: state.combatState.combatants,
@@ -171,7 +187,7 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
                   <CombatantCard
                     key={c.id}
                     c={c}
-                    isExpanded={expandedIds.has(c.id)}
+                    isExpanded={expandedIdsSet.has(c.id)}
                     damageInput={damageInputs[c.id] || ''}
                     healInput={healInputs[c.id] || ''}
                     currentRound={state.combatState.round}

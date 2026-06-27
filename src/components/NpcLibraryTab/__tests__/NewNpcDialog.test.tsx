@@ -155,4 +155,30 @@ describe('NewNpcDialog', () => {
       ])
     );
   });
+
+  it('does not call onConfirm when NPC name is empty', () => {
+    const onConfirmMock = vi.fn();
+    const { getByRole } = render(
+      <NewNpcDialog
+        isOpen={true}
+        onClose={vi.fn()}
+        onConfirm={onConfirmMock}
+      />
+    );
+
+    // Do NOT fill in the name field —
+    // leave it at the default empty value
+
+    // Click Add NPC
+    fireEvent.click(
+      getByRole('button',
+        { name: /add npc/i }
+      )
+    );
+
+    // onConfirm should never be called
+    // because name is empty
+    expect(onConfirmMock)
+      .not.toHaveBeenCalled();
+  });
 });

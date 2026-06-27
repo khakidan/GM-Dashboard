@@ -18,7 +18,7 @@ describe('CombatSidebar', () => {
 
   it('renders without crashing with required props', () => {
     const { container } = render(<CombatSidebar {...defaultProps} />);
-    expect(container).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /create npc/i })).toBeInTheDocument();
   });
 
   it('submitting the Create NPC form calls onAddNpc with the full NPC data object', () => {

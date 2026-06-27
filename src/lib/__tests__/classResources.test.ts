@@ -52,19 +52,45 @@ describe('classResources', () => {
       expect(secondCall[0].max).toBe(3); // Original should remain unchanged
     });
 
-    describe('returns a non-empty array for every known class', () => {
-      const knownClasses = Object.keys(CLASS_RESOURCE_SUGGESTIONS);
-      knownClasses.forEach(className => {
-        it(`for ${className}`, () => {
-          const suggestions = getClassResourceSuggestions(className);
-          if (className === 'Ranger') {
-            expect(suggestions).toHaveLength(0);
-          } else {
-            expect(suggestions.length).toBeGreaterThan(0);
-          }
-        });
-      });
-    });
+  it('returns the correct pool names for each class', () => {
+    expect(getClassResourceSuggestions('Barbarian').map(p => p.name))
+      .toEqual(['Rage']);
+
+    expect(getClassResourceSuggestions('Bard').map(p => p.name))
+      .toEqual(['Bardic Inspiration']);
+
+    expect(getClassResourceSuggestions('Cleric').map(p => p.name))
+      .toEqual(['Channel Divinity', 'Spell Slots']);
+
+    expect(getClassResourceSuggestions('Druid').map(p => p.name))
+      .toEqual(['Wild Shape', 'Spell Slots']);
+
+    expect(getClassResourceSuggestions('Fighter').map(p => p.name))
+      .toEqual(['Action Surge', 'Second Wind']);
+
+    expect(getClassResourceSuggestions('Monk').map(p => p.name))
+      .toEqual(['Ki Points']);
+
+    expect(getClassResourceSuggestions('Paladin').map(p => p.name))
+      .toEqual(['Channel Divinity', 'Lay on Hands']);
+
+    expect(getClassResourceSuggestions('Ranger')).toEqual([]);
+
+    expect(getClassResourceSuggestions('Sorcerer').map(p => p.name))
+      .toEqual(['Sorcery Points', 'Spell Slots']);
+
+    expect(getClassResourceSuggestions('Rogue').map(p => p.name))
+      .toEqual(['Sneak Attack (d6)']);
+
+    expect(getClassResourceSuggestions('Warlock').map(p => p.name))
+      .toEqual(['Warlock Spell Slots']);
+
+    expect(getClassResourceSuggestions('Wizard').map(p => p.name))
+      .toEqual(['Spell Slots']);
+
+    expect(getClassResourceSuggestions('Artificer').map(p => p.name))
+      .toEqual(['Infused Items', 'Spell Slots']);
+  });
   });
 
   describe('CLASS_RESOURCE_SUGGESTIONS', () => {
@@ -72,16 +98,34 @@ describe('classResources', () => {
       expect(Object.keys(CLASS_RESOURCE_SUGGESTIONS)).toHaveLength(13);
     });
 
-    it('every pool has name, current, max, and reset defined', () => {
-      Object.values(CLASS_RESOURCE_SUGGESTIONS).forEach(pools => {
-        pools.forEach(pool => {
-          expect(pool.name).toBeDefined();
-          expect(pool.current).toBeDefined();
-          expect(pool.max).toBeDefined();
-          expect(pool.reset).toBeDefined();
-        });
-      });
+  it('every pool has correct name, current, max, and reset values', () => {
+    // Barbarian — long rest pool
+    const barbPools = getClassResourceSuggestions('Barbarian');
+    expect(barbPools[0]).toEqual({
+      name: 'Rage',
+      current: 2,
+      max: 2,
+      reset: 'long',
     });
+
+    // Warlock — short rest pool
+    const warlockPools = getClassResourceSuggestions('Warlock');
+    expect(warlockPools[0]).toEqual({
+      name: 'Warlock Spell Slots',
+      current: 1,
+      max: 1,
+      reset: 'short',
+    });
+
+    // Rogue — informational pool
+    const roguePools = getClassResourceSuggestions('Rogue');
+    expect(roguePools[0]).toEqual({
+      name: 'Sneak Attack (d6)',
+      current: 1,
+      max: 1,
+      reset: 'long',
+    });
+  });
 
     it('every reset value is short, long, or none', () => {
       Object.values(CLASS_RESOURCE_SUGGESTIONS).forEach(pools => {

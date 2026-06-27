@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom/vitest';
 import React from 'react';
-import { render, cleanup, fireEvent } from '@testing-library/react';
+import { render, cleanup, fireEvent, screen } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { NewPlayerDialog } from '../NewPlayerDialog';
 import { getResourcePoolSuggestions } from '../../../lib/resourcePoolScaling';
@@ -24,7 +24,7 @@ describe('NewPlayerDialog', () => {
 
   it('renders without crashing and shows the first tab', () => {
     const { container } = render(<NewPlayerDialog {...defaultProps} />);
-    expect(container).toBeInTheDocument();
+    expect(screen.getByLabelText(/player name/i)).toBeInTheDocument();
   });
 
   it('getResourcePoolSuggestions returns correct Rage max for a level 6 Barbarian', () => {

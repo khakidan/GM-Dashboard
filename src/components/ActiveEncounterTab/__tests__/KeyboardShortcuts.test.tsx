@@ -43,30 +43,54 @@ describe('KeyboardShortcuts', () => {
     });
   });
 
-  it('pressing H does not crash', () => {
+  it('pressing H does not crash and does not alter selection mode', () => {
     render(
       <MemoryRouter>
         <ActiveEncounterTab {...baseProps} />
       </MemoryRouter>
     );
-    act(() => { fireEvent.keyDown(document, { key: 'h' }); });
+    act(() => {
+      fireEvent.keyDown(document, { key: 'h' });
+    });
+    expect(useDashboardStore.getState().combatState.isSelectionMode).toBe(false);
   });
 
-  it('pressing S does not crash', () => {
+  it('pressing S enables selection mode', () => {
     render(
       <MemoryRouter>
         <ActiveEncounterTab {...baseProps} />
       </MemoryRouter>
     );
-    act(() => { fireEvent.keyDown(document, { key: 's' }); });
+    act(() => {
+      fireEvent.keyDown(document, { key: 's' });
+    });
+    expect(useDashboardStore.getState().combatState.isSelectionMode).toBe(true);
   });
 
-  it('pressing Escape does not crash', () => {
+  it('pressing Escape clears selection mode and expanded ids', () => {
+    // Set selection mode active first
+    act(() => {
+      useDashboardStore.setState(prev => ({
+        ...prev,
+        combatState: {
+          ...prev.combatState,
+          isSelectionMode: true,
+          expandedIds: ['c1', 'c2'],
+        }
+      }));
+    });
+
     render(
       <MemoryRouter>
         <ActiveEncounterTab {...baseProps} />
       </MemoryRouter>
     );
-    act(() => { fireEvent.keyDown(document, { key: 'Escape' }); });
+    act(() => {
+      fireEvent.keyDown(document, { key: 'Escape', code: 'Escape' });
+    });
+
+    const state = useDashboardStore.getState().combatState;
+    expect(state.isSelectionMode).toBe(false);
+    expect(state.expandedIds).toHaveLength(0);
   });
 });

@@ -39,13 +39,13 @@ describe('CombatantCard', () => {
 
   it('renders without crashing for a PC combatant', () => {
     const { container } = render(<CombatantCard {...defaultProps} />);
-    expect(container).toBeInTheDocument();
+    expect(screen.getByText('PC')).toBeInTheDocument();
   });
 
   it('renders without crashing for an NPC combatant', () => {
     const props = { ...defaultProps, c: makeCombatant({ id: 'npc1', type: 'npc', name: 'NPC' }) };
     const { container } = render(<CombatantCard {...props} />);
-    expect(container).toBeInTheDocument();
+    expect(screen.getByText('NPC')).toBeInTheDocument();
   });
 
   it('clicking DMG button calls onHealthSubmit with isDamage: true', () => {

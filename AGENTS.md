@@ -578,7 +578,7 @@ this whitelist and to `dbOperations.ts`.
 
 ## Testing Structure — 12-Batch System
 
-**Current baseline: 619 tests.**
+**Current baseline: 617 tests.**
 All batches must pass with zero failures.
 No batch should exceed 35 seconds.
 
@@ -588,22 +588,22 @@ run all tests at once with `npx vitest run`.
 
 | Batch | Description | Test Count |
 |-------|-------------|------------|
-| 1     | Lib         | 432        |
+| 1     | Lib         | 420        |
 | 2     | Services    | 29         |
 | 3     | Hooks       | 32         |
 | 4     | Server      | 7          |
-| 5A    | AET Hooks   | 30         |
+| 5A    | AET Hooks   | 36         |
 | 5B    | AET Comp    | 23         |
-| 6A    | PartyTab    | 35         |
+| 6A    | PartyTab    | 38         |
 | 6B    | Encounters  | 8          |
-| 6C    | NpcLibrary  | 12         |
+| 6C    | NpcLibrary  | 13         |
 | 7B-1  | Top-Level 1 | 5          |
 | 7B-2  | Top-Level 2 | 4          |
 | 8     | UI          | 2          |
-| **Total** | | **619** |
+| **Total** | | **617** |
 
 ```bash
-# BATCH 1 — 432 tests
+# BATCH 1 — 420 tests
 npx vitest run src/lib/__tests__
 
 # BATCH 2 — 29 tests
@@ -615,19 +615,19 @@ npx vitest run src/hooks/__tests__
 # BATCH 4 — 7 tests
 npx vitest run src/server/__tests__ src/__tests__
 
-# BATCH 5A — 30 tests
+# BATCH 5A — 36 tests
 npx vitest run src/components/ActiveEncounterTab/__tests__/useBatchActions.test.ts src/components/ActiveEncounterTab/__tests__/useCombatSync.test.ts src/components/ActiveEncounterTab/__tests__/useCombatantCard.test.ts src/components/ActiveEncounterTab/__tests__/useEncounterPresetLoader.test.ts src/components/ActiveEncounterTab/__tests__/useHealthChange.test.ts src/components/ActiveEncounterTab/__tests__/useSelectionMode.test.ts
 
 # BATCH 5B — 23 tests
 npx vitest run src/components/ActiveEncounterTab/__tests__/AddNpcCollision.test.tsx src/components/ActiveEncounterTab/__tests__/CasterAttributionDialog.test.tsx src/components/ActiveEncounterTab/__tests__/CombatHeader.test.tsx src/components/ActiveEncounterTab/__tests__/CombatSidebar.test.tsx src/components/ActiveEncounterTab/__tests__/CombatantCard.test.tsx src/components/ActiveEncounterTab/__tests__/KeyboardShortcuts.test.tsx src/components/ActiveEncounterTab/__tests__/MultiTargetActionPanel.test.tsx src/components/ActiveEncounterTab/__tests__/NpcReferencePanel.test.tsx src/components/ActiveEncounterTab/__tests__/ShortcutCheatSheet.test.tsx src/components/ActiveEncounterTab/__tests__/index.test.tsx
 
-# BATCH 6A — 35 tests
+# BATCH 6A — 38 tests
 npx vitest run src/components/PartyTab/__tests__
 
 # BATCH 6B — 8 tests
 npx vitest run src/components/EncountersTab/__tests__
 
-# BATCH 6C — 12 tests
+# BATCH 6C — 13 tests
 npx vitest run src/components/NpcLibraryTab/__tests__
 
 # BATCH 7B-1 — 5 tests

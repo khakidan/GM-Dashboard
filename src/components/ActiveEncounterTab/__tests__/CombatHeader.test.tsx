@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom/vitest';
 import React from 'react';
-import { render, cleanup } from '@testing-library/react';
+import { render, screen, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { CombatHeader } from '../CombatHeader';
 import { MemoryRouter } from 'react-router-dom';
@@ -36,6 +36,7 @@ describe('CombatHeader', () => {
         />
       </MemoryRouter>
     );
-    expect(container).toBeInTheDocument();
+    expect(screen.getByText('Test Encounter')).toBeInTheDocument();
+    expect(screen.getByText(/round 3/i)).toBeInTheDocument();
   });
 });

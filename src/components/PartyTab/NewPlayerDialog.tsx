@@ -353,10 +353,11 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                 {activeTab === 'identity' && (
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40] mb-1.5 px-1">
+                      <label htmlFor="player-name" className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40] mb-1.5 px-1">
                         Player Name
                       </label>
                       <input
+                        id="player-name"
                         type="text"
                         value={formData.playerName}
                         onChange={e => handleChange('playerName', e.target.value)}
@@ -366,10 +367,11 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40] mb-1.5 px-1">
+                      <label htmlFor="character-name" className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40] mb-1.5 px-1">
                         Character Name
                       </label>
                       <input
+                        id="character-name"
                         type="text"
                         value={formData.characterName}
                         onChange={e => handleChange('characterName', e.target.value)}
@@ -379,10 +381,11 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40] mb-1.5 px-1">
+                      <label htmlFor="char-class" className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40] mb-1.5 px-1">
                         Class
                       </label>
                       <input
+                        id="char-class"
                         type="text"
                         value={formData.class}
                         onChange={e => handleChange('class', e.target.value)}
@@ -395,10 +398,11 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40] mb-1.5 px-1">
+                        <label htmlFor="char-level" className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40] mb-1.5 px-1">
                           Level
                         </label>
                         <input
+                          id="char-level"
                           type="number"
                           min="1"
                           max="20"
@@ -408,10 +412,11 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40] mb-1.5 px-1">
+                        <label htmlFor="char-status" className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40] mb-1.5 px-1">
                           Status
                         </label>
                         <select
+                          id="char-status"
                           value={formData.statusId}
                           onChange={e => handleChange('statusId', parseInt(e.target.value))}
                           className="w-full bg-white border border-stone-200 rounded-lg px-4 py-2 text-sm text-stone-800 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all appearance-none cursor-pointer shadow-sm"

@@ -180,7 +180,7 @@ describe('useHealthChange', () => {
       result.current.handleHealthChange('c1', concentratingCombatant, true);
     });
 
-    expect(mockFireConcentrationAlert).toHaveBeenCalled();
+    expect(mockFireConcentrationAlert).toHaveBeenCalledWith(expect.any(String), 10);
   });
 
   it('damage to a non-concentrating combatant does not fire a concentration alert', () => {

@@ -100,10 +100,28 @@ describe('sheetSchemas', () => {
       }
     });
 
-    it('A SheetRow containing a mix of string, number, boolean, and null values is accepted by the CharacterRowSchema without errors', () => {
-      const row: SheetRow = ['char-mix', 'Alice', 'Mixed', 15, null, true, 20, false, 14, 3, 1, null];
+    it('A SheetRow containing a mix of string, number, boolean, and null values is accepted and coerced correctly', () => {
+      const row: SheetRow = [
+        'char-mix', 'Alice', 'Mixed',
+        15, null, true, 20, false,
+        14, 3, 1, null
+      ];
       const result = CharacterRowSchema.safeParse(row);
+
       expect(result.success).toBe(true);
+      if (!result.success) return;
+
+      // null maxHp coerces to 10 (default fallback)
+      expect(result.data[4]).toBe(10);
+
+      // true tempHp coerces to 1
+      expect(result.data[5]).toBe(1);
+
+      // false conditions coerces to string 'false'
+      expect(result.data[7]).toBe('false');
+
+      // null notes coerces to ''
+      expect(result.data[11]).toBe('');
     });
 
     it('A BatchRequest with a deleteDimension shape satisfies the BatchRequest type', () => {
@@ -117,9 +135,14 @@ describe('sheetSchemas', () => {
           },
         },
       };
-      // Compile-time check: assignable to BatchRequest
+
       assertType<BatchRequest>(req);
-      expect(req).toBeDefined();
+
+      // Assert specific runtime properties rather than just existence
+      expect(req.deleteDimension.range.dimension).toBe('ROWS');
+      expect(req.deleteDimension.range.sheetId).toBe(101);
+      expect(req.deleteDimension.range.startIndex).toBe(1);
+      expect(req.deleteDimension.range.endIndex).toBe(2);
     });
 
     it('parses resistances at index 12, immunities at index 13, and vulnerabilities at index 14 and defaults to empty string when absent', () => {
