@@ -19,41 +19,100 @@ describe('useEncounters', () => {
   beforeEach(() => vi.clearAllMocks());
   afterEach(() => vi.restoreAllMocks());
 
-  it('handleCreateEncounter adds an encounter to store state and calls the DB', async () => {
+  it('handleCreateEncounter passes correct arguments to addEncounterDB', async () => {
     const updateStateSpy = vi.fn();
     vi.mocked(useAppState).mockReturnValue({
-      state: { encounters: [], difficulties: { 1: 'Easy', 2: 'Medium' } } as any,
+      state: {
+        encounters: [],
+        difficulties: { 1: 'Easy', 2: 'Medium' }
+      } as any,
       updateState: updateStateSpy,
       getSnapshot: vi.fn(),
     } as any);
 
-    const { result } = renderHook(() => useEncounters({ onSelectEncounter: vi.fn(), onSyncRequested: vi.fn() }));
-    
+    const { result } = renderHook(() =>
+      useEncounters({
+        onSelectEncounter: vi.fn(),
+        onSyncRequested: vi.fn()
+      })
+    );
+
     await act(async () => {
-      await result.current.handleCreateEncounter({ name: 'Goblin Ambush', location: 'Woods', difficultyId: 2 });
+      await result.current.handleCreateEncounter({
+        name: 'Goblin Ambush',
+        location: 'Woods',
+        difficultyId: 2
+      });
     });
 
-    expect(addEncounterDB).toHaveBeenCalled();
-    expect(updateStateSpy).toHaveBeenCalled();
+    // Assert exact arguments reached DB
+    expect(addEncounterDB).toHaveBeenCalledWith(
+      'Goblin Ambush',
+      'Woods',
+      2,
+      0
+    );
+
+    // Assert optimistic encounter appeared
+    // in state before DB response
+    const firstCall = updateStateSpy.mock.calls[0][0];
+    const stateAfterOptimistic = firstCall({
+      encounters: [],
+      difficulties: { 1: 'Easy', 2: 'Medium' }
+    });
+    expect(stateAfterOptimistic.encounters)
+      .toHaveLength(1);
+    expect(stateAfterOptimistic.encounters[0])
+      .toMatchObject({
+        name: 'Goblin Ambush',
+        location: 'Woods',
+        difficultyId: 2,
+      });
   });
 
-  it('handleDeleteEncounter removes the encounter from store state', async () => {
-    const mockEnc = { id: 'enc-1', name: 'Goblin Ambush', location: 'Woods' };
+  it('handleDeleteEncounter passes correct id to deleteEncounterFully and removes encounter from state', async () => {
+    const mockEnc = {
+      id: 'enc-1',
+      name: 'Goblin Ambush',
+      location: 'Woods'
+    };
     const updateStateSpy = vi.fn();
     vi.mocked(useAppState).mockReturnValue({
-      state: { encounters: [mockEnc], encounterCombatants: [] } as any,
+      state: {
+        encounters: [mockEnc],
+        encounterCombatants: []
+      } as any,
       updateState: updateStateSpy,
       getSnapshot: vi.fn(),
     } as any);
 
-    const { result } = renderHook(() => useEncounters({ onSelectEncounter: vi.fn(), onSyncRequested: vi.fn() }));
-    
+    const { result } = renderHook(() =>
+      useEncounters({
+        onSelectEncounter: vi.fn(),
+        onSyncRequested: vi.fn()
+      })
+    );
+
     await act(async () => {
-      await result.current.handleDelete(mockEnc as any);
+      await result.current.handleDelete(
+        mockEnc as any
+      );
     });
 
-    expect(deleteEncounterFully).toHaveBeenCalled();
-    expect(updateStateSpy).toHaveBeenCalled();
+    // Assert correct ID was passed to DB
+    expect(deleteEncounterFully)
+      .toHaveBeenCalledWith('enc-1');
+
+    // Assert encounter was filtered from
+    // optimistic state update
+    const firstCall =
+      updateStateSpy.mock.calls[0][0];
+    const stateAfterDelete = firstCall({
+      encounters: [mockEnc],
+      encounterCombatants: []
+    });
+    expect(stateAfterDelete.encounters)
+      .toHaveLength(0);
   });
 
   it('handleCreateEncounter writes all required fields and appears in store', async () => {
@@ -134,5 +193,57 @@ describe('useEncounters', () => {
     expect(nextState.encounters[0].name).toBe('Dragon Lair');
     expect(nextState.encounters[0].location).toBe('Cave');
     expect(nextState.encounters[0].difficultyId).toBe(3);
+  });
+
+  it('rolls back state when encounter deletion fails', async () => {
+    const mockEnc = {
+      id: 'enc-1',
+      name: 'Goblin Ambush',
+      location: 'Woods',
+      difficultyId: 2,
+    };
+
+    const initialState = {
+      encounters: [mockEnc],
+      encounterCombatants: [],
+    };
+
+    // Make deleteEncounterFully fail
+    vi.mocked(deleteEncounterFully).mockRejectedValueOnce(
+      new Error('Delete failed')
+    );
+
+    const updateStateSpy = vi.fn();
+    vi.mocked(useAppState).mockReturnValue({
+      state: initialState as any,
+      updateState: updateStateSpy,
+      getSnapshot: vi.fn(),
+    } as any);
+
+    const { result } = renderHook(() =>
+      useEncounters({
+        onSelectEncounter: vi.fn(),
+        onSyncRequested: vi.fn(),
+      })
+    );
+
+    await act(async () => {
+      try {
+        await result.current.handleDelete(mockEnc as any);
+      } catch {
+        // expected
+      }
+    });
+
+    // The first updateState call removes the encounter (optimistic delete)
+    // The last updateState call restores it (rollback)
+    const calls = updateStateSpy.mock.calls;
+    expect(calls.length).toBeGreaterThan(1);
+
+    // Last call should restore original state containing the encounter
+    const lastCall = calls[calls.length - 1][0];
+    const restoredState = typeof lastCall === 'function' ? lastCall(initialState) : lastCall;
+
+    expect(restoredState).toEqual(initialState);
   });
 });

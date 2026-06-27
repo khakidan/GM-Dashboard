@@ -76,4 +76,83 @@ describe('NewNpcDialog', () => {
     const profs = JSON.parse(call.proficiencies);
     expect(profs.proficiencyBonus).toBe(2);
   });
+
+  it('action added on Stat Block tab is included in actions JSON on confirm', async () => {
+    const onConfirmMock = vi.fn();
+    const { getByLabelText, getByRole, getByText } = render(
+      <NewNpcDialog
+        isOpen={true}
+        onClose={vi.fn()}
+        onConfirm={onConfirmMock}
+      />
+    );
+
+    // Fill in required name on Identity tab (already the default tab)
+    fireEvent.change(
+      getByLabelText(/^NPC Name/i),
+      { target: { value: 'Troll' } }
+    );
+
+    // Navigate to Stat Block tab
+    fireEvent.click(
+      getByRole('button',
+        { name: /stat block/i }
+      )
+    );
+
+    // Click "Add Action" button
+    fireEvent.click(
+      getByText('Add Action')
+    );
+
+    // Fill in the action name field
+    const actionNameInput =
+      document.querySelector(
+        'input[placeholder="Action name (e.g. Bite)"]'
+      ) as HTMLInputElement;
+    expect(actionNameInput).not.toBeNull();
+    fireEvent.change(actionNameInput, {
+      target: { value: 'Claw Attack' }
+    });
+
+    // Fill in the action description
+    const actionDescInput =
+      document.querySelector(
+        'textarea[placeholder="Full action description"]'
+      ) as HTMLTextAreaElement;
+    if (actionDescInput) {
+      fireEvent.change(actionDescInput, {
+        target: {
+          value: 'Melee weapon attack'
+        }
+      });
+      fireEvent.blur(actionDescInput);
+    }
+
+    // Submit the form
+    fireEvent.click(
+      getByRole('button',
+        { name: /add npc/i }
+      )
+    );
+
+    expect(onConfirmMock)
+      .toHaveBeenCalled();
+
+    const payload =
+      onConfirmMock.mock.calls[0][0];
+
+    // Actions should be a JSON string
+    // containing the action we added
+    const actions = JSON.parse(
+      payload.actions
+    );
+    expect(actions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: 'Claw Attack',
+        })
+      ])
+    );
+  });
 });

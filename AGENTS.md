@@ -578,7 +578,7 @@ this whitelist and to `dbOperations.ts`.
 
 ## Testing Structure — 12-Batch System
 
-**Current baseline: 611 tests.**
+**Current baseline: 617 tests.**
 All batches must pass with zero failures.
 No batch should exceed 35 seconds.
 
@@ -592,15 +592,15 @@ run all tests at once with `npx vitest run`.
 | 2     | Services    | 29         |
 | 3     | Hooks       | 32         |
 | 4     | Server      | 7          |
-| 5A    | AET Hooks   | 27         |
+| 5A    | AET Hooks   | 28         |
 | 5B    | AET Comp    | 23         |
-| 6A    | PartyTab    | 34         |
-| 6B    | Encounters  | 6          |
-| 6C    | NpcLibrary  | 11         |
-| 7B-1  | Top-Level 1 | 4          |
+| 6A    | PartyTab    | 35         |
+| 6B    | Encounters  | 8          |
+| 6C    | NpcLibrary  | 12         |
+| 7B-1  | Top-Level 1 | 5          |
 | 7B-2  | Top-Level 2 | 4          |
 | 8     | UI          | 2          |
-| **Total** | | **611** |
+| **Total** | | **617** |
 
 ```bash
 # BATCH 1 — 432 tests
@@ -615,22 +615,22 @@ npx vitest run src/hooks/__tests__
 # BATCH 4 — 7 tests
 npx vitest run src/server/__tests__ src/__tests__
 
-# BATCH 5A — 27 tests
+# BATCH 5A — 28 tests
 npx vitest run src/components/ActiveEncounterTab/__tests__/useBatchActions.test.ts src/components/ActiveEncounterTab/__tests__/useCombatSync.test.ts src/components/ActiveEncounterTab/__tests__/useCombatantCard.test.ts src/components/ActiveEncounterTab/__tests__/useEncounterPresetLoader.test.ts src/components/ActiveEncounterTab/__tests__/useHealthChange.test.ts src/components/ActiveEncounterTab/__tests__/useSelectionMode.test.ts
 
 # BATCH 5B — 23 tests
 npx vitest run src/components/ActiveEncounterTab/__tests__/AddNpcCollision.test.tsx src/components/ActiveEncounterTab/__tests__/CasterAttributionDialog.test.tsx src/components/ActiveEncounterTab/__tests__/CombatHeader.test.tsx src/components/ActiveEncounterTab/__tests__/CombatSidebar.test.tsx src/components/ActiveEncounterTab/__tests__/CombatantCard.test.tsx src/components/ActiveEncounterTab/__tests__/KeyboardShortcuts.test.tsx src/components/ActiveEncounterTab/__tests__/MultiTargetActionPanel.test.tsx src/components/ActiveEncounterTab/__tests__/NpcReferencePanel.test.tsx src/components/ActiveEncounterTab/__tests__/ShortcutCheatSheet.test.tsx src/components/ActiveEncounterTab/__tests__/index.test.tsx
 
-# BATCH 6A — 34 tests
+# BATCH 6A — 35 tests
 npx vitest run src/components/PartyTab/__tests__
 
-# BATCH 6B — 6 tests
+# BATCH 6B — 8 tests
 npx vitest run src/components/EncountersTab/__tests__
 
-# BATCH 6C — 11 tests
+# BATCH 6C — 12 tests
 npx vitest run src/components/NpcLibraryTab/__tests__
 
-# BATCH 7B-1 — 4 tests
+# BATCH 7B-1 — 5 tests
 npx vitest run src/components/__tests__/CommandPalette.test.tsx src/components/__tests__/ErrorBoundary.test.tsx src/components/__tests__/GMDashboard.test.tsx src/components/__tests__/GMDashboardSidebar.test.tsx
 
 # BATCH 7B-2 — 4 tests
@@ -873,6 +873,172 @@ A 4-tab complex form for creating new characters manually:
 3. **Abilities:** Ability Scores (calculates passive perception and proficiency bonus automatically)
 4. **Resources:** Manage Resource Pools (auto-suggests pools based on Identity Tab Class input, stores via `poolsCustomized` ref to avoid overwriting manual changes when class changes again)
 - Submits as a single flat Character record matching the Google Sheets schema.
+
+---
+
+## Testing Philosophy & Quality Standards
+
+This project follows the testing principles
+established by Kent C. Dodds and the
+Testing Library team. Every AI agent
+working on this codebase must read and
+apply these principles before writing
+any test.
+
+### The Prime Directive
+
+> "The more your tests resemble the way
+> your software is used, the more
+> confidence they can give you."
+> — Kent C. Dodds / Testing Library
+
+Reference URLs (read before writing tests):
+- https://testing-library.com/docs/guiding-principles
+- https://kentcdodds.com/blog/testing-implementation-details
+- https://kentcdodds.com/blog/common-testing-mistakes
+- https://kentcdodds.com/blog/write-tests
+
+### What Makes a Good Test
+
+A good test:
+- Simulates real user or caller behavior
+  (render a component, fire an event,
+  assert on what the user sees or what
+  data reaches the database)
+- Asserts on OUTCOMES not on internals
+  (what value was written, what the UI
+  shows, what the store contains)
+- Would catch a real bug if the
+  implementation broke
+- Does not need to change when you
+  refactor code without changing behavior
+
+### The Three Anti-Patterns to Avoid
+
+ANTI-PATTERN 1 — Shallow call assertion:
+Testing that a function was called without
+checking what it was called with.
+
+  // BAD — passes even if wrong data sent
+  expect(updateCharacterDB)
+    .toHaveBeenCalled();
+
+  // GOOD — verifies the actual data
+  expect(updateCharacterDB)
+    .toHaveBeenCalledWith(
+      expect.objectContaining({
+        resourcePools: expect.stringContaining(
+          'Rage'
+        )
+      }),
+      expect.any(Object)
+    );
+
+ANTI-PATTERN 2 — Circular mock assertion:
+Setting up a mock to return a value then
+asserting the value equals what the mock
+returned. The test can never fail.
+
+  // BAD — always passes, tests nothing
+  vi.mocked(useAppState).mockReturnValue({
+    state: { encounters: [mockEnc] }
+  });
+  // ... later:
+  expect(result).toEqual(mockEnc);
+  // This will always be true because
+  // we put it there ourselves.
+
+  // GOOD — assert on a transformation
+  // or side effect that the code under
+  // test actually produces, not on the
+  // mock data you injected.
+
+ANTI-PATTERN 3 — Implementation detail
+testing:
+Asserting on internal state, internal
+function names, or internal component
+structure rather than on observable
+behavior.
+
+  // BAD — tests internal state
+  expect(component.state.isLoading)
+    .toBe(true);
+
+  // GOOD — tests what the user sees
+  expect(screen.getByText('Loading...'))
+    .toBeInTheDocument();
+
+### What to Assert Instead
+
+For hook tests: assert on the STATE
+CHANGE that results from calling the
+function, not just that the function ran.
+
+  // BAD
+  expect(handleUpdate).toHaveBeenCalled();
+
+  // GOOD
+  expect(
+    result.current.characters[0].maxHp
+  ).toBe(55);
+
+For component tests: assert on what the
+USER SEES or what DATA REACHES THE SERVICE
+LAYER with the correct values.
+
+  // BAD
+  expect(onConfirmMock)
+    .toHaveBeenCalled();
+
+  // GOOD
+  expect(onConfirmMock)
+    .toHaveBeenCalledWith(
+      expect.objectContaining({
+        proficiencies: expect.stringContaining(
+          '"proficiencyBonus":3'
+        )
+      })
+    );
+
+For service/DB tests: assert on the EXACT
+ROW DATA written at the correct column
+index, not just that appendSheetData ran.
+
+### When Mocking IS Acceptable
+
+Mocking is appropriate for:
+- Network calls (sheetsService, dbOperations
+  in component/hook tests)
+- External dependencies (Google auth)
+- Browser APIs not available in jsdom
+
+Mocking is NOT appropriate for:
+- The function you are actually testing
+- Pure utility functions from lib/
+  (test those directly)
+- Zustand store state (use the real store
+  or configure mock return values that
+  represent real scenarios, then assert
+  on state changes)
+
+### The Seam Test Standard
+
+The highest-value tests in this codebase
+are seam tests — tests that verify the
+connection between the UI layer and the
+data layer. For every form submission or
+card inline edit, there should be a test
+that:
+1. Renders the real component
+2. Simulates real user input
+3. Asserts the FULL data object that
+   reaches the service layer contains
+   the correct values at the correct
+   fields
+
+If a test only checks "was the function
+called" at a seam, it is not acceptable.
+The test must check WHAT was passed.
 
 ---
 

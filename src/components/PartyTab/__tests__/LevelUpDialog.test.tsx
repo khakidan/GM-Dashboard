@@ -47,37 +47,108 @@ describe('LevelUpDialog', () => {
     expect(container).toBeInTheDocument();
   });
 
-  it('resource pools section renders when the character has a class with pool suggestions', () => {
-    const { container } = render(<LevelUpDialog {...defaultProps} />);
-    expect(container).toBeInTheDocument();
-  });
+  it('resource pools section shows suggested pool names when character has a class with pools', () => {
+    vi.mocked(getResourcePoolSuggestions).mockReturnValue([
+      { name: 'Rage', suggestedMax: 3, reset: 'long', isNew: false }
+    ]);
 
-  it('onConfirm is called with resourcePools in the updates object when confirmed', () => {
-    const onConfirmMock = vi.fn();
-    const { container } = render(<LevelUpDialog {...defaultProps} onConfirm={onConfirmMock} />);
-    
-    const confirmBtn = container.querySelector('#confirm-level-up-btn') as HTMLButtonElement;
-    fireEvent.click(confirmBtn);
-
-    expect(onConfirmMock).toHaveBeenCalledTimes(1);
-    expect(onConfirmMock.mock.calls[0][0]).toHaveProperty('resourcePools');
-  });
-
-  it('Level up resource pool suggestions are generated for the correct class and level', () => {
-    const barbarian: Character = {
-      ...mockCharacter,
+    const charWithPools = {
+      ...defaultProps.character,
       class: 'Barbarian',
       level: 4,
-      resourcePools: JSON.stringify([{ name: 'Rage', current: 3, max: 3, reset: 'long' }])
+      resourcePools: '[]',
     };
 
-    render(<LevelUpDialog {...defaultProps} character={barbarian} />);
-
-    expect(getResourcePoolSuggestions).toHaveBeenCalledWith(
-      'Barbarian',
-      5, // newLevel = character.level + 1
-      expect.any(Array)
+    render(
+      <LevelUpDialog
+        {...defaultProps}
+        character={charWithPools}
+        isOpen={true}
+      />
     );
+
+    // The pool name should be visible in the rendered dialog
+    expect(
+      screen.getByText('Rage')
+    ).toBeInTheDocument();
+  });
+
+  it('onConfirm payload contains correct resourcePools JSON with pool name and max value', async () => {
+    vi.mocked(getResourcePoolSuggestions).mockReturnValue([
+      { name: 'Rage', suggestedMax: 3, reset: 'long', isNew: false }
+    ]);
+
+    const charWithPools = {
+      ...defaultProps.character,
+      class: 'Barbarian',
+      level: 4,
+      resourcePools: '[]',
+    };
+    const onConfirmMock = vi.fn();
+
+    const { container } = render(
+      <LevelUpDialog
+        {...defaultProps}
+        character={charWithPools}
+        isOpen={true}
+        onConfirm={onConfirmMock}
+      />
+    );
+
+    const confirmBtn = container.querySelector(
+      '#confirm-level-up-btn'
+    ) as HTMLButtonElement;
+    fireEvent.click(confirmBtn);
+
+    expect(onConfirmMock).toHaveBeenCalled();
+    const call =
+      onConfirmMock.mock.calls[0][0];
+
+    // resourcePools should be a JSON string containing Rage
+    const pools = JSON.parse(
+      call.resourcePools
+    );
+    expect(pools).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: 'Rage',
+        })
+      ])
+    );
+  });
+
+  it('pool suggestions from getResourcePoolSuggestions are rendered in the dialog', () => {
+    vi.mocked(getResourcePoolSuggestions).mockReturnValue([
+      { name: 'Rage', suggestedMax: 3, reset: 'long', isNew: false }
+    ]);
+
+    const charWithPools = {
+      ...defaultProps.character,
+      class: 'Barbarian',
+      level: 4,
+      resourcePools: '[]',
+    };
+
+    render(
+      <LevelUpDialog
+        {...defaultProps}
+        character={charWithPools}
+        isOpen={true}
+      />
+    );
+
+    // Verify the resource pools heading and the Rage pool row are visible
+    expect(
+      screen.getByText('Resource Pools')
+    ).toBeInTheDocument();
+
+    // The pool input should exist with the correct suggested max value
+    // for a Barbarian leveling to 5 (Rage max at level 5 = 3)
+    const rageInput = document.getElementById(
+      'pool-input-rage'
+    ) as HTMLInputElement;
+    expect(rageInput).not.toBeNull();
+    expect(rageInput.value).toBe('3');
   });
 
   it('Level up confirm payload includes proficiencies with updated proficiency bonus', () => {

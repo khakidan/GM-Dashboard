@@ -207,4 +207,72 @@ describe('useBatchActions', () => {
     expect(updateNpcInstanceHpDB).toHaveBeenCalledTimes(1);
     expect(updateNpcInstanceHpDB).toHaveBeenCalledWith('ec-1', 15, 0);
   });
+
+  it('rolls back state when batch damage DB write fails', async () => {
+    // Intercept unhandled promise rejection because handleHealthChange runs synchronously
+    // without awaiting the async updateCombatant under the hood.
+    const handleRejection = (e: Event) => {
+      e.preventDefault();
+    };
+    window.addEventListener('unhandledrejection', handleRejection);
+    const processRejection = () => {
+      // swallow rejection
+    };
+    process.on('unhandledRejection', processRejection);
+
+    try {
+      // Make the DB call fail
+      vi.mocked(updateNpcInstanceHpDB).mockRejectedValueOnce(
+        new Error('Network error')
+      );
+
+      const targetCombatant: Combatant = {
+        id: 'c1',
+        name: 'Goblin A',
+        type: 'npc',
+        ac: 15,
+        maxHp: 20,
+        currentHp: 20,
+        tempHp: 0,
+        initiative: 10,
+        notes: '',
+        passivePerception: 10,
+        conditions: '',
+        encounterCombatantId: 'ec-1',
+      };
+
+      const selectedIds = new Set(['c1']);
+      const combatants = [targetCombatant];
+
+      // mockAppState is the object returned by the global getSnapshot mock
+      mockAppState.combatState.combatants = combatants;
+      mockAppState.encounterCombatants = [
+        { id: 'ec-1', quantity: 1, npcCurrentHp: 20 }
+      ];
+
+      const { result } = renderHook(() =>
+        useBatchActions({ selectedIds, combatants })
+      );
+
+      // Attempt batch damage — should fail
+      await act(async () => {
+        try {
+          await result.current.handleApplyMultiDamage(5, 'fire');
+        } catch {
+          // expected to throw
+        }
+      });
+
+      // Assert updateState was called to roll back
+      expect(mockUpdateState).toHaveBeenCalled();
+
+      // The last updateState call should restore the previous state
+      const lastCall = mockUpdateState.mock.calls[mockUpdateState.mock.calls.length - 1][0];
+      const restoredState = typeof lastCall === 'function' ? lastCall(mockAppState) : lastCall;
+      expect(restoredState).toEqual(mockAppState);
+    } finally {
+      window.removeEventListener('unhandledrejection', handleRejection);
+      process.off('unhandledRejection', processRejection);
+    }
+  });
 });
