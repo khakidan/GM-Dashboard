@@ -13,7 +13,9 @@ import {
   serializeAbilityScores, 
   serializeProficiencies,
   getPassiveScore,
-  proficiencyBonusFromLevel
+  proficiencyBonusFromLevel,
+  calculateModifier,
+  parseProficiencies
 } from '../../lib/abilityScores';
 import {
   ResourcePool,
@@ -115,6 +117,55 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
       }
     }
   }, [formData.class, formData.level]);
+
+  // Update Bardic Inspiration based on CHA modifier
+  useEffect(() => {
+    if (formData.class !== 'Bard') return;
+    if (poolsCustomized.current) return;
+
+    const chaScore = typeof formData.abilityScores?.CHA === 'number'
+      ? formData.abilityScores.CHA
+      : (parseInt(String(formData.abilityScores?.CHA)) || 10);
+
+    const chaMod = Math.max(1, calculateModifier(chaScore));
+
+    const currentPools = Array.isArray(formData.resourcePools)
+      ? formData.resourcePools
+      : [];
+
+    const hasBI = currentPools.some(p => p.name === 'Bardic Inspiration');
+    if (!hasBI) return;
+
+    const updatedPools = currentPools.map(p =>
+      p.name === 'Bardic Inspiration'
+        ? { ...p, current: chaMod, max: chaMod }
+        : p
+    );
+
+    handleChange('resourcePools', updatedPools);
+  }, [formData.class, formData.abilityScores?.CHA]);
+
+  // Keep proficiency bonus in sync with character level
+  useEffect(() => {
+    const level = typeof formData.level === 'number'
+      ? formData.level
+      : (parseInt(String(formData.level), 10) || 1);
+    const correctProfBonus = proficiencyBonusFromLevel(level);
+
+    const currentProfBonus = formData.proficiencies?.proficiencyBonus ?? 0;
+
+    if (currentProfBonus === correctProfBonus) return;
+
+    try {
+      const parsed = parseProficiencies(
+        serializeProficiencies(formData.proficiencies)
+      );
+      parsed.proficiencyBonus = correctProfBonus;
+      handleChange('proficiencies', parsed);
+    } catch {
+      // silently ignore
+    }
+  }, [formData.level]);
 
   const isTab1Valid = formData.playerName.trim() !== '' && formData.characterName.trim() !== '';
   const isHitDiceValid = formData.hitDiceConfig.trim() === '' || /^\d+d\d+(\+\d+d\d+)*$/.test(formData.hitDiceConfig.trim());

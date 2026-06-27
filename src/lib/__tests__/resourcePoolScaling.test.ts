@@ -160,7 +160,7 @@ describe('resourcePoolScaling', () => {
         });
         expect(results).toContainEqual({
           name: 'Spell Slots',
-          suggestedMax: 4,
+          suggestedMax: 2,
           currentMax: undefined,
           reset: 'long',
           isAutoDerived: false,

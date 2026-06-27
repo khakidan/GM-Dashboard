@@ -57,7 +57,11 @@ describe('classResources', () => {
       knownClasses.forEach(className => {
         it(`for ${className}`, () => {
           const suggestions = getClassResourceSuggestions(className);
-          expect(suggestions.length).toBeGreaterThan(0);
+          if (className === 'Ranger') {
+            expect(suggestions).toHaveLength(0);
+          } else {
+            expect(suggestions.length).toBeGreaterThan(0);
+          }
         });
       });
     });
