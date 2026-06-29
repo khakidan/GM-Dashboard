@@ -50,7 +50,7 @@ export class ErrorBoundary extends Component<Props, State> {
             <button
               id="eb-try-again"
               onClick={() => this.setState({ hasError: false, error: null })}
-              className="bg-[#2563eb] hover:bg-[#567eff] text-[#0f172a] px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all shadow-sm"
+              className="bg-[#2563eb] hover:bg-[#567eff] text-white px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all shadow-sm"
             >
               Try Again
             </button>

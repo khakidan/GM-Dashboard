@@ -74,7 +74,7 @@ export function PartyTab() {
             <button
               onClick={() => setIsNewPlayerDialogOpen(true)}
               disabled={isAddingPlayer}
-              className="flex items-center gap-1.5 px-4 py-1.5 bg-[#2563eb] hover:bg-[#567eff] focus:ring-1 focus:ring-[#2563eb] outline-none text-[#0f172a] text-xs font-bold uppercase tracking-widest rounded-xl transition-all shadow-md hover:shadow-lg disabled:opacity-50"
+              className="flex items-center gap-1.5 px-4 py-1.5 bg-[#2563eb] hover:bg-[#567eff] focus:ring-1 focus:ring-[#2563eb] outline-none text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all shadow-md hover:shadow-lg disabled:opacity-50"
               id="add-player-btn"
             >
               {isAddingPlayer ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Adding...</> : <><Plus className="w-4 h-4" /> Player</>}
@@ -101,7 +101,7 @@ export function PartyTab() {
           <button
             onClick={() => setIsNewPlayerDialogOpen(true)}
             disabled={isAddingPlayer}
-            className="flex items-center justify-center gap-2 bg-[#2563eb] hover:bg-[#567eff] text-[#0f172a] px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#2563eb] shadow-sm disabled:opacity-50"
+            className="flex items-center justify-center gap-2 bg-[#2563eb] hover:bg-[#567eff] text-white px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#2563eb] shadow-sm disabled:opacity-50"
           >
              {isAddingPlayer ? "Adding Player..." : "+ Add First Player"}
           </button>

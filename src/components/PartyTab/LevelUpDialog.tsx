@@ -639,7 +639,7 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
             id="confirm-level-up-btn"
             onClick={handleConfirm}
             disabled={isConfirmDisabled}
-            className="bg-[#2563eb] text-[#0f172a] font-bold uppercase tracking-widest text-xs rounded-xl px-4 py-2 hover:bg-[#567eff] transition-colors disabled:bg-[#e2e8f0] disabled:text-[#8d8db9] disabled:cursor-not-allowed disabled:opacity-60 shadow-sm flex items-center gap-1.5"
+            className="bg-[#2563eb] text-white font-bold uppercase tracking-widest text-xs rounded-xl px-4 py-2 hover:bg-[#567eff] transition-colors disabled:bg-[#e2e8f0] disabled:text-[#8d8db9] disabled:cursor-not-allowed disabled:opacity-60 shadow-sm flex items-center gap-1.5"
           >
             Confirm Level Up <ArrowRight className="w-3.5 h-3.5" />
           </button>

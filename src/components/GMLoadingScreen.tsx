@@ -22,7 +22,7 @@ export function GMLoadingScreen({
             <p className="text-[#e2e8f0]/70">Connect your Google account to get started.</p>
             <button 
               onClick={onSignIn} 
-              className="px-6 py-3 bg-[#2563eb] text-[#0f172a] font-bold uppercase tracking-widest text-xs rounded hover:bg-white transition-colors cursor-pointer"
+              className="px-6 py-3 bg-[#2563eb] text-white font-bold uppercase tracking-widest text-xs rounded hover:bg-white transition-colors cursor-pointer"
             >
               Sign In With Google
             </button>

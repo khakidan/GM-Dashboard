@@ -50,7 +50,7 @@ export function EncountersTab({
           <button 
             onClick={() => setIsNewDialogOpen(true)}
             disabled={isAdding}
-            className="flex items-center gap-1.5 px-4 py-1.5 bg-[#2563eb] hover:bg-[#567eff] text-[#0f172a] text-xs font-bold uppercase tracking-widest rounded-xl transition-all shadow-md hover:shadow-lg flex-shrink-0"
+            className="flex items-center gap-1.5 px-4 py-1.5 bg-[#2563eb] hover:bg-[#567eff] text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all shadow-md hover:shadow-lg flex-shrink-0"
             id="new-encounter-btn"
           >
             {isAdding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
@@ -77,7 +77,7 @@ export function EncountersTab({
           <button 
             onClick={() => setIsNewDialogOpen(true)}
             disabled={isAdding}
-            className="bg-[#2563eb] hover:bg-[#567eff] text-[#0f172a] px-10 py-4 rounded-full text-sm font-bold uppercase tracking-widest transition-all shadow-md active:scale-95"
+            className="bg-[#2563eb] hover:bg-[#567eff] text-white px-10 py-4 rounded-full text-sm font-bold uppercase tracking-widest transition-all shadow-md active:scale-95"
           >
             Create Your First Encounter
           </button>

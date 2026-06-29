@@ -121,7 +121,7 @@ export function NewNpcDialog({ isOpen, onClose, onConfirm }: NewNpcDialogProps) 
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 bg-[#2563eb] hover:bg-[#567eff] text-[#0f172a] py-3.5 rounded-xl font-bold font-sans uppercase tracking-widest text-xs transition-all flex items-center justify-center gap-2 shadow-md active:scale-95 disabled:opacity-50"
+                  className="flex-1 bg-[#2563eb] hover:bg-[#567eff] text-white py-3.5 rounded-xl font-bold font-sans uppercase tracking-widest text-xs transition-all flex items-center justify-center gap-2 shadow-md active:scale-95 disabled:opacity-50"
                 >
                   <Save className="w-4 h-4" />
                   Add NPC →

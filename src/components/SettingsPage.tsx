@@ -56,21 +56,18 @@ export function SettingsPage(props: SettingsPageProps) {
         </div>
       </div>
 
-      <div className="flex-1 bg-white w-full p-6 overflow-y-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Left Column filled with Core Adjustments */}
-        <div className="space-y-6">
-          <SheetConnectionSettings
-            tempSpreadsheetId={tempSpreadsheetId}
-            setTempSpreadsheetId={setTempSpreadsheetId}
-            handleSaveSpreadsheet={handleSaveSpreadsheet}
-            handleResetConfiguration={handleResetConfiguration}
-            isGoogleConnected={props.isGoogleConnected}
-          />
-        </div>
+      <div className="flex-1 bg-white w-full p-6 overflow-y-auto space-y-8">
+        {/* Full width — Sheet Connection */}
+        <SheetConnectionSettings
+          tempSpreadsheetId={tempSpreadsheetId}
+          setTempSpreadsheetId={setTempSpreadsheetId}
+          handleSaveSpreadsheet={handleSaveSpreadsheet}
+          handleResetConfiguration={handleResetConfiguration}
+          isGoogleConnected={props.isGoogleConnected}
+        />
 
-        {/* Right Sidebar containing Authorization Settings and Local JSON Backup */}
-        <div className="space-y-6">
+        {/* Two columns — Auth and Backup side by side */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <AuthPortalSettings
             isGoogleConnected={props.isGoogleConnected}
             handleSignIn={props.handleSignIn}
@@ -110,16 +107,16 @@ export function SettingsPage(props: SettingsPageProps) {
             </div>
           </div>
         </div>
-      </div>
 
-      <GMTestingTools
-        fireDeathEvent={fireDeathEvent}
-        fireDamageEvent={fireDamageEvent}
-        fireHealEvent={fireHealEvent}
-        fireUnconsciousEvent={fireUnconsciousEvent}
-        fireRageEvent={fireRageEvent}
-        fireInitiativeEvent={fireInitiativeEvent}
-      />
+        {/* Full width — GM Testing Tools */}
+        <GMTestingTools
+          fireDeathEvent={fireDeathEvent}
+          fireDamageEvent={fireDamageEvent}
+          fireHealEvent={fireHealEvent}
+          fireUnconsciousEvent={fireUnconsciousEvent}
+          fireRageEvent={fireRageEvent}
+          fireInitiativeEvent={fireInitiativeEvent}
+        />
       </div>
     </div>
   );

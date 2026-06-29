@@ -211,7 +211,7 @@ export function CombatSidebar({
                   setIsAddingInLibrary(false);
                   handleClose();
                 }}
-                className="w-full bg-[#2563eb] text-[#0f172a] py-3 rounded-xl font-bold uppercase"
+                className="w-full bg-[#2563eb] text-white py-3 rounded-xl font-bold uppercase"
               >
                 Add to Encounter
               </button>
@@ -252,7 +252,7 @@ export function CombatSidebar({
                       setSelectedCharacterIds(new Set());
                       handleClose();
                     }}
-                    className="w-full bg-[#2563eb] text-[#0f172a] py-3 rounded-xl font-bold uppercase disabled:opacity-50"
+                    className="w-full bg-[#2563eb] text-white py-3 rounded-xl font-bold uppercase disabled:opacity-50"
                   >
                     Add Selected
                   </button>
@@ -266,7 +266,7 @@ export function CombatSidebar({
               <button
                 type="submit"
                 disabled={isCreatingNpc}
-                className="w-full bg-[#2563eb] text-[#0f172a] py-3 rounded-xl font-bold uppercase"
+                className="w-full bg-[#2563eb] text-white py-3 rounded-xl font-bold uppercase"
               >
                 {isCreatingNpc ? 'Creating...' : 'Create & Add to Encounter'}
               </button>

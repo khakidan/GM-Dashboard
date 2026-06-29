@@ -600,7 +600,7 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                                 </div>
                                 <div className="flex justify-end gap-2 text-xs">
                                   <button type="button" onClick={() => setEditingResourceId(null)} className="px-3 py-1.5 text-stone-500 hover:text-stone-700">Cancel</button>
-                                  <button type="button" onClick={() => handleSaveEditResource(pool.name)} className="px-3 py-1.5 bg-[#2563eb] text-[#0f172a] hover:bg-[#567eff] font-medium rounded-xl transition-colors">Save</button>
+                                  <button type="button" onClick={() => handleSaveEditResource(pool.name)} className="px-3 py-1.5 bg-[#2563eb] text-white hover:bg-[#567eff] font-medium rounded-xl transition-colors">Save</button>
                                 </div>
                               </div>
                             ) : (
@@ -691,7 +691,7 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                         </div>
                         <div className="flex justify-end gap-2 text-xs">
                           <button type="button" onClick={() => setIsAddingResource(false)} className="px-3 py-1.5 text-stone-500 hover:text-stone-700">Cancel</button>
-                          <button type="button" onClick={handleAddResource} disabled={!newResourceName.trim()} className="px-3 py-1.5 bg-[#2563eb] text-[#0f172a] hover:bg-[#567eff] font-medium rounded-xl disabled:opacity-50 transition-colors">Add</button>
+                          <button type="button" onClick={handleAddResource} disabled={!newResourceName.trim()} className="px-3 py-1.5 bg-[#2563eb] text-white hover:bg-[#567eff] font-medium rounded-xl disabled:opacity-50 transition-colors">Add</button>
                         </div>
                       </div>
                     )}
@@ -748,7 +748,7 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
                   <button
                     type="submit"
                     disabled={!isFormValid}
-                    className="bg-[#2563eb] hover:bg-[#567eff] text-[#0f172a] font-medium px-4 py-2 rounded-xl text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-stone-200 disabled:text-stone-400 flex items-center justify-center shadow-lg"
+                    className="bg-[#2563eb] hover:bg-[#567eff] text-white font-medium px-4 py-2 rounded-xl text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-stone-200 disabled:text-stone-400 flex items-center justify-center shadow-lg"
                   >
                     Add Character
                   </button>

@@ -132,7 +132,7 @@ export function NewEncounterDialog({ isOpen, onClose, onConfirm, difficulties }:
                   type="submit"
                   disabled={!isFormValid}
                   className={cn(
-                    "flex-1 bg-[#2563eb] hover:bg-[#567eff] text-[#0f172a] py-3.5 rounded-xl font-bold font-sans uppercase tracking-widest text-xs transition-all flex items-center justify-center gap-2 shadow-md active:scale-95 disabled:opacity-50 disabled:active:scale-100 disabled:cursor-not-allowed",
+                    "flex-1 bg-[#2563eb] hover:bg-[#567eff] text-white py-3.5 rounded-xl font-bold font-sans uppercase tracking-widest text-xs transition-all flex items-center justify-center gap-2 shadow-md active:scale-95 disabled:opacity-50 disabled:active:scale-100 disabled:cursor-not-allowed",
                   )}
                 >
                   <Save className="w-4 h-4" />

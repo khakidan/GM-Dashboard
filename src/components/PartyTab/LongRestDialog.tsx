@@ -154,7 +154,7 @@ export function LongRestDialog({ isOpen, characters, onConfirm, onClose }: LongR
                 onClick={handleApply}
                 disabled={selectedIds.length === 0}
                 title={selectedIds.length === 0 ? "Select at least one character" : "Apply Long Rest to selected characters"}
-                className="bg-[#2563eb] text-[#0f172a] font-bold uppercase tracking-widest text-xs rounded-xl px-4 py-2 hover:bg-[#567eff] transition-colors disabled:bg-[#e2e8f0] disabled:text-[#8d8db9] disabled:cursor-not-allowed disabled:opacity-60 shadow-sm flex items-center gap-1.5"
+                className="bg-[#2563eb] text-white font-bold uppercase tracking-widest text-xs rounded-xl px-4 py-2 hover:bg-[#567eff] transition-colors disabled:bg-[#e2e8f0] disabled:text-[#8d8db9] disabled:cursor-not-allowed disabled:opacity-60 shadow-sm flex items-center gap-1.5"
                 id="long-rest-apply-btn"
               >
                 <Heart className="w-4 h-4 fill-current text-white/20" />

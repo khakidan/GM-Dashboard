@@ -104,7 +104,7 @@ export function NpcLibraryTab() {
 
           <button
             onClick={() => setIsNewNpcDialogOpen(true)}
-            className="flex items-center gap-1.5 px-4 py-1.5 bg-[#2563eb] hover:bg-[#567eff] text-[#0f172a] text-xs font-bold uppercase tracking-widest rounded-xl transition-all shadow-md hover:shadow-lg flex-shrink-0"
+            className="flex items-center gap-1.5 px-4 py-1.5 bg-[#2563eb] hover:bg-[#567eff] text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all shadow-md hover:shadow-lg flex-shrink-0"
             id="add-npc-btn"
           >
             <Plus className="w-4 h-4" />
@@ -168,7 +168,7 @@ export function NpcLibraryTab() {
               </p>
               <button
                 onClick={() => setIsNewNpcDialogOpen(true)}
-                className="bg-[#2563eb] hover:bg-[#567eff] text-[#0f172a] font-bold font-sans uppercase tracking-widest text-xs px-6 py-3 rounded-xl transition-all shadow-md active:scale-95"
+                className="bg-[#2563eb] hover:bg-[#567eff] text-white font-bold font-sans uppercase tracking-widest text-xs px-6 py-3 rounded-xl transition-all shadow-md active:scale-95"
               >
                 Add New NPC
               </button>

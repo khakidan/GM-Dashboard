@@ -299,7 +299,7 @@ export const NpcCard: React.FC<NpcCardProps> = ({
       isSyncing ? "border-[#2563eb] shadow-[0_0_15px_rgba(37,99,235,0.2)] shadow-[#2563eb]/20" : "shadow-sm hover:shadow-md"
     )}>
       {isSyncing && (
-        <div className="absolute top-2 right-10 z-20 flex items-center gap-1 bg-[#2563eb] text-[#0f172a] text-xs uppercase font-bold px-3 py-1 rounded-full shadow-sm animate-pulse">
+        <div className="absolute top-2 right-10 z-20 flex items-center gap-1 bg-[#2563eb] text-white text-xs uppercase font-bold px-3 py-1 rounded-full shadow-sm animate-pulse">
           <Loader2 className="w-3.5 h-3.5 animate-spin"/> Syncing
         </div>
       )}

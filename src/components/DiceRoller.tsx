@@ -152,7 +152,7 @@ export function DiceRoller() {
               />
               <button
                 onClick={handleRollSubmit}
-                className="px-4 py-1.5 bg-[#2563eb] text-[#0f172a] text-xs font-bold uppercase tracking-wider rounded hover:bg-[#567eff] transition-colors cursor-pointer shrink-0"
+                className="px-4 py-1.5 bg-[#2563eb] text-white text-xs font-bold uppercase tracking-wider rounded hover:bg-[#567eff] transition-colors cursor-pointer shrink-0"
               >
                 ROLL
               </button>

@@ -414,7 +414,7 @@ export function ShortRestDialog({ isOpen, characters, onConfirm, onClose }: Shor
               <button
                 onClick={handleApply}
                 disabled={parsedCharactersCount === 0}
-                className="bg-[#2563eb] text-[#0f172a] font-bold uppercase tracking-widest text-xs rounded-xl px-4 py-2 hover:bg-[#567eff] transition-colors disabled:bg-[#e2e8f0] disabled:text-[#8d8db9] disabled:cursor-not-allowed disabled:opacity-60 shadow-sm"
+                className="bg-[#2563eb] text-white font-bold uppercase tracking-widest text-xs rounded-xl px-4 py-2 hover:bg-[#567eff] transition-colors disabled:bg-[#e2e8f0] disabled:text-[#8d8db9] disabled:cursor-not-allowed disabled:opacity-60 shadow-sm"
                 id="short-rest-apply-btn"
               >
                 Apply Short Rest
