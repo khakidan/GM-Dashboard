@@ -1,12 +1,9 @@
-import { STORAGE_KEYS } from '../lib/constants';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-export type VisualStyle = 'default' | 'dnd' | 'sleek-modern';
+export type VisualStyle = 'sleek-modern';
 
-const VALID_VISUAL_STYLES: VisualStyle[] = ['default', 'dnd', 'sleek-modern'];
-
-function isVisualStyle(v: unknown): v is VisualStyle {
-  return typeof v === 'string' && (VALID_VISUAL_STYLES as string[]).includes(v);
+export function isVisualStyle(v: unknown): v is VisualStyle {
+  return v === 'sleek-modern';
 }
 
 interface ThemeContextType {
@@ -17,14 +14,10 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<VisualStyle>(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.visualStyle);
-    return isVisualStyle(saved) ? saved : 'default';
-  });
+  const [theme, setThemeState] = useState<VisualStyle>('sleek-modern');
 
   const setTheme = (newTheme: VisualStyle) => {
     setThemeState(newTheme);
-    localStorage.setItem(STORAGE_KEYS.visualStyle, newTheme);
   };
 
   useEffect(() => {

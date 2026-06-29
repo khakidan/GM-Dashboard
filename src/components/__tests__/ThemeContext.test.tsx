@@ -32,7 +32,7 @@ describe('ThemeContext', () => {
       </ThemeProvider>
     );
 
-    expect(screen.getByTestId('theme-value').textContent).toBe('default');
-    expect(document.documentElement.getAttribute('data-theme')).toBe('default');
+    expect(screen.getByTestId('theme-value').textContent).toBe('sleek-modern');
+    expect(document.documentElement.getAttribute('data-theme')).toBe('sleek-modern');
   });
 });

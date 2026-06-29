@@ -2,7 +2,6 @@
 
 import { Settings, Upload, Download } from 'lucide-react';
 import { useSettings } from '../hooks/useSettings';
-import { VisualSuiteSelector } from './VisualSuiteSelector';
 import { SheetConnectionSettings } from './SheetConnectionSettings';
 import { AuthPortalSettings } from './auth/AuthPortalSettings';
 import { GMTestingTools } from './GMTestingTools';
@@ -18,8 +17,6 @@ interface SettingsPageProps {
 
 export function SettingsPage(props: SettingsPageProps) {
   const {
-    theme,
-    setTheme,
     tempSpreadsheetId,
     setTempSpreadsheetId,
     manualToken,
@@ -54,7 +51,7 @@ export function SettingsPage(props: SettingsPageProps) {
         <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-[#2c2c26]">Settings</h1>
-            <p className="text-sm text-[#5a5a40] mt-0.5">Customize your visual theme suite, manage Google Sheets connectivity database synchronization, and optimize resources.</p>
+            <p className="text-sm text-[#5a5a40] mt-0.5">Manage Google Sheets connectivity, database synchronization, and campaign resources.</p>
           </div>
         </div>
       </div>
@@ -63,8 +60,6 @@ export function SettingsPage(props: SettingsPageProps) {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left 2 Columns filled with Core Adjustments */}
         <div className="lg:col-span-2 space-y-6">
-          <VisualSuiteSelector theme={theme} setTheme={setTheme} />
-
           <SheetConnectionSettings
             tempSpreadsheetId={tempSpreadsheetId}
             setTempSpreadsheetId={setTempSpreadsheetId}
