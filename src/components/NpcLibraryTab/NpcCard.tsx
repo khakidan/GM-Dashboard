@@ -330,37 +330,6 @@ export const NpcCard: React.FC<NpcCardProps> = ({
             className="overflow-hidden border-t border-[#e5e1d8] bg-white"
           >
             <div className="p-6 flex flex-col gap-6">
-              <StatBlock
-                abilityScores={parsedScores}
-                proficiencies={parsedProfs}
-                readOnly={false}
-                onChange={(scores, profs) => {
-                  onUpdate({
-                    abilityScores: serializeAbilityScores(scores),
-                    proficiencies: serializeProficiencies(profs),
-                  });
-                }}
-              />
-
-              <SpellcastingStatsRow
-                abilityScores={parsedScores}
-                profBonus={proficiencyBonusFromCR(npc.challengeRating)}
-                className={undefined}
-                overrideAbility={parsedProfs.spellcastingAbility}
-                onOverrideChange={(ability) => {
-                  const updated = { ...parsedProfs };
-                  if (ability === undefined) {
-                    delete updated.spellcastingAbility;
-                  } else {
-                    updated.spellcastingAbility = ability;
-                  }
-                  onUpdate({
-                    proficiencies: serializeProficiencies(updated),
-                    spellcastingAbility: serializeSpellcastingAbility(ability),
-                  });
-                }}
-              />
-
               {/* Stats Grid */}
               <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
                 <div className="text-center p-3 bg-[#fdfaf5] border border-[#e5e1d8] rounded-xl shadow-sm">
@@ -414,6 +383,37 @@ export const NpcCard: React.FC<NpcCardProps> = ({
                   <DebouncedInput type="text" value={npc.challengeRating || ''} onFocus={(e) => (e.target as HTMLInputElement).select()} onChange={(v) => onUpdate({ challengeRating: v as string })} className="text-lg font-bold text-[#2c2c26] w-full text-center bg-transparent border-none focus:ring-0 p-0 disabled:opacity-50" placeholder="—" disabled={isSyncing} />
                 </div>
               </div>
+
+              <StatBlock
+                abilityScores={parsedScores}
+                proficiencies={parsedProfs}
+                readOnly={false}
+                onChange={(scores, profs) => {
+                  onUpdate({
+                    abilityScores: serializeAbilityScores(scores),
+                    proficiencies: serializeProficiencies(profs),
+                  });
+                }}
+              />
+
+              <SpellcastingStatsRow
+                abilityScores={parsedScores}
+                profBonus={proficiencyBonusFromCR(npc.challengeRating)}
+                className={undefined}
+                overrideAbility={parsedProfs.spellcastingAbility}
+                onOverrideChange={(ability) => {
+                  const updated = { ...parsedProfs };
+                  if (ability === undefined) {
+                    delete updated.spellcastingAbility;
+                  } else {
+                    updated.spellcastingAbility = ability;
+                  }
+                  onUpdate({
+                    proficiencies: serializeProficiencies(updated),
+                    spellcastingAbility: serializeSpellcastingAbility(ability),
+                  });
+                }}
+              />
 
               <div>
                 <div className="text-[10px] uppercase text-[#5a5a40] font-bold tracking-widest mb-1.5 px-1">Speed</div>

@@ -57,39 +57,7 @@ export const CharacterCardExpanded: React.FC<CharacterCardExpandedProps> = ({
 
   return (
     <div className="p-6 flex flex-col font-sans gap-5 bg-white">
-      <StatBlock
-        abilityScores={parsedAbilityScores}
-        proficiencies={parsedProficiencies}
-        characterLevel={character.level}
-        readOnly={false}
-        onChange={(scores, profs) => {
-          onUpdate({
-            abilityScores: serializeAbilityScores(scores),
-            proficiencies: serializeProficiencies(profs),
-          });
-        }}
-      />
-
-      <SpellcastingStatsRow
-        abilityScores={parsedAbilityScores}
-        profBonus={proficiencyBonusFromLevel(character.level)}
-        className={character.class}
-        overrideAbility={parsedProficiencies.spellcastingAbility}
-        onOverrideChange={(ability) => {
-          const updated = { ...parsedProficiencies };
-          if (ability === undefined) {
-            delete updated.spellcastingAbility;
-          } else {
-            updated.spellcastingAbility = ability;
-          }
-          onUpdate({
-            proficiencies: serializeProficiencies(updated),
-            spellcastingAbility: serializeSpellcastingAbility(ability),
-          });
-        }}
-      />
-
-      <div className="grid grid-cols-3 md:grid-cols-6 gap-3 sm:gap-4">
+      <div className="grid grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4">
         <div className="text-center p-3 bg-[#fdfaf5] border border-[#e5e1d8] rounded-xl shadow-sm">
           <div className="text-[10px] font-bold uppercase tracking-widest text-[#5a5a40] mb-1">AC</div>
           <CardNumberInput
@@ -150,18 +118,39 @@ export const CharacterCardExpanded: React.FC<CharacterCardExpandedProps> = ({
             disabled={isSyncing}
           />
         </div>
-        <div className="text-center p-3 bg-[#fdfaf5] border border-[#e5e1d8] rounded-xl shadow-sm">
-          <div className="text-[10px] font-bold uppercase tracking-widest text-[#5a5a40] mb-1">Passive</div>
-          <CardNumberInput
-            value={character.passivePerception ?? 0}
-            onChange={v => onUpdate({ passivePerception: v })}
-            fallback={0}
-            min={0}
-            className="text-lg font-bold text-[#2c2c26] w-full text-center bg-transparent border border-transparent outline-none focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] rounded transition-all disabled:opacity-50"
-            disabled={isSyncing}
-          />
-        </div>
       </div>
+
+      <StatBlock
+        abilityScores={parsedAbilityScores}
+        proficiencies={parsedProficiencies}
+        characterLevel={character.level}
+        readOnly={false}
+        onChange={(scores, profs) => {
+          onUpdate({
+            abilityScores: serializeAbilityScores(scores),
+            proficiencies: serializeProficiencies(profs),
+          });
+        }}
+      />
+
+      <SpellcastingStatsRow
+        abilityScores={parsedAbilityScores}
+        profBonus={proficiencyBonusFromLevel(character.level)}
+        className={character.class}
+        overrideAbility={parsedProficiencies.spellcastingAbility}
+        onOverrideChange={(ability) => {
+          const updated = { ...parsedProficiencies };
+          if (ability === undefined) {
+            delete updated.spellcastingAbility;
+          } else {
+            updated.spellcastingAbility = ability;
+          }
+          onUpdate({
+            proficiencies: serializeProficiencies(updated),
+            spellcastingAbility: serializeSpellcastingAbility(ability),
+          });
+        }}
+      />
 
       <div>
         <div className="text-[10px] uppercase text-[#5a5a40] font-bold tracking-widest mb-2 px-1">Class</div>
