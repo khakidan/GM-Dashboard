@@ -95,7 +95,7 @@ export function GMDashboard({ campaign, onCloseCampaign }: GMDashboardProps = {}
   }
 
   return (
-    <div className="w-full h-[100dvh] bg-[#fdfaf5] flex overflow-hidden font-serif select-none relative">
+    <div className="w-full h-[100dvh] bg-[#ffffff] flex overflow-hidden font-serif select-none relative">
       <GMDashboardSidebar
         activeTab={activeTab}
         onTabChange={handleTabChange}
@@ -111,13 +111,13 @@ export function GMDashboard({ campaign, onCloseCampaign }: GMDashboardProps = {}
       />
 
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-        <header className="h-16 lg:h-20 shrink-0 border-b border-[#e5e1d8] px-4 lg:px-8 flex items-center justify-between bg-white/80 lg:bg-white/50 backdrop-blur-md sticky top-0 z-10 transition-all">
+        <header className="h-16 lg:h-20 shrink-0 border-b border-[#e2e8f0] px-4 lg:px-8 flex items-center justify-between bg-white/80 lg:bg-white/50 backdrop-blur-md sticky top-0 z-10 transition-all">
           <div className="flex-1 max-w-lg mr-4 group flex items-center gap-2">
             <div>
-              <h2 id="header-campaign-title" className="text-lg lg:text-xl font-bold text-[#2c2c26] px-2 leading-tight">
+              <h2 id="header-campaign-title" className="text-lg lg:text-xl font-bold text-[#0f172a] px-2 leading-tight">
                 {campaign ? campaign.name : "GM Encounter Dashboard"}
               </h2>
-              <p id="header-campaign-subtitle" className="text-xs text-[#5a5a40] px-2 font-sans font-medium uppercase tracking-wider">
+              <p id="header-campaign-subtitle" className="text-xs text-[#8d8db9] px-2 font-sans font-medium uppercase tracking-wider">
                 GM Dashboard
               </p>
             </div>

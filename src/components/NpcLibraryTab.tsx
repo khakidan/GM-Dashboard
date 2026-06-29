@@ -79,7 +79,7 @@ export function NpcLibraryTab() {
         aria-label={placeholder}
         value={value}
         onChange={e => setter(e.target.value)}
-        className="w-full bg-[#fdfaf5]/50 border border-[#e5e1d8] rounded-xl pl-9 pr-3 py-2.5 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all appearance-auto cursor-pointer text-[#2c2c26]"
+        className="w-full bg-[#ffffff]/50 border border-[#e2e8f0] rounded-xl pl-9 pr-3 py-2.5 text-sm focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] outline-none transition-all appearance-auto cursor-pointer text-[#0f172a]"
       >
         <option value="">{placeholder}: All</option>
         <optgroup label="Damage Types">
@@ -93,18 +93,18 @@ export function NpcLibraryTab() {
   );
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-[#e5e1d8] overflow-hidden flex-1 flex flex-col w-full">
+    <div className="bg-white rounded-2xl shadow-sm border border-[#e2e8f0] overflow-hidden flex-1 flex flex-col w-full">
       {/* Page Header */}
-      <div className="bg-[#fdfaf5] border-b border-[#e5e1d8] p-6">
+      <div className="bg-[#ffffff] border-b border-[#e2e8f0] p-6">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-[#2c2c26]">NPC Library</h1>
-            <p className="text-sm text-[#5a5a40] mt-0.5">Reference NPCs loaded from your campaign sheets. Directly inspect stats and health status.</p>
+            <h1 className="text-2xl font-bold text-[#0f172a]">NPC Library</h1>
+            <p className="text-sm text-[#8d8db9] mt-0.5">Reference NPCs loaded from your campaign sheets. Directly inspect stats and health status.</p>
           </div>
 
           <button
             onClick={() => setIsNewNpcDialogOpen(true)}
-            className="flex items-center gap-1.5 px-4 py-1.5 bg-[#c5b358] hover:bg-[#d4c47a] text-[#2c2c26] text-xs font-bold uppercase tracking-widest rounded-xl transition-all shadow-md hover:shadow-lg flex-shrink-0"
+            className="flex items-center gap-1.5 px-4 py-1.5 bg-[#2563eb] hover:bg-[#567eff] text-[#0f172a] text-xs font-bold uppercase tracking-widest rounded-xl transition-all shadow-md hover:shadow-lg flex-shrink-0"
             id="add-npc-btn"
           >
             <Plus className="w-4 h-4" />
@@ -116,13 +116,13 @@ export function NpcLibraryTab() {
         <div className="mt-6 flex flex-col gap-4">
           <div className="flex flex-col md:flex-row gap-3">
             <div className="relative flex-1">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#5a5a40]/60" />
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#8d8db9]/60" />
               <input
                 type="text"
                 placeholder="Search by name..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-white border border-[#e5e1d8] rounded-xl pl-9 pr-4 py-2.5 text-sm focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358]/50 outline-none transition-all placeholder:text-[#5a5a40]/30"
+                className="w-full bg-white border border-[#e2e8f0] rounded-xl pl-9 pr-4 py-2.5 text-sm focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]/50 outline-none transition-all placeholder:text-[#8d8db9]/30"
                 id="npc-search-input"
               />
             </div>
@@ -137,7 +137,7 @@ export function NpcLibraryTab() {
             {hasActiveFilters && (
               <button
                 onClick={clearFilters}
-                className="flex items-center justify-center gap-1.5 px-3 py-2 text-[#5a5a40] hover:text-[#2c2c26] text-xs font-bold uppercase tracking-widest transition-colors"
+                className="flex items-center justify-center gap-1.5 px-3 py-2 text-[#8d8db9] hover:text-[#0f172a] text-xs font-bold uppercase tracking-widest transition-colors"
                 id="clear-filters-btn"
               >
                 <X className="w-3.5 h-3.5" />
@@ -159,16 +159,16 @@ export function NpcLibraryTab() {
         <div className="space-y-4">
           {filteredNpcs.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
-              <BookOpen className="w-12 h-12 text-[#5a5a40] opacity-20 mb-4" />
-              <h3 className="text-lg font-serif font-bold text-[#2c2c26] mb-2">
+              <BookOpen className="w-12 h-12 text-[#8d8db9] opacity-20 mb-4" />
+              <h3 className="text-lg font-serif font-bold text-[#0f172a] mb-2">
                 No NPCs in library
               </h3>
-              <p className="text-sm text-[#5a5a40] mb-6 max-w-xs">
+              <p className="text-sm text-[#8d8db9] mb-6 max-w-xs">
                 Add NPCs to build your library. They will be available to add to any encounter.
               </p>
               <button
                 onClick={() => setIsNewNpcDialogOpen(true)}
-                className="bg-[#c5b358] hover:bg-[#b0a04f] text-[#2c2c26] font-bold font-sans uppercase tracking-widest text-xs px-6 py-3 rounded-xl transition-all shadow-md active:scale-95"
+                className="bg-[#2563eb] hover:bg-[#567eff] text-[#0f172a] font-bold font-sans uppercase tracking-widest text-xs px-6 py-3 rounded-xl transition-all shadow-md active:scale-95"
               >
                 Add New NPC
               </button>

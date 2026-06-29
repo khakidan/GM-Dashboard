@@ -25,7 +25,7 @@ export const CharacterResourceSection: React.FC<CharacterResourceSectionProps> =
 }) => {
   return (
     <div>
-      <div className="text-[10px] uppercase text-[#5a5a40] font-bold tracking-widest mb-2 px-1">Conditions</div>
+      <div className="text-[10px] uppercase text-[#8d8db9] font-bold tracking-widest mb-2 px-1">Conditions</div>
       <ConditionChips
         value={conditions || ''}
         onChange={onConditionsChange}

@@ -86,10 +86,10 @@ export function GMDashboardDialogs({
       />
 
       {showLeaveConfirm && (
-        <div id="leave-campaign-confirm-overlay" className="fixed inset-0 bg-[#2c2c26]/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 select-none animate-fade-in font-serif">
-          <div className="bg-[#fdfaf5] border-2 border-[#c5b358] rounded-2xl p-6 max-w-sm w-full shadow-2xl text-center">
-            <h3 className="text-xl font-bold text-[#2c2c26] mb-3">Leave Campaign?</h3>
-            <p className="text-sm font-sans text-[#5a5a40] mb-6">
+        <div id="leave-campaign-confirm-overlay" className="fixed inset-0 bg-[#0f172a]/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 select-none animate-fade-in font-serif">
+          <div className="bg-[#ffffff] border-2 border-[#2563eb] rounded-2xl p-6 max-w-sm w-full shadow-2xl text-center">
+            <h3 className="text-xl font-bold text-[#0f172a] mb-3">Leave Campaign?</h3>
+            <p className="text-sm font-sans text-[#8d8db9] mb-6">
               An encounter is in progress. Leave this campaign?
             </p>
             <div className="flex justify-center gap-3 font-sans">

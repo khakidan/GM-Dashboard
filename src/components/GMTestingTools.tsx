@@ -21,10 +21,10 @@ export function GMTestingTools({
   fireInitiativeEvent,
 }: GMTestingToolsProps) {
   return (
-    <div className="bg-white p-6 rounded-2xl border border-[#e5e1d8] shadow-sm space-y-4" id="gm-tools-testing-section">
+    <div className="bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm space-y-4" id="gm-tools-testing-section">
       <div>
-        <h3 className="text-lg font-bold text-[#2c2c26] font-serif pb-1">GM Tools & Testing</h3>
-        <p className="text-xs text-[#5a5a40]">
+        <h3 className="text-lg font-bold text-[#0f172a] font-serif pb-1">GM Tools & Testing</h3>
+        <p className="text-xs text-[#8d8db9]">
           Utility actions for testing presentation effects and validating active overlays.
         </p>
       </div>
@@ -40,7 +40,7 @@ export function GMTestingTools({
               duration: 3000,
             });
           }}
-          className="border border-[#e5e1d8] hover:bg-[#fcfbf9] text-[#5a5a40] px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all cursor-pointer inline-flex items-center gap-2"
+          className="border border-[#e2e8f0] hover:bg-[#f9f8ff] text-[#8d8db9] px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all cursor-pointer inline-flex items-center gap-2"
         >
           <Skull className="w-4 h-4" />
           Test Death Animation
@@ -55,7 +55,7 @@ export function GMTestingTools({
               duration: 3000,
             });
           }}
-          className="border border-[#e5e1d8] hover:bg-[#fcfbf9] text-[#5a5a40] px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all cursor-pointer inline-flex items-center gap-2"
+          className="border border-[#e2e8f0] hover:bg-[#f9f8ff] text-[#8d8db9] px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all cursor-pointer inline-flex items-center gap-2"
         >
           <Zap className="w-4 h-4" />
           Test Damage Animation
@@ -113,7 +113,7 @@ export function GMTestingTools({
             fireInitiativeEvent(true);
             toast('Toggle initiative animation');
           }}
-          className="border border-amber-300 bg-amber-50/50 hover:bg-amber-100 text-amber-700 font-bold px-5 py-2.5 rounded-xl text-xs uppercase tracking-widest transition-all cursor-pointer inline-flex items-center gap-2"
+          className="border border-amber-300 bg-[#f9f8ff]/50 hover:bg-amber-100 text-[#567eff] font-bold px-5 py-2.5 rounded-xl text-xs uppercase tracking-widest transition-all cursor-pointer inline-flex items-center gap-2"
         >
           <Dice6 className="w-4 h-4" />
           Test Initiative Animation

@@ -31,7 +31,7 @@ export function DebouncedInput({ value, onChange, onBlur, onKeyDown, className, 
         if (onKeyDown) onKeyDown(e);
       }}
       className={cn(
-        "bg-white border border-[#e5e1d8] rounded-xl text-[#2c2c26] placeholder:text-[#5a5a40] focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358]/50 focus:outline-none w-full px-3 py-2 text-sm transition-colors",
+        "bg-white border border-[#e2e8f0] rounded-xl text-[#0f172a] placeholder:text-[#8d8db9] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]/50 focus:outline-none w-full px-3 py-2 text-sm transition-colors",
         className
       )}
       {...props}

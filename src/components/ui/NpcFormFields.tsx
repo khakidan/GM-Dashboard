@@ -187,14 +187,14 @@ export function NpcFormFields({ data, onChange, errors = {}, compact = false }: 
   }, [data.legendaryActionsList]);
 
   const labelClass = cn(
-    "block font-bold uppercase tracking-widest text-[#5a5a40] mb-1.5 px-1",
+    "block font-bold uppercase tracking-widest text-[#8d8db9] mb-1.5 px-1",
     compact ? "text-[10px]" : "text-xs"
   );
   
   const inputClass = cn(
-    "w-full bg-white border border-[#e5e1d8] rounded-xl outline-none transition-all font-serif italic text-sm",
+    "w-full bg-white border border-[#e2e8f0] rounded-xl outline-none transition-all font-serif italic text-sm",
     compact ? "px-2 py-1.5" : "px-4 py-3",
-    "focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358]"
+    "focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]"
   );
 
   const renderTraitFields = (item: NpcTrait, index: number, onItemChange: (updated: NpcTrait) => void) => (
@@ -241,7 +241,7 @@ export function NpcFormFields({ data, onChange, errors = {}, compact = false }: 
 
       <div className="grid grid-cols-4 gap-2">
         <div>
-          <label className="block text-[10px] font-semibold text-[#5a5a40] uppercase px-1">Atk</label>
+          <label className="block text-[10px] font-semibold text-[#8d8db9] uppercase px-1">Atk</label>
           <input
             type="number"
             value={item.attackBonus !== undefined ? item.attackBonus : ''}
@@ -254,7 +254,7 @@ export function NpcFormFields({ data, onChange, errors = {}, compact = false }: 
           />
         </div>
         <div>
-          <label className="block text-[10px] font-semibold text-[#5a5a40] uppercase px-1">Dmg</label>
+          <label className="block text-[10px] font-semibold text-[#8d8db9] uppercase px-1">Dmg</label>
           <input
             type="text"
             value={item.damage || ''}
@@ -264,7 +264,7 @@ export function NpcFormFields({ data, onChange, errors = {}, compact = false }: 
           />
         </div>
         <div>
-          <label className="block text-[10px] font-semibold text-[#5a5a40] uppercase px-1">DC</label>
+          <label className="block text-[10px] font-semibold text-[#8d8db9] uppercase px-1">DC</label>
           <input
             type="number"
             value={item.saveDC !== undefined ? item.saveDC : ''}
@@ -277,7 +277,7 @@ export function NpcFormFields({ data, onChange, errors = {}, compact = false }: 
           />
         </div>
         <div>
-          <label className="block text-[10px] font-semibold text-[#5a5a40] uppercase px-1">Save</label>
+          <label className="block text-[10px] font-semibold text-[#8d8db9] uppercase px-1">Save</label>
           <input
             type="text"
             value={item.saveType || ''}
@@ -289,7 +289,7 @@ export function NpcFormFields({ data, onChange, errors = {}, compact = false }: 
       </div>
 
       <div>
-        <label className="block text-[10px] font-semibold text-[#5a5a40] uppercase px-1">Range</label>
+        <label className="block text-[10px] font-semibold text-[#8d8db9] uppercase px-1">Range</label>
         <input
           type="text"
           value={item.range || ''}
@@ -347,7 +347,7 @@ export function NpcFormFields({ data, onChange, errors = {}, compact = false }: 
           />
         </div>
         <div>
-          <label className="block text-[10px] font-semibold text-[#5a5a40] uppercase px-1">Cost</label>
+          <label className="block text-[10px] font-semibold text-[#8d8db9] uppercase px-1">Cost</label>
           <input
             type="number"
             min="1"
@@ -362,7 +362,7 @@ export function NpcFormFields({ data, onChange, errors = {}, compact = false }: 
 
       <div className="grid grid-cols-4 gap-2">
         <div>
-          <label className="block text-[10px] font-semibold text-[#5a5a40] uppercase px-1">Atk</label>
+          <label className="block text-[10px] font-semibold text-[#8d8db9] uppercase px-1">Atk</label>
           <input
             type="number"
             value={item.attackBonus !== undefined ? item.attackBonus : ''}
@@ -375,7 +375,7 @@ export function NpcFormFields({ data, onChange, errors = {}, compact = false }: 
           />
         </div>
         <div>
-          <label className="block text-[10px] font-semibold text-[#5a5a40] uppercase px-1">Dmg</label>
+          <label className="block text-[10px] font-semibold text-[#8d8db9] uppercase px-1">Dmg</label>
           <input
             type="text"
             value={item.damage || ''}
@@ -385,7 +385,7 @@ export function NpcFormFields({ data, onChange, errors = {}, compact = false }: 
           />
         </div>
         <div>
-          <label className="block text-[10px] font-semibold text-[#5a5a40] uppercase px-1">DC</label>
+          <label className="block text-[10px] font-semibold text-[#8d8db9] uppercase px-1">DC</label>
           <input
             type="number"
             value={item.saveDC !== undefined ? item.saveDC : ''}
@@ -398,7 +398,7 @@ export function NpcFormFields({ data, onChange, errors = {}, compact = false }: 
           />
         </div>
         <div>
-          <label className="block text-[10px] font-semibold text-[#5a5a40] uppercase px-1">Save</label>
+          <label className="block text-[10px] font-semibold text-[#8d8db9] uppercase px-1">Save</label>
           <input
             type="text"
             value={item.saveType || ''}
@@ -452,7 +452,7 @@ export function NpcFormFields({ data, onChange, errors = {}, compact = false }: 
 
   return (
     <div className="space-y-0">
-      <div className="flex border-b border-[#e5e1d8] mb-4">
+      <div className="flex border-b border-[#e2e8f0] mb-4">
         {(['identity', 'combat', 'abilities', 'statblock'] as const).map(tab => (
           <button
             key={tab}
@@ -463,8 +463,8 @@ export function NpcFormFields({ data, onChange, errors = {}, compact = false }: 
               "uppercase tracking-wider",
               "transition-colors",
               activeTab === tab
-                ? "border-b-2 border-[#c5b358] text-[#c5b358]"
-                : "text-[#5a5a40] hover:text-[#2c2c26]"
+                ? "border-b-2 border-[#2563eb] text-[#2563eb]"
+                : "text-[#8d8db9] hover:text-[#0f172a]"
             )}
           >
             {tab === 'statblock'
@@ -547,7 +547,7 @@ export function NpcFormFields({ data, onChange, errors = {}, compact = false }: 
                 AC <span className="text-red-500">*</span>
               </label>
               <div className="relative">
-                <Shield className={cn("absolute left-3 top-1/2 -translate-y-1/2 text-[#5a5a40] opacity-50", compact ? "w-3 h-3" : "w-4 h-4")} />
+                <Shield className={cn("absolute left-3 top-1/2 -translate-y-1/2 text-[#8d8db9] opacity-50", compact ? "w-3 h-3" : "w-4 h-4")} />
                 <input
                   id="new-npc-ac"
                   type="number"

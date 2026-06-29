@@ -59,9 +59,9 @@ export function CombatantCardExpanded({
   } = useCombatantExpanded(c);
 
   return (
-    <div className="px-6 pb-6 pt-2 border-t border-[#e5e1d8] bg-white space-y-5">
+    <div className="px-6 pb-6 pt-2 border-t border-[#e2e8f0] bg-white space-y-5">
       {c.notes && (
-        <p className="text-sm text-[#5a5a40] opacity-60 italic">{c.notes}</p>
+        <p className="text-sm text-[#8d8db9] opacity-60 italic">{c.notes}</p>
       )}
 
       {pcCharacter && (
@@ -90,8 +90,8 @@ export function CombatantCardExpanded({
 
         {/* Right column: HP stats */}
         <div className="w-[40%] flex flex-col gap-3">
-          <div className="bg-[#faf9f6]/80 p-3 rounded-xl border border-[#e5e1d8] text-center flex-1 flex flex-col justify-center">
-            <span className="text-xs font-bold uppercase tracking-widest text-[#5a5a40] block mb-1">Temp HP</span>
+          <div className="bg-[#f9f8ff]/80 p-3 rounded-xl border border-[#e2e8f0] text-center flex-1 flex flex-col justify-center">
+            <span className="text-xs font-bold uppercase tracking-widest text-[#8d8db9] block mb-1">Temp HP</span>
             <input
               type="number"
               value={c.tempHp || ''}
@@ -101,17 +101,17 @@ export function CombatantCardExpanded({
               className="w-full bg-transparent text-center font-bold text-blue-600 outline-none text-base disabled:opacity-50"
             />
           </div>
-          <div className="bg-[#faf9f6]/80 p-3 rounded-xl border border-[#e5e1d8] text-center flex-1 flex flex-col justify-center">
-            <span className="text-xs font-bold uppercase tracking-widest text-[#5a5a40] block mb-1">Max HP</span>
+          <div className="bg-[#f9f8ff]/80 p-3 rounded-xl border border-[#e2e8f0] text-center flex-1 flex flex-col justify-center">
+            <span className="text-xs font-bold uppercase tracking-widest text-[#8d8db9] block mb-1">Max HP</span>
             {c.tempHpMax && c.tempHpMax > 0 ? (
               <span 
-                className="font-bold text-base text-amber-600 cursor-help" 
+                className="font-bold text-base text-[#2563eb] cursor-help" 
                 title={`Temp max (original: ${c.maxHp})`}
               >
                 {c.tempHpMax}
               </span>
             ) : (
-              <span className="font-bold text-base text-[#5a5a40]">{c.maxHp}</span>
+              <span className="font-bold text-base text-[#0f172a]">{c.maxHp}</span>
             )}
           </div>
         </div>
@@ -153,7 +153,7 @@ export function CombatantCardExpanded({
       )}
 
       <div>
-        <label className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40] mb-2">Conditions</label>
+        <label className="block text-xs font-bold uppercase tracking-widest text-[#8d8db9] mb-2">Conditions</label>
         <ConditionChips
           value={c.conditions || ''}
           onChange={val => onUpdateCombatant({ conditions: val })}
@@ -177,7 +177,7 @@ export function CombatantCardExpanded({
           {Object.entries(c.conditionTimers).map(([condName, expiresAt]) => (
             <span
               key={condName}
-              className="inline-flex items-center gap-2 bg-[#faf9f6]/80 border border-[#e5e1d8] hover:border-[#c5b358] text-[#5a5a40] text-xs font-bold px-3 py-1 rounded-full transition-colors"
+              className="inline-flex items-center gap-2 bg-[#f9f8ff]/80 border border-[#e2e8f0] hover:border-[#2563eb] text-[#8d8db9] text-xs font-bold px-3 py-1 rounded-full transition-colors"
             >
               <span>{condName} ends round {expiresAt}</span>
               <button
@@ -198,8 +198,8 @@ export function CombatantCardExpanded({
         </div>
       )}
 
-      <div className="flex justify-between items-center pt-4 border-t border-[#f5f5f0]">
-        <span className="text-xs text-[#5a5a40] opacity-40 font-mono tracking-tighter">{c.id.split('-').pop()}</span>
+      <div className="flex justify-between items-center pt-4 border-t border-[#e2e8f0]">
+        <span className="text-xs text-[#8d8db9] opacity-40 font-mono tracking-tighter">{c.id.split('-').pop()}</span>
         <button
           onClick={onRemoveCombatant}
           className="flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-widest text-red-600 hover:bg-red-50 rounded-full transition-all border border-transparent hover:border-red-100"

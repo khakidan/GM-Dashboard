@@ -55,7 +55,7 @@ export const MultiTargetActionPanel: React.FC<MultiTargetActionPanelProps> = ({
   };
 
   return (
-    <div className="w-full bg-[#faf8f5] border-b border-[#e5e1d8] p-5 flex flex-col gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+    <div className="w-full bg-[#faf8f5] border-b border-[#e2e8f0] p-5 flex flex-col gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
       {/* Header Row */}
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-4">
@@ -63,8 +63,8 @@ export const MultiTargetActionPanel: React.FC<MultiTargetActionPanelProps> = ({
             {selectedCount}
           </div>
           <div>
-            <h2 className="text-lg font-serif font-bold text-[#2c2c26]">Combatants Selected</h2>
-            <p className="text-xs text-[#5a5a40] font-sans italic opacity-85">
+            <h2 className="text-lg font-serif font-bold text-[#0f172a]">Combatants Selected</h2>
+            <p className="text-xs text-[#8d8db9] font-sans italic opacity-85">
               Choose actions for the selected group
             </p>
           </div>
@@ -72,7 +72,7 @@ export const MultiTargetActionPanel: React.FC<MultiTargetActionPanelProps> = ({
 
         <button
           onClick={onCancelSelection}
-          className="flex items-center gap-2 px-4 py-2 text-xs font-sans font-bold uppercase bg-white border border-[#e5e1d8] hover:bg-[#f5f5f0] text-[#5a5a40] rounded-full transition-all cursor-pointer"
+          className="flex items-center gap-2 px-4 py-2 text-xs font-sans font-bold uppercase bg-white border border-[#e2e8f0] hover:bg-[#e2e8f0] text-[#8d8db9] rounded-full transition-all cursor-pointer"
         >
           <X className="w-3.5 h-3.5" />
           Cancel
@@ -80,9 +80,9 @@ export const MultiTargetActionPanel: React.FC<MultiTargetActionPanelProps> = ({
       </div>
 
       {/* Grid of Action Sections */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-3 border-t border-[#e5e1d8]">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-3 border-t border-[#e2e8f0]">
         {/* Damage Section */}
-        <div className="bg-white border border-[#e5e1d8] p-3 rounded-xl flex flex-col gap-2 justify-between">
+        <div className="bg-white border border-[#e2e8f0] p-3 rounded-xl flex flex-col gap-2 justify-between">
           <div className="space-y-2">
             <div className="flex items-center gap-1.5 text-red-700 font-bold uppercase tracking-wider text-[10px]">
               <Shield className="w-3.5 h-3.5" />
@@ -95,13 +95,13 @@ export const MultiTargetActionPanel: React.FC<MultiTargetActionPanelProps> = ({
                 disabled={isGlobalDisabled}
                 onChange={(e) => setDamageAmount(e.target.value)}
                 placeholder="Amt"
-                className="w-16 h-8 bg-stone-50 border border-[#e5e1d8] rounded-lg px-2 text-center text-xs font-bold outline-none focus:border-red-500 disabled:opacity-50"
+                className="w-16 h-8 bg-stone-50 border border-[#e2e8f0] rounded-lg px-2 text-center text-xs font-bold outline-none focus:border-red-500 disabled:opacity-50"
               />
               <select
                 value={damageType}
                 disabled={isGlobalDisabled}
                 onChange={(e) => setDamageType(e.target.value as DamageType | '')}
-                className="flex-1 h-8 bg-stone-50 border border-[#e5e1d8] rounded-lg px-2 text-xs font-serif font-bold cursor-pointer outline-none focus:border-red-500 disabled:opacity-50"
+                className="flex-1 h-8 bg-stone-50 border border-[#e2e8f0] rounded-lg px-2 text-xs font-serif font-bold cursor-pointer outline-none focus:border-red-500 disabled:opacity-50"
               >
                 <option value="">Type</option>
                 {DAMAGE_TYPE_OPTIONS.map((type) => (
@@ -122,7 +122,7 @@ export const MultiTargetActionPanel: React.FC<MultiTargetActionPanelProps> = ({
         </div>
 
         {/* Healing Section */}
-        <div className="bg-white border border-[#e5e1d8] p-3 rounded-xl flex flex-col gap-2 justify-between">
+        <div className="bg-white border border-[#e2e8f0] p-3 rounded-xl flex flex-col gap-2 justify-between">
           <div className="space-y-2">
             <div className="flex items-center gap-1.5 text-green-700 font-bold uppercase tracking-wider text-[10px]">
               <Heart className="w-3.5 h-3.5" />
@@ -134,7 +134,7 @@ export const MultiTargetActionPanel: React.FC<MultiTargetActionPanelProps> = ({
               disabled={isGlobalDisabled}
               onChange={(e) => setHealAmount(e.target.value)}
               placeholder="Amount"
-              className="w-full h-8 bg-stone-50 border border-[#e5e1d8] rounded-lg px-2 text-xs font-bold outline-none focus:border-green-500 disabled:opacity-50"
+              className="w-full h-8 bg-stone-50 border border-[#e2e8f0] rounded-lg px-2 text-xs font-bold outline-none focus:border-green-500 disabled:opacity-50"
             />
           </div>
           <button
@@ -147,9 +147,9 @@ export const MultiTargetActionPanel: React.FC<MultiTargetActionPanelProps> = ({
         </div>
 
         {/* Condition Section */}
-        <div className="bg-white border border-[#e5e1d8] p-3 rounded-xl flex flex-col gap-2 justify-between">
+        <div className="bg-white border border-[#e2e8f0] p-3 rounded-xl flex flex-col gap-2 justify-between">
           <div className="space-y-2">
-            <div className="flex items-center gap-1.5 text-amber-700 font-bold uppercase tracking-wider text-[10px]">
+            <div className="flex items-center gap-1.5 text-[#567eff] font-bold uppercase tracking-wider text-[10px]">
               <PlusCircle className="w-3.5 h-3.5" />
               <span>Condition</span>
             </div>
@@ -159,13 +159,13 @@ export const MultiTargetActionPanel: React.FC<MultiTargetActionPanelProps> = ({
               disabled={isGlobalDisabled}
               onChange={(e) => setConditionName(e.target.value)}
               placeholder="e.g. Paralyzed"
-              className="w-full h-8 bg-stone-50 border border-[#e5e1d8] rounded-lg px-2 text-xs outline-none focus:border-amber-500 disabled:opacity-50 italic"
+              className="w-full h-8 bg-stone-50 border border-[#e2e8f0] rounded-lg px-2 text-xs outline-none focus:border-[#2563eb] disabled:opacity-50 italic"
             />
           </div>
           <button
             onClick={handleApplyConditionClick}
             disabled={isCondDisabled}
-            className="w-full h-8 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all disabled:opacity-30 disabled:hover:bg-amber-600 cursor-pointer flex items-center justify-center gap-1"
+            className="w-full h-8 bg-[#2563eb] hover:bg-[#567eff] text-white rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all disabled:opacity-30 disabled:hover:bg-[#2563eb] cursor-pointer flex items-center justify-center gap-1"
           >
             Add Condition
           </button>

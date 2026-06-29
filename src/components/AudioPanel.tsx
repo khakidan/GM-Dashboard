@@ -120,12 +120,12 @@ export function AudioPanel({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ duration: 0.2 }}
-            className="relative w-[680px] max-w-[90vw] max-h-[85vh] flex flex-col bg-white rounded-xl shadow-2xl overflow-hidden font-sans border border-[#e5e1d8]"
+            className="relative w-[680px] max-w-[90vw] max-h-[85vh] flex flex-col bg-white rounded-xl shadow-2xl overflow-hidden font-sans border border-[#e2e8f0]"
             id="audio-panel-expanded-content"
           >
             {/* Modal Header */}
             <div className="flex items-center justify-between px-5 pt-4 pb-2">
-              <h2 className="text-xl font-bold font-serif text-[#2c2c26] flex items-center gap-2">
+              <h2 className="text-xl font-bold font-serif text-[#0f172a] flex items-center gap-2">
                 <span role="img" aria-label="music">🎵</span> Audio
               </h2>
               <button
@@ -138,14 +138,14 @@ export function AudioPanel({
               </div>
 
               {/* Inner Tab switching bar */}
-              <div className="flex border-b border-stone-200 bg-[#faf9f6]/40 px-5 pt-1.5 shrink-0 select-none gap-2" id="audio-panel-tabs">
+              <div className="flex border-b border-stone-200 bg-[#f9f8ff]/40 px-5 pt-1.5 shrink-0 select-none gap-2" id="audio-panel-tabs">
                 <button
                   id="tab-ambient"
                   onClick={() => setActiveTab('ambient')}
                   className={cn(
                     "px-3 py-2 text-xs font-bold uppercase tracking-wider border-b-2 transition-all cursor-pointer font-sans rounded-t-md",
                     activeTab === 'ambient'
-                      ? "border-[#c5b358] text-[#2c2c26] bg-white border-t border-x border-stone-200/50"
+                      ? "border-[#2563eb] text-[#0f172a] bg-white border-t border-x border-stone-200/50"
                       : "border-transparent text-stone-400 hover:text-stone-700"
                   )}
                 >
@@ -157,7 +157,7 @@ export function AudioPanel({
                   className={cn(
                     "px-3 py-2 text-xs font-bold uppercase tracking-wider border-b-2 transition-all cursor-pointer font-sans rounded-t-md",
                     activeTab === 'soundboard'
-                      ? "border-[#c5b358] text-[#2c2c26] bg-white border-t border-x border-stone-200/50"
+                      ? "border-[#2563eb] text-[#0f172a] bg-white border-t border-x border-stone-200/50"
                       : "border-transparent text-stone-400 hover:text-stone-700"
                   )}
                 >
@@ -169,7 +169,7 @@ export function AudioPanel({
                   className={cn(
                     "px-3 py-2 text-xs font-bold uppercase tracking-wider border-b-2 transition-all cursor-pointer font-sans rounded-t-md",
                     activeTab === 'library'
-                      ? "border-[#c5b358] text-[#2c2c26] bg-white border-t border-x border-stone-200/50"
+                      ? "border-[#2563eb] text-[#0f172a] bg-white border-t border-x border-stone-200/50"
                       : "border-transparent text-stone-400 hover:text-stone-700"
                   )}
                 >

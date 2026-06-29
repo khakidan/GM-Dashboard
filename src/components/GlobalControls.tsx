@@ -28,12 +28,12 @@ export function GlobalControls({
         <button
           id="audio-panel-header"
           onClick={() => setIsAudioPanelOpen(true)}
-          className={`h-11 bg-white shadow-lg border text-stone-900 overflow-visible transition-all font-sans rounded-xl flex items-center justify-between px-4 cursor-pointer hover:bg-[#f5f5f0] select-none ${
-            isAudioPanelOpen ? 'ring-2 ring-[#c5b358] border-[#c5b358]' : 'border-[#e5e1d8]'
+          className={`h-11 bg-white shadow-lg border text-stone-900 overflow-visible transition-all font-sans rounded-xl flex items-center justify-between px-4 cursor-pointer hover:bg-[#e2e8f0] select-none ${
+            isAudioPanelOpen ? 'ring-2 ring-[#2563eb] border-[#2563eb]' : 'border-[#e2e8f0]'
           }`}
         >
           <div className="flex items-center gap-2">
-            <span className="text-[11px] shrink-0 font-bold uppercase tracking-wider text-[#2c2c26] flex items-center gap-2 font-sans" id="audio-panel-label">
+            <span className="text-[11px] shrink-0 font-bold uppercase tracking-wider text-[#0f172a] flex items-center gap-2 font-sans" id="audio-panel-label">
               <span role="img" aria-label="music" className="text-sm">🎵</span> AUDIO
             </span>
 

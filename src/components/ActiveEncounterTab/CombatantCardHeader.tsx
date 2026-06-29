@@ -107,7 +107,7 @@ const InitiativeInput = ({
       onBlur={handleBlur}
       onKeyDown={handleKeyDown}
       disabled={disabled}
-      className="w-14 h-8 bg-[#faf9f6]/50 border border-[#e5e1d8] rounded text-center font-bold text-[#c5b358] outline-none text-sm focus:border-[#c5b358] focus:bg-white disabled:opacity-50"
+      className="w-14 h-8 bg-transparent border border-[#e2e8f0] rounded text-center font-bold text-[#0f172a] outline-none text-sm focus:border-[#2563eb] focus:bg-white disabled:opacity-50"
     />
   );
 };
@@ -174,7 +174,7 @@ export function CombatantCardHeader({
                 type="checkbox"
                 checked={isSelected}
                 onChange={() => onToggleSelect?.(c.id)}
-                className="w-5 h-5 rounded border-[#c5b358] text-[#c5b358] focus:ring-[#c5b358] cursor-pointer"
+                className="w-5 h-5 rounded border-[#2563eb] text-[#2563eb] focus:ring-[#2563eb] cursor-pointer"
               />
             </div>
           ))}
@@ -184,7 +184,7 @@ export function CombatantCardHeader({
             className="flex flex-col items-center shrink-0"
             onClick={e => e.stopPropagation()}
           >
-            <span className="text-[10px] font-bold uppercase text-[#5a5a40] opacity-60 leading-none mb-1">Init</span>
+            <span className="text-[10px] font-bold uppercase text-[#8d8db9] opacity-60 leading-none mb-1">Init</span>
             <InitiativeInput
               value={initiative}
               onSave={val => onUpdateCombatant({ initiative: val })}
@@ -194,7 +194,7 @@ export function CombatantCardHeader({
 
           {/* 3. Combatant name and AC badge */}
           <div className="min-w-0 flex flex-wrap items-center gap-2">
-            <h3 className={cn('text-lg font-bold font-serif truncate', type === 'npc' ? 'text-red-800' : 'text-[#2c2c26]')}>
+            <h3 className={cn('text-lg font-bold font-serif truncate', type === 'npc' ? 'text-red-800' : 'text-[#0f172a]')}>
               {name}
             </h3>
             {c.conditions?.toLowerCase().includes('concentrating') && (
@@ -223,10 +223,10 @@ export function CombatantCardHeader({
               const acMod = tempAcModifier || 0;
               const effAc = effectiveAc(baseAc, acMod);
               if (acMod === 0) {
-                return <span className="text-sm font-bold text-[#b0a04f] whitespace-nowrap">(AC {baseAc})</span>;
+                return <span className="text-sm font-bold text-[#567eff] whitespace-nowrap">(AC {baseAc})</span>;
               }
               const sign = acMod > 0 ? '+' : '';
-              return <span className="text-sm font-bold text-amber-600 whitespace-nowrap">(AC {effAc} ({sign}{acMod}))</span>;
+              return <span className="text-sm font-bold text-[#2563eb] whitespace-nowrap">(AC {effAc} ({sign}{acMod}))</span>;
             })()}
             <CombatantCardBadges conditions={c.conditions || ''} combatant={c} />
           </div>
@@ -268,9 +268,9 @@ export function CombatantCardHeader({
                   className={cn(
                     "inline-flex items-center gap-1 px-1.5 py-[2px] rounded-full border select-none shrink-0",
                     c.legendaryActions.remaining === c.legendaryActions.max
-                      ? "bg-amber-50 border-amber-300 text-amber-700 font-sans font-bold text-[9px] uppercase tracking-wide"
+                      ? "bg-[#f9f8ff] border-amber-300 text-[#567eff] font-sans font-bold text-[9px] uppercase tracking-wide"
                       : c.legendaryActions.remaining > 0
-                      ? "bg-amber-50 border-amber-200 text-amber-500 font-sans font-bold text-[9px] uppercase tracking-wide"
+                      ? "bg-[#f9f8ff] border-amber-200 text-[#2563eb] font-sans font-bold text-[9px] uppercase tracking-wide"
                       : "bg-gray-100 border-gray-200 text-gray-400 font-sans font-bold text-[9px] uppercase tracking-wide"
                   )}
                 >
@@ -327,7 +327,7 @@ export function CombatantCardHeader({
 
           {/* 5. Current HP value */}
           <div 
-            className="flex items-center gap-3 border-l border-[#f5f5f0] pl-4 shrink-0"
+            className="flex items-center gap-3 border-l border-[#e2e8f0] pl-4 shrink-0"
             onClick={e => e.stopPropagation()}
           >
             <div className="flex flex-col items-center">
@@ -335,7 +335,7 @@ export function CombatantCardHeader({
                 value={c.currentHp}
                 maxHp={maxHpCeiling}
                 isActive={isActiveTurn}
-                colorClass={c.currentHp <= maxHpCeiling / 2 ? (c.currentHp <= 0 ? 'text-red-700' : 'text-[#c5b358]') : 'text-[#2c2c26]'}
+                colorClass={c.currentHp <= maxHpCeiling / 2 ? (c.currentHp <= 0 ? 'text-red-700' : 'text-[#567eff]') : 'text-[#0f172a]'}
                 className="p-0"
               />
             </div>
@@ -371,8 +371,8 @@ export function CombatantCardHeader({
                     }
                   }}
                   className={cn(
-                    'w-18 h-8 bg-[#faf9f6]/50 border border-[#e5e1d8] rounded px-1 text-center outline-none focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] font-sans text-base font-bold disabled:opacity-50',
-                    isActiveTurn && 'bg-white border-[#c5b358]/50'
+                    'w-18 h-8 bg-transparent border border-[#e2e8f0] rounded px-1 text-center outline-none focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]/30 font-sans text-base font-bold disabled:opacity-50',
+                    isActiveTurn && 'bg-white border-[#2563eb]/50'
                   )}
                 />
                 <select
@@ -389,7 +389,7 @@ export function CombatantCardHeader({
                     }
                   }}
                   disabled={isSyncing}
-                  className="w-28 h-8 bg-[#faf9f6]/80 border border-[#e5e1d8] rounded px-1 text-xs font-bold text-[#5a5a40] outline-none cursor-pointer focus:border-[#c5b358] appearance-auto"
+                  className="w-28 h-8 bg-transparent border border-[#e2e8f0] rounded px-1 text-xs font-bold text-[#8d8db9] outline-none cursor-pointer focus:border-[#2563eb] appearance-auto"
                 >
                   <option value="">Damage Type</option>
                   {DAMAGE_TYPE_OPTIONS.map((type) => (
@@ -411,7 +411,7 @@ export function CombatantCardHeader({
                 </button>
               </div>
               
-              <div className="border-l border-[#f5f5f0]">&nbsp;</div>
+              <div className="border-l border-[#e2e8f0]">&nbsp;</div>
               
               {/* Heal Row & Inputs */}
               <div 
@@ -434,8 +434,8 @@ export function CombatantCardHeader({
                     }
                   }}
                   className={cn(
-                    'w-18 h-8 bg-[#faf9f6]/50 border border-[#e5e1d8] rounded px-1 text-center outline-none focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] font-sans text-base font-bold disabled:opacity-50',
-                    isActiveTurn && 'bg-white border-[#c5b358]/50'
+                    'w-18 h-8 bg-transparent border border-[#e2e8f0] rounded px-1 text-center outline-none focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]/30 font-sans text-base font-bold disabled:opacity-50',
+                    isActiveTurn && 'bg-white border-[#2563eb]/50'
                   )}
                 />
                 <button
@@ -456,7 +456,7 @@ export function CombatantCardHeader({
               e.stopPropagation();
               onToggleExpand();
             }}
-            className="p-2 text-[#5a5a40] opacity-40 hover:opacity-100 hover:bg-[#f5f5f0] rounded transition-all shrink-0 cursor-pointer"
+            className="p-2 text-[#8d8db9] opacity-40 hover:opacity-100 hover:bg-[#f9f8ff] rounded transition-all shrink-0 cursor-pointer"
           >
             <motion.div animate={{ rotate: isExpanded ? 180 : 0 }}>
               <ChevronDown className="w-5 h-5" />
@@ -477,11 +477,11 @@ export function CombatantCardHeader({
       return (
         <div 
           onClick={e => e.stopPropagation()}
-          className="border-t border-[#f5f5f0] px-4 py-1.5 flex flex-wrap gap-x-3 gap-y-1 text-xs select-none bg-[#faf9f6]/40 rounded-b-2xl"
+          className="border-t border-[#e2e8f0] px-4 py-1.5 flex flex-wrap gap-x-3 gap-y-1 text-xs select-none bg-[#f9f8ff]/40 rounded-b-2xl"
         >
           {pools.map(pool => (
             <div key={pool.name} className="inline-flex items-center gap-1.5" id={`compact-pool-${pool.name.toLowerCase().replace(/\s+/g, '-')}`}>
-              <span className="font-serif font-bold text-[#5a5a40] uppercase tracking-wide text-[10px]">
+              <span className="font-sans font-bold text-[#8d8db9] uppercase tracking-wide text-[10px]">
                 {pool.name.length > 10 ? `${pool.name.slice(0, 10)}...` : pool.name}
               </span>
               <button
@@ -491,13 +491,13 @@ export function CombatantCardHeader({
                   onUpdateResourcePools?.(c, updatedPools);
                 }}
                 disabled={pool.current <= 0 || isSyncing}
-                className="w-4 h-4 inline-flex items-center justify-center border border-[#e5e1d8] rounded text-[10px] font-bold text-red-600 hover:bg-red-50 disabled:opacity-30 cursor-pointer select-none leading-none"
+                className="w-4 h-4 inline-flex items-center justify-center border border-[#e2e8f0] rounded text-[10px] font-bold text-red-600 hover:bg-red-50 disabled:opacity-30 cursor-pointer select-none leading-none"
                 title="Spend 1 Use"
                 id={`compact-spend-${c.id}-${pool.name.toLowerCase().replace(/\s+/g, '-')}`}
               >
                 -
               </button>
-              <span className="font-mono font-bold text-xs text-[#2c2c26]">
+              <span className="font-mono font-bold text-xs text-[#0f172a]">
                 {pool.current}/{pool.max}
               </span>
               <button
@@ -507,7 +507,7 @@ export function CombatantCardHeader({
                   onUpdateResourcePools?.(c, updatedPools);
                 }}
                 disabled={pool.current >= pool.max || isSyncing}
-                className="w-4 h-4 inline-flex items-center justify-center border border-[#e5e1d8] rounded text-[10px] font-bold text-green-700 hover:bg-green-50 disabled:opacity-30 cursor-pointer select-none leading-none"
+                className="w-4 h-4 inline-flex items-center justify-center border border-[#e2e8f0] rounded text-[10px] font-bold text-green-700 hover:bg-green-50 disabled:opacity-30 cursor-pointer select-none leading-none"
                 title="Recover 1 Use"
                 id={`compact-recover-${c.id}-${pool.name.toLowerCase().replace(/\s+/g, '-')}`}
               >

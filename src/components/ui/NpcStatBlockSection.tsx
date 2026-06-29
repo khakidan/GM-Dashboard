@@ -56,23 +56,23 @@ export const NpcStatBlockSection: React.FC<NpcStatBlockSectionProps> = ({ title,
 
   return (
     <div className="space-y-2">
-      <h4 className="text-xs font-semibold uppercase tracking-wider text-[#5a5a40] border-b border-[#e5e1d8] pb-1 mb-2">
+      <h4 className="text-xs font-semibold uppercase tracking-wider text-[#8d8db9] border-b border-[#e2e8f0] pb-1 mb-2">
         {title}
       </h4>
       <div className="space-y-2">
         {items.map((item, index) => (
           <div key={index} className="leading-snug">
             <div className="flex flex-wrap items-baseline gap-2">
-              <span className="font-semibold text-[#2c2c26] italic">
+              <span className="font-semibold text-[#0f172a] italic">
                 {item.name}
               </span>
               {item.meta && (
-                <span className="text-xs text-[#5a5a40] font-medium">
+                <span className="text-xs text-[#8d8db9] font-medium">
                   {item.meta}
                 </span>
               )}
             </div>
-            <p className="text-sm text-[#2c2c26] leading-snug whitespace-pre-wrap mt-0.5">
+            <p className="text-sm text-[#0f172a] leading-snug whitespace-pre-wrap mt-0.5">
               {item.description}
             </p>
           </div>

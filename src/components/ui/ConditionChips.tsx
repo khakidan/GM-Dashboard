@@ -34,7 +34,7 @@ function getCategory(chip: string): ChipCategory {
 const chipClass: Record<ChipCategory, string> = {
   condition: 'bg-red-50 text-red-700 border border-red-200',
   effect:    'bg-blue-50 text-blue-700 border border-blue-200',
-  custom:    'bg-[#f5f5f0] text-[#5a5a40] border border-[#e5e1d8]',
+  custom:    'bg-[#e2e8f0] text-[#8d8db9] border border-[#e2e8f0]',
 };
 
 export function ConditionChips({
@@ -314,8 +314,8 @@ export function ConditionChips({
       <div
         className={cn(
           'min-h-[42px] flex flex-wrap gap-1.5 p-2',
-          'bg-[#faf9f6] border border-[#e5e1d8] rounded-xl cursor-text transition-colors',
-          !disabled && 'focus-within:border-[#c5b358] focus-within:bg-white',
+          'bg-[#f9f8ff] border border-[#e2e8f0] rounded-xl cursor-text transition-colors',
+          !disabled && 'focus-within:border-[#2563eb] focus-within:bg-white',
           disabled  && 'opacity-50 cursor-not-allowed'
         )}
         onClick={() => {
@@ -363,7 +363,7 @@ export function ConditionChips({
             onKeyDown={handleKeyDown}
             placeholder={chips.length === 0 ? 'Add condition or effect...' : ''}
             className="flex-1 min-w-[140px] bg-transparent outline-none text-xs font-sans
-                       text-[#2c2c26] placeholder:text-[#5a5a40]/40"
+                       text-[#0f172a] placeholder:text-[#8d8db9]/40"
           />
         )}
       </div>
@@ -372,7 +372,7 @@ export function ConditionChips({
       {open && !disabled && (filtered.length > 0 || showCustomEntry) && typeof document !== 'undefined' && createPortal(
         <div 
           id="condition-chips-dropdown"
-          className="bg-white border border-[#e5e1d8] rounded-xl shadow-lg overflow-hidden max-h-64 overflow-y-auto"
+          className="bg-white border border-[#e2e8f0] rounded-xl shadow-lg overflow-hidden max-h-64 overflow-y-auto"
           style={dropdownStyle}
         >
 
@@ -424,14 +424,14 @@ export function ConditionChips({
           {showCustomEntry && (
             <>
               <div className="px-3 py-1.5 text-[9px] font-bold uppercase tracking-widest
-                              text-[#5a5a40] bg-[#f5f5f0] border-b border-[#e5e1d8]">
+                              text-[#8d8db9] bg-[#e2e8f0] border-b border-[#e2e8f0]">
                 Custom
               </div>
               <button
                 type="button"
                 onMouseDown={e => { e.preventDefault(); addChip(query); }}
-                className="w-full text-left px-3 py-2 text-xs font-sans text-[#5a5a40]
-                           hover:bg-[#f5f5f0] transition-colors"
+                className="w-full text-left px-3 py-2 text-xs font-sans text-[#8d8db9]
+                           hover:bg-[#e2e8f0] transition-colors"
               >
                 Add "{query}"
               </button>
@@ -443,8 +443,8 @@ export function ConditionChips({
 
       {/* Inline duration prompt */}
       {pendingCondition && (
-        <div className="mt-2 p-2 bg-[#faf9f6] border border-[#e5e1d8] rounded-xl flex items-center gap-2">
-          <span className="text-xs font-bold text-[#5a5a40]">Duration for {pendingCondition}:</span>
+        <div className="mt-2 p-2 bg-[#f9f8ff] border border-[#e2e8f0] rounded-xl flex items-center gap-2">
+          <span className="text-xs font-bold text-[#8d8db9]">Duration for {pendingCondition}:</span>
           <input
             type="number"
             autoFocus
@@ -456,21 +456,21 @@ export function ConditionChips({
               if (e.key === 'Enter') confirmPendingTimer();
               if (e.key === 'Escape') skipPendingTimer();
             }}
-            className="w-20 bg-white border border-[#e5e1d8] rounded text-center px-2 py-1 text-xs outline-none focus:border-[#c5b358]"
+            className="w-20 bg-white border border-[#e2e8f0] rounded text-center px-2 py-1 text-xs outline-none focus:border-[#2563eb]"
           />
-          <span className="text-[10px] text-[#5a5a40]/60">(optional)</span>
+          <span className="text-[10px] text-[#8d8db9]/60">(optional)</span>
           <div className="flex-1" />
           <button
             type="button"
             onClick={confirmPendingTimer}
-            className="px-2 py-1 text-[10px] font-bold uppercase bg-[#c5b358] text-white rounded hover:bg-[#b09e4b]"
+            className="px-2 py-1 text-[10px] font-bold uppercase bg-[#2563eb] text-white rounded hover:bg-[#567eff]"
           >
             Add
           </button>
           <button
             type="button"
             onClick={skipPendingTimer}
-            className="px-2 py-1 text-[10px] font-bold uppercase text-[#5a5a40] hover:bg-[#e5e1d8] rounded"
+            className="px-2 py-1 text-[10px] font-bold uppercase text-[#8d8db9] hover:bg-[#e2e8f0] rounded"
           >
             Skip
           </button>
@@ -480,11 +480,11 @@ export function ConditionChips({
       {/* Colour legend — only shown when chips are present */}
       {chips.length > 0 && (
         <div className="flex gap-3 mt-1 px-1">
-          <span className="text-[9px] font-sans text-[#5a5a40]/60 flex items-center gap-1">
+          <span className="text-[9px] font-sans text-[#8d8db9]/60 flex items-center gap-1">
             <span className="w-2 h-2 rounded-full bg-red-300 inline-block" />
             Condition
           </span>
-          <span className="text-[9px] font-sans text-[#5a5a40]/60 flex items-center gap-1">
+          <span className="text-[9px] font-sans text-[#8d8db9]/60 flex items-center gap-1">
             <span className="w-2 h-2 rounded-full bg-blue-300 inline-block" />
             Effect
           </span>

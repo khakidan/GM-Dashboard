@@ -64,29 +64,29 @@ export const NpcReferencePanel: React.FC<NpcReferencePanelProps> = ({ combatant 
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="text-xs text-[#5a5a40] hover:text-[#2c2c26] font-medium bg-[#f5f1e8] rounded px-2 py-1 border border-[#e5e1d8] w-full text-left cursor-pointer transition-colors outline-none focus:outline-none"
+        className="text-xs text-[#8d8db9] hover:text-[#0f172a] font-medium bg-[#f9f8ff] rounded px-2 py-1 border border-[#e2e8f0] w-full text-left cursor-pointer transition-colors outline-none focus:outline-none"
       >
         {isOpen ? '▼ Stat Block' : '▶ Stat Block'}
       </button>
 
       {isOpen && (
-        <div className="bg-white border border-[#e5e1d8] rounded p-3 mt-1 space-y-3 text-sm text-left">
+        <div className="bg-white border border-[#e2e8f0] rounded p-3 mt-1 space-y-3 text-sm text-left">
           {/* Row 1: CR and Speed */}
           {((combatant.challengeRating && combatant.challengeRating.trim() !== '') || (combatant.speed && combatant.speed.trim() !== '')) && (
-            <div className="flex flex-wrap items-center gap-1.5 py-1 border-b border-[#e5e1d8]/40 pb-2 mb-1">
+            <div className="flex flex-wrap items-center gap-1.5 py-1 border-b border-[#e2e8f0]/40 pb-2 mb-1">
               {combatant.challengeRating && combatant.challengeRating.trim() !== '' && (
                 <div className="flex items-center gap-1">
-                  <span className="text-xs text-[#5a5a40] uppercase font-semibold">CR</span>
-                  <span className="text-sm font-medium text-[#2c2c26]">{combatant.challengeRating}</span>
+                  <span className="text-xs text-[#8d8db9] uppercase font-semibold">CR</span>
+                  <span className="text-sm font-medium text-[#0f172a]">{combatant.challengeRating}</span>
                 </div>
               )}
               {combatant.challengeRating && combatant.challengeRating.trim() !== '' && combatant.speed && combatant.speed.trim() !== '' && (
-                <span className="text-xs text-[#5a5a40] font-medium mx-1.5">·</span>
+                <span className="text-xs text-[#8d8db9] font-medium mx-1.5">·</span>
               )}
               {combatant.speed && combatant.speed.trim() !== '' && (
                 <div className="flex items-center gap-1">
-                  <span className="text-xs text-[#5a5a40] uppercase font-semibold">Speed</span>
-                  <span className="text-sm font-medium text-[#2c2c26]">{combatant.speed}</span>
+                  <span className="text-xs text-[#8d8db9] uppercase font-semibold">Speed</span>
+                  <span className="text-sm font-medium text-[#0f172a]">{combatant.speed}</span>
                 </div>
               )}
             </div>
@@ -95,16 +95,16 @@ export const NpcReferencePanel: React.FC<NpcReferencePanelProps> = ({ combatant 
           {/* Row 2: Senses */}
           {combatant.senses && combatant.senses.trim() !== '' && (
             <div className="flex items-center gap-1.5 py-0.5">
-              <span className="text-xs font-semibold uppercase tracking-wider text-[#5a5a40]">Senses</span>
-              <span className="text-sm font-medium text-[#2c2c26]">{combatant.senses}</span>
+              <span className="text-xs font-semibold uppercase tracking-wider text-[#8d8db9]">Senses</span>
+              <span className="text-sm font-medium text-[#0f172a]">{combatant.senses}</span>
             </div>
           )}
 
           {/* Row 3: Languages */}
           {combatant.languages && combatant.languages.trim() !== '' && (
             <div className="flex items-center gap-1.5 py-0.5">
-              <span className="text-xs font-semibold uppercase tracking-wider text-[#5a5a40]">Languages</span>
-              <span className="text-sm font-medium text-[#2c2c26]">{combatant.languages}</span>
+              <span className="text-xs font-semibold uppercase tracking-wider text-[#8d8db9]">Languages</span>
+              <span className="text-sm font-medium text-[#0f172a]">{combatant.languages}</span>
             </div>
           )}
 

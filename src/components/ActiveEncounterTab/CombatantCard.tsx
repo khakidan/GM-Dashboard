@@ -80,13 +80,13 @@ export function CombatantCard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className={cn(
-        'relative bg-[#fdfaf5] border rounded-2xl transition-all h-fit',
-        isSelected ? 'bg-[#fdf4c2] border-[#c5b358] shadow-[0_0_15px_rgba(197,179,88,0.2)] border-l-[6px] border-l-amber-500' : (isActive ? 'bg-[#fdf4c2] border-2 border-[#c5b358] shadow-md z-10' : 'border-[#e5e1d8] hover:border-[#c5b358]/40'),
+        'relative bg-[#ffffff] border rounded-2xl transition-all h-fit',
+        isSelected ? 'bg-[#f0f7ff] border-[#2563eb] shadow-[0_0_15px_rgba(37,99,235,0.15)] border-l-[6px] border-l-[#2563eb]' : (isActive ? 'bg-[#f0f7ff] border-2 border-[#2563eb] shadow-md z-10' : 'border-[#e2e8f0] hover:border-[#2563eb]/40'),
         c.currentHp <= 0 ? 'opacity-60 grayscale-[0.5]' : ''
       )}
     >
       {isActive && !isSelectable && (
-        <div className="absolute -top-3 left-6 bg-[#c5b358] text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full shadow-sm z-20 flex items-center gap-1">
+        <div className="absolute -top-3 left-6 bg-[#2563eb] text-white text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full shadow-sm z-20 flex items-center gap-1">
           <Zap className="w-3 h-3 fill-current" /> Active
         </div>
       )}

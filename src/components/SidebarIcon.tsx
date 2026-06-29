@@ -37,10 +37,10 @@ export function SidebarIcon({
         {icon}
       </button>
       {/* Tooltip */}
-      <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 z-50 bg-[#2c2c26] border border-[#3f3f37] text-[#fdfaf5] text-xs font-medium px-2.5 py-1.5 rounded-md shadow-lg whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-150">
+      <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 z-50 bg-[#0f172a] border border-[#3f3f37] text-[#ffffff] text-xs font-medium px-2.5 py-1.5 rounded-md shadow-lg whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-150">
         {label}
         {/* Small left-pointing arrow */}
-        <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-[#2c2c26]" />
+        <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-[#0f172a]" />
       </div>
     </div>
   );

@@ -82,17 +82,17 @@ export const StatBlockSkills: React.FC<StatBlockSkillsProps> = ({
 
               return (
                 <div key={skill} className="flex items-center gap-1.5 py-0.5" id={`skill-collapsed-${skill.toLowerCase().replace(/\s+/g, '-')}`}>
-                   <span className="text-amber-500 font-bold">●</span>
+                   <span className="text-[#2563eb] font-bold">●</span>
                   <span className="text-xs text-stone-800 font-medium">
                     {skill}
                     {prof === 'expertise' && (
-                      <span className="text-[10px] text-amber-700 ml-0.5">
+                      <span className="text-[10px] text-[#567eff] ml-0.5">
                         (exp)
                       </span>
                     )}
                   </span>
                   <div className="flex-1" />
-                  <span className="text-xs font-semibold text-amber-600">
+                  <span className="text-xs font-semibold text-[#2563eb]">
                     {formatBonus(bonus)}
                   </span>
                 </div>
@@ -123,7 +123,7 @@ export const StatBlockSkills: React.FC<StatBlockSkillsProps> = ({
                     if (readOnly) {
                       return (
                         <span
-                          className={prof !== 'none' ? 'text-amber-500' : 'text-stone-400'}
+                          className={prof !== 'none' ? 'text-[#2563eb]' : 'text-[#8d8db9]'}
                           id={`skill-expanded-indicator-${skill.toLowerCase().replace(/\s+/g, '-')}`}
                         >
                           {prof !== 'none' ? '●' : '○'}
@@ -135,10 +135,10 @@ export const StatBlockSkills: React.FC<StatBlockSkillsProps> = ({
                     const cycleIndicator = prof === 'none' ? '○' : prof === 'proficient' ? '●' : '★';
                     const cycleClass =
                       prof === 'none'
-                        ? 'text-stone-400 hover:text-stone-700'
+                        ? 'text-[#8d8db9] hover:text-[#0f172a]'
                         : prof === 'proficient'
-                        ? 'text-amber-500'
-                        : 'text-amber-600';
+                        ? 'text-[#2563eb]'
+                        : 'text-[#567eff]';
 
                     return (
                       <button
@@ -168,7 +168,7 @@ export const StatBlockSkills: React.FC<StatBlockSkillsProps> = ({
                       >
                         {skill}
                         {prof === 'expertise' && (
-                          <span className="text-[10px] text-amber-700 font-semibold ml-0.5">
+                          <span className="text-[10px] text-[#567eff] font-semibold ml-0.5">
                             (exp)
                           </span>
                         )}
@@ -178,7 +178,7 @@ export const StatBlockSkills: React.FC<StatBlockSkillsProps> = ({
 
                       <span
                         className={`text-xs font-semibold ${
-                          prof !== 'none' ? 'text-amber-600' : 'text-stone-600'
+                          prof !== 'none' ? 'text-[#2563eb]' : 'text-stone-600'
                         }`}
                         id={`skill-bonus-${skill.toLowerCase().replace(/\s+/g, '-')}`}
                       >
@@ -198,7 +198,7 @@ export const StatBlockSkills: React.FC<StatBlockSkillsProps> = ({
                 id="jack-of-all-trades-chk"
                 checked={jackOfAllTrades}
                 onChange={onJackOfAllTradesToggle}
-                className="rounded border-stone-400 text-amber-500 focus:ring-amber-500/50 bg-stone-800"
+                className="rounded border-stone-400 text-[#2563eb] focus:ring-[#2563eb]/30 bg-stone-800"
               />
               <label
                 htmlFor="jack-of-all-trades-chk"

@@ -146,12 +146,12 @@ export function CombatSidebar({
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
       <div 
-        className="bg-[#fdfaf5] w-full max-w-2xl rounded-2xl shadow-2xl border border-[#e5e1d8] overflow-hidden flex flex-col max-h-[85vh]"
+        className="bg-[#ffffff] w-full max-w-2xl rounded-2xl shadow-2xl border border-[#e2e8f0] overflow-hidden flex flex-col max-h-[85vh]"
         onClick={e => e.stopPropagation()}
       >
-        <div className="bg-[#2c2c26] p-6 text-[#e5e1d8] flex items-center justify-between shrink-0">
+        <div className="bg-[#0f172a] p-6 text-[#e2e8f0] flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
-            <UserPlus className="w-6 h-6 text-[#c5b358]" />
+            <UserPlus className="w-6 h-6 text-[#2563eb]" />
             <h2 className="text-xl font-bold font-serif uppercase tracking-wider">Add Combatant</h2>
           </div>
           <button onClick={handleClose} className="p-2 hover:bg-white/10 rounded-full transition-colors" title="Close">
@@ -159,19 +159,19 @@ export function CombatSidebar({
           </button>
         </div>
 
-        <div className="flex border-b border-[#e5e1d8] shrink-0">
+        <div className="flex border-b border-[#e2e8f0] shrink-0">
           {(['library', 'party', 'create'] as const).map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={cn("flex-1 py-4 text-xs font-bold uppercase tracking-widest transition-all", activeTab === tab ? "bg-white text-[#2c2c26]" : "bg-[#f5f0d5] text-[#5a5a40]")}
+              className={cn("flex-1 py-4 text-xs font-bold uppercase tracking-widest transition-all", activeTab === tab ? "bg-white text-[#0f172a]" : "bg-[#f5f0d5] text-[#8d8db9]")}
             >
               {tab === 'library' ? 'NPC Library' : tab === 'party' ? 'Party Members' : 'Create NPC'}
             </button>
           ))}
         </div>
 
-        <div className="p-8 overflow-y-auto scrollbar-thin scrollbar-thumb-[#e5e1d8] flex-1">
+        <div className="p-8 overflow-y-auto scrollbar-thin scrollbar-thumb-[#e2e8f0] flex-1">
           {activeTab === 'library' && (
             <div className="space-y-4">
               <input
@@ -179,11 +179,11 @@ export function CombatSidebar({
                 placeholder="Search NPCs..."
                 value={npcSearch}
                 onChange={e => setNpcSearch(e.target.value)}
-                className="w-full bg-white border border-[#e5e1d8] rounded-xl px-4 py-3 text-sm"
+                className="w-full bg-white border border-[#e2e8f0] rounded-xl px-4 py-3 text-sm"
               />
-              <div className="border border-[#e5e1d8] rounded-xl h-64 overflow-y-auto">
+              <div className="border border-[#e2e8f0] rounded-xl h-64 overflow-y-auto">
                 {filteredNpcs.length === 0 ? (
-                  <div className="text-center py-12 text-sm text-[#5a5a40]">
+                  <div className="text-center py-12 text-sm text-[#8d8db9]">
                     {npcSearch ? `No NPCs match '${npcSearch}'` : 'NPC Library is empty.'}
                   </div>
                 ) : (
@@ -191,17 +191,17 @@ export function CombatSidebar({
                     <button
                       key={npc.id}
                       onClick={() => setSelectedPreset(npc.id)}
-                      className={cn("w-full text-left p-4 border-b border-[#e5e1d8] hover:bg-[#faf9f6]", selectedPreset === npc.id && "bg-[#f5f0d5] border-[#c5b358]")}
+                      className={cn("w-full text-left p-4 border-b border-[#e2e8f0] hover:bg-[#f9f8ff]", selectedPreset === npc.id && "bg-[#f5f0d5] border-[#2563eb]")}
                     >
                       <div className="font-bold">{npc.name}</div>
-                      <div className="text-xs text-[#5a5a40]">AC: {npc.ac}  HP: {npc.maxHp}</div>
+                      <div className="text-xs text-[#8d8db9]">AC: {npc.ac}  HP: {npc.maxHp}</div>
                     </button>
                   ))
                 )}
               </div>
               <div className="flex items-center gap-4">
                   <label htmlFor="npc-quantity">How many?</label>
-                  <input id="npc-quantity" type="number" value={presetQuantity} onChange={e => setPresetQuantity(parseInt(e.target.value) || 1)} min="1" max="20" className="w-16 p-2 border border-[#e5e1d8] rounded-lg" />
+                  <input id="npc-quantity" type="number" value={presetQuantity} onChange={e => setPresetQuantity(parseInt(e.target.value) || 1)} min="1" max="20" className="w-16 p-2 border border-[#e2e8f0] rounded-lg" />
               </div>
               <button
                 disabled={!selectedPreset || isAddingInLibrary}
@@ -211,7 +211,7 @@ export function CombatSidebar({
                   setIsAddingInLibrary(false);
                   handleClose();
                 }}
-                className="w-full bg-[#c5b358] text-[#2c2c26] py-3 rounded-xl font-bold uppercase"
+                className="w-full bg-[#2563eb] text-[#0f172a] py-3 rounded-xl font-bold uppercase"
               >
                 Add to Encounter
               </button>
@@ -220,15 +220,15 @@ export function CombatSidebar({
           {activeTab === 'party' && (
             <div className="space-y-4">
               {characters.filter(c => c.statusId === 1 || c.statusName === 'Active').length === 0 ? (
-                <div className="text-sm text-[#5a5a40] py-8 text-center">No active party members. Add players in the Party Roster tab.</div>
+                <div className="text-sm text-[#8d8db9] py-8 text-center">No active party members. Add players in the Party Roster tab.</div>
               ) : characters.filter(c => c.statusId === 1 || c.statusName === 'Active').every(c => isInEncounter(c.id)) ? (
-                <div className="text-sm text-[#5a5a40] py-8 text-center">All party members are already in this encounter.</div>
+                <div className="text-sm text-[#8d8db9] py-8 text-center">All party members are already in this encounter.</div>
               ) : (
                 <div className="space-y-2">
                   {characters.filter(c => c.statusId === 1 || c.statusName === 'Active').map(char => {
                     const alreadyIn = isInEncounter(char.id);
                     return (
-                      <div key={char.id} className={cn("flex items-center gap-3 p-3 rounded-xl border border-[#e5e1d8]", alreadyIn ? "opacity-50 bg-[#f5f5f0]" : "bg-white")}>
+                      <div key={char.id} className={cn("flex items-center gap-3 p-3 rounded-xl border border-[#e2e8f0]", alreadyIn ? "opacity-50 bg-[#e2e8f0]" : "bg-white")}>
                         <input
                           type="checkbox"
                           checked={selectedCharacterIds.has(char.id)}
@@ -237,9 +237,9 @@ export function CombatSidebar({
                         />
                         <div className="flex-1">
                           <div className="font-bold">{char.characterName}</div>
-                          <div className="text-xs text-[#5a5a40]">Player: {char.playerName} AC: {char.ac} HP: {char.currentHp}/{char.maxHp}</div>
+                          <div className="text-xs text-[#8d8db9]">Player: {char.playerName} AC: {char.ac} HP: {char.currentHp}/{char.maxHp}</div>
                         </div>
-                        {alreadyIn && <div className="text-[10px] font-bold text-[#5a5a40] uppercase">Already in encounter</div>}
+                        {alreadyIn && <div className="text-[10px] font-bold text-[#8d8db9] uppercase">Already in encounter</div>}
                       </div>
                     );
                   })}
@@ -252,7 +252,7 @@ export function CombatSidebar({
                       setSelectedCharacterIds(new Set());
                       handleClose();
                     }}
-                    className="w-full bg-[#c5b358] text-[#2c2c26] py-3 rounded-xl font-bold uppercase disabled:opacity-50"
+                    className="w-full bg-[#2563eb] text-[#0f172a] py-3 rounded-xl font-bold uppercase disabled:opacity-50"
                   >
                     Add Selected
                   </button>
@@ -266,7 +266,7 @@ export function CombatSidebar({
               <button
                 type="submit"
                 disabled={isCreatingNpc}
-                className="w-full bg-[#c5b358] text-[#2c2c26] py-3 rounded-xl font-bold uppercase"
+                className="w-full bg-[#2563eb] text-[#0f172a] py-3 rounded-xl font-bold uppercase"
               >
                 {isCreatingNpc ? 'Creating...' : 'Create & Add to Encounter'}
               </button>

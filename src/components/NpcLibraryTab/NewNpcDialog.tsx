@@ -85,18 +85,18 @@ export function NewNpcDialog({ isOpen, onClose, onConfirm }: NewNpcDialogProps) 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-[#2c2c26]/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-[#0f172a]/60 backdrop-blur-sm"
             onClick={onClose}
           />
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="bg-[#fdfaf5] w-full max-w-xl rounded-2xl shadow-2xl border border-[#e5e1d8] overflow-hidden flex flex-col relative z-10"
+            className="bg-[#ffffff] w-full max-w-xl rounded-2xl shadow-2xl border border-[#e2e8f0] overflow-hidden flex flex-col relative z-10"
           >
-            <div className="bg-[#2c2c26] p-6 text-[#e5e1d8] flex items-center justify-between">
+            <div className="bg-[#0f172a] p-6 text-[#e2e8f0] flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <UserPlus className="w-6 h-6 text-[#c5b358]" />
+                <UserPlus className="w-6 h-6 text-[#2563eb]" />
                 <h2 className="text-xl font-bold font-serif uppercase tracking-wider">Add New NPC</h2>
               </div>
               <button
@@ -115,13 +115,13 @@ export function NewNpcDialog({ isOpen, onClose, onConfirm }: NewNpcDialogProps) 
                 <button
                   type="button"
                   onClick={onClose}
-                  className="flex-1 bg-[#e5e1d8] hover:bg-[#d4cfc1] text-[#2c2c26] py-3.5 rounded-xl font-bold font-sans uppercase tracking-widest text-xs transition-all active:scale-95"
+                  className="flex-1 bg-[#e2e8f0] hover:bg-[#d4cfc1] text-[#0f172a] py-3.5 rounded-xl font-bold font-sans uppercase tracking-widest text-xs transition-all active:scale-95"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 bg-[#c5b358] hover:bg-[#b0a04f] text-[#2c2c26] py-3.5 rounded-xl font-bold font-sans uppercase tracking-widest text-xs transition-all flex items-center justify-center gap-2 shadow-md active:scale-95 disabled:opacity-50"
+                  className="flex-1 bg-[#2563eb] hover:bg-[#567eff] text-[#0f172a] py-3.5 rounded-xl font-bold font-sans uppercase tracking-widest text-xs transition-all flex items-center justify-center gap-2 shadow-md active:scale-95 disabled:opacity-50"
                 >
                   <Save className="w-4 h-4" />
                   Add NPC →

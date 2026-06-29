@@ -37,15 +37,15 @@ export function NpcListEditor<T extends { name: string }>({
   };
 
   return (
-    <div className="border border-[#e5e1d8] rounded bg-[#f5f1e8] p-3 space-y-3">
+    <div className="border border-[#e2e8f0] rounded bg-[#f9f8ff] p-3 space-y-3">
       <div className="flex items-center justify-between">
-        <h4 className="text-xs font-semibold uppercase tracking-wider text-[#5a5a40]">
+        <h4 className="text-xs font-semibold uppercase tracking-wider text-[#8d8db9]">
           {title}
         </h4>
         <button
           type="button"
           onClick={handleAddItem}
-          className="text-xs text-[#c5b358] hover:text-[#8a7a20] font-medium flex items-center gap-1"
+          className="text-xs text-[#2563eb] hover:text-[#567eff] font-medium flex items-center gap-1"
         >
           <Plus className="w-3.5 h-3.5" />
           Add {singularTitle}
@@ -57,7 +57,7 @@ export function NpcListEditor<T extends { name: string }>({
           {items.map((item, index) => (
             <div
               key={index}
-              className="bg-[#fdfaf5] rounded border border-[#e5e1d8] p-3 relative"
+              className="bg-[#ffffff] rounded border border-[#e2e8f0] p-3 relative"
             >
               <button
                 type="button"

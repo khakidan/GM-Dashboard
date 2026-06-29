@@ -27,7 +27,7 @@ import { StoredAudioFile } from '../lib/audioFileStore';
 import { cn } from '../lib/utils';
 import { MOODS, MoodId } from '../lib/constants';
 
-const COMMAND_ITEM_CLASS = "w-full px-3 py-2.5 rounded-lg flex items-center justify-between text-xs font-semibold font-sans transition-all cursor-pointer text-stone-300 hover:bg-amber-50 hover:text-gray-900 border-l-2 border-transparent hover:border-amber-400 data-[selected='true']:bg-amber-50 data-[selected='true']:text-gray-900 data-[selected='true']:border-amber-400 data-[selected=true]:bg-amber-50 data-[selected=true]:text-gray-900 data-[selected=true]:border-amber-400";
+const COMMAND_ITEM_CLASS = "w-full px-3 py-2.5 rounded-lg flex items-center justify-between text-xs font-semibold font-sans transition-all cursor-pointer text-stone-300 hover:bg-[#f9f8ff] hover:text-gray-900 border-l-2 border-transparent hover:border-amber-400 data-[selected='true']:bg-[#f9f8ff] data-[selected='true']:text-gray-900 data-[selected='true']:border-amber-400 data-[selected=true]:bg-[#f9f8ff] data-[selected=true]:text-gray-900 data-[selected=true]:border-amber-400";
 
 interface CommandPaletteProps {
   isOpen: boolean;
@@ -109,24 +109,24 @@ export function CommandPalette({
     >
       <div 
         id="command-palette-card"
-        className="w-full max-w-xl bg-[#2c2c26] text-[#e5e1d8] rounded-2xl border border-[#3f3f37] overflow-hidden shadow-2xl flex flex-col"
+        className="w-full max-w-xl bg-[#0f172a] text-[#e2e8f0] rounded-2xl border border-[#3f3f37] overflow-hidden shadow-2xl flex flex-col"
         onClick={e => e.stopPropagation()}
       >
         <Command label="GM Command Palette" id="command-palette-command-wrapper" className="flex flex-col">
           <div className="flex items-center gap-3 px-4 py-3 border-b border-[#3f3f37]">
-            <Dices className="w-5 h-5 text-[#c5b358]" />
+            <Dices className="w-5 h-5 text-[#2563eb]" />
             <Command.Input
               id="command-palette-input"
               autoFocus
               placeholder="Type a command or search..."
-              className="w-full bg-transparent outline-none border-none placeholder-stone-500 text-sm font-sans text-[#e5e1d8]"
+              className="w-full bg-transparent outline-none border-none placeholder-stone-500 text-sm font-sans text-[#e2e8f0]"
             />
           </div>
 
           <Command.List id="command-palette-list" className="max-h-96 overflow-y-auto py-2 scrollbar-thin">
             <Command.Empty className="px-4 py-3 text-xs text-stone-500 font-medium font-sans">No commands found.</Command.Empty>
 
-            <Command.Group heading="── Navigation ──" className="px-2 py-1.5 [&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:font-sans [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-[#c5b358]/50">
+            <Command.Group heading="── Navigation ──" className="px-2 py-1.5 [&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:font-sans [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-[#2563eb]/50">
               <Command.Item
                 id="cmd-party-roster"
                 onSelect={() => {
@@ -136,7 +136,7 @@ export function CommandPalette({
                 className={COMMAND_ITEM_CLASS}
               >
                 <div className="flex items-center gap-3">
-                  <Users className="w-4 h-4 text-[#c5b358]" />
+                  <Users className="w-4 h-4 text-[#2563eb]" />
                   <span>Party Roster</span>
                 </div>
               </Command.Item>
@@ -149,7 +149,7 @@ export function CommandPalette({
                 className={COMMAND_ITEM_CLASS}
               >
                 <div className="flex items-center gap-3">
-                  <Map className="w-4 h-4 text-[#c5b358]" />
+                  <Map className="w-4 h-4 text-[#2563eb]" />
                   <span>Encounters</span>
                 </div>
               </Command.Item>
@@ -162,7 +162,7 @@ export function CommandPalette({
                 className={COMMAND_ITEM_CLASS}
               >
                 <div className="flex items-center gap-3">
-                  <Skull className="w-4 h-4 text-[#c5b358]" />
+                  <Skull className="w-4 h-4 text-[#2563eb]" />
                   <span>NPC Library</span>
                 </div>
               </Command.Item>
@@ -175,7 +175,7 @@ export function CommandPalette({
                 className={COMMAND_ITEM_CLASS}
               >
                 <div className="flex items-center gap-3">
-                  <Swords className="w-4 h-4 text-[#c5b358]" />
+                  <Swords className="w-4 h-4 text-[#2563eb]" />
                   <span>Active Encounter</span>
                 </div>
               </Command.Item>
@@ -189,13 +189,13 @@ export function CommandPalette({
                 className={COMMAND_ITEM_CLASS}
               >
                 <div className="flex items-center gap-3">
-                  <ExternalLink className="w-4 h-4 text-[#c5b358]" />
+                  <ExternalLink className="w-4 h-4 text-[#2563eb]" />
                   <span>Player View</span>
                 </div>
               </Command.Item>
             </Command.Group>
 
-            <Command.Group heading="── Create ──" className="px-2 py-1.5 [&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:font-sans [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-[#c5b358]/50">
+            <Command.Group heading="── Create ──" className="px-2 py-1.5 [&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:font-sans [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-[#2563eb]/50">
               <Command.Item
                 id="cmd-create-player"
                 onSelect={() => {
@@ -206,7 +206,7 @@ export function CommandPalette({
                 className={COMMAND_ITEM_CLASS}
               >
                 <div className="flex items-center gap-3">
-                  <Users className="w-4 h-4 text-[#c5b358]" />
+                  <Users className="w-4 h-4 text-[#2563eb]" />
                   <span>+ New Player</span>
                 </div>
               </Command.Item>
@@ -220,7 +220,7 @@ export function CommandPalette({
                 className={COMMAND_ITEM_CLASS}
               >
                 <div className="flex items-center gap-3">
-                  <Skull className="w-4 h-4 text-[#c5b358]" />
+                  <Skull className="w-4 h-4 text-[#2563eb]" />
                   <span>+ New NPC</span>
                 </div>
               </Command.Item>
@@ -234,13 +234,13 @@ export function CommandPalette({
                 className={COMMAND_ITEM_CLASS}
               >
                 <div className="flex items-center gap-3">
-                  <Map className="w-4 h-4 text-[#c5b358]" />
+                  <Map className="w-4 h-4 text-[#2563eb]" />
                   <span>+ New Encounter</span>
                 </div>
               </Command.Item>
             </Command.Group>
 
-            <Command.Group heading="── Combat ──" className="px-2 py-1.5 [&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:font-sans [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-[#c5b358]/50">
+            <Command.Group heading="── Combat ──" className="px-2 py-1.5 [&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:font-sans [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-[#2563eb]/50">
               {state.combatState.activeEncounterId && (
                 <>
                   <Command.Item
@@ -252,7 +252,7 @@ export function CommandPalette({
                     className={COMMAND_ITEM_CLASS}
                   >
                     <div className="flex items-center gap-3">
-                      <Play className="w-4 h-4 text-[#c5b358]" />
+                      <Play className="w-4 h-4 text-[#2563eb]" />
                       <span>Next Turn</span>
                     </div>
                     <kbd className="px-1.5 py-0.5 text-[10px] font-sans font-bold bg-[#1a1a14]/65 border border-[#3f3f37] rounded-md text-stone-400">N</kbd>
@@ -266,7 +266,7 @@ export function CommandPalette({
                     className={COMMAND_ITEM_CLASS}
                   >
                     <div className="flex items-center gap-3">
-                      <Dices className="w-4 h-4 text-[#c5b358]" />
+                      <Dices className="w-4 h-4 text-[#2563eb]" />
                       <span>Roll NPC Initiative</span>
                     </div>
                   </Command.Item>
@@ -288,7 +288,7 @@ export function CommandPalette({
                 title={!state.combatState.activeEncounterId ? "Start an encounter first" : undefined}
               >
                 <div className="flex items-center gap-3">
-                  <Swords className="w-4 h-4 text-[#c5b358]" />
+                  <Swords className="w-4 h-4 text-[#2563eb]" />
                   <span>Call for Initiative</span>
                 </div>
                 {!state.combatState.activeEncounterId && (
@@ -306,14 +306,14 @@ export function CommandPalette({
                   className={COMMAND_ITEM_CLASS}
                 >
                   <div className="flex items-center gap-3">
-                    <Settings className="w-4 h-4 text-[#c5b358]" />
+                    <Settings className="w-4 h-4 text-[#2563eb]" />
                     <span>Open Tools</span>
                   </div>
                 </Command.Item>
               )}
             </Command.Group>
 
-            <Command.Group heading="── Dice ──" className="px-2 py-1.5 [&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:font-sans [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-[#c5b358]/50">
+            <Command.Group heading="── Dice ──" className="px-2 py-1.5 [&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:font-sans [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-[#2563eb]/50">
               {[4, 6, 8, 10, 12, 20, 100].map(sides => (
                 <Command.Item
                   key={sides}
@@ -329,7 +329,7 @@ export function CommandPalette({
                   className={COMMAND_ITEM_CLASS}
                 >
                   <div className="flex items-center gap-3">
-                    <Dices className="w-4 h-4 text-[#c5b358]" />
+                    <Dices className="w-4 h-4 text-[#2563eb]" />
                     <span>Roll d{sides}</span>
                   </div>
                 </Command.Item>
@@ -343,13 +343,13 @@ export function CommandPalette({
                 className={COMMAND_ITEM_CLASS}
               >
                 <div className="flex items-center gap-3">
-                  <Sparkles className="w-4 h-4 text-[#c5b358]" />
+                  <Sparkles className="w-4 h-4 text-[#2563eb]" />
                   <span>Roll Custom...</span>
                 </div>
               </Command.Item>
             </Command.Group>
 
-            <Command.Group heading="── Party ──" className="px-2 py-1.5 [&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:font-sans [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-[#c5b358]/50">
+            <Command.Group heading="── Party ──" className="px-2 py-1.5 [&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:font-sans [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-[#2563eb]/50">
               <Command.Item
                 id="cmd-long-rest"
                 onSelect={() => {
@@ -359,7 +359,7 @@ export function CommandPalette({
                 className={COMMAND_ITEM_CLASS}
               >
                 <div className="flex items-center gap-3">
-                  <Moon className="w-4 h-4 text-[#c5b358]" />
+                  <Moon className="w-4 h-4 text-[#2563eb]" />
                   <span>Long Rest</span>
                 </div>
               </Command.Item>
@@ -373,13 +373,13 @@ export function CommandPalette({
                 className={COMMAND_ITEM_CLASS}
               >
                 <div className="flex items-center gap-3">
-                  <Moon className="w-4 h-4 text-[#c5b358]" />
+                  <Moon className="w-4 h-4 text-[#2563eb]" />
                   <span>Short Rest</span>
                 </div>
               </Command.Item>
             </Command.Group>
 
-            <Command.Group heading="── Audio ──" className="px-2 py-1.5 [&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:font-sans [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-[#c5b358]/50">
+            <Command.Group heading="── Audio ──" className="px-2 py-1.5 [&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:font-sans [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-[#2563eb]/50">
               {/* Mood Presets Commands */}
               {MOODS.map((m) => {
                 const assignedTrackId = assignments[m.id];
@@ -441,7 +441,7 @@ export function CommandPalette({
                     className={COMMAND_ITEM_CLASS}
                   >
                     <div className="flex items-center gap-3">
-                      <Music className="w-4 h-4 text-[#c5b358]" />
+                      <Music className="w-4 h-4 text-[#2563eb]" />
                       <div className="flex flex-col">
                         <span className="font-sans font-bold">{file.name}</span>
                         <span className="text-[10px] text-stone-500 font-sans mt-0.5">Ambient track</span>
@@ -457,7 +457,7 @@ export function CommandPalette({
               )}
             </Command.Group>
 
-            <Command.Group heading="── Settings ──" className="px-2 py-1.5 [&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:font-sans [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-[#c5b358]/50">
+            <Command.Group heading="── Settings ──" className="px-2 py-1.5 [&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:font-sans [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-[#2563eb]/50">
               <Command.Item
                 id="cmd-open-settings"
                 onSelect={() => {
@@ -467,7 +467,7 @@ export function CommandPalette({
                 className={COMMAND_ITEM_CLASS}
               >
                 <div className="flex items-center gap-3">
-                  <Settings className="w-4 h-4 text-[#c5b358]" />
+                  <Settings className="w-4 h-4 text-[#2563eb]" />
                   <span>Open Settings</span>
                 </div>
               </Command.Item>
@@ -480,7 +480,7 @@ export function CommandPalette({
                 className={COMMAND_ITEM_CLASS}
               >
                 <div className="flex items-center gap-3">
-                  <Skull className="w-4 h-4 text-[#c5b358]" />
+                  <Skull className="w-4 h-4 text-[#2563eb]" />
                   <span>Test Death Animation</span>
                 </div>
               </Command.Item>
@@ -493,7 +493,7 @@ export function CommandPalette({
                 className={COMMAND_ITEM_CLASS}
               >
                 <div className="flex items-center gap-3">
-                  <Zap className="w-4 h-4 text-[#c5b358]" />
+                  <Zap className="w-4 h-4 text-[#2563eb]" />
                   <span>Test Damage Animation</span>
                 </div>
               </Command.Item>
@@ -506,7 +506,7 @@ export function CommandPalette({
                 className={COMMAND_ITEM_CLASS}
               >
                 <div className="flex items-center gap-3">
-                  <Heart className="w-4 h-4 text-[#c5b358]" />
+                  <Heart className="w-4 h-4 text-[#2563eb]" />
                   <span>Test Heal Animation</span>
                 </div>
               </Command.Item>

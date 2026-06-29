@@ -32,8 +32,8 @@ export function CombatMechanicsSummary({ mechanicalSummary }: CombatMechanicsSum
   }
 
   return (
-    <div className="bg-[#faf9f6]/30 p-4 rounded-xl border border-[#e5e1d8]">
-      <label className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40] mb-3">Combat Mechanics</label>
+    <div className="bg-[#f9f8ff]/30 p-4 rounded-xl border border-[#e2e8f0]">
+      <label className="block text-xs font-bold uppercase tracking-widest text-[#8d8db9] mb-3">Combat Mechanics</label>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4">
         {mechanicalSummary.speedLocked && (
           <div className="flex items-start gap-2">

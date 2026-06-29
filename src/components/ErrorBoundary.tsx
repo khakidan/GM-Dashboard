@@ -36,9 +36,9 @@ export class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div className="p-6 bg-white rounded-2xl border border-[#e5e1d8] shadow-md flex flex-col gap-4 max-w-2xl mx-auto my-8">
-          <h2 className="text-xl font-bold text-[#2c2c26] font-serif">Something went wrong on this page</h2>
-          <p className="text-sm text-[#5a5a40]">
+        <div className="p-6 bg-white rounded-2xl border border-[#e2e8f0] shadow-md flex flex-col gap-4 max-w-2xl mx-auto my-8">
+          <h2 className="text-xl font-bold text-[#0f172a] font-serif">Something went wrong on this page</h2>
+          <p className="text-sm text-[#8d8db9]">
             The application encountered an unexpected error on this view. You can try resetting the page state or reloading the entire application.
           </p>
           {this.state.error && (
@@ -50,14 +50,14 @@ export class ErrorBoundary extends Component<Props, State> {
             <button
               id="eb-try-again"
               onClick={() => this.setState({ hasError: false, error: null })}
-              className="bg-[#c5b358] hover:bg-[#b0a04f] text-[#2c2c26] px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all shadow-sm"
+              className="bg-[#2563eb] hover:bg-[#567eff] text-[#0f172a] px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all shadow-sm"
             >
               Try Again
             </button>
             <button
               id="eb-reload-app"
               onClick={() => window.location.reload()}
-              className="bg-[#5a5a40] hover:bg-[#3f3f37] text-white px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all shadow-sm"
+              className="bg-[#8d8db9] hover:bg-[#3f3f37] text-white px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all shadow-sm"
             >
               Reload App
             </button>

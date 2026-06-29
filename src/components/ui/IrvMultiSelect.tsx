@@ -103,11 +103,11 @@ export function IrvMultiSelect({
 
   return (
     <div className="space-y-1.5" ref={containerRef}>
-      <label className={cn("block text-[#5a5a40] uppercase tracking-wider font-bold mb-1 ml-1", compact ? "text-[10px]" : "text-xs")}>
+      <label className={cn("block text-[#8d8db9] uppercase tracking-wider font-bold mb-1 ml-1", compact ? "text-[10px]" : "text-xs")}>
         {label}
       </label>
       
-      <div className="min-h-[42px] p-1.5 bg-[#faf9f6]/50 border border-[#e5e1d8] rounded-xl flex flex-wrap gap-1.5 items-center transition-all focus-within:ring-2 focus-within:ring-[#c5b358]/20 focus-within:border-[#c5b358]">
+      <div className="min-h-[42px] p-1.5 bg-[#f9f8ff]/50 border border-[#e2e8f0] rounded-xl flex flex-wrap gap-1.5 items-center transition-all focus-within:ring-2 focus-within:ring-[#2563eb]/20 focus-within:border-[#2563eb]">
         <AnimatePresence>
           {selectedItems.map((item) => (
             <motion.span
@@ -115,7 +115,7 @@ export function IrvMultiSelect({
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.8, opacity: 0 }}
-              className="inline-flex items-center gap-1 px-2 py-0.5 bg-white border border-[#e5e1d8] rounded-full text-xs font-medium text-[#5a5a40] shadow-sm whitespace-nowrap"
+              className="inline-flex items-center gap-1 px-2 py-0.5 bg-white border border-[#e2e8f0] rounded-full text-xs font-medium text-[#8d8db9] shadow-sm whitespace-nowrap"
             >
               {item}
               <button
@@ -134,7 +134,7 @@ export function IrvMultiSelect({
           <input
             ref={inputRef}
             type="text"
-            className="w-full bg-transparent border-none outline-none text-sm font-medium py-1 px-1 placeholder:text-[#5a5a40]/40"
+            className="w-full bg-transparent border-none outline-none text-sm font-medium py-1 px-1 placeholder:text-[#8d8db9]/40"
             placeholder={selectedItems.length === 0 ? placeholder : ''}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -148,7 +148,7 @@ export function IrvMultiSelect({
                 initial={{ opacity: 0, y: 5 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 5 }}
-                className="absolute left-0 right-0 top-full mt-2 bg-white border border-[#e5e1d8] rounded-xl shadow-lg z-50 max-h-48 overflow-y-auto overflow-x-hidden p-1"
+                className="absolute left-0 right-0 top-full mt-2 bg-white border border-[#e2e8f0] rounded-xl shadow-lg z-50 max-h-48 overflow-y-auto overflow-x-hidden p-1"
               >
                 {filteredOptions.length > 0 ? (
                   filteredOptions.map((option) => (
@@ -156,14 +156,14 @@ export function IrvMultiSelect({
                       key={option}
                       type="button"
                       onClick={() => handleSelectItem(option)}
-                      className="w-full text-left px-3 py-2 text-sm text-[#2c2c26] hover:bg-[#fdfaf5] hover:text-[#c5b358] rounded-lg transition-colors font-medium flex items-center justify-between group"
+                      className="w-full text-left px-3 py-2 text-sm text-[#0f172a] hover:bg-[#ffffff] hover:text-[#2563eb] rounded-lg transition-colors font-medium flex items-center justify-between group"
                     >
                       {option}
-                      <span className="opacity-0 group-hover:opacity-100 text-[10px] uppercase font-bold text-[#b0a04f]">Add</span>
+                      <span className="opacity-0 group-hover:opacity-100 text-[10px] uppercase font-bold text-[#567eff]">Add</span>
                     </button>
                   ))
                 ) : searchTerm.length > 0 ? (
-                  <div className="px-3 py-3 text-xs text-[#5a5a40] italic text-center">
+                  <div className="px-3 py-3 text-xs text-[#8d8db9] italic text-center">
                     No matching damage types or conditions
                   </div>
                 ) : null}

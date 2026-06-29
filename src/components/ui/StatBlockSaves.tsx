@@ -42,7 +42,7 @@ export const StatBlockSaves: React.FC<StatBlockSavesProps> = ({
             <div className="flex items-center gap-1.5 w-full">
               {/* Indicator */}
               <span
-                className={isProficient ? 'text-amber-500' : 'text-stone-400'}
+                className={isProficient ? 'text-[#2563eb]' : 'text-[#8d8db9]'}
                 id={`saving-throw-indicator-${ability.toLowerCase()}`}
               >
                 {isProficient ? '●' : '○'}
@@ -55,7 +55,7 @@ export const StatBlockSaves: React.FC<StatBlockSavesProps> = ({
               <div className="flex-grow" />
               {/* Bonus */}
               <span
-                className={`text-xs font-semibold ${isProficient ? 'text-amber-600' : 'text-stone-700'}`}
+                className={`text-xs font-semibold ${isProficient ? 'text-[#2563eb]' : 'text-[#0f172a]'}`}
                 id={`saving-throw-bonus-${ability.toLowerCase()}`}
               >
                 {formatBonus(bonus)}

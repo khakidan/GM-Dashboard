@@ -35,30 +35,30 @@ export const CharacterStatGrid: React.FC<CharacterStatGridProps> = ({
 }) => {
   return (
     <>
-      <div className="flex items-center gap-1.5 text-[15px] font-bold text-[#5a5a40] opacity-60">
+      <div className="flex items-center gap-1.5 text-[15px] font-bold text-[#8d8db9] opacity-60">
         <Eye className="w-4 h-4" />
         {passivePerception}
       </div>
-      <div className="flex items-center gap-1.5 text-[15px] font-bold text-[#c5b358]">
+      <div className="flex items-center gap-1.5 text-[15px] font-bold text-[#2563eb]">
         <Heart className="w-4 h-4" />
         {currentHp}
       </div>
       <div className="flex items-center gap-2">
-        <div className="flex items-center gap-1.5 text-[15px] font-bold text-[#5a5a40]">
+        <div className="flex items-center gap-1.5 text-[15px] font-bold text-[#8d8db9]">
           <Shield className="w-4 h-4 opacity-50" />
           {(() => {
             const eff = effectiveAc;
             const mod = tempAc;
             if (mod === 0) return <span data-testid="eff-ac">{ac}</span>;
             const sign = mod > 0 ? '+' : '';
-            return <span data-testid="eff-ac" className="text-amber-600 font-bold">{eff} ({sign}{mod})</span>;
+            return <span data-testid="eff-ac" className="text-[#2563eb] font-bold">{eff} ({sign}{mod})</span>;
           })()}
         </div>
         <div className={cn(
-          "flex items-center gap-0.5 px-1.5 py-0.5 bg-transparent border rounded text-xs font-semibold focus-within:border-[#c5b358] focus-within:ring-1 focus-within:ring-[#c5b358] transition-colors",
-          tempAc === 0 ? "text-gray-400 border-[#e5e1d8]" : "text-amber-600 font-bold border-amber-300 focus-within:border-amber-500"
+          "flex items-center gap-0.5 px-1.5 py-0.5 bg-transparent border rounded text-xs font-semibold focus-within:border-[#2563eb] focus-within:ring-1 focus-within:ring-[#2563eb] transition-colors",
+          tempAc === 0 ? "text-gray-400 border-[#e2e8f0]" : "text-[#2563eb] font-bold border-amber-300 focus-within:border-[#2563eb]"
         )}>
-          {tempAc > 0 && <span className="select-none font-bold text-xs inline-block text-amber-600">+</span>}
+          {tempAc > 0 && <span className="select-none font-bold text-xs inline-block text-[#2563eb]">+</span>}
           <input
             id={`ac-mod-spinner-${characterId}`}
             data-testid="ac-mod-spinner"

@@ -156,24 +156,24 @@ export function CampaignSelector({
   return (
     <div
       id="campaign-selector-container"
-      className="min-h-screen flex flex-col items-center justify-center px-4 py-8 bg-[#fdfaf5] text-[#2c2c26] font-serif select-none"
+      className="min-h-screen flex flex-col items-center justify-center px-4 py-8 bg-[#ffffff] text-[#0f172a] font-serif select-none"
     >
       <div className="w-full max-w-[640px] flex-1 flex flex-col justify-center py-6">
         {/* Application Header */}
         <div className="text-center mb-8 md:mb-12">
-          <h1 id="selector-header-title" className="text-3xl md:text-4.5xl font-extrabold tracking-tight text-[#2c2c26] flex items-center justify-center gap-3">
-            <span role="img" aria-label="dragon" className="text-3xl md:text-4xl text-[#c5b358]">🐉</span>
+          <h1 id="selector-header-title" className="text-3xl md:text-4.5xl font-extrabold tracking-tight text-[#0f172a] flex items-center justify-center gap-3">
+            <span role="img" aria-label="dragon" className="text-3xl md:text-4xl text-[#2563eb]">🐉</span>
             GM Encounter Dashboard
           </h1>
-          <p id="selector-header-subtitle" className="mt-2 text-sm md:text-base text-[#5a5a40] font-sans">
+          <p id="selector-header-subtitle" className="mt-2 text-sm md:text-base text-[#8d8db9] font-sans">
             Select or create a campaign to get started.
           </p>
         </div>
 
         {/* Saved Campaigns list */}
-        <div className="bg-white/50 backdrop-blur-md rounded-2xl border border-[#e5e1d8] p-6 shadow-sm mb-8">
-          <h3 className="text-xs uppercase tracking-widest font-sans font-bold text-[#5a5a40] mb-4 flex items-center gap-2">
-            <FolderOpen className="w-4 h-4 text-[#c5b358]" />
+        <div className="bg-white/50 backdrop-blur-md rounded-2xl border border-[#e2e8f0] p-6 shadow-sm mb-8">
+          <h3 className="text-xs uppercase tracking-widest font-sans font-bold text-[#8d8db9] mb-4 flex items-center gap-2">
+            <FolderOpen className="w-4 h-4 text-[#2563eb]" />
             Your Campaigns ({campaigns.length})
           </h3>
 
@@ -183,21 +183,21 @@ export function CampaignSelector({
                 <div
                   key={camp.id}
                   id={`campaign-card-${camp.id}`}
-                  className="bg-white border border-[#e5e1d8] rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all hover:border-[#c5b358]/60 hover:shadow-sm"
+                  className="bg-white border border-[#e2e8f0] rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all hover:border-[#2563eb]/60 hover:shadow-sm"
                 >
                   <div className="flex-1 min-w-0">
-                    <h4 className="text-lg font-bold text-[#2c2c26] truncate font-serif">
+                    <h4 className="text-lg font-bold text-[#0f172a] truncate font-serif">
                        {camp.name}
                     </h4>
-                    <div className="flex items-center gap-3 mt-1 text-xs text-[#5a5a40] font-sans">
+                    <div className="flex items-center gap-3 mt-1 text-xs text-[#8d8db9] font-sans">
                       <span>Last opened: {formatRelativeDate(camp.lastOpenedAt)}</span>
-                      <span className="text-[#e5e1d8]">•</span>
+                      <span className="text-[#e2e8f0]">•</span>
                       <a
                         href={camp.spreadsheetUrl}
                         target="_blank"
                         rel="noreferrer referrer"
                         id={`open-sheet-link-${camp.id}`}
-                        className="text-[#c5b358] hover:text-[#a09040] flex items-center gap-1 hover:underline cursor-pointer"
+                        className="text-[#2563eb] hover:text-[#a09040] flex items-center gap-1 hover:underline cursor-pointer"
                         title="Open external spreadsheet in Google Sheets"
                       >
                         ↗ Open Sheet
@@ -237,7 +237,7 @@ export function CampaignSelector({
                         <button
                           id={`open-campaign-btn-${camp.id}`}
                           onClick={() => onOpenCampaign(camp)}
-                          className="px-4 py-2 bg-[#c5b358] hover:bg-[#b0a048] text-white font-sans font-bold rounded-lg text-sm flex items-center gap-1.5 transition-colors cursor-pointer"
+                          className="px-4 py-2 bg-[#2563eb] hover:bg-[#b0a048] text-white font-sans font-bold rounded-lg text-sm flex items-center gap-1.5 transition-colors cursor-pointer"
                         >
                           Open <ArrowRight className="w-4 h-4" />
                         </button>
@@ -281,7 +281,7 @@ export function CampaignSelector({
               className={`w-full p-3.5 rounded-xl font-sans font-bold flex items-center justify-center gap-2 border text-sm transition-all active:scale-[0.98] cursor-pointer ${
                 activeForm === 'create'
                   ? 'bg-[#3f3f37] border-[#3f3f37] text-white'
-                  : 'bg-white border-[#e5e1d8] text-[#5a5a40] hover:bg-[#fcfbf9] hover:border-[#c5b358]/50'
+                  : 'bg-white border-[#e2e8f0] text-[#8d8db9] hover:bg-[#f9f8ff] hover:border-[#2563eb]/50'
               }`}
             >
               <Plus className="w-4 h-4" />
@@ -298,7 +298,7 @@ export function CampaignSelector({
               className={`w-full p-3.5 rounded-xl font-sans font-bold flex items-center justify-center gap-2 border text-sm transition-all active:scale-[0.98] cursor-pointer ${
                 activeForm === 'connect'
                   ? 'bg-[#3f3f37] border-[#3f3f37] text-white'
-                  : 'bg-white border-[#e5e1d8] text-[#5a5a40] hover:bg-[#fcfbf9] hover:border-[#c5b358]/50'
+                  : 'bg-white border-[#e2e8f0] text-[#8d8db9] hover:bg-[#f9f8ff] hover:border-[#2563eb]/50'
               }`}
             >
               <FolderOpen className="w-4 h-4" />
@@ -314,10 +314,10 @@ export function CampaignSelector({
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 onSubmit={handleCreateSubmit}
-                className="bg-white border border-[#e5e1d8] rounded-xl p-5 space-y-4 shadow-sm"
+                className="bg-white border border-[#e2e8f0] rounded-xl p-5 space-y-4 shadow-sm"
               >
                 <div className="space-y-1.5">
-                  <label htmlFor="create-name-input" className="block text-xs font-sans font-bold uppercase tracking-wider text-[#5a5a40]">
+                  <label htmlFor="create-name-input" className="block text-xs font-sans font-bold uppercase tracking-wider text-[#8d8db9]">
                     Campaign Name
                   </label>
                   <input
@@ -327,7 +327,7 @@ export function CampaignSelector({
                     placeholder="e.g. Curse of Strahd"
                     value={createName}
                     onChange={(e) => setCreateName(e.target.value)}
-                    className="w-full px-3 py-2 border.5 border-[#e5e1d8] rounded-lg font-sans focus:outline-none focus:ring-2 focus:ring-[#c5b358]/40 focus:border-[#c5b358] disabled:opacity-50"
+                    className="w-full px-3 py-2 border.5 border-[#e2e8f0] rounded-lg font-sans focus:outline-none focus:ring-2 focus:ring-[#2563eb]/40 focus:border-[#2563eb] disabled:opacity-50"
                   />
                 </div>
 
@@ -354,7 +354,7 @@ export function CampaignSelector({
                     type="submit"
                     id="submit-create-btn"
                     disabled={submitting || isLoading}
-                    className="px-4 py-2 bg-[#c5b358] hover:bg-[#b0a048] font-bold text-white rounded-lg text-sm flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-60"
+                    className="px-4 py-2 bg-[#2563eb] hover:bg-[#b0a048] font-bold text-white rounded-lg text-sm flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-60"
                   >
                     {(submitting || isLoading) ? (
                       <>
@@ -376,10 +376,10 @@ export function CampaignSelector({
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 onSubmit={handleConnectSubmit}
-                className="bg-white border border-[#e5e1d8] rounded-xl p-5 space-y-4 shadow-sm"
+                className="bg-white border border-[#e2e8f0] rounded-xl p-5 space-y-4 shadow-sm"
               >
                 <div className="space-y-1.5">
-                  <label htmlFor="connect-name-input" className="block text-xs font-sans font-bold uppercase tracking-wider text-[#5a5a40]">
+                  <label htmlFor="connect-name-input" className="block text-xs font-sans font-bold uppercase tracking-wider text-[#8d8db9]">
                     Campaign Name
                   </label>
                   <input
@@ -389,12 +389,12 @@ export function CampaignSelector({
                     placeholder="e.g. Curse of Strahd"
                     value={connectName}
                     onChange={(e) => setConnectName(e.target.value)}
-                    className="w-full px-3 py-2 border.5 border-[#e5e1d8] rounded-lg font-sans focus:outline-none focus:ring-2 focus:ring-[#c5b358]/40 focus:border-[#c5b358] disabled:opacity-50"
+                    className="w-full px-3 py-2 border.5 border-[#e2e8f0] rounded-lg font-sans focus:outline-none focus:ring-2 focus:ring-[#2563eb]/40 focus:border-[#2563eb] disabled:opacity-50"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label htmlFor="connect-sheet-input" className="block text-xs font-sans font-bold uppercase tracking-wider text-[#5a5a40]">
+                  <label htmlFor="connect-sheet-input" className="block text-xs font-sans font-bold uppercase tracking-wider text-[#8d8db9]">
                     Spreadsheet ID or URL
                   </label>
                   <input
@@ -404,9 +404,9 @@ export function CampaignSelector({
                     placeholder="Paste spreadsheet ID or full Google Sheets URL"
                     value={spreadsheetInput}
                     onChange={(e) => setSpreadsheetInput(e.target.value)}
-                    className="w-full px-3 py-2 border.5 border-[#e5e1d8] rounded-lg font-sans focus:outline-none focus:ring-2 focus:ring-[#c5b358]/40 focus:border-[#c5b358] disabled:opacity-50"
+                    className="w-full px-3 py-2 border.5 border-[#e2e8f0] rounded-lg font-sans focus:outline-none focus:ring-2 focus:ring-[#2563eb]/40 focus:border-[#2563eb] disabled:opacity-50"
                   />
-                  <span className="block text-[11px] text-[#5a5a40]/70 font-sans leading-tight mt-1">
+                  <span className="block text-[11px] text-[#8d8db9]/70 font-sans leading-tight mt-1">
                     The ID is the long string in your sheet's URL between /d/ and /edit
                   </span>
                 </div>
@@ -434,7 +434,7 @@ export function CampaignSelector({
                     type="submit"
                     id="submit-connect-btn"
                     disabled={submitting || isLoading}
-                    className="px-4 py-2 bg-[#c5b358] hover:bg-[#b0a048] font-bold text-white rounded-lg text-sm flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-60"
+                    className="px-4 py-2 bg-[#2563eb] hover:bg-[#b0a048] font-bold text-white rounded-lg text-sm flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-60"
                   >
                     {(submitting || isLoading) ? (
                       <>
@@ -453,15 +453,15 @@ export function CampaignSelector({
       </div>
 
       {/* Footer Details */}
-      <footer className="text-center text-xs text-[#5a5a40]/60 font-sans pt-6 border-t border-[#e5e1d8]/60 flex flex-col sm:flex-row items-center justify-between gap-2 w-full max-w-[640px] mt-6">
+      <footer className="text-center text-xs text-[#8d8db9]/60 font-sans pt-6 border-t border-[#e2e8f0]/60 flex flex-col sm:flex-row items-center justify-between gap-2 w-full max-w-[640px] mt-6">
         <div>
-          Signed in as: <span className="font-semibold text-[#2c2c26]">{email}</span>
+          Signed in as: <span className="font-semibold text-[#0f172a]">{email}</span>
         </div>
         <a
           href="#signout"
           id="google-sign-out-link"
           onClick={handleSignOutClick}
-          className="text-[#c5b358] hover:text-[#a09040] font-bold hover:underline py-1 px-2.5 rounded hover:bg-stone-100 transition-colors flex items-center gap-1.5 cursor-pointer"
+          className="text-[#2563eb] hover:text-[#a09040] font-bold hover:underline py-1 px-2.5 rounded hover:bg-stone-100 transition-colors flex items-center gap-1.5 cursor-pointer"
         >
           <LogOut className="w-3.5 h-3.5" /> Sign out
         </a>

@@ -60,12 +60,12 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({
 
   return (
     <div className={cn(
-      "bg-[#fdfaf5] rounded-2xl border overflow-hidden flex flex-col relative group transition-all",
-      isExpanded ? "border-[#c5b358]/40" : "border-[#e5e1d8] hover:border-[#c5b358]/20",
-      isSyncing ? "border-[#c5b358] shadow-[0_0_15px_rgba(197,179,88,0.3)] shadow-[#c5b358]/20" : "shadow-sm hover:shadow-md"
+      "bg-[#ffffff] rounded-2xl border overflow-hidden flex flex-col relative group transition-all",
+      isExpanded ? "border-[#2563eb]/40" : "border-[#e2e8f0] hover:border-[#2563eb]/20",
+      isSyncing ? "border-[#2563eb] shadow-[0_0_15px_rgba(37,99,235,0.2)] shadow-[#2563eb]/20" : "shadow-sm hover:shadow-md"
     )}>
       {isSyncing && (
-        <div className="absolute top-2 right-10 z-20 flex items-center gap-1 bg-[#c5b358] text-[#2c2c26] text-xs uppercase font-bold px-3 py-1 rounded-full shadow-sm animate-pulse">
+        <div className="absolute top-2 right-10 z-20 flex items-center gap-1 bg-[#2563eb] text-[#0f172a] text-xs uppercase font-bold px-3 py-1 rounded-full shadow-sm animate-pulse">
           <Loader2 className="w-3.5 h-3.5 animate-spin"/> Syncing
         </div>
       )}
@@ -122,7 +122,7 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden border-t border-[#e5e1d8] bg-white"
+            className="overflow-hidden border-t border-[#e2e8f0] bg-white"
           >
             <CharacterCardExpanded
               character={character}

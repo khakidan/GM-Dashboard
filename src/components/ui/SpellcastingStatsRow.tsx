@@ -65,7 +65,7 @@ export const SpellcastingStatsRow: React.FC<SpellcastingStatsRowProps> = ({
       <div className="flex items-center gap-2" id="spellcasting-override-container">
         <label
           htmlFor="spellcasting-override-select"
-          className="text-[10px] font-bold uppercase tracking-wider text-[#5a5a40] whitespace-nowrap"
+          className="text-[10px] font-bold uppercase tracking-wider text-[#8d8db9] whitespace-nowrap"
         >
           Spellcasting:
         </label>
@@ -73,7 +73,7 @@ export const SpellcastingStatsRow: React.FC<SpellcastingStatsRowProps> = ({
           id="spellcasting-override-select"
           value={selectedValue}
           onChange={handleChange}
-          className="text-xs bg-white border border-[#e5e1d8] rounded-md text-[#2c2c26] py-1 px-1.5 outline-none focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358]/50"
+          className="text-xs bg-white border border-[#e2e8f0] rounded-md text-[#0f172a] py-1 px-1.5 outline-none focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]/50"
         >
           <option value="auto">Auto (from class)</option>
           <option value="INT">Intelligence (INT)</option>
@@ -88,7 +88,7 @@ export const SpellcastingStatsRow: React.FC<SpellcastingStatsRowProps> = ({
   // Case B: Explicitly null override in an edit context (no stats rendered, only dropdown)
   if (effective === null) {
     return (
-      <div className="py-1 border-t border-[#e5e1d8] flex flex-col sm:flex-row sm:items-center justify-between gap-2" id="spellcasting-stats-row">
+      <div className="py-1 border-t border-[#e2e8f0] flex flex-col sm:flex-row sm:items-center justify-between gap-2" id="spellcasting-stats-row">
         {renderOverrideDropdown()}
       </div>
     );
@@ -102,19 +102,19 @@ export const SpellcastingStatsRow: React.FC<SpellcastingStatsRowProps> = ({
 
   return (
     <div
-      className="py-1.5 border-t border-b border-[#e5e1d8] flex flex-wrap items-center justify-between gap-3 text-xs"
+      className="py-1.5 border-t border-b border-[#e2e8f0] flex flex-wrap items-center justify-between gap-3 text-xs"
       id="spellcasting-stats-row"
     >
       {/* Read-only stats block */}
-      <div className="flex items-center gap-2 text-xs font-sans text-[#5a5a40]" id="spellcasting-stats-display">
+      <div className="flex items-center gap-2 text-xs font-sans text-[#8d8db9]" id="spellcasting-stats-display">
         <span>
           Spell Save DC:{' '}
-          <span className="font-mono font-bold text-[#2c2c26]">{dc}</span>
+          <span className="font-mono font-bold text-[#0f172a]">{dc}</span>
         </span>
-        <span className="text-[#e5e1d8] px-0.5">·</span>
+        <span className="text-[#e2e8f0] px-0.5">·</span>
         <span>
           Spell Atk:{' '}
-          <span className="font-mono font-bold text-[#2c2c26]">
+          <span className="font-mono font-bold text-[#0f172a]">
             {formatSpellAttackBonus(atk)}
           </span>
         </span>

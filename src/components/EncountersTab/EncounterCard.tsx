@@ -92,13 +92,13 @@ export const EncounterCard: React.FC<EncounterCardProps> = ({
 
   return (
     <div className={cn(
-      "bg-white rounded-2xl border border-[#e5e1d8] overflow-hidden group transition-all hover:shadow-md",
+      "bg-white rounded-2xl border border-[#e2e8f0] overflow-hidden group transition-all hover:shadow-md",
       (isUpdating || isDeleting) && "opacity-75 pointer-events-none"
     )}>
       <div className="p-4 flex flex-col md:flex-row items-stretch md:items-center gap-4 px-6">
         {/* Name Field */}
         <div className="flex-[2] min-w-0">
-          <div className="text-[10px] uppercase text-[#5a5a40] font-bold tracking-widest mb-1 md:hidden">Encounter Name</div>
+          <div className="text-[10px] uppercase text-[#8d8db9] font-bold tracking-widest mb-1 md:hidden">Encounter Name</div>
           <DebouncedInput 
             type="text"
             value={name}
@@ -106,15 +106,15 @@ export const EncounterCard: React.FC<EncounterCardProps> = ({
             onBlur={() => handleUpdate()}
             disabled={isUpdating || isDeleting}
             placeholder="Encounter Name"
-            className="text-base font-bold text-[#2c2c26] font-serif bg-transparent border-none focus:ring-0 w-full p-0 truncate disabled:opacity-50"
+            className="text-base font-bold text-[#0f172a] font-serif bg-transparent border-none focus:ring-0 w-full p-0 truncate disabled:opacity-50"
           />
         </div>
 
         {/* Location Field */}
-        <div className="flex-1 min-w-0 border-t border-[#f5f5f0] pt-4 md:pt-0 md:border-t-0 md:border-l md:pl-4">
-          <div className="text-[10px] uppercase text-[#5a5a40] font-bold tracking-widest mb-1 md:hidden">Location</div>
+        <div className="flex-1 min-w-0 border-t border-[#e2e8f0] pt-4 md:pt-0 md:border-t-0 md:border-l md:pl-4">
+          <div className="text-[10px] uppercase text-[#8d8db9] font-bold tracking-widest mb-1 md:hidden">Location</div>
           <div className="flex items-center gap-2">
-            <MapPin className="w-3.5 h-3.5 text-[#c5b358] shrink-0" />
+            <MapPin className="w-3.5 h-3.5 text-[#2563eb] shrink-0" />
             <DebouncedInput 
               type="text"
               value={location}
@@ -122,14 +122,14 @@ export const EncounterCard: React.FC<EncounterCardProps> = ({
               onBlur={() => handleUpdate()}
               disabled={isUpdating || isDeleting}
               placeholder="No Location"
-              className="text-xs text-[#5a5a40] font-bold uppercase tracking-widest bg-transparent border-none focus:ring-0 p-0 w-full truncate placeholder:text-gray-300 disabled:opacity-50"
+              className="text-xs text-[#8d8db9] font-bold uppercase tracking-widest bg-transparent border-none focus:ring-0 p-0 w-full truncate placeholder:text-gray-300 disabled:opacity-50"
             />
           </div>
         </div>
 
         {/* Difficulty Select */}
-        <div className="w-full md:w-36 border-t border-[#f5f5f0] pt-4 md:pt-0 md:border-t-0 md:border-l md:pl-4">
-          <div className="text-[10px] uppercase text-[#5a5a40] font-bold tracking-widest mb-1 md:hidden">Difficulty</div>
+        <div className="w-full md:w-36 border-t border-[#e2e8f0] pt-4 md:pt-0 md:border-t-0 md:border-l md:pl-4">
+          <div className="text-[10px] uppercase text-[#8d8db9] font-bold tracking-widest mb-1 md:hidden">Difficulty</div>
           <select 
             value={difficultyId}
             onChange={e => {
@@ -153,18 +153,18 @@ export const EncounterCard: React.FC<EncounterCardProps> = ({
         </div>
 
         {/* NPC Count */}
-        <div className="flex items-center gap-2 border-t border-[#f5f5f0] pt-4 md:pt-0 md:border-t-0 md:border-l md:pl-4 px-2">
-          <div className="text-[10px] uppercase text-[#5a5a40] font-bold tracking-widest md:hidden">NPCs:</div>
-          <Skull className="w-4 h-4 text-[#c5b358]" />
-          <span className="text-sm font-bold text-[#2c2c26]">{npcCount}</span>
+        <div className="flex items-center gap-2 border-t border-[#e2e8f0] pt-4 md:pt-0 md:border-t-0 md:border-l md:pl-4 px-2">
+          <div className="text-[10px] uppercase text-[#8d8db9] font-bold tracking-widest md:hidden">NPCs:</div>
+          <Skull className="w-4 h-4 text-[#2563eb]" />
+          <span className="text-sm font-bold text-[#0f172a]">{npcCount}</span>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-2 border-t border-[#f5f5f0] pt-4 md:pt-0 md:border-t-0 md:border-l md:pl-4">
+        <div className="flex items-center gap-2 border-t border-[#e2e8f0] pt-4 md:pt-0 md:border-t-0 md:border-l md:pl-4">
           <button 
             onClick={() => onStart(enc)}
             disabled={isDeleting || isUpdating}
-            className="flex-1 md:flex-none p-2.5 bg-[#c5b358]/10 hover:bg-[#c5b358]/20 text-[#c5b358] rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-30"
+            className="flex-1 md:flex-none p-2.5 bg-[#2563eb]/10 hover:bg-[#2563eb]/20 text-[#2563eb] rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-30"
             title="View / Run Encounter"
           >
             <Swords className="w-5 h-5" />

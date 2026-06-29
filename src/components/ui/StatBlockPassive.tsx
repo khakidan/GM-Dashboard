@@ -43,7 +43,7 @@ export const StatBlockPassive: React.FC<StatBlockPassiveProps> = ({
           <button
             type="button"
             onClick={() => setPassiveBonusExpanded(!passiveBonusExpanded)}
-            className="text-[10px] text-amber-500/80 hover:underline cursor-pointer block text-left"
+            className="text-[10px] text-[#2563eb]/80 hover:underline cursor-pointer block text-left"
             id="toggle-passive-modifiers-btn"
           >
             {passiveBonusExpanded ? '− Hide passive bonuses' : '± Feat/item bonuses'}
@@ -60,7 +60,7 @@ export const StatBlockPassive: React.FC<StatBlockPassiveProps> = ({
                   value={proficiencies.passiveBonuses?.perception ?? 0}
                   onChange={(e) => onPassiveBonusChange('perception', e.target.value)}
                   onFocus={(e) => e.target.select()}
-                  className="w-full text-xs bg-stone-800 border border-stone-600 rounded text-stone-200 text-center py-0.5 outline-none focus:border-amber-500"
+                  className="w-full text-xs bg-stone-800 border border-stone-600 rounded text-stone-200 text-center py-0.5 outline-none focus:border-[#2563eb]"
                   id="passive-bonus-perception-input"
                 />
               </div>
@@ -73,7 +73,7 @@ export const StatBlockPassive: React.FC<StatBlockPassiveProps> = ({
                   value={proficiencies.passiveBonuses?.insight ?? 0}
                   onChange={(e) => onPassiveBonusChange('insight', e.target.value)}
                   onFocus={(e) => e.target.select()}
-                  className="w-full text-xs bg-stone-800 border border-stone-600 rounded text-stone-200 text-center py-0.5 outline-none focus:border-amber-500"
+                  className="w-full text-xs bg-stone-800 border border-stone-600 rounded text-stone-200 text-center py-0.5 outline-none focus:border-[#2563eb]"
                   id="passive-bonus-insight-input"
                 />
               </div>
@@ -86,7 +86,7 @@ export const StatBlockPassive: React.FC<StatBlockPassiveProps> = ({
                   value={proficiencies.passiveBonuses?.investigation ?? 0}
                   onChange={(e) => onPassiveBonusChange('investigation', e.target.value)}
                   onFocus={(e) => e.target.select()}
-                  className="w-full text-xs bg-stone-800 border border-stone-600 rounded text-stone-200 text-center py-0.5 outline-none focus:border-amber-500"
+                  className="w-full text-xs bg-stone-800 border border-stone-600 rounded text-stone-200 text-center py-0.5 outline-none focus:border-[#2563eb]"
                   id="passive-bonus-investigation-input"
                 />
               </div>

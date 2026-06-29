@@ -32,7 +32,7 @@ const getMoodButtonStyles = (moodId: MoodId, isActive: boolean, hasTracks: boole
 
   if (isActive) {
     if (isSweet) return 'bg-pink-500 text-white border-pink-500';
-    if (isAdventuring) return 'bg-amber-500 text-white border-amber-500';
+    if (isAdventuring) return 'bg-[#f9f8ff]0 text-white border-[#2563eb]';
     if (isTense) return 'bg-orange-500 text-white border-orange-500';
     if (isScary) return 'bg-purple-600 text-white border-purple-600';
     if (isCombat) return 'bg-red-600 text-white border-red-600';
@@ -40,7 +40,7 @@ const getMoodButtonStyles = (moodId: MoodId, isActive: boolean, hasTracks: boole
 
   if (hasTracks) {
     if (isSweet) return 'bg-white border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400';
-    if (isAdventuring) return 'bg-white border-amber-300 text-amber-600 hover:bg-amber-50 hover:border-amber-400';
+    if (isAdventuring) return 'bg-white border-amber-300 text-[#2563eb] hover:bg-[#f9f8ff] hover:border-amber-400';
     if (isTense) return 'bg-white border-orange-300 text-orange-600 hover:bg-orange-50 hover:border-orange-400';
     if (isScary) return 'bg-white border-purple-300 text-purple-600 hover:bg-purple-50 hover:border-purple-400';
     if (isCombat) return 'bg-white border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400';
@@ -104,9 +104,9 @@ export function AmbientPlayer({
 
   return (
     <div id="ambient-player" className="flex flex-col h-full text-stone-800">
-      <div className="flex items-center justify-between border-b border-[#e5e1d8] pb-3 mb-4">
-        <h3 className="font-serif font-bold text-sm text-[#2c2c26] uppercase tracking-wider flex items-center gap-2">
-          <Music className="w-4 h-4 text-[#c5b358]" />
+      <div className="flex items-center justify-between border-b border-[#e2e8f0] pb-3 mb-4">
+        <h3 className="font-serif font-bold text-sm text-[#0f172a] uppercase tracking-wider flex items-center gap-2">
+          <Music className="w-4 h-4 text-[#2563eb]" />
           Ambient Music
         </h3>
         
@@ -145,14 +145,14 @@ export function AmbientPlayer({
       </div>
 
       {ambientTracks.length === 0 ? (
-        <div className="flex-1 flex flex-col items-center justify-center text-center p-8 border border-dashed border-[#e5e1d8] rounded-xl bg-[#faf9f6]/50">
-          <p className="text-sm text-[#5a5a40] max-w-xs mb-3 font-sans">
+        <div className="flex-1 flex flex-col items-center justify-center text-center p-8 border border-dashed border-[#e2e8f0] rounded-xl bg-[#f9f8ff]/50">
+          <p className="text-sm text-[#8d8db9] max-w-xs mb-3 font-sans">
             No ambient tracks loaded. Go to the Library tab to add your MP3 files.
           </p>
           {onSwitchTab && (
             <button
               onClick={() => onSwitchTab('library')}
-              className="px-3 py-1.5 bg-[#faf9f6] border border-[#e5e1d8] hover:border-[#c5b358] text-[#5a5a40] hover:text-[#2c2c26] text-xs font-bold uppercase rounded cursor-pointer transition-colors"
+              className="px-3 py-1.5 bg-[#f9f8ff] border border-[#e2e8f0] hover:border-[#2563eb] text-[#8d8db9] hover:text-[#0f172a] text-xs font-bold uppercase rounded cursor-pointer transition-colors"
             >
               Open Library
             </button>
@@ -172,8 +172,8 @@ export function AmbientPlayer({
                   onClick={() => handleTrackClick(track.id)}
                   className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all ${
                     isCurrent
-                      ? 'bg-[#c5b358]/5 border-[#c5b358]/40 shadow-sm'
-                      : 'bg-[#faf9f6]/60 border-[#e5e1d8]/40 hover:bg-stone-50'
+                      ? 'bg-[#2563eb]/5 border-[#2563eb]/40 shadow-sm'
+                      : 'bg-[#f9f8ff]/60 border-[#e2e8f0]/40 hover:bg-stone-50'
                   }`}
                 >
                   <div className="flex items-center gap-3 min-w-0">
@@ -214,7 +214,7 @@ export function AmbientPlayer({
             })}
           </div>
 
-          <div className="bg-[#faf9f6] border border-[#e5e1d8]/60 rounded-xl p-4 flex items-center gap-3 shrink-0">
+          <div className="bg-[#f9f8ff] border border-[#e2e8f0]/60 rounded-xl p-4 flex items-center gap-3 shrink-0">
             <Volume className="w-5 h-5 text-stone-400 shrink-0" />
             <div className="flex-1 flex items-center gap-3">
               <input
@@ -224,7 +224,7 @@ export function AmbientPlayer({
                 max="100"
                 value={Math.round(ambientVolume * 100)}
                 onChange={handleVolumeChange}
-                className="w-full accent-[#c5b358]"
+                className="w-full accent-[#2563eb]"
                 style={{ cursor: 'pointer' }}
               />
               <span className="text-xs font-mono font-bold text-stone-500 w-10 text-right">

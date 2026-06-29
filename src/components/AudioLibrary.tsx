@@ -217,14 +217,14 @@ export function AudioLibrary({
     return (
       <div
         key={file.id}
-        className="group flex flex-row items-center p-2 bg-[#faf9f6]/50 border border-stone-200/40 rounded-lg text-xs w-full"
+        className="group flex flex-row items-center p-2 bg-[#f9f8ff]/50 border border-stone-200/40 rounded-lg text-xs w-full"
       >
         <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={() => handlePlayPreview(file)}
             className={`w-6 h-6 flex items-center justify-center rounded-full border shrink-0 ${
               previewingFileId === file.id
-                ? 'bg-[#c5b358]/10 text-[#c5b358] border-[#c5b358]/30'
+                ? 'bg-[#2563eb]/10 text-[#2563eb] border-[#2563eb]/30'
                 : 'bg-white border-stone-200 text-stone-500 hover:text-stone-700'
             }`}
             title="Preview 3s"
@@ -246,9 +246,9 @@ export function AudioLibrary({
                 }}
                 className={`w-6 h-6 flex items-center justify-center rounded-md border text-xs transition-colors shrink-0 ${
                   currentMood
-                    ? 'bg-amber-55 border-amber-200/60 text-stone-700'
+                    ? 'bg-[#f9f8ff] border-[#e2e8f0] text-stone-700'
                     : 'bg-stone-50/50 border-stone-200/50 text-stone-400 opacity-0 group-hover:opacity-100'
-                } hover:border-[#c5b358] hover:bg-amber-50/50 cursor-pointer`}
+                } hover:border-[#2563eb] hover:bg-[#f9f8ff]/50 cursor-pointer`}
                 title={currentMood ? `Mood: ${moodObj?.label}` : 'Assign Mood'}
                 style={{ opacity: currentMood ? 1 : undefined }}
               >
@@ -329,7 +329,7 @@ export function AudioLibrary({
     <div id="audio-library-panel" className="flex flex-col h-full text-stone-800">
       {/* Import Instructions Box */}
       {!instructionsDismissed && (
-        <div id="library-import-instructions" className="relative p-3 bg-amber-55/15 border border-amber-200/50 rounded-xl mb-4 font-sans text-xs text-stone-700/90 leading-normal pr-8">
+        <div id="library-import-instructions" className="relative p-3 bg-[#f9f8ff] border border-[#e2e8f0] rounded-xl mb-4 font-sans text-xs text-stone-700/90 leading-normal pr-8">
           <button
             id="dismiss-instructions-btn"
             onClick={handleDismissInstructions}
@@ -338,8 +338,8 @@ export function AudioLibrary({
           >
             <X className="w-4 h-4" />
           </button>
-          <p className="font-semibold text-[#2c2c26] mb-1 flex items-center gap-1">
-            <HelpCircle className="w-3.5 h-3.5 text-[#c5b358]" />
+          <p className="font-semibold text-[#0f172a] mb-1 flex items-center gap-1">
+            <HelpCircle className="w-3.5 h-3.5 text-[#2563eb]" />
             Audio Import Guidelines
           </p>
           Drag your MP3 files here or click to browse. Ambient tracks loop continuously. Sound effects play on demand from the Soundboard. Files are saved in your browser and available every session.
@@ -353,22 +353,22 @@ export function AudioLibrary({
             onClick={() => { setActiveSubTab('ambient'); setShowClearConfirm(false); }}
             className={cn(
               "pb-2 text-[11px] font-bold uppercase tracking-wider transition-colors border-b-2 font-sans flex items-center gap-1.5",
-              activeSubTab === 'ambient' ? "border-[#c5b358] text-[#2c2c26]" : "border-transparent text-stone-400 hover:text-stone-600"
+              activeSubTab === 'ambient' ? "border-[#2563eb] text-[#0f172a]" : "border-transparent text-stone-400 hover:text-stone-600"
             )}
           >
             Ambient Tracks 
-            <span className="bg-stone-100 text-[#5a5a40] px-1.5 py-0.5 rounded pl-1.5 font-mono text-[9px]">({ambientTracks.length})</span>
+            <span className="bg-stone-100 text-[#8d8db9] px-1.5 py-0.5 rounded pl-1.5 font-mono text-[9px]">({ambientTracks.length})</span>
           </button>
           
           <button
             onClick={() => { setActiveSubTab('effect'); setShowClearConfirm(false); }}
             className={cn(
               "pb-2 text-[11px] font-bold uppercase tracking-wider transition-colors border-b-2 font-sans flex items-center gap-1.5",
-              activeSubTab === 'effect' ? "border-[#c5b358] text-[#2c2c26]" : "border-transparent text-stone-400 hover:text-stone-600"
+              activeSubTab === 'effect' ? "border-[#2563eb] text-[#0f172a]" : "border-transparent text-stone-400 hover:text-stone-600"
             )}
           >
             Sound Effects
-            <span className="bg-stone-100 text-[#5a5a40] px-1.5 py-0.5 rounded pl-1.5 font-mono text-[9px]">({effectFiles.length})</span>
+            <span className="bg-stone-100 text-[#8d8db9] px-1.5 py-0.5 rounded pl-1.5 font-mono text-[9px]">({effectFiles.length})</span>
           </button>
         </div>
 
@@ -418,8 +418,8 @@ export function AudioLibrary({
           onClick={() => triggerFileInput(activeSubTab)}
           className={`border-2 border-dashed rounded-xl p-4 flex flex-col items-center justify-center text-center cursor-pointer transition-all h-24 mb-4 shrink-0 ${
             dragOverCategory === activeSubTab
-              ? 'bg-amber-500/5 border-[#c5b358] scale-[0.98]'
-              : 'bg-[#faf9f6]/40 border-stone-200 hover:border-stone-350 hover:bg-stone-50/20'
+              ? 'bg-[#f9f8ff]0/5 border-[#2563eb] scale-[0.98]'
+              : 'bg-[#f9f8ff]/40 border-stone-200 hover:border-stone-350 hover:bg-stone-50/20'
           }`}
         >
           <input
@@ -431,7 +431,7 @@ export function AudioLibrary({
             multiple
           />
           <Upload className="w-5 h-5 text-stone-400 mb-1" />
-          <span className="text-[10px] font-sans font-bold text-[#5a5a40] uppercase tracking-wider">
+          <span className="text-[10px] font-sans font-bold text-[#8d8db9] uppercase tracking-wider">
             + Add Files
           </span>
           <span className="text-[9px] text-stone-400 mt-0.5 font-sans">

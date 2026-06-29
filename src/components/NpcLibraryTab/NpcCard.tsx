@@ -66,7 +66,7 @@ export const NpcCard: React.FC<NpcCardProps> = ({
     }
   }, [npc.legendaryActionsList]);
 
-  const inputClass = "w-full bg-white border border-[#e5e1d8] rounded-xl outline-none transition-all font-serif italic text-sm px-4 py-3 focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358]";
+  const inputClass = "w-full bg-white border border-[#e2e8f0] rounded-xl outline-none transition-all font-serif italic text-sm px-4 py-3 focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]";
 
   const renderTraitFields = (item: NpcTrait, index: number, onItemChange: (updated: NpcTrait) => void) => (
     <div className="space-y-2">
@@ -112,7 +112,7 @@ export const NpcCard: React.FC<NpcCardProps> = ({
 
       <div className="grid grid-cols-4 gap-2">
         <div>
-          <label className="block text-[10px] font-semibold text-[#5a5a40] uppercase px-1">Atk</label>
+          <label className="block text-[10px] font-semibold text-[#8d8db9] uppercase px-1">Atk</label>
           <input
             type="number"
             value={item.attackBonus !== undefined ? item.attackBonus : ''}
@@ -125,7 +125,7 @@ export const NpcCard: React.FC<NpcCardProps> = ({
           />
         </div>
         <div>
-          <label className="block text-[10px] font-semibold text-[#5a5a40] uppercase px-1">Dmg</label>
+          <label className="block text-[10px] font-semibold text-[#8d8db9] uppercase px-1">Dmg</label>
           <input
             type="text"
             value={item.damage || ''}
@@ -135,7 +135,7 @@ export const NpcCard: React.FC<NpcCardProps> = ({
           />
         </div>
         <div>
-          <label className="block text-[10px] font-semibold text-[#5a5a40] uppercase px-1">DC</label>
+          <label className="block text-[10px] font-semibold text-[#8d8db9] uppercase px-1">DC</label>
           <input
             type="number"
             value={item.saveDC !== undefined ? item.saveDC : ''}
@@ -148,7 +148,7 @@ export const NpcCard: React.FC<NpcCardProps> = ({
           />
         </div>
         <div>
-          <label className="block text-[10px] font-semibold text-[#5a5a40] uppercase px-1">Save</label>
+          <label className="block text-[10px] font-semibold text-[#8d8db9] uppercase px-1">Save</label>
           <input
             type="text"
             value={item.saveType || ''}
@@ -160,7 +160,7 @@ export const NpcCard: React.FC<NpcCardProps> = ({
       </div>
 
       <div>
-        <label className="block text-[10px] font-semibold text-[#5a5a40] uppercase px-1">Range</label>
+        <label className="block text-[10px] font-semibold text-[#8d8db9] uppercase px-1">Range</label>
         <input
           type="text"
           value={item.range || ''}
@@ -218,7 +218,7 @@ export const NpcCard: React.FC<NpcCardProps> = ({
           />
         </div>
         <div>
-          <label className="block text-[10px] font-semibold text-[#5a5a40] uppercase px-1">Cost</label>
+          <label className="block text-[10px] font-semibold text-[#8d8db9] uppercase px-1">Cost</label>
           <input
             type="number"
             min="1"
@@ -233,7 +233,7 @@ export const NpcCard: React.FC<NpcCardProps> = ({
 
       <div className="grid grid-cols-4 gap-2">
         <div>
-          <label className="block text-[10px] font-semibold text-[#5a5a40] uppercase px-1">Atk</label>
+          <label className="block text-[10px] font-semibold text-[#8d8db9] uppercase px-1">Atk</label>
           <input
             type="number"
             value={item.attackBonus !== undefined ? item.attackBonus : ''}
@@ -246,7 +246,7 @@ export const NpcCard: React.FC<NpcCardProps> = ({
           />
         </div>
         <div>
-          <label className="block text-[10px] font-semibold text-[#5a5a40] uppercase px-1">Dmg</label>
+          <label className="block text-[10px] font-semibold text-[#8d8db9] uppercase px-1">Dmg</label>
           <input
             type="text"
             value={item.damage || ''}
@@ -256,7 +256,7 @@ export const NpcCard: React.FC<NpcCardProps> = ({
           />
         </div>
         <div>
-          <label className="block text-[10px] font-semibold text-[#5a5a40] uppercase px-1">DC</label>
+          <label className="block text-[10px] font-semibold text-[#8d8db9] uppercase px-1">DC</label>
           <input
             type="number"
             value={item.saveDC !== undefined ? item.saveDC : ''}
@@ -269,7 +269,7 @@ export const NpcCard: React.FC<NpcCardProps> = ({
           />
         </div>
         <div>
-          <label className="block text-[10px] font-semibold text-[#5a5a40] uppercase px-1">Save</label>
+          <label className="block text-[10px] font-semibold text-[#8d8db9] uppercase px-1">Save</label>
           <input
             type="text"
             value={item.saveType || ''}
@@ -294,12 +294,12 @@ export const NpcCard: React.FC<NpcCardProps> = ({
 
   return (
     <div className={cn(
-      "bg-[#fdfaf5] rounded-2xl border border-[#e5e1d8] overflow-hidden flex flex-col relative group transition-all",
-      isExpanded ? "border-[#c5b358]/40" : "hover:border-[#c5b358]/20",
-      isSyncing ? "border-[#c5b358] shadow-[0_0_15px_rgba(197,179,88,0.3)] shadow-[#c5b358]/20" : "shadow-sm hover:shadow-md"
+      "bg-[#ffffff] rounded-2xl border border-[#e2e8f0] overflow-hidden flex flex-col relative group transition-all",
+      isExpanded ? "border-[#2563eb]/40" : "hover:border-[#2563eb]/20",
+      isSyncing ? "border-[#2563eb] shadow-[0_0_15px_rgba(37,99,235,0.2)] shadow-[#2563eb]/20" : "shadow-sm hover:shadow-md"
     )}>
       {isSyncing && (
-        <div className="absolute top-2 right-10 z-20 flex items-center gap-1 bg-[#c5b358] text-[#2c2c26] text-xs uppercase font-bold px-3 py-1 rounded-full shadow-sm animate-pulse">
+        <div className="absolute top-2 right-10 z-20 flex items-center gap-1 bg-[#2563eb] text-[#0f172a] text-xs uppercase font-bold px-3 py-1 rounded-full shadow-sm animate-pulse">
           <Loader2 className="w-3.5 h-3.5 animate-spin"/> Syncing
         </div>
       )}
@@ -327,60 +327,60 @@ export const NpcCard: React.FC<NpcCardProps> = ({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden border-t border-[#e5e1d8] bg-white"
+            className="overflow-hidden border-t border-[#e2e8f0] bg-white"
           >
             <div className="p-6 flex flex-col gap-6">
               {/* Stats Grid */}
               <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
-                <div className="text-center p-3 bg-[#fdfaf5] border border-[#e5e1d8] rounded-xl shadow-sm">
-                  <div className="text-[10px] font-bold uppercase tracking-widest text-[#5a5a40] mb-1">AC</div>
+                <div className="text-center p-3 bg-[#ffffff] border border-[#e2e8f0] rounded-xl shadow-sm">
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-[#8d8db9] mb-1">AC</div>
                   <CardNumberInput
                     value={npc.ac}
                     onChange={v => onUpdate({ ac: v })}
                     fallback={0}
                     min={0}
-                    className="text-lg font-bold text-[#2c2c26] w-full text-center bg-transparent border-none focus:ring-0 p-0 disabled:opacity-50"
+                    className="text-lg font-bold text-[#0f172a] w-full text-center bg-transparent border-none focus:ring-0 p-0 disabled:opacity-50"
                     disabled={isSyncing}
                   />
                 </div>
-                <div className="text-center p-3 bg-[#fdfaf5] border border-[#e5e1d8] rounded-xl shadow-sm">
-                  <div className="text-[10px] font-bold uppercase tracking-widest text-[#5a5a40] mb-1">Max HP</div>
+                <div className="text-center p-3 bg-[#ffffff] border border-[#e2e8f0] rounded-xl shadow-sm">
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-[#8d8db9] mb-1">Max HP</div>
                   <CardNumberInput
                     value={npc.maxHp}
                     onChange={v => onUpdate({ maxHp: v })}
                     fallback={1}
                     min={1}
-                    className="text-lg font-bold text-[#2c2c26] w-full text-center bg-transparent border-none focus:ring-0 p-0 disabled:opacity-50"
+                    className="text-lg font-bold text-[#0f172a] w-full text-center bg-transparent border-none focus:ring-0 p-0 disabled:opacity-50"
                     disabled={isSyncing}
                   />
                 </div>
-                <div className="text-center p-3 bg-[#fdfaf5] border border-[#e5e1d8] rounded-xl shadow-sm">
-                  <div className="text-[10px] font-bold uppercase tracking-widest text-[#5a5a40] mb-1">HP</div>
+                <div className="text-center p-3 bg-[#ffffff] border border-[#e2e8f0] rounded-xl shadow-sm">
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-[#8d8db9] mb-1">HP</div>
                   <CardNumberInput
                     value={npc.currentHp}
                     onChange={v => onUpdate({ currentHp: v })}
                     fallback={0}
                     className={cn(
                       "text-lg font-bold w-full text-center bg-transparent border-none focus:ring-0 p-0 disabled:opacity-50",
-                      npc.currentHp <= 0 ? "text-red-600" : "text-[#2c2c26]"
+                      npc.currentHp <= 0 ? "text-red-600" : "text-[#0f172a]"
                     )}
                     disabled={isSyncing}
                   />
                 </div>
-                <div className="text-center p-3 bg-[#fdfaf5] border border-[#e5e1d8] rounded-xl shadow-sm">
-                  <div className="text-[10px] font-bold uppercase tracking-widest text-[#5a5a40] mb-1">Temp</div>
+                <div className="text-center p-3 bg-[#ffffff] border border-[#e2e8f0] rounded-xl shadow-sm">
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-[#8d8db9] mb-1">Temp</div>
                   <CardNumberInput
                     value={npc.tempHp}
                     onChange={v => onUpdate({ tempHp: v })}
                     fallback={0}
                     min={0}
-                    className="text-lg font-bold text-[#2c2c26] w-full text-center bg-transparent border-none focus:ring-0 p-0 disabled:opacity-50"
+                    className="text-lg font-bold text-[#0f172a] w-full text-center bg-transparent border-none focus:ring-0 p-0 disabled:opacity-50"
                     disabled={isSyncing}
                   />
                 </div>
-                <div className="text-center p-3 bg-[#fdfaf5] border border-[#e5e1d8] rounded-xl shadow-sm col-span-2 sm:col-span-1">
-                  <div className="text-[10px] font-bold uppercase tracking-widest text-[#5a5a40] mb-1">CR</div>
-                  <DebouncedInput type="text" value={npc.challengeRating || ''} onFocus={(e) => (e.target as HTMLInputElement).select()} onChange={(v) => onUpdate({ challengeRating: v as string })} className="text-lg font-bold text-[#2c2c26] w-full text-center bg-transparent border-none focus:ring-0 p-0 disabled:opacity-50" placeholder="—" disabled={isSyncing} />
+                <div className="text-center p-3 bg-[#ffffff] border border-[#e2e8f0] rounded-xl shadow-sm col-span-2 sm:col-span-1">
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-[#8d8db9] mb-1">CR</div>
+                  <DebouncedInput type="text" value={npc.challengeRating || ''} onFocus={(e) => (e.target as HTMLInputElement).select()} onChange={(v) => onUpdate({ challengeRating: v as string })} className="text-lg font-bold text-[#0f172a] w-full text-center bg-transparent border-none focus:ring-0 p-0 disabled:opacity-50" placeholder="—" disabled={isSyncing} />
                 </div>
               </div>
 
@@ -416,33 +416,33 @@ export const NpcCard: React.FC<NpcCardProps> = ({
               />
 
               <div>
-                <div className="text-[10px] uppercase text-[#5a5a40] font-bold tracking-widest mb-1.5 px-1">Speed</div>
-                <DebouncedInput type="text" value={npc.speed || ''} onChange={(v) => onUpdate({ speed: v as string })} placeholder="e.g. 30 ft., fly 60 ft." className="w-full text-xs text-[#2c2c26] bg-[#fdfaf5] p-3 rounded-lg border border-[#e5e1d8] focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all placeholder:text-[#cccbcb] disabled:opacity-50" disabled={isSyncing} />
+                <div className="text-[10px] uppercase text-[#8d8db9] font-bold tracking-widest mb-1.5 px-1">Speed</div>
+                <DebouncedInput type="text" value={npc.speed || ''} onChange={(v) => onUpdate({ speed: v as string })} placeholder="e.g. 30 ft., fly 60 ft." className="w-full text-xs text-[#0f172a] bg-[#ffffff] p-3 rounded-lg border border-[#e2e8f0] focus:bg-white focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] outline-none transition-all placeholder:text-[#cccbcb] disabled:opacity-50" disabled={isSyncing} />
               </div>
 
               <div>
-                <div className="text-[10px] uppercase text-[#5a5a40] font-bold tracking-widest mb-1.5 px-1">Senses</div>
-                <DebouncedInput type="text" value={npc.senses || ''} onChange={(v) => onUpdate({ senses: v as string })} placeholder="e.g. darkvision 60 ft." className="w-full text-xs text-[#2c2c26] bg-[#fdfaf5] p-3 rounded-lg border border-[#e5e1d8] focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all placeholder:text-[#cccbcb] disabled:opacity-50" disabled={isSyncing} />
+                <div className="text-[10px] uppercase text-[#8d8db9] font-bold tracking-widest mb-1.5 px-1">Senses</div>
+                <DebouncedInput type="text" value={npc.senses || ''} onChange={(v) => onUpdate({ senses: v as string })} placeholder="e.g. darkvision 60 ft." className="w-full text-xs text-[#0f172a] bg-[#ffffff] p-3 rounded-lg border border-[#e2e8f0] focus:bg-white focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] outline-none transition-all placeholder:text-[#cccbcb] disabled:opacity-50" disabled={isSyncing} />
               </div>
 
               <div>
-                <div className="text-[10px] uppercase text-[#5a5a40] font-bold tracking-widest mb-1.5 px-1">Languages</div>
-                <DebouncedInput type="text" value={npc.languages || ''} onChange={(v) => onUpdate({ languages: v as string })} placeholder="e.g. Common" className="w-full text-xs text-[#2c2c26] bg-[#fdfaf5] p-3 rounded-lg border border-[#e5e1d8] focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all placeholder:text-[#cccbcb] disabled:opacity-50" disabled={isSyncing} />
+                <div className="text-[10px] uppercase text-[#8d8db9] font-bold tracking-widest mb-1.5 px-1">Languages</div>
+                <DebouncedInput type="text" value={npc.languages || ''} onChange={(v) => onUpdate({ languages: v as string })} placeholder="e.g. Common" className="w-full text-xs text-[#0f172a] bg-[#ffffff] p-3 rounded-lg border border-[#e2e8f0] focus:bg-white focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] outline-none transition-all placeholder:text-[#cccbcb] disabled:opacity-50" disabled={isSyncing} />
               </div>
 
               <div>
-                <div className="text-[10px] uppercase text-[#5a5a40] font-bold tracking-widest mb-1.5 px-1">Conditions</div>
-                <DebouncedInput type="text" value={npc.conditions || ''} onChange={(v) => onUpdate({ conditions: v as string })} placeholder="None" className="w-full text-xs text-[#2c2c26] bg-[#fdfaf5] p-3 rounded-lg border border-[#e5e1d8] focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all placeholder:text-[#cccbcb] disabled:opacity-50" disabled={isSyncing} />
+                <div className="text-[10px] uppercase text-[#8d8db9] font-bold tracking-widest mb-1.5 px-1">Conditions</div>
+                <DebouncedInput type="text" value={npc.conditions || ''} onChange={(v) => onUpdate({ conditions: v as string })} placeholder="None" className="w-full text-xs text-[#0f172a] bg-[#ffffff] p-3 rounded-lg border border-[#e2e8f0] focus:bg-white focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] outline-none transition-all placeholder:text-[#cccbcb] disabled:opacity-50" disabled={isSyncing} />
               </div>
 
               <NpcIRVSection resistances={npc.resistances || ''} immunities={npc.immunities || ''} vulnerabilities={npc.vulnerabilities || ''} onUpdate={onUpdate} />
 
               <div>
-                <div className="text-[10px] uppercase text-[#5a5a40] font-bold tracking-widest mb-1.5 px-1">Notes</div>
-                <DebouncedTextarea value={npc.notes || ''} onChange={(v) => onUpdate({ notes: v as string })} placeholder="Special abilities or description..." rows={3} className="w-full text-xs text-[#2c2c26] bg-[#fdfaf5] p-3 rounded-lg border border-[#e5e1d8] focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all resize-none placeholder:text-[#cccbcb] disabled:opacity-50 leading-relaxed font-sans" disabled={isSyncing} />
+                <div className="text-[10px] uppercase text-[#8d8db9] font-bold tracking-widest mb-1.5 px-1">Notes</div>
+                <DebouncedTextarea value={npc.notes || ''} onChange={(v) => onUpdate({ notes: v as string })} placeholder="Special abilities or description..." rows={3} className="w-full text-xs text-[#0f172a] bg-[#ffffff] p-3 rounded-lg border border-[#e2e8f0] focus:bg-white focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] outline-none transition-all resize-none placeholder:text-[#cccbcb] disabled:opacity-50 leading-relaxed font-sans" disabled={isSyncing} />
               </div>
 
-              <div className="space-y-4 pt-4 border-t border-[#e5e1d8]/40">
+              <div className="space-y-4 pt-4 border-t border-[#e2e8f0]/40">
                 <NpcListEditor<NpcTrait>
                   title="Traits"
                   items={traits}
@@ -454,7 +454,7 @@ export const NpcCard: React.FC<NpcCardProps> = ({
                 />
               </div>
 
-              <div className="space-y-4 pt-4 border-t border-[#e5e1d8]/40">
+              <div className="space-y-4 pt-4 border-t border-[#e2e8f0]/40">
                 <NpcListEditor<NpcAction>
                   title="Actions"
                   items={actions}
@@ -475,7 +475,7 @@ export const NpcCard: React.FC<NpcCardProps> = ({
                 />
               </div>
 
-              <div className="space-y-4 pt-4 border-t border-[#e5e1d8]/40">
+              <div className="space-y-4 pt-4 border-t border-[#e2e8f0]/40">
                 <NpcListEditor<NpcReaction>
                   title="Reactions"
                   items={reactions}
@@ -487,7 +487,7 @@ export const NpcCard: React.FC<NpcCardProps> = ({
                 />
               </div>
 
-              <div className="space-y-4 pt-4 border-t border-[#e5e1d8]/40">
+              <div className="space-y-4 pt-4 border-t border-[#e2e8f0]/40">
                 <NpcLegendarySection legendaryActions={npc.legendaryActions} legendaryResistances={npc.legendaryResistances} isSyncing={isSyncing} onUpdate={onUpdate} />
                 <NpcListEditor<NpcLegendaryAction>
                   title="Legendary Actions"
@@ -510,9 +510,9 @@ export const NpcCard: React.FC<NpcCardProps> = ({
                 />
               </div>
 
-              <div className="flex gap-4 pt-4 border-t border-[#e5e1d8]/40">
+              <div className="flex gap-4 pt-4 border-t border-[#e2e8f0]/40">
                 {needsReset && (
-                  <button onClick={onResetHp} disabled={isSyncing} className="flex-1 py-3 bg-[#c5b358]/10 text-[#2c2c26] hover:bg-[#c5b358]/20 border border-[#c5b358]/20 rounded-xl text-xs font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2 disabled:opacity-50">
+                  <button onClick={onResetHp} disabled={isSyncing} className="flex-1 py-3 bg-[#2563eb]/10 text-[#0f172a] hover:bg-[#2563eb]/20 border border-[#2563eb]/20 rounded-xl text-xs font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2 disabled:opacity-50">
                     <RotateCcw className="w-4 h-4" /> Reset HP
                   </button>
                 )}

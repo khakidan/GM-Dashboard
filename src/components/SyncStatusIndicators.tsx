@@ -75,7 +75,7 @@ export function SyncStatusIndicators({
         <div className="relative group flex justify-center">
           <div className={cn(
             "w-8 h-8 rounded-lg flex items-center justify-center border cursor-help",
-            isOnline ? "border-green-500/20 text-green-300 bg-stone-800/40" : "border-amber-500/20 text-amber-300 bg-stone-800/40"
+            isOnline ? "border-green-500/20 text-green-300 bg-stone-800/40" : "border-[#2563eb]/20 text-amber-300 bg-stone-800/40"
           )}>
             {isOnline ? (
               <span className="relative flex h-2.5 w-2.5 shrink-0">
@@ -83,7 +83,7 @@ export function SyncStatusIndicators({
                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
               </span>
             ) : (
-              <span className="h-2.5 w-2.5 rounded-full bg-amber-500 shrink-0"></span>
+              <span className="h-2.5 w-2.5 rounded-full bg-[#f9f8ff]0 shrink-0"></span>
             )}
           </div>
           {/* Tooltip */}

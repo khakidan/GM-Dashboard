@@ -31,19 +31,19 @@ export function CombatantLegendaryTracker({
     <>
       {/* Legendary Resistances Section */}
       {legendaryResistances && (
-        <div className="bg-[#faf9f6]/30 p-4 rounded-xl border border-[#e5e1d8] space-y-3" id={`legendary-resistances-sec-${combatantId}`}>
+        <div className="bg-[#f9f8ff]/30 p-4 rounded-xl border border-[#e2e8f0] space-y-3" id={`legendary-resistances-sec-${combatantId}`}>
           <div className="flex items-center justify-between">
-            <label className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40]">Legendary Resistances</label>
+            <label className="block text-xs font-bold uppercase tracking-widest text-[#8d8db9]">Legendary Resistances</label>
             <button
               id={`btn-restore-resistances-${combatantId}`}
               onClick={onRestoreResistances}
               disabled={isSyncing}
-              className="px-2 py-1 text-[10px] font-bold border border-[#c5b358] text-[#c5b358] bg-white hover:bg-[#faf9f6]/85 rounded transition-all cursor-pointer shadow-sm"
+              className="px-2 py-1 text-[10px] font-bold border border-[#2563eb] text-[#2563eb] bg-white hover:bg-[#f9f8ff]/85 rounded transition-all cursor-pointer shadow-sm"
             >
               Restore All
             </button>
           </div>
-          <div className="flex flex-col gap-1.5 bg-[#faf9f6] p-2.5 rounded-lg border border-[#e5e1d8]/60">
+          <div className="flex flex-col gap-1.5 bg-[#f9f8ff] p-2.5 rounded-lg border border-[#e2e8f0]/60">
             <div className="flex items-center gap-2" id={`resistances-pips-container-${combatantId}`}>
               {Array.from({ length: legendaryResistances.max }).map((_, idx) => {
                 const isFilled = idx < legendaryResistances.remaining;
@@ -61,7 +61,7 @@ export function CombatantLegendaryTracker({
                     <Shield
                       className={cn(
                         "w-5 h-5 transition-colors",
-                        isFilled ? "fill-[#c5b358] text-[#c5b358]" : "text-stone-300"
+                        isFilled ? "fill-[#2563eb] text-[#2563eb]" : "text-stone-300"
                       )}
                     />
                   </button>
@@ -77,19 +77,19 @@ export function CombatantLegendaryTracker({
 
       {/* Legendary Actions Section */}
       {legendaryActions && (
-        <div className="bg-[#faf9f6]/30 p-4 rounded-xl border border-[#e5e1d8] space-y-3" id={`legendary-actions-sec-${combatantId}`}>
+        <div className="bg-[#f9f8ff]/30 p-4 rounded-xl border border-[#e2e8f0] space-y-3" id={`legendary-actions-sec-${combatantId}`}>
           <div className="flex items-center justify-between">
-            <label className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40]">Legendary Actions</label>
+            <label className="block text-xs font-bold uppercase tracking-widest text-[#8d8db9]">Legendary Actions</label>
             <button
               id={`btn-restore-actions-${combatantId}`}
               onClick={onRestoreActions}
               disabled={isSyncing}
-              className="px-2 py-1 text-[10px] font-bold border border-[#c5b358] text-[#c5b358] bg-white hover:bg-[#faf9f6]/85 rounded transition-all cursor-pointer shadow-sm"
+              className="px-2 py-1 text-[10px] font-bold border border-[#2563eb] text-[#2563eb] bg-white hover:bg-[#f9f8ff]/85 rounded transition-all cursor-pointer shadow-sm"
             >
               Restore All
             </button>
           </div>
-          <div className="flex flex-col gap-1.5 bg-[#faf9f6] p-2.5 rounded-lg border border-[#e5e1d8]/60">
+          <div className="flex flex-col gap-1.5 bg-[#f9f8ff] p-2.5 rounded-lg border border-[#e2e8f0]/60">
             <div className="flex items-center gap-2" id={`actions-pips-container-${combatantId}`}>
               {Array.from({ length: legendaryActions.max }).map((_, idx) => {
                 const isFilled = idx < legendaryActions.remaining;
@@ -107,7 +107,7 @@ export function CombatantLegendaryTracker({
                     <Zap
                       className={cn(
                         "w-5 h-5 transition-colors",
-                        isFilled ? "fill-amber-400 text-amber-500" : "text-stone-300"
+                        isFilled ? "fill-[#2563eb] text-[#2563eb]" : "text-stone-300"
                       )}
                     />
                   </button>

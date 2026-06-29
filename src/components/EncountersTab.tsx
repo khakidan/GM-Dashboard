@@ -39,18 +39,18 @@ export function EncountersTab({
   }));
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-[#e5e1d8] overflow-hidden flex-1 flex flex-col w-full">
+    <div className="bg-white rounded-2xl shadow-sm border border-[#e2e8f0] overflow-hidden flex-1 flex flex-col w-full">
       {/* Page Header */}
-      <div className="bg-[#fdfaf5] border-b border-[#e5e1d8] p-6">
+      <div className="bg-[#ffffff] border-b border-[#e2e8f0] p-6">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-[#2c2c26]">Encounters</h1>
-            <p className="text-sm text-[#5a5a40] mt-0.5">Manage your campaign encounters. Tap to view details or trigger dynamic combat.</p>
+            <h1 className="text-2xl font-bold text-[#0f172a]">Encounters</h1>
+            <p className="text-sm text-[#8d8db9] mt-0.5">Manage your campaign encounters. Tap to view details or trigger dynamic combat.</p>
           </div>
           <button 
             onClick={() => setIsNewDialogOpen(true)}
             disabled={isAdding}
-            className="flex items-center gap-1.5 px-4 py-1.5 bg-[#c5b358] hover:bg-[#d4c47a] text-[#2c2c26] text-xs font-bold uppercase tracking-widest rounded-xl transition-all shadow-md hover:shadow-lg flex-shrink-0"
+            className="flex items-center gap-1.5 px-4 py-1.5 bg-[#2563eb] hover:bg-[#567eff] text-[#0f172a] text-xs font-bold uppercase tracking-widest rounded-xl transition-all shadow-md hover:shadow-lg flex-shrink-0"
             id="new-encounter-btn"
           >
             {isAdding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
@@ -68,16 +68,16 @@ export function EncountersTab({
         )}
 
         {state.encounters.length === 0 ? (
-        <div className="bg-white border border-[#e5e1d8] rounded-2xl py-20 px-6 text-center shadow-sm flex flex-col items-center">
-          <Swords className="w-12 h-12 text-[#5a5a40] opacity-20 mb-4" />
-          <h3 className="text-lg font-serif font-bold text-[#2c2c26] mb-2">No encounters found</h3>
-          <p className="text-sm text-[#5a5a40] max-w-sm mx-auto mb-8">
+        <div className="bg-white border border-[#e2e8f0] rounded-2xl py-20 px-6 text-center shadow-sm flex flex-col items-center">
+          <Swords className="w-12 h-12 text-[#8d8db9] opacity-20 mb-4" />
+          <h3 className="text-lg font-serif font-bold text-[#0f172a] mb-2">No encounters found</h3>
+          <p className="text-sm text-[#8d8db9] max-w-sm mx-auto mb-8">
             Your encounter library is empty. Start by creating a new scenario for your players to overcome.
           </p>
           <button 
             onClick={() => setIsNewDialogOpen(true)}
             disabled={isAdding}
-            className="bg-[#c5b358] hover:bg-[#b0a04f] text-[#2c2c26] px-10 py-4 rounded-full text-sm font-bold uppercase tracking-widest transition-all shadow-md active:scale-95"
+            className="bg-[#2563eb] hover:bg-[#567eff] text-[#0f172a] px-10 py-4 rounded-full text-sm font-bold uppercase tracking-widest transition-all shadow-md active:scale-95"
           >
             Create Your First Encounter
           </button>

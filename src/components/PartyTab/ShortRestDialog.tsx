@@ -193,7 +193,7 @@ export function ShortRestDialog({ isOpen, characters, onConfirm, onClose }: Shor
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-[#2c2c26]/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-[#0f172a]/60 backdrop-blur-sm"
             onClick={onClose}
             id="short-rest-overlay"
           />
@@ -201,21 +201,21 @@ export function ShortRestDialog({ isOpen, characters, onConfirm, onClose }: Shor
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="bg-[#fdfaf5] w-full max-w-2xl rounded-2xl shadow-xl border border-[#e5e1d8] overflow-hidden flex flex-col relative z-10"
+            className="bg-[#ffffff] w-full max-w-2xl rounded-2xl shadow-xl border border-[#e2e8f0] overflow-hidden flex flex-col relative z-10"
             id="short-rest-dialog"
           >
             {/* Header */}
-            <div className="bg-[#2c2c26] px-6 py-4 text-[#fdfaf5] flex items-center justify-between rounded-t-2xl">
+            <div className="bg-[#0f172a] px-6 py-4 text-[#ffffff] flex items-center justify-between rounded-t-2xl">
               <div className="flex items-center gap-3">
-                <Heart className="w-5 h-5 text-[#c5b358]" />
+                <Heart className="w-5 h-5 text-[#2563eb]" />
                 <div>
                   <h2 className="text-lg font-bold font-serif uppercase tracking-wider">Short Rest</h2>
-                  <p className="text-xs text-[#e5e1d8]/60">Characters may spend Hit Dice to recover HP.</p>
+                  <p className="text-xs text-[#e2e8f0]/60">Characters may spend Hit Dice to recover HP.</p>
                 </div>
               </div>
               <button
                 onClick={onClose}
-                className="p-1.5 hover:bg-white/10 rounded-full transition-colors text-[#e5e1d8] hover:text-white"
+                className="p-1.5 hover:bg-white/10 rounded-full transition-colors text-[#e2e8f0] hover:text-white"
                 title="Close"
                 id="short-rest-close-btn"
               >
@@ -226,7 +226,7 @@ export function ShortRestDialog({ isOpen, characters, onConfirm, onClose }: Shor
             {/* List */}
             <div className="p-6 overflow-y-auto space-y-4 max-h-[60vh]">
               {characters.length === 0 ? (
-                <p className="text-[#5a5a40] text-center text-sm py-4 italic">No active characters to select.</p>
+                <p className="text-[#8d8db9] text-center text-sm py-4 italic">No active characters to select.</p>
               ) : (
                 characters.map(char => {
                   const charState = restStates[char.id] || { participating: false, hpToAdd: 0, spend: {}, rollResults: {} };
@@ -240,14 +240,14 @@ export function ShortRestDialog({ isOpen, characters, onConfirm, onClose }: Shor
                   return (
                     <div
                       key={char.id}
-                      className="border border-[#e5e1d8] rounded-xl overflow-hidden bg-white shadow-sm"
+                      className="border border-[#e2e8f0] rounded-xl overflow-hidden bg-white shadow-sm"
                       id={`short-rest-char-card-${char.id}`}
                     >
                       {/* Collapse/Expand Row Header */}
                       <div
                         onClick={() => isChecked && toggleExpand(char.id)}
                         className={`flex items-center justify-between p-4 cursor-pointer select-none transition-colors ${
-                          isChecked ? 'bg-[#fdf4c2] hover:bg-[#fdf4c2]/80' : 'bg-gray-50/50 opacity-60'
+                          isChecked ? 'bg-[#f0f7ff] hover:bg-[#f0f7ff]/80' : 'bg-gray-50/50 opacity-60'
                         }`}
                         id={`short-rest-header-${char.id}`}
                       >
@@ -257,28 +257,28 @@ export function ShortRestDialog({ isOpen, characters, onConfirm, onClose }: Shor
                             checked={isChecked}
                             onChange={(e) => {}} // custom handled via toggleParticipating
                             onClick={(e) => toggleParticipating(char.id, e)}
-                            className="w-4 h-4 rounded text-[#c5b358] border-[#e5e1d8] focus:ring-[#c5b358] cursor-pointer accent-[#c5b358]"
+                            className="w-4 h-4 rounded text-[#2563eb] border-[#e2e8f0] focus:ring-[#2563eb] cursor-pointer accent-[#2563eb]"
                             id={`short-rest-checkbox-${char.id}`}
                           />
                           <div>
-                            <span className="font-serif font-bold text-[#2c2c26] text-sm">
+                            <span className="font-serif font-bold text-[#0f172a] text-sm">
                               {char.characterName}
                             </span>
-                            <span className="text-[10px] text-[#5a5a40]/70 font-sans ml-2">
+                            <span className="text-[10px] text-[#8d8db9]/70 font-sans ml-2">
                               ({char.playerName})
                             </span>
                           </div>
                         </div>
 
                         <div className="flex items-center gap-4 text-xs">
-                          <span className="bg-[#5a5a40]/5 px-2.5 py-1 rounded text-[#5a5a40] font-mono">
+                          <span className="bg-[#8d8db9]/5 px-2.5 py-1 rounded text-[#8d8db9] font-mono">
                             HP: {char.currentHp}/{char.maxHp}
                           </span>
-                          <span className="bg-[#c5b358]/10 text-[#85711a] px-2.5 py-1 rounded font-mono">
+                          <span className="bg-[#2563eb]/10 text-[#567eff] px-2.5 py-1 rounded font-mono">
                             HD Available: {remainingCountTotal}
                           </span>
                           {isChecked && (
-                            <span className="text-[#5a5a40]">
+                            <span className="text-[#8d8db9]">
                               {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                             </span>
                           )}
@@ -293,20 +293,20 @@ export function ShortRestDialog({ isOpen, characters, onConfirm, onClose }: Shor
                             animate={{ height: 'auto', opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
                             transition={{ duration: 0.2 }}
-                            className="border-t border-[#e5e1d8] bg-[#fdfaf5] p-5 space-y-4"
+                            className="border-t border-[#e2e8f0] bg-[#ffffff] p-5 space-y-4"
                             id={`short-rest-expanded-${char.id}`}
                           >
                             {/* Hit Dice Config Empty Check */}
                             {!char.hitDiceConfig || hdStatus.length === 0 ? (
-                              <div className="flex items-start gap-2.5 p-3.5 bg-amber-50 text-amber-800 border border-amber-200/50 rounded-xl text-xs">
-                                <AlertCircle className="w-4.5 h-4.5 text-amber-600 shrink-0 mt-0.5" />
+                              <div className="flex items-start gap-2.5 p-3.5 bg-[#f9f8ff] text-amber-800 border border-amber-200/50 rounded-xl text-xs">
+                                <AlertCircle className="w-4.5 h-4.5 text-[#2563eb] shrink-0 mt-0.5" />
                                 <p id={`no-hd-config-${char.id}`}>
                                   No hit dice configured. Add a Hit Dice Config to this character's sheet row (e.g. '7d8').
                                 </p>
                               </div>
                             ) : (
                               <div className="space-y-3.5">
-                                <h3 className="text-[#5a5a40] text-xs font-bold uppercase tracking-widest border-b border-[#e5e1d8] pb-1 mb-2">
+                                <h3 className="text-[#8d8db9] text-xs font-bold uppercase tracking-widest border-b border-[#e2e8f0] pb-1 mb-2">
                                   Dice Spending & Rolling
                                 </h3>
                                 {hdStatus.map(pool => {
@@ -317,15 +317,15 @@ export function ShortRestDialog({ isOpen, characters, onConfirm, onClose }: Shor
                                   return (
                                     <div
                                       key={pool.die}
-                                      className="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-white border border-[#e5e1d8] p-3 rounded-xl gap-3"
+                                      className="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-white border border-[#e2e8f0] p-3 rounded-xl gap-3"
                                       id={`pool-row-d${pool.die}`}
                                     >
                                       {/* Die Name and Remaining */}
                                       <div className="flex items-center gap-2 text-sm">
-                                        <span className="inline-block bg-[#2c2c26] text-[#e5e1d8] px-2 py-0.5 rounded text-xs font-serif font-bold">
+                                        <span className="inline-block bg-[#0f172a] text-[#e2e8f0] px-2 py-0.5 rounded text-xs font-serif font-bold">
                                           d{pool.die}
                                         </span>
-                                        <span className="text-[#5a5a40] text-xs">
+                                        <span className="text-[#8d8db9] text-xs">
                                           {pool.remaining} remaining
                                         </span>
                                       </div>
@@ -357,7 +357,7 @@ export function ShortRestDialog({ isOpen, characters, onConfirm, onClose }: Shor
                                         <button
                                           type="button"
                                           onClick={() => handleRollDice(char.id, char.characterName, pool.die)}
-                                          className="text-xs flex items-center gap-1 py-1.5 px-3 border border-[#bdbaa3] text-[#5a5a40] hover:text-[#2c2c26] hover:bg-gray-100 rounded-lg transition-all"
+                                          className="text-xs flex items-center gap-1 py-1.5 px-3 border border-[#bdbaa3] text-[#8d8db9] hover:text-[#0f172a] hover:bg-gray-100 rounded-lg transition-all"
                                           id={`btn-roll-d${pool.die}-${char.id}`}
                                         >
                                           <RefreshCw className="w-3.5 h-3.5" />
@@ -366,7 +366,7 @@ export function ShortRestDialog({ isOpen, characters, onConfirm, onClose }: Shor
 
                                         {/* Inline Roll Result Indicator */}
                                         {lastRollResult !== null && (
-                                          <span className="text-xs bg-amber-50 text-amber-700 font-mono font-bold px-2 py-0.5 rounded border border-amber-200/50">
+                                          <span className="text-xs bg-[#f9f8ff] text-[#567eff] font-mono font-bold px-2 py-0.5 rounded border border-amber-200/50">
                                             Rolled {lastRollResult}
                                           </span>
                                         )}
@@ -377,8 +377,8 @@ export function ShortRestDialog({ isOpen, characters, onConfirm, onClose }: Shor
 
                                 {/* HP Input */}
                                 <div className="pt-2">
-                                  <label className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40] mb-2 px-1">
-                                    HP to recover <span className="text-[10px] lowercase text-[#5a5a40]/60">(max {maxAllowedHP} missing)</span>
+                                  <label className="block text-xs font-bold uppercase tracking-widest text-[#8d8db9] mb-2 px-1">
+                                    HP to recover <span className="text-[10px] lowercase text-[#8d8db9]/60">(max {maxAllowedHP} missing)</span>
                                   </label>
                                   <input
                                     type="number"
@@ -386,7 +386,7 @@ export function ShortRestDialog({ isOpen, characters, onConfirm, onClose }: Shor
                                     max={maxAllowedHP}
                                     value={charState.hpToAdd}
                                     onChange={e => updateHpToAdd(char.id, parseInt(e.target.value) || 0, maxAllowedHP)}
-                                    className="bg-white border border-[#e5e1d8] rounded-xl text-[#2c2c26] placeholder:text-[#5a5a40] focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358]/50 focus:outline-none w-full px-3 py-2 text-sm transition-all font-mono"
+                                    className="bg-white border border-[#e2e8f0] rounded-xl text-[#0f172a] placeholder:text-[#8d8db9] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]/50 focus:outline-none w-full px-3 py-2 text-sm transition-all font-mono"
                                     placeholder="Enter total HP recovered..."
                                     id={`hp-recover-input-${char.id}`}
                                   />
@@ -403,10 +403,10 @@ export function ShortRestDialog({ isOpen, characters, onConfirm, onClose }: Shor
             </div>
 
             {/* Footer */}
-            <div className="bg-[#fdfaf5] px-6 py-4 border-t border-[#e5e1d8] flex items-center justify-end gap-3">
+            <div className="bg-[#ffffff] px-6 py-4 border-t border-[#e2e8f0] flex items-center justify-end gap-3">
               <button
                 onClick={onClose}
-                className="text-[#5a5a40] border border-[#e5e1d8] rounded-xl px-3 py-1.5 text-xs hover:border-[#c5b358] hover:text-[#2c2c26] transition-colors"
+                className="text-[#8d8db9] border border-[#e2e8f0] rounded-xl px-3 py-1.5 text-xs hover:border-[#2563eb] hover:text-[#0f172a] transition-colors"
                 id="short-rest-cancel-btn"
               >
                 Cancel
@@ -414,7 +414,7 @@ export function ShortRestDialog({ isOpen, characters, onConfirm, onClose }: Shor
               <button
                 onClick={handleApply}
                 disabled={parsedCharactersCount === 0}
-                className="bg-[#c5b358] text-[#2c2c26] font-bold uppercase tracking-widest text-xs rounded-xl px-4 py-2 hover:bg-[#d4c47a] transition-colors disabled:bg-[#e5e1d8] disabled:text-[#5a5a40] disabled:cursor-not-allowed disabled:opacity-60 shadow-sm"
+                className="bg-[#2563eb] text-[#0f172a] font-bold uppercase tracking-widest text-xs rounded-xl px-4 py-2 hover:bg-[#567eff] transition-colors disabled:bg-[#e2e8f0] disabled:text-[#8d8db9] disabled:cursor-not-allowed disabled:opacity-60 shadow-sm"
                 id="short-rest-apply-btn"
               >
                 Apply Short Rest

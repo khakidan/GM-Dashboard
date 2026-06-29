@@ -58,55 +58,55 @@ export const CharacterCardExpanded: React.FC<CharacterCardExpandedProps> = ({
   return (
     <div className="p-6 flex flex-col font-sans gap-5 bg-white">
       <div className="grid grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4">
-        <div className="text-center p-3 bg-[#fdfaf5] border border-[#e5e1d8] rounded-xl shadow-sm">
-          <div className="text-[10px] font-bold uppercase tracking-widest text-[#5a5a40] mb-1">AC</div>
+        <div className="text-center p-3 bg-[#ffffff] border border-[#e2e8f0] rounded-xl shadow-sm">
+          <div className="text-[10px] font-bold uppercase tracking-widest text-[#8d8db9] mb-1">AC</div>
           <CardNumberInput
             value={character.ac || 0}
             onChange={v => onUpdate({ ac: v })}
             fallback={0}
             min={0}
-            className="text-lg font-bold text-[#2c2c26] w-full text-center bg-transparent border border-transparent outline-none focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] rounded transition-all disabled:opacity-50"
+            className="text-lg font-bold text-[#0f172a] w-full text-center bg-transparent border border-transparent outline-none focus:bg-white focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] rounded transition-all disabled:opacity-50"
             disabled={isSyncing}
           />
         </div>
-        <div className="text-center p-3 bg-[#fdfaf5] border border-[#e5e1d8] rounded-xl shadow-sm">
-          <div className="text-[10px] font-bold uppercase tracking-widest text-[#5a5a40] mb-1">Max HP</div>
+        <div className="text-center p-3 bg-[#ffffff] border border-[#e2e8f0] rounded-xl shadow-sm">
+          <div className="text-[10px] font-bold uppercase tracking-widest text-[#8d8db9] mb-1">Max HP</div>
           <CardNumberInput
             value={character.maxHp || 0}
             onChange={v => onUpdate({ maxHp: v })}
             fallback={1}
             min={1}
             className={cn(
-              "text-lg font-bold w-full text-center bg-transparent border border-transparent outline-none focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] rounded transition-all disabled:opacity-50",
-              character.tempHpMax && character.tempHpMax > 0 ? "text-amber-600 cursor-help" : "text-[#2c2c26]"
+              "text-lg font-bold w-full text-center bg-transparent border border-transparent outline-none focus:bg-white focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] rounded transition-all disabled:opacity-50",
+              character.tempHpMax && character.tempHpMax > 0 ? "text-[#2563eb] cursor-help" : "text-[#0f172a]"
             )}
             title={character.tempHpMax && character.tempHpMax > 0 ? `Temp max (original: ${character.maxHp})` : undefined}
             disabled={isSyncing}
           />
         </div>
-        <div className="text-center p-3 bg-[#fdfaf5] border border-[#e5e1d8] rounded-xl shadow-sm">
-          <div className="text-[10px] font-bold uppercase tracking-widest text-[#5a5a40] mb-1">HP</div>
+        <div className="text-center p-3 bg-[#ffffff] border border-[#e2e8f0] rounded-xl shadow-sm">
+          <div className="text-[10px] font-bold uppercase tracking-widest text-[#8d8db9] mb-1">HP</div>
           <CardNumberInput
             value={character.currentHp ?? 0}
             onChange={v => onUpdate({ currentHp: v })}
             fallback={0}
-            className="text-lg font-bold text-[#2c2c26] w-full text-center bg-transparent border border-transparent outline-none focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] rounded transition-all disabled:opacity-50"
+            className="text-lg font-bold text-[#0f172a] w-full text-center bg-transparent border border-transparent outline-none focus:bg-white focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] rounded transition-all disabled:opacity-50"
             disabled={isSyncing}
           />
         </div>
-        <div className="text-center p-3 bg-[#fdfaf5] border border-[#e5e1d8] rounded-xl shadow-sm">
-          <div className="text-[10px] font-bold uppercase tracking-widest text-[#5a5a40] mb-1">Temp</div>
+        <div className="text-center p-3 bg-[#ffffff] border border-[#e2e8f0] rounded-xl shadow-sm">
+          <div className="text-[10px] font-bold uppercase tracking-widest text-[#8d8db9] mb-1">Temp</div>
           <CardNumberInput
             value={character.tempHp ?? 0}
             onChange={v => onUpdate({ tempHp: v })}
             fallback={0}
             min={0}
-            className="text-lg font-bold text-[#2c2c26] w-full text-center bg-transparent border border-transparent outline-none focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] rounded transition-all disabled:opacity-50"
+            className="text-lg font-bold text-[#0f172a] w-full text-center bg-transparent border border-transparent outline-none focus:bg-white focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] rounded transition-all disabled:opacity-50"
             disabled={isSyncing}
           />
         </div>
-        <div className="text-center p-3 bg-[#fdfaf5] border border-[#e5e1d8] rounded-xl shadow-sm group/lvl">
-          <div className="text-[10px] font-bold uppercase tracking-widest text-[#5a5a40] mb-1">Level</div>
+        <div className="text-center p-3 bg-[#ffffff] border border-[#e2e8f0] rounded-xl shadow-sm group/lvl">
+          <div className="text-[10px] font-bold uppercase tracking-widest text-[#8d8db9] mb-1">Level</div>
           <CardNumberInput
             value={character.level || 1}
             onChange={v => onUpdate({ level: v })}
@@ -114,7 +114,7 @@ export const CharacterCardExpanded: React.FC<CharacterCardExpandedProps> = ({
             min={1}
             max={20}
             placeholder="1"
-            className="text-lg font-bold text-[#2c2c26] w-full text-center bg-transparent border border-transparent rounded hover:bg-white focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-colors disabled:opacity-50"
+            className="text-lg font-bold text-[#0f172a] w-full text-center bg-transparent border border-transparent rounded hover:bg-white focus:bg-white focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] outline-none transition-colors disabled:opacity-50"
             disabled={isSyncing}
           />
         </div>
@@ -153,32 +153,32 @@ export const CharacterCardExpanded: React.FC<CharacterCardExpandedProps> = ({
       />
 
       <div>
-        <div className="text-[10px] uppercase text-[#5a5a40] font-bold tracking-widest mb-2 px-1">Class</div>
+        <div className="text-[10px] uppercase text-[#8d8db9] font-bold tracking-widest mb-2 px-1">Class</div>
         <DebouncedInput 
           type="text"
           value={character.class || ''}
           onChange={(v) => onUpdate({ class: v as string })}
-          className="text-sm text-[#2c2c26] font-medium bg-[#fdfaf5] p-3 border border-[#e5e1d8] rounded-lg hover:bg-white focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all placeholder:text-[#cccbcb] disabled:opacity-50 w-full"
+          className="text-sm text-[#0f172a] font-medium bg-[#ffffff] p-3 border border-[#e2e8f0] rounded-lg hover:bg-white focus:bg-white focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] outline-none transition-all placeholder:text-[#cccbcb] disabled:opacity-50 w-full"
           placeholder="e.g. Barbarian or Barbarian / Fighter"
           disabled={isSyncing}
         />
       </div>
 
       {/* Hit Dice Config and Display Section */}
-      <div className="border border-[#e5e1d8] hover:border-[#c5b358]/30 rounded-xl bg-white p-4 space-y-3 shadow-inner">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-[#e5e1d8]/50 pb-2">
-          <div className="text-[10px] uppercase text-[#5a5a40] font-bold tracking-widest px-1">
+      <div className="border border-[#e2e8f0] hover:border-[#2563eb]/30 rounded-xl bg-white p-4 space-y-3 shadow-inner">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-[#e2e8f0]/50 pb-2">
+          <div className="text-[10px] uppercase text-[#8d8db9] font-bold tracking-widest px-1">
             Hit Dice
           </div>
           {/* Config Input directly inline */}
           <div className="flex items-center gap-2">
-            <span className="text-xs text-[#5a5a40]/70">Config:</span>
+            <span className="text-xs text-[#8d8db9]/70">Config:</span>
             <DebouncedInput
               type="text"
               value={character.hitDiceConfig || ''}
               onChange={(value) => onUpdate({ hitDiceConfig: value as string })}
               placeholder="e.g. 5d8 or 2d10+3d8"
-              className="text-xs bg-[#fdfaf5] hover:bg-white focus:bg-white text-[#2c2c26] border border-[#e5e1d8] focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none px-2 py-1 rounded w-36 transition-all font-mono"
+              className="text-xs bg-[#ffffff] hover:bg-white focus:bg-white text-[#0f172a] border border-[#e2e8f0] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] outline-none px-2 py-1 rounded w-36 transition-all font-mono"
               disabled={isSyncing}
               id={`hit-dice-config-input-${character.id}`}
             />
@@ -187,7 +187,7 @@ export const CharacterCardExpanded: React.FC<CharacterCardExpandedProps> = ({
 
         {/* Pool Display */}
         {!character.hitDiceConfig ? (
-          <p className="text-xs text-[#5a5a40]/60 italic px-1" id={`hit-dice-empty-helper-${character.id}`}>
+          <p className="text-xs text-[#8d8db9]/60 italic px-1" id={`hit-dice-empty-helper-${character.id}`}>
             No hit dice configured. Enter a formula (e.g., "5d8" or "2d10+3d8") to track rest pools.
           </p>
         ) : (
@@ -196,25 +196,25 @@ export const CharacterCardExpanded: React.FC<CharacterCardExpandedProps> = ({
               const pools = getHitDiceStatus(character.hitDiceConfig, character.hitDiceUsed || '{}');
               if (pools.length === 0) {
                 return (
-                  <p className="text-xs text-amber-600 italic px-1">
+                  <p className="text-xs text-[#2563eb] italic px-1">
                     Invalid hit dice config formula. Use e.g. "5d8" or "1d10+4d8".
                   </p>
                 );
               }
               return pools.map((pool, idx) => {
                 const dotsRemaining = Array.from({ length: pool.remaining }, (_, i) => (
-                  <span key={`rem-${idx}-${i}`} className="inline-block w-2.5 h-2.5 rounded-full bg-[#c5b358] border border-[#a39240]" title="Remaining" />
+                  <span key={`rem-${idx}-${i}`} className="inline-block w-2.5 h-2.5 rounded-full bg-[#2563eb] border border-[#567eff]" title="Remaining" />
                 ));
                 const dotsSpent = Array.from({ length: pool.used }, (_, i) => (
                   <span key={`spent-${idx}-${i}`} className="inline-block w-2.5 h-2.5 rounded-full bg-gray-100 border border-gray-300" title="Spent" />
                 ));
                 return (
-                  <div key={pool.die} className="flex items-center justify-between text-xs py-1 px-1 border-b border-[#fdfaf5]/50 last:border-b-0" id={`pool-display-d{pool.die}`}>
+                  <div key={pool.die} className="flex items-center justify-between text-xs py-1 px-1 border-b border-[#ffffff]/50 last:border-b-0" id={`pool-display-d{pool.die}`}>
                     <div className="flex items-center gap-2">
-                      <span className="font-serif font-bold text-[#20201a] inline-block bg-[#f5f1e8] px-1.5 py-0.5 rounded text-[10px]">
+                      <span className="font-serif font-bold text-[#20201a] inline-block bg-[#f9f8ff] px-1.5 py-0.5 rounded text-[10px]">
                         d{pool.die}
                       </span>
-                      <span className="font-mono text-[#5a5a40]">
+                      <span className="font-mono text-[#8d8db9]">
                         {pool.remaining} / {getTotalHitDiceCount(character.hitDiceConfig || '')} remaining
                       </span>
                     </div>
@@ -255,12 +255,12 @@ export const CharacterCardExpanded: React.FC<CharacterCardExpandedProps> = ({
       />
 
       <div>
-        <div className="text-[10px] uppercase text-[#5a5a40] font-bold tracking-widest mb-2 px-1">Notes</div>
+        <div className="text-[10px] uppercase text-[#8d8db9] font-bold tracking-widest mb-2 px-1">Notes</div>
         <DebouncedTextarea 
           value={character.notes}
           onChange={(v) => onUpdate({ notes: v })}
           placeholder="Notes..."
-          className="w-full text-sm text-[#2c2c26] bg-transparent p-3 rounded-lg italic resize-none border border-[#e5e1d8] focus:bg-white focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none transition-all h-24 placeholder:text-[#5a5a40]/40 disabled:opacity-50"
+          className="w-full text-sm text-[#0f172a] bg-transparent p-3 rounded-lg italic resize-none border border-[#e2e8f0] focus:bg-white focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] outline-none transition-all h-24 placeholder:text-[#8d8db9]/40 disabled:opacity-50"
           disabled={isSyncing}
         />
       </div>

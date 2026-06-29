@@ -108,17 +108,17 @@ export function DiceRoller() {
   return (
     <div 
       className={cn(
-        "relative flex flex-col bg-white rounded-xl shadow-2xl border border-[#e5e1d8] text-stone-900 overflow-visible transition-all font-sans",
+        "relative flex flex-col bg-white rounded-xl shadow-2xl border border-[#e2e8f0] text-stone-900 overflow-visible transition-all font-sans",
         "w-44 h-11"
       )}
     >
       {/* Mini Collapsed / Expanded Header */}
       <div 
         onClick={handleToggleExpand}
-        className="h-11 w-full bg-[#faf9f6] rounded-xl border-b border-[#e5e1d8] flex items-center justify-between px-3.5 cursor-pointer hover:bg-[#f5f5f0] transition-colors select-none"
+        className="h-11 w-full bg-[#f9f8ff] rounded-xl border-b border-[#e2e8f0] flex items-center justify-between px-3.5 cursor-pointer hover:bg-[#e2e8f0] transition-colors select-none"
       >
-        <div className="flex items-center gap-2 text-[#2c2c26]">
-          <Dices className="w-5 h-5 text-[#c5b358]" />
+        <div className="flex items-center gap-2 text-[#0f172a]">
+          <Dices className="w-5 h-5 text-[#2563eb]" />
           <span className="text-xs font-bold uppercase tracking-wider font-sans">Dice Roller</span>
         </div>
         <div className="text-stone-500">
@@ -128,7 +128,7 @@ export function DiceRoller() {
 
       {/* Main Panel Content Area */}
       {isExpanded && (
-        <div className="absolute top-full mt-2 right-0 w-80 sm:w-96 p-4 flex flex-col gap-3.5 bg-white rounded-xl shadow-2xl border border-[#e5e1d8] max-h-[480px] overflow-y-auto z-50">
+        <div className="absolute top-full mt-2 right-0 w-80 sm:w-96 p-4 flex flex-col gap-3.5 bg-white rounded-xl shadow-2xl border border-[#e2e8f0] max-h-[480px] overflow-y-auto z-50">
           
           {/* Main Notation Input */}
           <div className="flex flex-col gap-1.5">
@@ -148,11 +148,11 @@ export function DiceRoller() {
                   }
                 }}
                 placeholder="2d6+5, 1d20 adv, 4d6 drop"
-                className="flex-1 min-w-0 px-3 py-1.5 text-sm bg-[#faf9f6]/60 border border-[#e5e1d8] rounded focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] outline-none font-mono"
+                className="flex-1 min-w-0 px-3 py-1.5 text-sm bg-[#f9f8ff]/60 border border-[#e2e8f0] rounded focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] outline-none font-mono"
               />
               <button
                 onClick={handleRollSubmit}
-                className="px-4 py-1.5 bg-[#c5b358] text-[#2c2c26] text-xs font-bold uppercase tracking-wider rounded hover:bg-[#b0a04f] transition-colors cursor-pointer shrink-0"
+                className="px-4 py-1.5 bg-[#2563eb] text-[#0f172a] text-xs font-bold uppercase tracking-wider rounded hover:bg-[#567eff] transition-colors cursor-pointer shrink-0"
               >
                 ROLL
               </button>
@@ -176,12 +176,12 @@ export function DiceRoller() {
 
           {/* Quick Roll buttons row */}
           <div className="flex flex-wrap gap-1.5 items-center">
-            <span className="text-[10px] font-bold text-[#5a5a40]/60 uppercase tracking-widest mr-1">Quick:</span>
+            <span className="text-[10px] font-bold text-[#8d8db9]/60 uppercase tracking-widest mr-1">Quick:</span>
             {quickDice.map(die => (
               <button
                 key={die}
                 onClick={() => handleRoll(die)}
-                className="px-2 py-1 bg-[#faf9f6] border border-[#e5e1d8] hover:border-[#c5b358] hover:bg-[#c5b358]/5 rounded text-xs font-bold text-[#5a5a40] transition-colors cursor-pointer"
+                className="px-2 py-1 bg-[#f9f8ff] border border-[#e2e8f0] hover:border-[#2563eb] hover:bg-[#2563eb]/5 rounded text-xs font-bold text-[#8d8db9] transition-colors cursor-pointer"
               >
                 {die}
               </button>
@@ -194,16 +194,16 @@ export function DiceRoller() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               key={`${currentRoll.timestamp}-${currentRoll.total}`}
-              className="bg-[#faf9f6] rounded-xl border border-[#e5e1d8] p-4 flex flex-col gap-2.5 relative"
+              className="bg-[#f9f8ff] rounded-xl border border-[#e2e8f0] p-4 flex flex-col gap-2.5 relative"
             >
               <div className="flex justify-between items-start">
-                <span className="text-xs font-bold text-[#5a5a40]/60 uppercase tracking-widest leading-none">Result — {currentRoll.notation}</span>
+                <span className="text-xs font-bold text-[#8d8db9]/60 uppercase tracking-widest leading-none">Result — {currentRoll.notation}</span>
                 <span className="text-[10px] font-mono text-stone-400 leading-none">{getRelativeTime(currentRoll.timestamp)}</span>
               </div>
 
               {/* Total display */}
               <div className="flex items-baseline gap-2">
-                <h2 className="text-4xl font-bold font-serif tracking-tight text-[#2c2c26] leading-none">
+                <h2 className="text-4xl font-bold font-serif tracking-tight text-[#0f172a] leading-none">
                   {currentRoll.total}
                 </h2>
                 {currentRoll.modifier !== 0 && (
@@ -214,7 +214,7 @@ export function DiceRoller() {
               </div>
 
               {/* Individual Roll groups and chips */}
-              <div className="flex flex-col gap-1.5 pt-1.5 border-t border-[#e5e1d8]/60">
+              <div className="flex flex-col gap-1.5 pt-1.5 border-t border-[#e2e8f0]/60">
                 {currentRoll.groups.map((group, groupIdx) => {
                   // Resolve which dice were kept and which were dropped preserving order
                   const remainingKept = [...group.kept];
@@ -229,7 +229,7 @@ export function DiceRoller() {
 
                   return (
                     <div key={groupIdx} className="flex flex-wrap items-center gap-1.5 text-stone-700">
-                      <span className="text-[10px] font-mono text-[#5a5a40]/60 shrink-0">d{group.sides}:</span>
+                      <span className="text-[10px] font-mono text-[#8d8db9]/60 shrink-0">d{group.sides}:</span>
                       <div className="flex flex-wrap gap-1">
                         {chips.map((chip, cIdx) => (
                           <span 
@@ -237,7 +237,7 @@ export function DiceRoller() {
                             className={cn(
                               "inline-flex items-center justify-center min-w-6 h-6 px-1.5 rounded text-xs font-mono font-bold border",
                               chip.isKept 
-                                ? "bg-white border-[#c5b358]/50 text-stone-900 shadow-sm"
+                                ? "bg-white border-[#2563eb]/50 text-stone-900 shadow-sm"
                                 : "bg-stone-100 border-stone-200 text-stone-400 line-through opacity-50"
                             )}
                           >
@@ -258,10 +258,10 @@ export function DiceRoller() {
           {/* History of rolls list */}
           {history.length > 0 && (
             <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between border-t border-[#f5f5f0] pt-3.5">
+              <div className="flex items-center justify-between border-t border-[#e2e8f0] pt-3.5">
                 <div className="flex items-center gap-1.5">
-                  <History className="w-4 h-4 text-[#5a5a40]/50" />
-                  <span className="text-[10px] font-bold text-[#5a5a40]/60 uppercase tracking-widest leading-none">Roll History</span>
+                  <History className="w-4 h-4 text-[#8d8db9]/50" />
+                  <span className="text-[10px] font-bold text-[#8d8db9]/60 uppercase tracking-widest leading-none">Roll History</span>
                 </div>
                 <button
                   onClick={clearHistory}
@@ -280,14 +280,14 @@ export function DiceRoller() {
                       // Clicking a history item re-rolls it! Incredible addition for usability!
                       handleRoll(histItem.notation);
                     }}
-                    className="flex items-center justify-between p-2 py-1.5 bg-[#faf9f6]/40 hover:bg-[#c5b358]/5 border border-[#e5e1d8]/40 rounded-lg cursor-pointer transition-colors"
+                    className="flex items-center justify-between p-2 py-1.5 bg-[#f9f8ff]/40 hover:bg-[#2563eb]/5 border border-[#e2e8f0]/40 rounded-lg cursor-pointer transition-colors"
                     title="Click to roll again"
                   >
                     <div className="flex items-center gap-2 overflow-hidden mr-2">
                       <span className="text-xs font-mono text-stone-500 bg-stone-100/60 border border-stone-200 px-1 py-0.5 rounded leading-none shrink-0">{histItem.notation}</span>
                       <span className="text-[10px] text-stone-400 truncate leading-none">{getRelativeTime(histItem.timestamp)}</span>
                     </div>
-                    <span className="text-sm font-bold text-[#2c2c26] shrink-0 font-serif pr-1">
+                    <span className="text-sm font-bold text-[#0f172a] shrink-0 font-serif pr-1">
                       {histItem.total}
                     </span>
                   </div>

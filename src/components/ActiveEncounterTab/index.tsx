@@ -152,7 +152,7 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
           </div>
         )}
 
-        <div className="bg-white rounded-2xl shadow-sm border border-[#e5e1d8] overflow-hidden text-sm md:text-base flex-1 flex flex-col w-full">
+        <div className="bg-white rounded-2xl shadow-sm border border-[#e2e8f0] overflow-hidden text-sm md:text-base flex-1 flex flex-col w-full">
           <CombatHeader
             encounter={encounter}
             round={state.combatState.round}
@@ -178,9 +178,9 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
             <div className="grid grid-cols-1 gap-4">
               {state.combatState.combatants.length === 0 ? (
                 <div className="col-span-full py-20 text-center flex flex-col items-center justify-center">
-                  <Skull className="w-12 h-12 text-[#5a5a40] opacity-20 mb-4" />
-                  <p className="text-lg font-serif font-bold text-[#2c2c26]">No combatants in tracker</p>
-                  <p className="text-sm text-[#5a5a40] italic">Add players or NPCs from the tools menu to begin.</p>
+                  <Skull className="w-12 h-12 text-[#8d8db9] opacity-20 mb-4" />
+                  <p className="text-lg font-serif font-bold text-[#0f172a]">No combatants in tracker</p>
+                  <p className="text-sm text-[#8d8db9] italic">Add players or NPCs from the tools menu to begin.</p>
                 </div>
               ) : (
                 state.combatState.combatants.map(c => (

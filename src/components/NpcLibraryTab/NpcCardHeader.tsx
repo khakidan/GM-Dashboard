@@ -34,23 +34,23 @@ export const NpcCardHeader: React.FC<NpcCardHeaderProps> = ({
             type="text"
             value={name}
             onChange={(val) => onUpdateName(val as string)}
-            className="text-lg font-bold text-[#2c2c26] font-serif bg-transparent border-none focus:ring-0 w-full p-0 truncate disabled:opacity-50"
+            className="text-lg font-bold text-[#0f172a] font-serif bg-transparent border-none focus:ring-0 w-full p-0 truncate disabled:opacity-50"
             disabled={isSyncing}
           />
         </div>
 
         {!isExpanded && (
-          <div className="flex items-center gap-4 pl-4 border-l border-[#f5f5f0] whitespace-nowrap">
+          <div className="flex items-center gap-4 pl-4 border-l border-[#e2e8f0] whitespace-nowrap">
             {conditions && (
               <div className="hidden lg:flex items-center gap-1.5 px-3 py-1 bg-red-50 text-red-700 border border-red-100 rounded-full text-[14px] font-bold italic max-w-[220px] truncate">
                 {conditions}
               </div>
             )}
-            <div className="flex items-center gap-1.5 text-[15px] font-bold text-[#c5b358]">
+            <div className="flex items-center gap-1.5 text-[15px] font-bold text-[#2563eb]">
               <Heart className="w-4 h-4" />
               {currentHp}/{maxHp}
             </div>
-            <div className="flex items-center gap-1.5 text-[15px] font-bold text-[#5a5a40]">
+            <div className="flex items-center gap-1.5 text-[15px] font-bold text-[#8d8db9]">
               <Shield className="w-4 h-4 opacity-50" />
               {ac}
             </div>
@@ -58,10 +58,10 @@ export const NpcCardHeader: React.FC<NpcCardHeaderProps> = ({
         )}
       </div>
 
-      <div className="flex items-center gap-2 shrink-0 border-l border-[#f5f5f0] pl-3">
+      <div className="flex items-center gap-2 shrink-0 border-l border-[#e2e8f0] pl-3">
         <button
           onClick={onToggleExpand}
-          className="p-2 text-[#5a5a40] opacity-30 hover:opacity-100 hover:bg-[#f5f5f0] rounded-full transition-all"
+          className="p-2 text-[#8d8db9] opacity-30 hover:opacity-100 hover:bg-[#e2e8f0] rounded-full transition-all"
         >
           <motion.div animate={{ rotate: isExpanded ? 180 : 0 }}>
             <ChevronDown className="w-5 h-5" />

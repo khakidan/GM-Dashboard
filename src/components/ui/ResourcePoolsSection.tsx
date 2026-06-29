@@ -127,16 +127,16 @@ export const ResourcePoolsSection: React.FC<ResourcePoolsSectionProps> = ({
   };
 
   return (
-    <div className="border border-[#e5e1d8] hover:border-[#c5b358]/30 rounded-xl bg-white p-4 space-y-3 shadow-inner font-sans">
-      <div className="flex items-center justify-between border-b border-[#e5e1d8]/50 pb-2">
-        <div className="text-[10px] uppercase text-[#5a5a40] font-bold tracking-widest px-1">
+    <div className="border border-[#e2e8f0] hover:border-[#2563eb]/30 rounded-xl bg-white p-4 space-y-3 shadow-inner font-sans">
+      <div className="flex items-center justify-between border-b border-[#e2e8f0]/50 pb-2">
+        <div className="text-[10px] uppercase text-[#8d8db9] font-bold tracking-widest px-1">
           Class Resource Trackers
         </div>
         {!isAdding && (
           <button
             onClick={() => setIsAdding(true)}
             disabled={isSyncing}
-            className="text-xs text-[#c5b358] hover:text-[#a39240] font-bold flex items-center gap-1 transition-all"
+            className="text-xs text-[#2563eb] hover:text-[#567eff] font-bold flex items-center gap-1 transition-all"
             id={`add-resource-btn-${character.id}`}
           >
             <Plus className="w-3.5 h-3.5" /> Add Track
@@ -145,13 +145,13 @@ export const ResourcePoolsSection: React.FC<ResourcePoolsSectionProps> = ({
       </div>
 
       {isAdding && (
-        <form onSubmit={handleCreate} className="bg-[#fdfaf5] border border-[#e5e1d8] rounded-lg p-3 space-y-3">
-          <div className="flex items-center justify-between border-b border-[#e5e1d8]/40 pb-1">
-            <span className="text-xs font-bold text-[#5a5a40]">New Resource Tracker</span>
+        <form onSubmit={handleCreate} className="bg-[#ffffff] border border-[#e2e8f0] rounded-lg p-3 space-y-3">
+          <div className="flex items-center justify-between border-b border-[#e2e8f0]/40 pb-1">
+            <span className="text-xs font-bold text-[#8d8db9]">New Resource Tracker</span>
             <button
               type="button"
               onClick={() => setIsAdding(false)}
-              className="text-[#5a5a40]/60 hover:text-red-500"
+              className="text-[#8d8db9]/60 hover:text-red-500"
             >
               <X className="w-4 h-4" />
             </button>
@@ -159,34 +159,34 @@ export const ResourcePoolsSection: React.FC<ResourcePoolsSectionProps> = ({
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             <div>
-              <label className="text-[9px] uppercase font-bold text-[#5a5a40]/70">Name</label>
+              <label className="text-[9px] uppercase font-bold text-[#8d8db9]/70">Name</label>
               <input
                 type="text"
                 placeholder="Rage, Ki, Spell Slots..."
                 value={newPoolName}
                 onChange={(e) => setNewPoolName(e.target.value)}
-                className="w-full text-xs bg-white border border-[#e5e1d8] focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] px-2 py-1.5 rounded outline-none"
+                className="w-full text-xs bg-white border border-[#e2e8f0] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] px-2 py-1.5 rounded outline-none"
                 required
                 id={`new-resource-name-${character.id}`}
               />
             </div>
             <div>
-              <label className="text-[9px] uppercase font-bold text-[#5a5a40]/70">Max Uses</label>
+              <label className="text-[9px] uppercase font-bold text-[#8d8db9]/70">Max Uses</label>
               <input
                 type="number"
                 min={1}
                 value={newPoolMax}
                 onChange={(e) => setNewPoolMax(parseInt(e.target.value, 10) || 1)}
-                className="w-full text-xs bg-white border border-[#e5e1d8] focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] px-2 py-1.5 rounded outline-none"
+                className="w-full text-xs bg-white border border-[#e2e8f0] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] px-2 py-1.5 rounded outline-none"
                 required
               />
             </div>
             <div>
-              <label className="text-[9px] uppercase font-bold text-[#5a5a40]/70">Resets On</label>
+              <label className="text-[9px] uppercase font-bold text-[#8d8db9]/70">Resets On</label>
               <select
                 value={newPoolReset}
                 onChange={(e) => setNewPoolReset(e.target.value as ResourcePool['reset'])}
-                className="w-full text-xs bg-white border border-[#e5e1d8] focus:border-[#c5b358] focus:ring-1 focus:ring-[#c5b358] px-2 py-1.5 rounded outline-none"
+                className="w-full text-xs bg-white border border-[#e2e8f0] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] px-2 py-1.5 rounded outline-none"
               >
                 <option value="short">Short & Long Rest</option>
                 <option value="long">Long Rest Only</option>
@@ -197,7 +197,7 @@ export const ResourcePoolsSection: React.FC<ResourcePoolsSectionProps> = ({
 
           <button
             type="submit"
-            className="w-full py-1.5 bg-[#c5b358] hover:bg-[#a39240] text-xs font-bold text-white uppercase rounded transition-all"
+            className="w-full py-1.5 bg-[#2563eb] hover:bg-[#567eff] text-xs font-bold text-white uppercase rounded transition-all"
             id={`save-new-resource-${character.id}`}
           >
             Create Tracker
@@ -206,7 +206,7 @@ export const ResourcePoolsSection: React.FC<ResourcePoolsSectionProps> = ({
       )}
 
       {pools.length === 0 ? (
-        <p className="text-xs text-[#5a5a40]/60 italic px-1">
+        <p className="text-xs text-[#8d8db9]/60 italic px-1">
           No class resource trackers active. Set up rage counters, ki pips, grit, or spell slots above.
         </p>
       ) : (
@@ -221,33 +221,33 @@ export const ResourcePoolsSection: React.FC<ResourcePoolsSectionProps> = ({
                 id={`resource-pool-${pool.name.replace(/\s+/g, '-').toLowerCase()}`}
               >
                 {isEditing ? (
-                  <div className="bg-[#fdfaf5] border border-dashed border-[#e5e1d8] p-3 rounded-lg space-y-3">
+                  <div className="bg-[#ffffff] border border-dashed border-[#e2e8f0] p-3 rounded-lg space-y-3">
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                       <div>
-                        <label className="text-[9px] uppercase font-bold text-[#5a5a40]/70">Name</label>
+                        <label className="text-[9px] uppercase font-bold text-[#8d8db9]/70">Name</label>
                         <input
                           type="text"
                           value={editName}
                           onChange={(e) => setEditName(e.target.value)}
-                          className="w-full text-xs bg-white border border-[#e5e1d8] focus:border-[#c5b358] px-2 py-1 rounded outline-none"
+                          className="w-full text-xs bg-white border border-[#e2e8f0] focus:border-[#2563eb] px-2 py-1 rounded outline-none"
                         />
                       </div>
                       <div>
-                        <label className="text-[9px] uppercase font-bold text-[#5a5a40]/70">Max Uses</label>
+                        <label className="text-[9px] uppercase font-bold text-[#8d8db9]/70">Max Uses</label>
                         <input
                           type="number"
                           min={1}
                           value={editMax}
                           onChange={(e) => setEditMax(parseInt(e.target.value, 10) || 1)}
-                          className="w-full text-xs bg-white border border-[#e5e1d8] focus:border-[#c5b358] px-2 py-1 rounded outline-none"
+                          className="w-full text-xs bg-white border border-[#e2e8f0] focus:border-[#2563eb] px-2 py-1 rounded outline-none"
                         />
                       </div>
                       <div>
-                        <label className="text-[9px] uppercase font-bold text-[#5a5a40]/70">Resets On</label>
+                        <label className="text-[9px] uppercase font-bold text-[#8d8db9]/70">Resets On</label>
                         <select
                           value={editReset}
                           onChange={(e) => setEditReset(e.target.value as ResourcePool['reset'])}
-                          className="w-full text-xs bg-white border border-[#e5e1d8] focus:border-[#c5b358] px-2 py-1 rounded outline-none"
+                          className="w-full text-xs bg-white border border-[#e2e8f0] focus:border-[#2563eb] px-2 py-1 rounded outline-none"
                         >
                           <option value="short">Short & Long Rest</option>
                           <option value="long">Long Rest Only</option>
@@ -264,7 +264,7 @@ export const ResourcePoolsSection: React.FC<ResourcePoolsSectionProps> = ({
                       </button>
                       <button
                         onClick={() => handleSaveEdit(pool.name)}
-                        className="px-2.5 py-1 bg-[#c5b358] hover:bg-[#a39240] text-white rounded font-bold"
+                        className="px-2.5 py-1 bg-[#2563eb] hover:bg-[#567eff] text-white rounded font-bold"
                         id={`save-edit-resource-${pool.name.replace(/\s+/g, '-').toLowerCase()}`}
                       >
                         Save
@@ -279,7 +279,7 @@ export const ResourcePoolsSection: React.FC<ResourcePoolsSectionProps> = ({
                         <span className="font-bold text-[#20201a] text-sm font-serif block">
                           {pool.name}
                         </span>
-                        <span className="text-[10px] text-[#5a5a40]/70 inline-block bg-[#5a5a40]/5 px-1.5 py-0.5 rounded leading-none">
+                        <span className="text-[10px] text-[#8d8db9]/70 inline-block bg-[#8d8db9]/5 px-1.5 py-0.5 rounded leading-none">
                           Reset: {getResetLabel(pool.reset)}
                         </span>
                       </div>
@@ -289,7 +289,7 @@ export const ResourcePoolsSection: React.FC<ResourcePoolsSectionProps> = ({
                         <button
                           onClick={() => handleResetPool(pool.name, pool.max)}
                           title="Reset Tracker to Max"
-                          className="p-1 hover:bg-[#f1ecd8]/60 hover:text-[#c5b358] rounded transition-all"
+                          className="p-1 hover:bg-[#f1ecd8]/60 hover:text-[#2563eb] rounded transition-all"
                           id={`reset-resource-${pool.name.replace(/\s+/g, '-').toLowerCase()}`}
                         >
                           <RotateCcw className="w-3.5 h-3.5" />
@@ -319,19 +319,19 @@ export const ResourcePoolsSection: React.FC<ResourcePoolsSectionProps> = ({
                         <button
                           onClick={() => handleSpend(pool.name, pool.current)}
                           disabled={pool.current <= 0 || isSyncing}
-                          className="p-1 border border-[#e5e1d8] rounded hover:bg-red-50 disabled:opacity-30 cursor-pointer"
+                          className="p-1 border border-[#e2e8f0] rounded hover:bg-red-50 disabled:opacity-30 cursor-pointer"
                           id={`spend-resource-${pool.name.replace(/\s+/g, '-').toLowerCase()}`}
                           title="Spend 1 Use"
                         >
                           <Minus className="w-3 h-3 text-red-600" />
                         </button>
-                        <span className="font-mono font-bold text-xs px-2 text-[#2c2c26]">
+                        <span className="font-mono font-bold text-xs px-2 text-[#0f172a]">
                           {pool.current} / {pool.max}
                         </span>
                         <button
                           onClick={() => handleRecover(pool.name, pool.current, pool.max)}
                           disabled={pool.current >= pool.max || isSyncing}
-                          className="p-1 border border-[#e5e1d8] rounded hover:bg-green-50 disabled:opacity-30 cursor-pointer"
+                          className="p-1 border border-[#e2e8f0] rounded hover:bg-green-50 disabled:opacity-30 cursor-pointer"
                           id={`recover-resource-${pool.name.replace(/\s+/g, '-').toLowerCase()}`}
                           title="Recover 1 Use"
                         >
@@ -363,7 +363,7 @@ export const ResourcePoolsSection: React.FC<ResourcePoolsSectionProps> = ({
                               className={cn(
                                 "w-3 h-3 rounded-full transition-all cursor-pointer",
                                 isActive
-                                  ? "bg-[#c5b358] border border-[#a39240] hover:bg-[#a39240]"
+                                  ? "bg-[#2563eb] border border-[#567eff] hover:bg-[#567eff]"
                                   : "bg-gray-100 border border-gray-300 hover:bg-gray-200"
                               )}
                               title={isActive ? "Spent/Pip Active" : "Empty Pip"}

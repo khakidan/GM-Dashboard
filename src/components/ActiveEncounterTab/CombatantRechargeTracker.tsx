@@ -30,8 +30,8 @@ export function CombatantRechargeTracker({
   }
 
   return (
-    <div className="bg-[#faf9f6]/30 p-4 rounded-xl border border-[#e5e1d8] space-y-3" id={`recharge-abilities-sec-${combatantId}`}>
-      <label className="block text-xs font-bold uppercase tracking-widest text-[#5a5a40]">Recharge Abilities</label>
+    <div className="bg-[#f9f8ff]/30 p-4 rounded-xl border border-[#e2e8f0] space-y-3" id={`recharge-abilities-sec-${combatantId}`}>
+      <label className="block text-xs font-bold uppercase tracking-widest text-[#8d8db9]">Recharge Abilities</label>
       <div className="space-y-2.5">
         {rechargeAbilities.map((ability) => {
           const thresholdText = ability.rechargeOn === RECHARGE_THRESHOLDS.onSix ? '6' : `${ability.rechargeOn}-6`;
@@ -42,13 +42,13 @@ export function CombatantRechargeTracker({
             <div
               key={ability.name}
               id={`recharge-row-${ability.name.toLowerCase().replace(/\s+/g, '-')}-${combatantId}`}
-              className="flex items-center justify-between p-2 rounded-lg bg-[#faf9f6] border border-[#e5e1d8]/60"
+              className="flex items-center justify-between p-2 rounded-lg bg-[#f9f8ff] border border-[#e2e8f0]/60"
             >
               <div className="flex items-center gap-2 min-w-0">
-                <span className="font-serif text-sm font-bold truncate text-[#2c2c26]">
+                <span className="font-serif text-sm font-bold truncate text-[#0f172a]">
                   {ability.name}
                 </span>
-                <span className="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-50 text-[#c5b358] border border-[#c5b358]/30">
+                <span className="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#f9f8ff] text-[#2563eb] border border-[#c0d4ff]">
                   ⚡ Recharge {thresholdText}
                 </span>
                 <AnimatePresence>
@@ -91,7 +91,7 @@ export function CombatantRechargeTracker({
                     id={`btn-roll-recharge-${ability.name.toLowerCase().replace(/\s+/g, '-')}-${combatantId}`}
                     onClick={() => onRollRecharge(ability.name, ability.rechargeOn)}
                     disabled={isSyncing}
-                    className="px-2 py-1 text-xs font-bold border border-[#c5b358] text-[#c5b358] bg-white hover:bg-[#faf9f6]/85 rounded transition-all cursor-pointer flex items-center gap-1 shadow-sm"
+                    className="px-2 py-1 text-xs font-bold border border-[#2563eb] text-[#2563eb] bg-white hover:bg-[#f9f8ff]/85 rounded transition-all cursor-pointer flex items-center gap-1 shadow-sm"
                   >
                     🎲 Roll Recharge
                   </button>
