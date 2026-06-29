@@ -12,7 +12,7 @@ export function GlobalControls({
   isAmbientPlaying,
 }: GlobalControlsProps) {
   return (
-    <div className="fixed top-auto bottom-4 right-4 flex flex-row items-start gap-2 z-50">
+    <div className="fixed top-4 right-4 flex flex-row items-start gap-2 z-50">
       <div className="relative flex flex-col h-11">
         <button
           id="audio-panel-header"
