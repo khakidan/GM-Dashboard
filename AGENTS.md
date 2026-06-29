@@ -20,6 +20,12 @@ with OAuth2 authentication.
 
 ---
 
+## Style Guide
+
+For all user interface styling, components, colors, and layout guidelines, refer to [STYLE_GUIDE.md](STYLE_GUIDE.md). This guide was last updated this session with the full approved palette. All new UI developments must strictly adhere to the defined "Minimalist Sleek" aesthetic and contrast guidelines.
+
+---
+
 ## The Golden Rule — Single Source of Truth
 
 **Google Sheets is the database. The app is
@@ -215,6 +221,8 @@ schema.
 
 ## Key Files Reference
 
+- `src/index.css` — Global stylesheet. Note that the sleek-modern block is now structural-only (font, radius, shadows, button interactions). All parchment/gold override rules have been removed.
+
 ### src/lib/
 - `constants.ts` — OVERLAY_DURATIONS,
   ANIMATION_TIMING, SHEET_RANGES,
@@ -396,6 +404,7 @@ test files. Not tests themselves.
   effect grid, campaign-scoped layout
 - `AudioLibrary.tsx` — Tabbed audio file
   manager with drag-drop and mood assignment
+- `SettingsPage.tsx` — Settings page layout with SheetConnectionSettings full width, Auth + Backup in a 2-column grid, and GMTestingTools full width.
 
 ### src/components/auth/
 - `AuthPortalSettings.tsx` — Auth portal
@@ -1120,6 +1129,10 @@ The test must check WHAT was passed.
       NpcReaction/NpcLegendaryAction interfaces
     - New architectural patterns → add to the
       Patterns and Conventions section
+
+12. **Contrast on Solid Blue backgrounds:** All `bg-[#2563eb]` solid blue elements must use `text-white` text. Never use `text-[#0f172a]` on a solid blue background.
+
+13. **Avoid inline styles:** Do not use inline `style={{}}` props for anything Tailwind can handle. Dynamic animation math in overlay components is the only exception.
 
 ---
 

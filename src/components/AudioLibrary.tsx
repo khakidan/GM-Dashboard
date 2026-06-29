@@ -246,11 +246,10 @@ export function AudioLibrary({
                 }}
                 className={`w-6 h-6 flex items-center justify-center rounded-md border text-xs transition-colors shrink-0 ${
                   currentMood
-                    ? 'bg-[#f9f8ff] border-[#e2e8f0] text-stone-700'
-                    : 'bg-stone-50/50 border-stone-200/50 text-stone-400 opacity-0 group-hover:opacity-100'
+                    ? 'bg-[#f9f8ff] border-[#e2e8f0] text-stone-700 opacity-100'
+                    : 'bg-stone-50/50 border-stone-200/50 text-stone-400 opacity-60 group-hover:opacity-100'
                 } hover:border-[#2563eb] hover:bg-[#f9f8ff]/50 cursor-pointer`}
                 title={currentMood ? `Mood: ${moodObj?.label}` : 'Assign Mood'}
-                style={{ opacity: currentMood ? 1 : undefined }}
               >
                 {currentMood ? moodObj?.emoji : '➕'}
               </button>
