@@ -25,10 +25,10 @@ export function SyncStatusIndicators({
       <div className="relative group flex justify-center">
         <div
           title={lastSyncTime ? `Synced ${lastSyncTime.toLocaleTimeString()}` : 'Not Synced'}
-          className="w-8 h-8 rounded-full bg-[#5a5a40] flex items-center justify-center text-xs font-bold font-sans text-white shrink-0 relative cursor-help"
+          className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-xs font-bold font-sans text-white shrink-0 relative cursor-help"
         >
           G
-          <div className={cn('absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border border-[#2c2c26]', lastSyncTime ? 'bg-green-500' : 'bg-yellow-500')}></div>
+          <div className={cn('absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border border-[#2563eb]', lastSyncTime ? 'bg-green-500' : 'bg-yellow-500')}></div>
         </div>
         {/* Tooltip */}
         <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 z-50 bg-stone-800 border border-stone-700 text-stone-200 text-xs font-medium px-2.5 py-1.5 rounded-md shadow-lg whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-150">
@@ -44,7 +44,7 @@ export function SyncStatusIndicators({
         <button
           onClick={() => onSyncWithSheets?.()}
           disabled={isSyncing}
-          className="w-10 h-10 flex items-center justify-center bg-[#3f3f37] hover:bg-[#5a5a40] rounded-lg text-white transition-colors disabled:opacity-50 cursor-pointer"
+          className="w-10 h-10 flex items-center justify-center bg-white/15 hover:bg-white/25 rounded-lg text-white transition-colors disabled:opacity-50 cursor-pointer"
           aria-label="Pull from Sheets"
         >
           <RefreshCw className={cn('w-4 h-4', isSyncing && 'animate-spin')} />

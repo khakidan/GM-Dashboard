@@ -27,10 +27,10 @@ export function SidebarIcon({
         disabled={disabled}
         className={`w-10 h-10 flex items-center justify-center rounded-lg transition-colors ${
           disabled
-            ? 'opacity-50 cursor-not-allowed text-[#5a5a40]'
+            ? 'opacity-40 cursor-not-allowed text-[#c0d4ff]'
             : isActive
-            ? 'bg-[#e5e1d8] text-[#2c2c26] ring-1 ring-[#c5b358]/50 cursor-pointer'
-            : 'text-[#5a5a40] hover:text-[#2c2c26] hover:bg-[#e5e1d8]/60 cursor-pointer'
+            ? 'bg-white/20 text-white ring-1 ring-white/40 cursor-pointer'
+            : 'text-[#c0d4ff] hover:text-white hover:bg-white/15 cursor-pointer'
         }`}
         aria-label={ariaLabel || label}
       >
