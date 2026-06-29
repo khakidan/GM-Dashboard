@@ -224,8 +224,7 @@ export function AmbientPlayer({
                 max="100"
                 value={Math.round(ambientVolume * 100)}
                 onChange={handleVolumeChange}
-                className="w-full accent-[#2563eb]"
-                style={{ cursor: 'pointer' }}
+                className="w-full accent-[#2563eb] cursor-pointer"
               />
               <span className="text-xs font-mono font-bold text-stone-500 w-10 text-right">
                 {Math.round(ambientVolume * 100)}%
