@@ -1,6 +1,8 @@
+---
+
 # GM Dashboard — Style Guide
 
-This file is the authoritative style 
+This file is the authoritative style
 reference for all UI work on this project.
 When building or modifying any component,
 consult this guide first. Never introduce
@@ -11,69 +13,95 @@ component styles that are not defined here.
 
 ## Design Philosophy
 
-The GM Dashboard uses a warm parchment-and-
-obsidian aesthetic — light, clean surfaces
-with ink-dark text and gold accents. This
-creates a D&D-appropriate feel while
-remaining highly readable during sessions.
+The GM Dashboard uses the Minimalist
+Sleek visual style — clean white surfaces,
+indigo-blue structure, and precise
+typographic hierarchy. This creates a
+modern, distraction-free interface
+optimized for readability during sessions.
+
+The app is permanently locked to this
+style. There is no theme switcher and
+no alternative visual styles.
 
 **Two rules above all others:**
-1. Every piece of text must have sufficient
-   contrast against its background. Minimum
-   4.5:1 for body text, 3:1 for large/bold
-   text (WCAG AA).
-2. When in doubt, go lighter and use more
-   whitespace. Clutter costs the GM attention
-   during play.
+1. Every piece of text must have
+   sufficient contrast against its
+   background. Minimum 4.5:1 for body
+   text, 3:1 for large/bold text
+   (WCAG AA).
+2. When in doubt, go lighter and use
+   more whitespace. Clutter costs the
+   GM attention during play.
 
 ---
 
-## Design Tokens
+## Approved Color Palette
 
-These are the only color values used in
-this application. Do not introduce new
-hex values without updating this file.
+These are the ONLY color values permitted
+in this application. Do not introduce
+any hex value not listed here without
+updating this file first.
 
-| Token | Hex | Name | Usage |
-|-------|-----|------|-------|
-| `#fdfaf5` | Parchment | Main backgrounds, card surfaces, modal bodies |
-| `#f5f1e8` | Parchment Alt | Sidebar, nested sections, subtle separation |
-| `#2c2c26` | Obsidian | Primary text, modal header bars, dark accents |
-| `#5a5a40` | Sage | Muted labels, secondary text, placeholder text |
-| `#c5b358` | Gold | Primary accent, focus rings, active indicators |
-| `#8a7a20` | Gold Dark | Gold text at small sizes only |
-| `#e5e1d8` | Sepia | All borders and dividers |
-| `#ffffff` | White | Input field fill |
-| `#3f3f37` | Charcoal | Tooltip borders, dark dividers |
+### Primary Colors
 
-### Contrast Ratios (on Parchment #fdfaf5)
+| Token | Hex | Usage |
+|-------|-----|-------|
+| White | `#ffffff` | Main backgrounds, card surfaces, input fills — dominant color |
+| Blue Primary | `#2563eb` | Sidebar background, primary buttons, active indicators |
+| Blue 2 | `#567eff` | Hover states, sidebar borders, lighter blue accents |
+| Blue 3 | `#7b99ff` | Subtle blue tints, secondary indicators |
+| Blue 4 | `#9eb6ff` | Borders on blue backgrounds |
+| Blue 5 | `#c0d4ff` | Sidebar icon default color, disabled states, very light blue |
+
+### Discreet Palette (use sparingly)
+
+| Token | Hex | Usage |
+|-------|-----|-------|
+| Purple | `#8d8db9` | Secondary labels, muted text, placeholder text |
+| Off-white | `#f9f8ff` | Subtle card backgrounds, nested sections |
+| Yellow | `#eee8a9` | Warnings only — use very sparingly |
+
+### Semantic Colors (keep as-is)
+
+| Token | Usage |
+|-------|-------|
+| `text-red-600` | Error text, destructive actions |
+| `bg-red-50 / border-red-100` | Destructive button backgrounds |
+| `bg-green-50 / text-green-700` | Positive status indicators |
+| `bg-amber-*` | Do not use — not in palette |
+
+### Contrast Ratios (on White #ffffff)
 
 | Color | Ratio | Grade | Use for |
 |-------|-------|-------|---------|
-| Obsidian `#2c2c26` | 14.8:1 | AAA | All body text |
-| Sage `#5a5a40` | 5.2:1 | AA | Labels, secondary text |
-| Gold Dark `#8a7a20` | 4.6:1 | AA | Small gold text |
-| Gold `#c5b358` | 3.1:1 | AA Large | Large/bold text, icons only |
+| Blue Primary `#2563eb` | 5.9:1 | AA | Buttons, icons, active text |
+| Purple `#8d8db9` | 3.4:1 | AA Large | Labels at 18px+ bold only |
+| Blue 5 `#c0d4ff` | 1.4:1 | Fail | Icons on blue bg only — never text on white |
 
-> **Rule:** Never use Gold `#c5b358` for
-> text smaller than 18px or unbold text.
-> Use Gold Dark `#8a7a20` instead.
+> **Rule:** Never use `#c0d4ff` or
+> `#8d8db9` for body text on white
+> backgrounds — contrast is insufficient.
+> Use them only for icons, placeholders,
+> or large bold labels.
 
 ---
 
 ## Layout
+App root:     bg-white font-sans
 
-```
-App root:        bg-[#fdfaf5] font-serif
-Sidebar:         bg-[#f5f1e8] 
-                 border-r border-[#e5e1d8]
-Main content:    bg-[#fdfaf5]
-```
+Sidebar:      bg-[#2563eb]
 
-The sidebar uses Parchment Alt (`#f5f1e8`)
-to be one shade darker than the main
-content area. This creates spatial
-separation without a hard dark border.
+border-r border-[#567eff]
+
+Main content: bg-white
+
+The sidebar uses the primary blue
+(`#2563eb`) to create strong visual
+anchoring and separation from the white
+content area. This follows the pattern
+of modern productivity tools (Slack,
+Linear, Notion).
 
 ---
 
@@ -81,332 +109,301 @@ separation without a hard dark border.
 
 All content cards (character cards, NPC
 cards, combatant cards) share this pattern:
+Background:  bg-white
 
-```
-Background:  bg-[#fdfaf5]
-Border:      border border-[#e5e1d8]
-             Always `border` — never `border-2`
+Border:      border border-[#f9f8ff]
+
+or border-[#e2e8f0]
+
 Radius:      rounded-2xl
+
 Shadow:      shadow-sm (optional)
-```
 
 ---
 
 ## Modal Dialogs
 
 ### Backdrop
-```
-bg-[#2c2c26]/60 backdrop-blur-sm
-```
+bg-[#0f172a]/60 backdrop-blur-sm
 
 ### Panel
-```
-Background:  bg-[#fdfaf5]
-Border:      border border-[#e5e1d8]
+Background:  bg-white
+
+Border:      border border-[#e2e8f0]
+
 Radius:      rounded-2xl
+
 Max width:   max-w-2xl (standard)
-             max-w-lg (simple confirmation)
-```
+
+max-w-lg (simple confirmation)
 
 ### Header Bar
-Every modal has a dark contrasting header
-bar that anchors the dialog title:
-```
-Background:  bg-[#2c2c26]
-Text:        text-[#fdfaf5] font-bold
+Background:  bg-[#2563eb]
+
+Text:        text-white font-bold
+
 Radius:      rounded-t-2xl (top only)
-Close (×):   text-[#e5e1d8] hover:text-white
-```
+
+Close (×):   text-[#c0d4ff]
+
+hover:text-white
 
 ### Footer
-```
-Background:  bg-[#fdfaf5] or bg-white
-Border top:  border-t border-[#e5e1d8]
-```
+Background:  bg-white
+
+Border top:  border-t border-[#f9f8ff]
 
 ---
 
 ## Inputs
-
-All text inputs, number inputs, select
-dropdowns, and textareas use this pattern:
-
-```
 Background:   bg-white
-Border:       border border-[#e5e1d8]
+
+Border:       border border-[#e2e8f0]
+
 Radius:       rounded-xl
-Text:         text-[#2c2c26]
-Placeholder:  placeholder:text-[#5a5a40]
-Focus:        focus:border-[#c5b358]
-              focus:ring-1
-              focus:ring-[#c5b358]/50
-              focus:outline-none
-```
+
+Text:         text-[#0f172a]
+
+Placeholder:  placeholder:text-[#8d8db9]
+
+Focus:        focus:border-[#2563eb]
+
+focus:ring-1
+
+focus:ring-[#2563eb]/30
+
+focus:outline-none
 
 ### Number inputs
 Always add `onFocus={e => e.target.select()}`
-so the existing value is selected on focus,
-allowing the user to type immediately without
-manually clearing the field.
+so the existing value is selected on
+focus, allowing the user to type
+immediately without manually clearing
+the field.
 
 ### Labels
-```
-text-[#5a5a40] text-xs font-bold 
+text-[#8d8db9] text-xs font-bold
+
 uppercase tracking-widest
-```
-
-Required field marker:
-```
-<span className="text-red-500 ml-0.5">*</span>
-```
-
-### Helper / description text
-```
-text-[#5a5a40] text-xs italic
-```
 
 ### Error text
-```
 text-red-600 text-xs
-```
 
 ---
 
 ## Buttons
 
 ### Primary (submit / confirm)
-```
-Enabled:   bg-[#c5b358] text-[#2c2c26] 
-           font-bold uppercase tracking-widest 
-           text-xs rounded-xl px-4 py-2
-           hover:bg-[#d4c47a]
-           transition-colors
+Enabled:   bg-[#2563eb] text-white
 
-Disabled:  bg-[#e5e1d8] text-[#5a5a40]
-           cursor-not-allowed rounded-xl 
-           px-4 py-2 opacity-60
-```
+font-bold uppercase
+
+tracking-widest text-xs
+
+rounded-xl px-4 py-2
+
+hover:bg-[#567eff]
+
+transition-colors
+Disabled:  bg-[#c0d4ff] text-white
+
+cursor-not-allowed
+
+rounded-xl px-4 py-2
+
+opacity-60
 
 ### Secondary (cancel / back)
-```
-text-[#5a5a40] border border-[#e5e1d8]
+text-[#8d8db9] border border-[#e2e8f0]
+
 rounded-xl px-3 py-1.5 text-xs
-hover:border-[#c5b358] hover:text-[#2c2c26]
+
+hover:border-[#2563eb]
+
+hover:text-[#2563eb]
+
 transition-colors
-```
 
 ### Destructive (delete / remove)
-```
-bg-red-50 text-red-600 
-border border-red-100 rounded-xl 
+bg-red-50 text-red-600
+
+border border-red-100 rounded-xl
+
 uppercase text-xs font-bold px-3 py-2
+
 hover:bg-red-100 transition-colors
-```
 
 ### Icon-only
-```
-text-[#5a5a40] hover:text-[#2c2c26]
-hover:bg-[#e5e1d8]/60 rounded-lg p-1.5
-transition-colors
-```
+text-[#8d8db9] hover:text-[#2563eb]
 
-### Ghost (text-only navigation)
-```
-text-[#5a5a40] hover:text-[#2c2c26]
-text-sm transition-colors
-```
+hover:bg-[#f9f8ff] rounded-lg p-1.5
+
+transition-colors
 
 ---
 
 ## Tabs
+Tab bar:    border-b border-[#e2e8f0]
+Active:     text-[#2563eb] border-b-2
 
-Used in multi-tab dialogs and panels:
+border-[#2563eb] font-medium
 
-```
-Tab bar:    border-b border-[#e5e1d8]
+pb-2
+Inactive:   text-[#8d8db9] pb-2
 
-Active:     text-[#c5b358] border-b-2
-            border-[#c5b358] font-medium
-            pb-2
+hover:text-[#2563eb]
 
-Inactive:   text-[#5a5a40] pb-2
-            hover:text-[#2c2c26]
-            transition-colors
-```
+transition-colors
 
 ---
 
 ## Section Headers
+text-[#8d8db9] text-xs font-bold
 
-Used inside cards and expanded sections
-to label groups of related content
-(e.g. "SAVING THROWS", "CONDITIONS",
-"RESOURCES"):
-
-```
-text-[#5a5a40] text-xs font-bold 
 uppercase tracking-widest
-border-b border-[#e5e1d8] pb-1 mb-2
-```
+
+border-b border-[#f9f8ff] pb-1 mb-2
 
 ---
 
 ## Sidebar Navigation
+Sidebar background:  bg-[#2563eb]
 
-```
-Sidebar background:  bg-[#f5f1e8]
-                     border-r border-[#e5e1d8]
+border-r
 
-Icon — default:      text-[#5a5a40]
-Icon — hover:        text-[#2c2c26]
-                     bg-[#e5e1d8]/60
-Icon — active:       text-[#2c2c26]
-                     bg-[#e5e1d8]
-                     ring-1 ring-[#c5b358]/50
+border-[#567eff]
+Icon — default:      text-[#c0d4ff]
+Icon — hover:        text-white
 
-Tooltip:             bg-[#2c2c26]
-                     text-[#fdfaf5] text-xs
-                     border border-[#3f3f37]
-                     rounded-lg px-2 py-1
-                     shadow-lg
+bg-white/15
+Icon — active:       text-white
 
-Divider:             border-t border-[#e5e1d8]
-```
+bg-white/20
+
+ring-1 ring-white/40
+Tooltip:             bg-[#0f172a]
+
+text-white text-xs
+
+rounded-lg px-2 py-1
+
+shadow-lg
+Divider:             border-t
+
+border-[#567eff]
 
 ---
 
 ## Stat Block (Ability Score Boxes)
+Box:          bg-[#f9f8ff]
 
-The six ability score boxes (STR, DEX,
-CON, INT, WIS, CHA) use a slightly
-deeper parchment to create visual
-grouping against the card background:
+border border-[#e2e8f0]
 
-```
-Box:          bg-[#f5f1e8]
-              border border-[#e5e1d8]
-              rounded-lg p-2 text-center
+rounded-lg p-2 text-center
+Label:        text-[#8d8db9] text-[10px]
 
-Label:        text-[#5a5a40] text-[10px]
-              uppercase tracking-wider
-              font-medium
+uppercase tracking-wider
 
-Score:        text-[#2c2c26] text-2xl
-              font-bold
+font-medium
+Score:        text-[#0f172a] text-2xl
 
-Modifier (+): text-[#8a7a20] text-sm
-              font-medium
+font-bold
+Modifier (+): text-[#2563eb] text-sm
 
-Modifier (0): text-[#5a5a40] text-sm
-              font-medium
+font-medium
+Modifier (0): text-[#8d8db9] text-sm
 
+font-medium
 Modifier (-): text-red-600 text-sm
-              font-medium
-```
+
+font-medium
 
 ---
 
 ## Badges and Pills
 
 ### Resource reset type
-```
-Short Rest (SR):  bg-[#fdf4c2] text-[#8a7a20]
-                  border border-[#e5c85a]
-                  text-[10px] font-bold 
-                  uppercase rounded px-1.5
+Short Rest:  bg-[#f9f8ff] text-[#567eff]
 
-Long Rest (LR):   bg-blue-50 text-blue-700
-                  border border-blue-200
-                  text-[10px] font-bold
-                  uppercase rounded px-1.5
+border border-[#c0d4ff]
 
-Never (—):        bg-[#f5f1e8] text-[#5a5a40]
-                  border border-[#e5e1d8]
-                  text-[10px] font-bold
-                  uppercase rounded px-1.5
-```
+text-[10px] font-bold
+
+uppercase rounded px-1.5
+Long Rest:   bg-[#f9f8ff] text-[#2563eb]
+
+border border-[#9eb6ff]
+
+text-[10px] font-bold
+
+uppercase rounded px-1.5
 
 ### Status badges
-```
-Active:    bg-green-50 text-green-700
-           border border-green-200
+Active:    bg-[#f9f8ff] text-[#2563eb]
 
-Inactive:  bg-[#f5f1e8] text-[#5a5a40]
-           border border-[#e5e1d8]
+border border-[#c0d4ff]
+Inactive:  bg-[#f9f8ff] text-[#8d8db9]
 
-Deceased:  bg-red-50 text-red-700
-           border border-red-200
-```
-
----
-
-## Condition Chips
-
-Condition chips use the existing
-three-category system and should
-not be changed:
-
-```
-Condition:  bg-red-100 text-red-800
-            border border-red-200
-
-Effect:     bg-blue-100 text-blue-800
-            border border-blue-200
-
-Custom:     bg-[#f5f1e8] text-[#5a5a40]
-            border border-[#e5e1d8]
-```
+border border-[#e2e8f0]
 
 ---
 
 ## Typography
+App font:       font-sans (system-ui)
 
-```
-App font:       font-serif (set on root)
 Data/numbers:   font-mono (HP values,
-                dice notation, modifiers)
-Labels/UI:      font-sans (small caps,
-                tracking-widest labels)
-```
+
+dice notation, modifiers)
+
+Labels/UI:      font-sans uppercase
+
+tracking-widest
 
 ---
 
 ## Spacing and Sizing
 
-Standard gaps between form fields: `space-y-4`
-Standard card padding: `p-4` or `p-5`
-Standard section gap inside cards: `space-y-3`
-Modal content padding: `px-6 py-5`
-Modal footer padding: `px-6 py-4`
+Standard gaps between form fields:
+  `space-y-4`
+Standard card padding:
+  `p-4` or `p-5`
+Standard section gap inside cards:
+  `space-y-3`
+Modal content padding:
+  `px-6 py-5`
+Modal footer padding:
+  `px-6 py-4`
 
 ---
 
 ## What NOT to do
 
+- ❌ Do not introduce hex values not
+  in the approved palette above
+- ❌ Do not add theme switching or
+  alternative visual styles — the app
+  is permanently Minimalist Sleek
+- ❌ Do not use warm parchment colors
+  (`#fdfaf5`, `#f5f1e8`, `#c5b358`,
+  `#2c2c26`, `#5a5a40`, `#8a7a20`) —
+  those belonged to the old default
+  theme and are no longer in use
 - ❌ Do not use `border-2` on cards —
   use `border` only
-- ❌ Do not use `bg-stone-*` or `text-stone-*`
-  — use the design tokens above
-- ❌ Do not use `bg-amber-*` or `text-amber-*`
-  — use Gold `#c5b358` or Gold Dark `#8a7a20`
-- ❌ Do not use Gold `#c5b358` for small
-  body text — use Gold Dark `#8a7a20`
-- ❌ Do not introduce new hex values
-  without adding them to this file
-- ❌ Do not use `focus:ring-amber-*` —
-  use `focus:ring-[#c5b358]/50`
-- ❌ Do not use dark backgrounds on
-  content areas — the app is light
+- ❌ Do not use `bg-amber-*` or
+  `text-amber-*` — not in palette
+- ❌ Do not use `#c0d4ff` or `#8d8db9`
+  for body text on white — insufficient
+  contrast
 
 ---
 
-## Adding new UI elements
+## Adding New UI Elements
 
 Before styling any new component:
 1. Check this file for the closest
    matching pattern
-2. Use the design tokens above —
-   no new hex values
+2. Use only the approved palette above
 3. Verify contrast ratio if placing
    text on a non-white background
 4. Run `npx tsc -p tsconfig.build.json
