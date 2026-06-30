@@ -204,6 +204,29 @@ export interface EncounterCombatant {
   npcTempAcMod?: number;
 }
 
+export interface Condition {
+  name: string;
+  description: string;
+  source: string;
+}
+
+export interface Spell {
+  name: string;
+  level: number;
+  school: string;
+  castingTime: string;
+  range: string;
+  components: string;
+  materials: string;
+  duration: string;
+  concentration: boolean;
+  ritual: boolean;
+  classes: string;
+  description: string;
+  higherLevel: string;
+  source: string;
+}
+
 export interface DifficultyLevel {
   id: number;
   name: string;
@@ -216,6 +239,8 @@ export interface AppState {
   encounters: Encounter[];
   npcs: NPC[];
   encounterCombatants: EncounterCombatant[];
+  conditions: Condition[];
+  spells: Spell[];
   difficulties: Record<string, string>;
   statuses: Record<string, string>;
   combatState: CombatState;

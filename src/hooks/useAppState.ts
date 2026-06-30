@@ -24,6 +24,8 @@ export function useAppState() {
       npcs: s.npcs,
       encounters: s.encounters,
       encounterCombatants: s.encounterCombatants,
+      conditions: s.conditions,
+      spells: s.spells,
       statuses: s.statuses,
       difficulties: s.difficulties,
       campaignName: s.campaignName,

@@ -8,7 +8,7 @@ import {
   getSpreadsheetId,
 } from '../services/sheetsService';
 import { clearRetryQueue } from '../services/writeQueue';
-import { Character, Encounter, NPC, EncounterCombatant } from '../types';
+import { Character, Encounter, NPC, EncounterCombatant, Condition, Spell } from '../types';
 import { STORAGE_KEYS, SHEET_RANGES } from '../lib/constants';
 import {
   parseStatuses,
@@ -17,6 +17,8 @@ import {
   parseEncounters,
   parseEncounterCombatants,
   parseCharacters,
+  parseConditions,
+  parseSpells,
 } from '../lib/sheetSyncParser';
 
 interface UseSheetSyncProps {
@@ -100,6 +102,28 @@ export function useSheetSync({ setIsGoogleConnected, onActiveTabChange }: UseShe
         addLog('Relational combatant data skipped.');
       }
 
+      // 7. Fetch Conditions
+      addLog('Step 8: Loading conditions reference...');
+      let parsedConditions: Condition[] = [];
+      try {
+        const condRes = await fetchSheetData(sid, 'Conditions!A2:C');
+        parsedConditions = parseConditions(condRes.values || []);
+        addLog(`Conditions loaded: ${parsedConditions.length}`);
+      } catch (err) {
+        addLog('Conditions reference data skipped (sheet may not exist yet).');
+      }
+
+      // 8. Fetch Spells
+      addLog('Step 9: Loading spells reference...');
+      let parsedSpells: Spell[] = [];
+      try {
+        const spellRes = await fetchSheetData(sid, 'Spells!A2:N');
+        parsedSpells = parseSpells(spellRes.values || []);
+        addLog(`Spells loaded: ${parsedSpells.length}`);
+      } catch (err) {
+        addLog('Spells reference data skipped (sheet may not exist yet).');
+      }
+
       updateState(prev => {
         const parsedCharacters = parseCharacters(characterRows, statuses);
         return {
@@ -109,6 +133,8 @@ export function useSheetSync({ setIsGoogleConnected, onActiveTabChange }: UseShe
           encounters: parsedEncounters,
           npcs: parsedNPCs,
           encounterCombatants: parsedEncounterCombatants,
+          conditions: parsedConditions,
+          spells: parsedSpells,
           statuses,
           difficulties,
         };

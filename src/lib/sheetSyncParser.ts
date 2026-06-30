@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { NPC, Character, Encounter, EncounterCombatant } from '../types';
+import { NPC, Character, Encounter, EncounterCombatant, Condition, Spell } from '../types';
 import {
   CharacterRowSchema,
   NpcRowSchema,
@@ -7,6 +7,8 @@ import {
   EncounterCombatantRowSchema,
   StatusRowSchema,
   DifficultyRowSchema,
+  ConditionRowSchema,
+  SpellRowSchema,
 } from './sheetSchemas';
 import {
   mapCharacterRowToCharacter,
@@ -96,4 +98,46 @@ export function parseCharacters(values: SheetData, statuses: Record<string, stri
       return mapCharacterRowToCharacter(result.data, i + 2, statuses);
     })
     .filter((char): char is Character => char !== null);
+}
+
+export function parseConditions(values: SheetData): Condition[] {
+  return values
+    .map((row, i) => {
+      const result = ConditionRowSchema.safeParse(row);
+      if (!result.success) {
+        console.warn('[Sync] Conditions row', i, 'failed validation:', result.error.issues);
+        return null;
+      }
+      const [name, description, source] = result.data;
+      return { name, description, source };
+    })
+    .filter((c): c is Condition => c !== null);
+}
+
+export function parseSpells(values: SheetData): Spell[] {
+  return values
+    .map((row, i) => {
+      const result = SpellRowSchema.safeParse(row);
+      if (!result.success) {
+        console.warn('[Sync] Spells row', i, 'failed validation:', result.error.issues);
+        return null;
+      }
+      const [
+        name, level, school, castingTime,
+        range, components, materials,
+        duration, concentration, ritual,
+        classes, description, higherLevel,
+        source
+      ] = result.data;
+      return {
+        name, level, school, castingTime,
+        range, components, materials,
+        duration,
+        concentration: concentration === 'true',
+        ritual: ritual === 'true',
+        classes, description, higherLevel,
+        source,
+      };
+    })
+    .filter((s): s is Spell => s !== null);
 }

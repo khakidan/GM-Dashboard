@@ -127,3 +127,26 @@ export const DifficultyRowSchema = z.preprocess(padRow(2), z.tuple([
   idSchema,                            // [0] difficultyId
   stringDefault(''),                   // [1] difficultyName
 ]));
+
+export const ConditionRowSchema = z.preprocess(padRow(3), z.tuple([
+  nonEmptyString,        // [0] name
+  stringDefault(''),     // [1] description
+  stringDefault('SRD'),  // [2] source
+]));
+
+export const SpellRowSchema = z.preprocess(padRow(14), z.tuple([
+  nonEmptyString,        // [0] name
+  coerceNumber(0),       // [1] level
+  stringDefault(''),     // [2] school
+  stringDefault(''),     // [3] castingTime
+  stringDefault(''),     // [4] range
+  stringDefault(''),     // [5] components
+  stringDefault(''),     // [6] materials
+  stringDefault(''),     // [7] duration
+  stringDefault('false'),// [8] concentration
+  stringDefault('false'),// [9] ritual
+  stringDefault(''),     // [10] classes
+  stringDefault(''),     // [11] description
+  stringDefault(''),     // [12] higherLevel
+  stringDefault('SRD'),  // [13] source
+]));
