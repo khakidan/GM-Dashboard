@@ -133,8 +133,8 @@ export function parseSpells(values: SheetData): Spell[] {
         name, level, school, castingTime,
         range, components, materials,
         duration,
-        concentration: concentration === 'true',
-        ritual: ritual === 'true',
+        concentration: concentration.toLowerCase() === 'true',
+        ritual: ritual.toLowerCase() === 'true',
         classes, description, higherLevel,
         source,
       };
