@@ -1,7 +1,8 @@
 import React from 'react';
 import { Spell, Condition } from '../types';
 import { X, Sparkles, AlertCircle } from 'lucide-react';
-import { cn } from '../lib/utils';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface ReferenceDetailDialogProps {
   reference:
@@ -10,6 +11,27 @@ interface ReferenceDetailDialogProps {
     | null;
   onClose: () => void;
 }
+
+const markdownComponents = {
+  p: ({ children }: any) => <p className="mb-3 last:mb-0 text-[#0f172a] text-sm leading-relaxed font-normal">{children}</p>,
+  strong: ({ children }: any) => <strong className="font-bold text-[#0f172a]">{children}</strong>,
+  em: ({ children }: any) => <em className="italic">{children}</em>,
+  ul: ({ children }: any) => <ul className="list-disc pl-5 mb-3 space-y-1 text-[#0f172a] text-sm">{children}</ul>,
+  ol: ({ children }: any) => <ol className="list-decimal pl-5 mb-3 space-y-1 text-[#0f172a] text-sm">{children}</ol>,
+  li: ({ children }: any) => <li className="mb-0.5 last:mb-0 leading-relaxed">{children}</li>,
+  table: ({ children }: any) => (
+    <div className="overflow-x-auto my-3 border border-[#e2e8f0] rounded-lg">
+      <table className="min-w-full divide-y divide-[#e2e8f0] text-xs font-sans text-[#0f172a]">
+        {children}
+      </table>
+    </div>
+  ),
+  thead: ({ children }: any) => <thead className="bg-[#f9f8ff]">{children}</thead>,
+  tbody: ({ children }: any) => <tbody className="divide-y divide-[#e2e8f0]">{children}</tbody>,
+  tr: ({ children }: any) => <tr className="hover:bg-[#f9f8ff]/50 transition-colors">{children}</tr>,
+  th: ({ children }: any) => <th className="px-3 py-2 text-left font-bold text-[10px] uppercase tracking-wider text-[#0f172a] border-r border-[#e2e8f0] last:border-r-0">{children}</th>,
+  td: ({ children }: any) => <td className="px-3 py-1.5 border-r border-[#e2e8f0] last:border-r-0 leading-normal">{children}</td>,
+};
 
 export function ReferenceDetailDialog({ reference, onClose }: ReferenceDetailDialogProps) {
   if (!reference) return null;
@@ -45,13 +67,17 @@ export function ReferenceDetailDialog({ reference, onClose }: ReferenceDetailDia
 
         <div className="px-6 py-5 space-y-4 overflow-y-auto max-h-[70vh] text-[#0f172a] text-sm leading-relaxed">
           {reference.type === 'condition' && (
-            <div className="whitespace-pre-wrap text-[#0f172a]">{reference.data.description}</div>
+            <div className="text-[#0f172a]">
+              <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+                {reference.data.description}
+              </ReactMarkdown>
+            </div>
           )}
 
           {reference.type === 'spell' && (
             <div className="space-y-4">
-              <div className="flex flex-wrap gap-2">
-                <span className="bg-[#f9f8ff] text-[#2563eb] border border-[#9eb6ff] text-[10px] font-bold uppercase rounded-md px-2 py-1">
+              <div className="flex flex-wrap gap-2 animate-fade-in">
+                <span className="bg-[#f9f8ff] text-[#2563eb] border border-[#9eb6ff] text-[10px] font-bold uppercase rounded-md px-2.5 py-1">
                   {reference.data.level === 0 ? 'Cantrip' : `Level ${reference.data.level}`} · {reference.data.school}
                 </span>
                 <span className="bg-[#f9f8ff] text-[#8d8db9] border border-[#e2e8f0] text-[10px] font-bold uppercase rounded-md px-2 py-1">
@@ -83,14 +109,22 @@ export function ReferenceDetailDialog({ reference, onClose }: ReferenceDetailDia
                 )}
               </div>
 
-              <div className="whitespace-pre-wrap text-[#0f172a]">{reference.data.description}</div>
+              <div className="text-[#0f172a]">
+                <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+                  {reference.data.description}
+                </ReactMarkdown>
+              </div>
 
               {reference.data.higherLevel && (
                 <div className="bg-[#f9f8ff] border border-[#e2e8f0] rounded-lg p-4">
                   <h3 className="text-[#8d8db9] text-[10px] font-bold uppercase tracking-widest border-b border-[#e2e8f0] pb-1 mb-2">
                     At Higher Levels
                   </h3>
-                  <div className="whitespace-pre-wrap text-[#0f172a]">{reference.data.higherLevel}</div>
+                  <div className="text-[#0f172a]">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+                      {reference.data.higherLevel}
+                    </ReactMarkdown>
+                  </div>
                 </div>
               )}
             </div>

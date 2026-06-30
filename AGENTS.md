@@ -435,9 +435,10 @@ test files. Not tests themselves.
   (checks for existing data before writing).
 - `ReferenceDetailDialog.tsx` — Modal shown
   when a condition or spell is selected from
-  CommandPalette search. Displays full rules
-  text and spell metadata (level, school,
-  components, concentration/ritual badges).
+  CommandPalette search. Displays spell metadata
+  (level, school, components, concentration/ritual badges)
+  and renders the full description and higherLevel
+  rules text using react-markdown with remark-gfm.
 - `CommandPalette.tsx` — Cmd+K global search.
   Now also searches Conditions and Spells
   reference data (only shown after 2+ characters
