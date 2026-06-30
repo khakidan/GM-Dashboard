@@ -200,6 +200,33 @@ conditionImmunities column.
 | J | 9 | npcCurrentConditions | Comma-separated |
 | K | 10 | npcTempAcMod | Number, default 0 |
 
+### Conditions (A2:C — 3 columns)
+
+| Col | Index | Field | Notes |
+|-----|-------|-------|-------|
+| A | 0 | name | |
+| B | 1 | description | |
+| C | 2 | source | |
+
+### Spells (A2:N — 14 columns)
+
+| Col | Index | Field | Notes |
+|-----|-------|-------|-------|
+| A | 0 | name | |
+| B | 1 | level | |
+| C | 2 | school | |
+| D | 3 | castingTime | |
+| E | 4 | range | |
+| F | 5 | components | |
+| G | 6 | materials | |
+| H | 7 | duration | |
+| I | 8 | concentration | |
+| J | 9 | ritual | |
+| K | 10 | classes | |
+| L | 11 | description | |
+| M | 12 | higherLevel | |
+| N | 13 | source | |
+
 ### Status (read-only)
 IDs: 1=Active, 2=Inactive, 3=Deceased
 
@@ -234,7 +261,10 @@ schema.
 - `sheetAdapters.ts` — Maps raw row arrays
   from the API into typed model objects
 - `sheetSyncParser.ts` — Validates full
-  campaign workbooks on initial sync
+  campaign workbooks on initial sync. Note
+  the addition of parseConditions and
+  parseSpells functions alongside the
+  existing parseNPCs.
 - `combatLogic.ts` — HP/damage/healing math,
   IRV application, health status calculation
 - `combatantBuilder.ts` — Pure function that
@@ -348,7 +378,10 @@ schema.
   connectCampaign, openCampaign, deleteCampaign,
   closeCampaign, extractSpreadsheetId
 - `useSheetSync.ts` — Full campaign workbook
-  pull and Zustand population
+  pull and Zustand population. Note that sync
+  now also fetches Conditions!A2:C and
+  Spells!A2:N, wrapped in try/catch since
+  older campaigns may not have these tabs.
 - `useEncounterLifecycle.ts` — Combat setup,
   initiative, round advancement, battle end
 - `useEncounterResume.ts` — Detects and
@@ -395,7 +428,21 @@ test files. Not tests themselves.
   launcher for campaign create/connect/switch
 - `PlayerView.tsx` — Cross-tab broadcast
   view for a second monitor
-- `CommandPalette.tsx` — Cmd+K global search
+- `ReferenceDataSeeder.tsx` — Settings page
+  button that one-time seeds the Conditions and
+  Spells sheet tabs from the open5e public API
+  (SRD content). Manual trigger only, idempotent
+  (checks for existing data before writing).
+- `ReferenceDetailDialog.tsx` — Modal shown
+  when a condition or spell is selected from
+  CommandPalette search. Displays full rules
+  text and spell metadata (level, school,
+  components, concentration/ritual badges).
+- `CommandPalette.tsx` — Cmd+K global search.
+  Now also searches Conditions and Spells
+  reference data (only shown after 2+ characters
+  typed), in addition to its existing
+  navigation/action commands.
 - `AudioPanel.tsx` — M key modal: AMBIENT /
   SOUNDBOARD / LIBRARY tabs
 - `AmbientPlayer.tsx` — Mood presets + track
@@ -596,7 +643,7 @@ this whitelist and to `dbOperations.ts`.
 
 ## Testing Structure — 12-Batch System
 
-**Current baseline: 617 tests.**
+**Current baseline: 623 tests.**
 All batches must pass with zero failures.
 No batch should exceed 35 seconds.
 
@@ -615,10 +662,10 @@ run all tests at once with `npx vitest run`.
 | 6A    | PartyTab    | 38         |
 | 6B    | Encounters  | 8          |
 | 6C    | NpcLibrary  | 13         |
-| 7B-1  | Top-Level 1 | 5          |
+| 7B-1  | Top-Level 1 | 11         |
 | 7B-2  | Top-Level 2 | 4          |
 | 8     | UI          | 2          |
-| **Total** | | **617** |
+| **Total** | | **623** |
 
 ```bash
 # BATCH 1 — 420 tests
@@ -648,7 +695,7 @@ npx vitest run src/components/EncountersTab/__tests__
 # BATCH 6C — 13 tests
 npx vitest run src/components/NpcLibraryTab/__tests__
 
-# BATCH 7B-1 — 5 tests
+# BATCH 7B-1 — 11 tests
 npx vitest run src/components/__tests__/CommandPalette.test.tsx src/components/__tests__/ErrorBoundary.test.tsx src/components/__tests__/GMDashboard.test.tsx src/components/__tests__/GMDashboardSidebar.test.tsx
 
 # BATCH 7B-2 — 4 tests
