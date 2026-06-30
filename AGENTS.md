@@ -22,7 +22,7 @@ with OAuth2 authentication.
 
 ## Style Guide
 
-For all user interface styling, components, colors, and layout guidelines, refer to [STYLE_GUIDE.md](STYLE_GUIDE.md). This guide was last updated this session with the full approved palette. All new UI developments must strictly adhere to the defined "Minimalist Sleek" aesthetic and contrast guidelines.
+For all user interface styling, components, colors, and layout guidelines, refer to [STYLE_GUIDE.md](STYLE_GUIDE.md). This guide was revised in this session to add the Command Palette section, the Slate Dark color token, and the ReferenceDetailDialog badges/panels. All new UI developments must strictly adhere to the defined "Minimalist Sleek" aesthetic and contrast guidelines.
 
 ---
 

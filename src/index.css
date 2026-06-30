@@ -56,8 +56,14 @@
   font-style: normal !important;
   letter-spacing: -0.02em !important;
   text-transform: none !important;
-  color: #0f172a !important;
   text-shadow: none !important;
+}
+
+[data-theme='sleek-modern'] h1:not([class*='text-']), 
+[data-theme='sleek-modern'] h2:not([class*='text-']), 
+[data-theme='sleek-modern'] h3:not([class*='text-']), 
+[data-theme='sleek-modern'] .font-serif:not([class*='text-']) {
+  color: #0f172a !important;
 }
 
 [data-theme='sleek-modern'] .font-serif .marigold-text {

@@ -48,6 +48,7 @@ updating this file first.
 | Token | Hex | Usage |
 |-------|-----|-------|
 | White | `#ffffff` | Main backgrounds, card surfaces, input fills — dominant color |
+| Slate Dark (Ink) | `#0f172a` | Core text color, headings, active selections, modal backdrops (with opacity), tooltips |
 | Blue Primary | `#2563eb` | Sidebar background, primary buttons, active indicators |
 | Blue 2 | `#567eff` | Hover states, sidebar borders, lighter blue accents |
 | Blue 3 | `#7b99ff` | Subtle blue tints, secondary indicators |
@@ -75,6 +76,7 @@ updating this file first.
 
 | Color | Ratio | Grade | Use for |
 |-------|-------|-------|---------|
+| Slate Dark (Ink) `#0f172a` | 19.5:1 | AAA | Body text, bold headings, details, absolute high-contrast elements |
 | Blue Primary `#2563eb` | 5.9:1 | AA | Buttons, icons, active text |
 | Purple `#8d8db9` | 3.4:1 | AA Large | Labels at 18px+ bold only |
 | Blue 5 `#c0d4ff` | 1.4:1 | Fail | Icons on blue bg only — never text on white |
@@ -152,6 +154,38 @@ hover:text-white
 Background:  bg-white
 
 Border top:  border-t border-[#f9f8ff]
+
+---
+
+## Command Palette
+
+The search overlay (activated via `Cmd+K` or `Ctrl+K`) uses a highly interactive and structured list.
+
+### Backdrop
+`fixed inset-0 bg-[#0f172a]/60 backdrop-blur-sm z-50 flex items-start justify-center pt-[12vh] px-4 font-sans select-none`
+
+### Panel Card
+- **Background**: `bg-white`
+- **Text**: `text-[#0f172a]`
+- **Border**: `border border-[#e2e8f0]`
+- **Radius**: `rounded-2xl`
+- **Width**: `w-full max-w-xl`
+- **Shadow**: `shadow-2xl`
+
+### Search Input
+- **Container**: `flex items-center gap-3 px-4 py-3 border-b border-[#e2e8f0]`
+- **Icon**: `Dices` (styled as `w-5 h-5 text-[#2563eb]`)
+- **Input**: `w-full bg-transparent outline-none border-none placeholder-[#8d8db9] text-sm font-sans text-[#0f172a]`
+
+### Group Headers
+- Styled with: `[&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:font-sans [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-[#2563eb]/75`
+
+### Item Rows
+- **Class**: `w-full px-3 py-2.5 rounded-lg flex items-center justify-between text-xs font-semibold font-sans transition-all cursor-pointer text-[#0f172a]/80 hover:bg-[#f9f8ff] hover:text-[#0f172a] border-l-2 border-transparent hover:border-[#2563eb] data-[selected='true']:bg-[#f9f8ff] data-[selected='true']:text-[#0f172a] data-[selected='true']:border-[#2563eb] data-[selected=true]:bg-[#f9f8ff] data-[selected=true]:text-[#0f172a] data-[selected=true]:border-[#2563eb]`
+- **Disabled Empty Message**: `px-4 py-3 text-xs text-[#8d8db9] font-medium font-sans`
+
+### Keyboard Shortcuts (kbd)
+- **Class**: `px-1.5 py-0.5 text-[10px] font-sans font-bold bg-[#f9f8ff] border border-[#e2e8f0] rounded-md text-[#8d8db9]`
 
 ---
 
@@ -345,6 +379,18 @@ border border-[#c0d4ff]
 Inactive:  bg-[#f9f8ff] text-[#8d8db9]
 
 border border-[#e2e8f0]
+
+### Reference Metadata Badges (from ReferenceDetailDialog)
+- **Spell Level badge**: `bg-[#f9f8ff] text-[#2563eb] border border-[#9eb6ff] text-[10px] font-bold uppercase rounded-md px-2.5 py-1`
+- **General Info tags**: `bg-[#f9f8ff] text-[#8d8db9] border border-[#e2e8f0] text-[10px] font-bold uppercase rounded-md px-2 py-1`
+- **Concentration**: `bg-red-50 text-red-600 border border-red-100 text-[10px] font-bold uppercase rounded-md px-2 py-1`
+- **Ritual**: `bg-[#f9f8ff] text-[#567eff] border border-[#c0d4ff] text-[10px] font-bold uppercase rounded-md px-2 py-1`
+
+### Nested Panels and Callouts
+For sub-sections or detailed context inside modals (e.g. "At Higher Levels"):
+- **Container**: `bg-[#f9f8ff] border border-[#e2e8f0] rounded-lg p-4`
+- **Sub-header**: `text-[#8d8db9] text-[10px] font-bold uppercase tracking-widest border-b border-[#e2e8f0] pb-1 mb-2`
+- **Body Text**: `text-stone-700` or `text-[#0f172a]` (clean high contrast)
 
 ---
 

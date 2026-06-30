@@ -29,7 +29,7 @@ import { MOODS, MoodId } from '../lib/constants';
 import { Spell, Condition } from '../types';
 import { ReferenceDetailDialog } from './ReferenceDetailDialog';
 
-const COMMAND_ITEM_CLASS = "w-full px-3 py-2.5 rounded-lg flex items-center justify-between text-xs font-semibold font-sans transition-all cursor-pointer text-stone-700 hover:bg-[#f9f8ff] hover:text-[#0f172a] border-l-2 border-transparent hover:border-[#2563eb] data-[selected='true']:bg-[#f9f8ff] data-[selected='true']:text-[#0f172a] data-[selected='true']:border-[#2563eb] data-[selected=true]:bg-[#f9f8ff] data-[selected=true]:text-[#0f172a] data-[selected=true]:border-[#2563eb]";
+const COMMAND_ITEM_CLASS = "w-full px-3 py-2.5 rounded-lg flex items-center justify-between text-xs font-semibold font-sans transition-all cursor-pointer text-[#0f172a]/80 hover:bg-[#f9f8ff] hover:text-[#0f172a] border-l-2 border-transparent hover:border-[#2563eb] data-[selected='true']:bg-[#f9f8ff] data-[selected='true']:text-[#0f172a] data-[selected='true']:border-[#2563eb] data-[selected=true]:bg-[#f9f8ff] data-[selected=true]:text-[#0f172a] data-[selected=true]:border-[#2563eb]";
 
 interface CommandPaletteProps {
   isOpen: boolean;
@@ -144,7 +144,7 @@ export function CommandPalette({
               </div>
 
               <Command.List id="command-palette-list" className="max-h-96 overflow-y-auto py-2 scrollbar-thin">
-                <Command.Empty className="px-4 py-3 text-xs text-stone-500 font-medium font-sans">No commands found.</Command.Empty>
+                <Command.Empty className="px-4 py-3 text-xs text-[#8d8db9] font-medium font-sans">No commands found.</Command.Empty>
 
                 <Command.Group heading="── Navigation ──" className="px-2 py-1.5 [&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:font-sans [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-[#2563eb]/75">
                   <Command.Item
@@ -275,7 +275,7 @@ export function CommandPalette({
                           <Play className="w-4 h-4 text-[#2563eb]" />
                           <span>Next Turn</span>
                         </div>
-                        <kbd className="px-1.5 py-0.5 text-[10px] font-sans font-bold bg-[#f9f8ff] border border-[#e2e8f0] rounded-md text-stone-500">N</kbd>
+                        <kbd className="px-1.5 py-0.5 text-[10px] font-sans font-bold bg-[#f9f8ff] border border-[#e2e8f0] rounded-md text-[#8d8db9]">N</kbd>
                       </Command.Item>
                       <Command.Item
                         id="cmd-roll-npc-initiative"
@@ -303,7 +303,7 @@ export function CommandPalette({
                     }}
                     className={cn(
                       COMMAND_ITEM_CLASS,
-                      !state.combatState.activeEncounterId && "opacity-55 cursor-not-allowed hover:bg-transparent hover:text-stone-500 hover:border-transparent pointer-events-none"
+                      !state.combatState.activeEncounterId && "opacity-55 cursor-not-allowed hover:bg-transparent hover:text-[#8d8db9] hover:border-transparent pointer-events-none"
                     )}
                     title={!state.combatState.activeEncounterId ? "Start an encounter first" : undefined}
                   >
@@ -312,9 +312,9 @@ export function CommandPalette({
                       <span>Call for Initiative</span>
                     </div>
                     {!state.combatState.activeEncounterId && (
-                      <span className="text-[10px] text-stone-500 italic mr-2" title="Start an encounter first">Start an encounter first</span>
+                      <span className="text-[10px] text-[#8d8db9] italic mr-2" title="Start an encounter first">Start an encounter first</span>
                     )}
-                    <kbd className="px-1.5 py-0.5 text-[10px] font-sans font-bold bg-[#f9f8ff] border border-[#e2e8f0] rounded-md text-stone-500">C</kbd>
+                    <kbd className="px-1.5 py-0.5 text-[10px] font-sans font-bold bg-[#f9f8ff] border border-[#e2e8f0] rounded-md text-[#8d8db9]">C</kbd>
                   </Command.Item>
                   {state.combatState.activeEncounterId && (
                     <Command.Item
@@ -426,7 +426,7 @@ export function CommandPalette({
                           <span className="text-base leading-none">{m.emoji}</span>
                           <div className="flex flex-col">
                             <span className="font-sans font-bold">{m.label} Music</span>
-                            <span className="text-[10px] text-stone-500 font-sans mt-0.5">{description}</span>
+                            <span className="text-[10px] text-[#8d8db9] font-sans mt-0.5">{description}</span>
                           </div>
                         </div>
                         {isActive && (
@@ -442,11 +442,11 @@ export function CommandPalette({
                     <Command.Item
                       id="cmd-audio-empty"
                       disabled={true}
-                      className="w-full px-3 py-2.5 rounded-lg flex items-center justify-between text-xs font-semibold font-sans transition-all text-stone-500 pointer-events-none"
+                      className="w-full px-3 py-2.5 rounded-lg flex items-center justify-between text-xs font-semibold font-sans transition-all text-[#8d8db9] pointer-events-none"
                     >
                       <div className="flex flex-col">
                         <span className="font-sans font-bold">No ambient tracks loaded</span>
-                        <span className="text-[10px] text-stone-500 font-sans mt-0.5">Add tracks in the Audio panel → Library tab</span>
+                        <span className="text-[10px] text-[#8d8db9] font-sans mt-0.5">Add tracks in the Audio panel → Library tab</span>
                       </div>
                     </Command.Item>
                   ) : (
@@ -464,7 +464,7 @@ export function CommandPalette({
                           <Music className="w-4 h-4 text-[#2563eb]" />
                           <div className="flex flex-col">
                             <span className="font-sans font-bold">{file.name}</span>
-                            <span className="text-[10px] text-stone-500 font-sans mt-0.5">Ambient track</span>
+                            <span className="text-[10px] text-[#8d8db9] font-sans mt-0.5">Ambient track</span>
                           </div>
                         </div>
                         {file.id === currentAmbientId && (
@@ -585,7 +585,7 @@ export function CommandPalette({
                           <Sparkles className="w-4 h-4 text-[#2563eb]" />
                           <div className="flex flex-col">
                             <span className="font-sans font-bold">{spell.name}</span>
-                            <span className="text-[10px] text-stone-500 font-sans mt-0.5">
+                            <span className="text-[10px] text-[#8d8db9] font-sans mt-0.5">
                               {spell.level === 0 ? 'Cantrip' : `Level ${spell.level}`} · {spell.school}
                             </span>
                           </div>
