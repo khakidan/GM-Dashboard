@@ -4,6 +4,7 @@ import { Settings, Upload, Download } from 'lucide-react';
 import { useSettings } from '../hooks/useSettings';
 import { SheetConnectionSettings } from './SheetConnectionSettings';
 import { AuthPortalSettings } from './auth/AuthPortalSettings';
+import { ReferenceDataSeeder } from './ReferenceDataSeeder';
 import { GMTestingTools } from './GMTestingTools';
 
 interface SettingsPageProps {
@@ -107,6 +108,9 @@ export function SettingsPage(props: SettingsPageProps) {
             </div>
           </div>
         </div>
+
+        {/* Full width — Reference Data Seeder */}
+        <ReferenceDataSeeder isGoogleConnected={props.isGoogleConnected} />
 
         {/* Full width — GM Testing Tools */}
         <GMTestingTools
