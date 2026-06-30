@@ -45,7 +45,7 @@ export function ReferenceDetailDialog({ reference, onClose }: ReferenceDetailDia
 
         <div className="px-6 py-5 space-y-4 overflow-y-auto max-h-[70vh] text-[#0f172a] text-sm leading-relaxed">
           {reference.type === 'condition' && (
-            <div className="whitespace-pre-wrap text-stone-700">{reference.data.description}</div>
+            <div className="whitespace-pre-wrap text-[#0f172a]">{reference.data.description}</div>
           )}
 
           {reference.type === 'spell' && (
@@ -54,17 +54,17 @@ export function ReferenceDetailDialog({ reference, onClose }: ReferenceDetailDia
                 <span className="bg-[#f9f8ff] text-[#2563eb] border border-[#9eb6ff] text-[10px] font-bold uppercase rounded-md px-2 py-1">
                   {reference.data.level === 0 ? 'Cantrip' : `Level ${reference.data.level}`} · {reference.data.school}
                 </span>
-                <span className="bg-[#f9f8ff] text-stone-600 border border-[#e2e8f0] text-[10px] font-bold uppercase rounded-md px-2 py-1">
-                  <strong className="text-stone-950 font-extrabold mr-1">Time:</strong> {reference.data.castingTime}
+                <span className="bg-[#f9f8ff] text-[#8d8db9] border border-[#e2e8f0] text-[10px] font-bold uppercase rounded-md px-2 py-1">
+                  <strong className="text-[#0f172a] font-extrabold mr-1">Time:</strong> {reference.data.castingTime}
                 </span>
-                <span className="bg-[#f9f8ff] text-stone-600 border border-[#e2e8f0] text-[10px] font-bold uppercase rounded-md px-2 py-1">
-                  <strong className="text-stone-950 font-extrabold mr-1">Range:</strong> {reference.data.range}
+                <span className="bg-[#f9f8ff] text-[#8d8db9] border border-[#e2e8f0] text-[10px] font-bold uppercase rounded-md px-2 py-1">
+                  <strong className="text-[#0f172a] font-extrabold mr-1">Range:</strong> {reference.data.range}
                 </span>
-                <span className="bg-[#f9f8ff] text-stone-600 border border-[#e2e8f0] text-[10px] font-bold uppercase rounded-md px-2 py-1">
-                  <strong className="text-stone-950 font-extrabold mr-1">Components:</strong> {reference.data.components}
+                <span className="bg-[#f9f8ff] text-[#8d8db9] border border-[#e2e8f0] text-[10px] font-bold uppercase rounded-md px-2 py-1">
+                  <strong className="text-[#0f172a] font-extrabold mr-1">Components:</strong> {reference.data.components}
                 </span>
-                <span className="bg-[#f9f8ff] text-stone-600 border border-[#e2e8f0] text-[10px] font-bold uppercase rounded-md px-2 py-1">
-                  <strong className="text-stone-950 font-extrabold mr-1">Duration:</strong> {reference.data.duration}
+                <span className="bg-[#f9f8ff] text-[#8d8db9] border border-[#e2e8f0] text-[10px] font-bold uppercase rounded-md px-2 py-1">
+                  <strong className="text-[#0f172a] font-extrabold mr-1">Duration:</strong> {reference.data.duration}
                 </span>
                 {reference.data.concentration && (
                   <span className="bg-red-50 text-red-600 border border-red-100 text-[10px] font-bold uppercase rounded-md px-2 py-1">
@@ -77,20 +77,20 @@ export function ReferenceDetailDialog({ reference, onClose }: ReferenceDetailDia
                   </span>
                 )}
                 {reference.data.classes && (
-                  <span className="bg-[#f9f8ff] text-stone-600 border border-[#e2e8f0] text-[10px] font-bold uppercase rounded-md px-2 py-1">
-                    <strong className="text-stone-950 font-extrabold mr-1">Classes:</strong> {reference.data.classes}
+                  <span className="bg-[#f9f8ff] text-[#8d8db9] border border-[#e2e8f0] text-[10px] font-bold uppercase rounded-md px-2 py-1">
+                    <strong className="text-[#0f172a] font-extrabold mr-1">Classes:</strong> {reference.data.classes}
                   </span>
                 )}
               </div>
 
-              <div className="whitespace-pre-wrap text-stone-700">{reference.data.description}</div>
+              <div className="whitespace-pre-wrap text-[#0f172a]">{reference.data.description}</div>
 
               {reference.data.higherLevel && (
                 <div className="bg-[#f9f8ff] border border-[#e2e8f0] rounded-lg p-4">
                   <h3 className="text-[#8d8db9] text-[10px] font-bold uppercase tracking-widest border-b border-[#e2e8f0] pb-1 mb-2">
                     At Higher Levels
                   </h3>
-                  <div className="whitespace-pre-wrap text-stone-700">{reference.data.higherLevel}</div>
+                  <div className="whitespace-pre-wrap text-[#0f172a]">{reference.data.higherLevel}</div>
                 </div>
               )}
             </div>
