@@ -24,12 +24,12 @@ export function ReferenceDetailDialog({ reference, onClose }: ReferenceDetailDia
         onClick={e => e.stopPropagation()}
       >
         <div className="bg-[#2563eb] text-white px-6 py-4 flex items-center justify-between rounded-t-2xl">
-          <h2 className="text-xl font-bold font-sans">
+          <h2 className="text-xl font-bold font-sans text-white">
             {reference.data.name}
           </h2>
           <button
             onClick={onClose}
-            className="text-white hover:opacity-80 transition-opacity"
+            className="text-[#c0d4ff] hover:text-white transition-colors"
             aria-label="Close"
           >
             <X className="w-5 h-5" />

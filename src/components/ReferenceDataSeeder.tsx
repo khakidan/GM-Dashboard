@@ -63,13 +63,18 @@ export function ReferenceDataSeeder({ isGoogleConnected }: ReferenceDataSeederPr
       let spellsSkipped = false;
 
       setProgress('Checking existing Conditions data...');
+      // NOTE TO USER: Since we only check if the tab is populated (length > 1),
+      // re-running the seeder will NOT overwrite contaminated data.
+      // If your 'Conditions' or 'Spells' tabs have duplicate/contaminated entries,
+      // you must manually clear those tabs' rows in Google Sheets before re-running
+      // this seeder to fetch clean, correctly filtered 2014 SRD data.
       const existingConditionsData = await fetchSheetData('Conditions!A:C');
       if (existingConditionsData?.values && existingConditionsData.values.length > 1) {
         setProgress('Conditions already seeded — skipped');
         conditionsSkipped = true;
       } else {
         setProgress('Fetching conditions from Open5e API...');
-        const condResponse = await fetch('https://api.open5e.com/v1/conditions/?limit=100');
+        const condResponse = await fetch('https://api.open5e.com/v1/conditions/?document__slug=wotc-srd&limit=100');
         if (!condResponse.ok) {
           throw new Error(`Open5e API error fetching conditions: ${condResponse.statusText}`);
         }
@@ -80,7 +85,7 @@ export function ReferenceDataSeeder({ isGoogleConnected }: ReferenceDataSeederPr
         const conditionRows = rawConditions.map((c: any) => [
           c.name || '',
           c.desc || '',
-          'SRD',
+          c.document__title || 'SRD',
         ]);
 
         setProgress('Saving conditions to spreadsheet...');
@@ -129,13 +134,18 @@ export function ReferenceDataSeeder({ isGoogleConnected }: ReferenceDataSeederPr
       await updateSheetData('Spells!A1:N1', [spellsHeaders]);
 
       setProgress('Checking existing Spells data...');
+      // NOTE TO USER: Since we only check if the tab is populated (length > 1),
+      // re-running the seeder will NOT overwrite contaminated data.
+      // If your 'Conditions' or 'Spells' tabs have duplicate/contaminated entries,
+      // you must manually clear those tabs' rows in Google Sheets before re-running
+      // this seeder to fetch clean, correctly filtered 2014 SRD data.
       const existingSpellsData = await fetchSheetData('Spells!A:N');
       if (existingSpellsData?.values && existingSpellsData.values.length > 1) {
         setProgress('Spells already seeded — skipped');
         spellsSkipped = true;
       } else {
         setProgress('Fetching spells from Open5e API...');
-        let spellsUrl: string | null = 'https://api.open5e.com/v1/spells/?limit=400';
+        let spellsUrl: string | null = 'https://api.open5e.com/v1/spells/?document__slug=wotc-srd&limit=400';
         const allSpells: any[] = [];
         let page = 1;
 
@@ -167,7 +177,7 @@ export function ReferenceDataSeeder({ isGoogleConnected }: ReferenceDataSeederPr
           (s.classes || []).join(', '),
           s.desc || '',
           s.higher_level || '',
-          'SRD',
+          s.document__title || 'SRD',
         ]);
 
         setProgress('Saving spells to spreadsheet...');

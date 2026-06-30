@@ -29,7 +29,7 @@ import { MOODS, MoodId } from '../lib/constants';
 import { Spell, Condition } from '../types';
 import { ReferenceDetailDialog } from './ReferenceDetailDialog';
 
-const COMMAND_ITEM_CLASS = "w-full px-3 py-2.5 rounded-lg flex items-center justify-between text-xs font-semibold font-sans transition-all cursor-pointer text-stone-300 hover:bg-[#f9f8ff] hover:text-gray-900 border-l-2 border-transparent hover:border-amber-400 data-[selected='true']:bg-[#f9f8ff] data-[selected='true']:text-gray-900 data-[selected='true']:border-amber-400 data-[selected=true]:bg-[#f9f8ff] data-[selected=true]:text-gray-900 data-[selected=true]:border-amber-400";
+const COMMAND_ITEM_CLASS = "w-full px-3 py-2.5 rounded-lg flex items-center justify-between text-xs font-semibold font-sans transition-all cursor-pointer text-stone-700 hover:bg-[#f9f8ff] hover:text-[#0f172a] border-l-2 border-transparent hover:border-[#2563eb] data-[selected='true']:bg-[#f9f8ff] data-[selected='true']:text-[#0f172a] data-[selected='true']:border-[#2563eb] data-[selected=true]:bg-[#f9f8ff] data-[selected=true]:text-[#0f172a] data-[selected=true]:border-[#2563eb]";
 
 interface CommandPaletteProps {
   isOpen: boolean;
@@ -122,16 +122,16 @@ export function CommandPalette({
       {isOpen && (
         <div 
           id="command-palette-backdrop"
-          className="fixed inset-0 bg-[#1a1a14]/75 backdrop-blur-sm z-50 flex items-start justify-center pt-[12vh] px-4 font-sans select-none"
+          className="fixed inset-0 bg-[#0f172a]/60 backdrop-blur-sm z-50 flex items-start justify-center pt-[12vh] px-4 font-sans select-none"
           onClick={onClose}
         >
           <div 
             id="command-palette-card"
-            className="w-full max-w-xl bg-[#0f172a] text-[#e2e8f0] rounded-2xl border border-[#3f3f37] overflow-hidden shadow-2xl flex flex-col"
+            className="w-full max-w-xl bg-white text-[#0f172a] rounded-2xl border border-[#e2e8f0] overflow-hidden shadow-2xl flex flex-col"
             onClick={e => e.stopPropagation()}
           >
             <Command label="GM Command Palette" id="command-palette-command-wrapper" className="flex flex-col">
-              <div className="flex items-center gap-3 px-4 py-3 border-b border-[#3f3f37]">
+              <div className="flex items-center gap-3 px-4 py-3 border-b border-[#e2e8f0]">
                 <Dices className="w-5 h-5 text-[#2563eb]" />
                 <Command.Input
                   id="command-palette-input"
@@ -139,14 +139,14 @@ export function CommandPalette({
                   value={search}
                   onValueChange={setSearch}
                   placeholder="Type a command or search..."
-                  className="w-full bg-transparent outline-none border-none placeholder-stone-500 text-sm font-sans text-[#e2e8f0]"
+                  className="w-full bg-transparent outline-none border-none placeholder-[#8d8db9] text-sm font-sans text-[#0f172a]"
                 />
               </div>
 
               <Command.List id="command-palette-list" className="max-h-96 overflow-y-auto py-2 scrollbar-thin">
                 <Command.Empty className="px-4 py-3 text-xs text-stone-500 font-medium font-sans">No commands found.</Command.Empty>
 
-                <Command.Group heading="── Navigation ──" className="px-2 py-1.5 [&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:font-sans [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-[#2563eb]/50">
+                <Command.Group heading="── Navigation ──" className="px-2 py-1.5 [&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:font-sans [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-[#2563eb]/75">
                   <Command.Item
                     id="cmd-party-roster"
                     onSelect={() => {
@@ -215,7 +215,7 @@ export function CommandPalette({
                   </Command.Item>
                 </Command.Group>
 
-                <Command.Group heading="── Create ──" className="px-2 py-1.5 [&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:font-sans [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-[#2563eb]/50">
+                <Command.Group heading="── Create ──" className="px-2 py-1.5 [&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:font-sans [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-[#2563eb]/75">
                   <Command.Item
                     id="cmd-create-player"
                     onSelect={() => {
@@ -260,7 +260,7 @@ export function CommandPalette({
                   </Command.Item>
                 </Command.Group>
 
-                <Command.Group heading="── Combat ──" className="px-2 py-1.5 [&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:font-sans [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-[#2563eb]/50">
+                <Command.Group heading="── Combat ──" className="px-2 py-1.5 [&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:font-sans [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-[#2563eb]/75">
                   {state.combatState.activeEncounterId && (
                     <>
                       <Command.Item
@@ -275,7 +275,7 @@ export function CommandPalette({
                           <Play className="w-4 h-4 text-[#2563eb]" />
                           <span>Next Turn</span>
                         </div>
-                        <kbd className="px-1.5 py-0.5 text-[10px] font-sans font-bold bg-[#1a1a14]/65 border border-[#3f3f37] rounded-md text-stone-400">N</kbd>
+                        <kbd className="px-1.5 py-0.5 text-[10px] font-sans font-bold bg-[#f9f8ff] border border-[#e2e8f0] rounded-md text-stone-500">N</kbd>
                       </Command.Item>
                       <Command.Item
                         id="cmd-roll-npc-initiative"
@@ -314,7 +314,7 @@ export function CommandPalette({
                     {!state.combatState.activeEncounterId && (
                       <span className="text-[10px] text-stone-500 italic mr-2" title="Start an encounter first">Start an encounter first</span>
                     )}
-                    <kbd className="px-1.5 py-0.5 text-[10px] font-sans font-bold bg-[#1a1a14]/65 border border-[#3f3f37] rounded-md text-stone-400">C</kbd>
+                    <kbd className="px-1.5 py-0.5 text-[10px] font-sans font-bold bg-[#f9f8ff] border border-[#e2e8f0] rounded-md text-stone-500">C</kbd>
                   </Command.Item>
                   {state.combatState.activeEncounterId && (
                     <Command.Item
@@ -333,7 +333,7 @@ export function CommandPalette({
                   )}
                 </Command.Group>
 
-                <Command.Group heading="── Dice ──" className="px-2 py-1.5 [&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:font-sans [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-[#2563eb]/50">
+                <Command.Group heading="── Dice ──" className="px-2 py-1.5 [&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:font-sans [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-[#2563eb]/75">
                   {[4, 6, 8, 10, 12, 20, 100].map(sides => (
                     <Command.Item
                       key={sides}
@@ -369,7 +369,7 @@ export function CommandPalette({
                   </Command.Item>
                 </Command.Group>
 
-                <Command.Group heading="── Party ──" className="px-2 py-1.5 [&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:font-sans [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-[#2563eb]/50">
+                <Command.Group heading="── Party ──" className="px-2 py-1.5 [&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:font-sans [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-[#2563eb]/75">
                   <Command.Item
                     id="cmd-long-rest"
                     onSelect={() => {
@@ -399,7 +399,7 @@ export function CommandPalette({
                   </Command.Item>
                 </Command.Group>
 
-                <Command.Group heading="── Audio ──" className="px-2 py-1.5 [&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:font-sans [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-[#2563eb]/50">
+                <Command.Group heading="── Audio ──" className="px-2 py-1.5 [&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:font-sans [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-[#2563eb]/75">
                   {/* Mood Presets Commands */}
                   {MOODS.map((m) => {
                     const assignedTrackId = assignments[m.id];
@@ -477,7 +477,7 @@ export function CommandPalette({
                   )}
                 </Command.Group>
 
-                <Command.Group heading="── Settings ──" className="px-2 py-1.5 [&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:font-sans [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-[#2563eb]/50">
+                <Command.Group heading="── Settings ──" className="px-2 py-1.5 [&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:font-sans [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-[#2563eb]/75">
                   <Command.Item
                     id="cmd-open-settings"
                     onSelect={() => {
@@ -532,15 +532,20 @@ export function CommandPalette({
                   </Command.Item>
                 </Command.Group>
 
-                {search.length >= 2 && conditions.length > 0 && (
+                {conditions.length > 0 && (
                   <Command.Group
                     heading="── Conditions ──"
-                    className="px-2 py-1.5 [&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:font-sans [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-[#2563eb]/50"
+                    className="px-2 py-1.5 [&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:font-sans [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-[#2563eb]/75"
                   >
                     {conditions.map(condition => (
                       <Command.Item
                         key={condition.name}
                         id={`cmd-condition-${condition.name.toLowerCase().replace(/\s+/g, '-')}`}
+                        value={
+                          search.length >= 2
+                            ? condition.name
+                            : ''
+                        }
                         onSelect={() => {
                           setSelectedReference({ type: 'condition', data: condition });
                           onClose();
@@ -556,15 +561,20 @@ export function CommandPalette({
                   </Command.Group>
                 )}
 
-                {search.length >= 2 && spells.length > 0 && (
+                {spells.length > 0 && (
                   <Command.Group
                     heading="── Spells ──"
-                    className="px-2 py-1.5 [&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:font-sans [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-[#2563eb]/50"
+                    className="px-2 py-1.5 [&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:font-sans [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-[#2563eb]/75"
                   >
                     {spells.map(spell => (
                       <Command.Item
                         key={spell.name}
                         id={`cmd-spell-${spell.name.toLowerCase().replace(/\s+/g, '-')}`}
+                        value={
+                          search.length >= 2
+                            ? spell.name
+                            : ''
+                        }
                         onSelect={() => {
                           setSelectedReference({ type: 'spell', data: spell });
                           onClose();
