@@ -155,38 +155,101 @@ Outcome: ${outcome}`);
   }
 
   // Section 5: ENCOUNTER SUMMARY
-  const totalDamage = log.events
-    .filter(e => e.type === 'damage' && typeof e.value === 'number')
-    .reduce((sum, e) => sum + (e.value || 0), 0);
+  const summaryLines: string[] = [];
+  summaryLines.push(`ENCOUNTER SUMMARY`);
+  summaryLines.push(`Outcome: ${outcome}`);
+  summaryLines.push(`Total rounds: ${log.currentRound}`);
 
-  const totalHealing = log.events
-    .filter(e => e.type === 'healing' && typeof e.value === 'number')
-    .reduce((sum, e) => sum + (e.value || 0), 0);
+  summaryLines.push('');
+  summaryLines.push(`DAMAGE DEALT`);
 
-  const uniqueConditions = Array.from(
-    new Set(
-      log.events
-        .filter(e => e.type === 'condition-applied' && e.condition)
-        .map(e => e.condition as string)
-    )
-  );
-  const conditionsAppliedStr = uniqueConditions.length > 0 ? uniqueConditions.join(', ') : 'None';
+  const damageEvents = log.events.filter(e => e.type === 'damage' && typeof e.value === 'number');
+  if (damageEvents.length === 0) {
+    summaryLines.push(`No damage dealt`);
+  } else {
+    // Group by actor
+    const damageByActor = new Map<string, { total: number; byType: Map<string, { total: number; hits: number }> }>();
 
-  const uniqueDefeated = Array.from(
-    new Set(
-      log.events
-        .filter(e => e.type === 'combatant-defeated' && e.targetName)
-        .map(e => e.targetName as string)
-    )
-  );
-  const defeatedStr = uniqueDefeated.length > 0 ? uniqueDefeated.join(', ') : 'None';
+    for (const evt of damageEvents) {
+      const actorName = evt.actorName || 'Unknown Source';
+      if (!damageByActor.has(actorName)) {
+        damageByActor.set(actorName, { total: 0, byType: new Map() });
+      }
 
-  sections.push(`ENCOUNTER SUMMARY
-Total rounds: ${log.currentRound}
-Total damage dealt: ${totalDamage}
-Total healing: ${totalHealing}
-Conditions applied: ${conditionsAppliedStr}
-Combatants defeated: ${defeatedStr}`);
+      const actorData = damageByActor.get(actorName)!;
+      actorData.total += (evt.value || 0);
+
+      const dmgType = evt.damageType || 'untyped';
+      if (!actorData.byType.has(dmgType)) {
+        actorData.byType.set(dmgType, { total: 0, hits: 0 });
+      }
+      const typeData = actorData.byType.get(dmgType)!;
+      typeData.total += (evt.value || 0);
+      typeData.hits += 1;
+    }
+
+    for (const [actor, data] of Array.from(damageByActor.entries())) {
+      summaryLines.push(`${actor}: ${data.total} total`);
+      for (const [dmgType, typeData] of Array.from(data.byType.entries())) {
+        const hitWord = typeData.hits === 1 ? 'hit' : 'hits';
+        summaryLines.push(`  ${dmgType}: ${typeData.total} (${typeData.hits} ${hitWord})`);
+      }
+    }
+  }
+
+  summaryLines.push('');
+  summaryLines.push(`HEALING`);
+  const healingEvents = log.events.filter(e => e.type === 'healing' && typeof e.value === 'number');
+  if (healingEvents.length === 0) {
+    summaryLines.push(`No healing`);
+  } else {
+    for (const evt of healingEvents) {
+      const actorName = evt.actorName || 'Unknown Source';
+      const targetName = evt.targetName || 'Unknown Target';
+      summaryLines.push(`${actorName} healed ${targetName} for ${evt.value} HP (Round ${evt.round})`);
+    }
+  }
+
+  summaryLines.push('');
+  summaryLines.push(`CONDITIONS`);
+  const conditionEvents = log.events.filter(e => e.type === 'condition-applied' && e.condition);
+  if (conditionEvents.length === 0) {
+    summaryLines.push(`No conditions applied`);
+  } else {
+    for (const evt of conditionEvents) {
+      const actorName = evt.actorName || 'Unknown Source';
+      const targetName = evt.targetName || 'Unknown Target';
+      const condition = evt.condition;
+
+      // Look for matching removal
+      const removedEvt = log.events.find(
+        e => e.type === 'condition-removed' &&
+             e.targetId === evt.targetId &&
+             e.condition === evt.condition &&
+             e.round >= evt.round
+      );
+
+      let durationStr = `applied Round ${evt.round}`;
+      if (removedEvt) {
+        durationStr += `, removed Round ${removedEvt.round}`;
+      }
+
+      summaryLines.push(`${actorName} → ${targetName}: ${condition} (${durationStr})`);
+    }
+  }
+
+  summaryLines.push('');
+  summaryLines.push(`COMBATANTS DEFEATED`);
+  const defeatedEvents = log.events.filter(e => e.type === 'combatant-defeated' && e.targetName);
+  if (defeatedEvents.length === 0) {
+    summaryLines.push(`None`);
+  } else {
+    for (const evt of defeatedEvents) {
+      summaryLines.push(`${evt.targetName} (Round ${evt.round})`);
+    }
+  }
+
+  sections.push(summaryLines.join('\n'));
 
   return sections.join('\n\n');
 }

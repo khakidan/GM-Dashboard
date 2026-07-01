@@ -35,7 +35,8 @@ export function useEncounterLifecycle(onActiveTabChange?: (tab: 'party' | 'encou
         isSelectionMode: false,
         syncingIds: [],
         expandedIds: [],
-      },
+        combatStarted: false,
+      } as any,
     }));
 
     updateEncounterStateDB(encounter.id, 1, firstCombatantId ?? '').catch(err => {
@@ -55,7 +56,8 @@ export function useEncounterLifecycle(onActiveTabChange?: (tab: 'party' | 'encou
         deathEvent: null,
         damageEvent: null,
         initiativeEvent: false,
-      },
+        combatStarted: false,
+      } as any,
     }));
 
     if (activeEncounterId) {

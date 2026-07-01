@@ -13,6 +13,7 @@ import { ResourcePool, serializeResourcePools } from '../../lib/resourcePools';
 import { SpellcastingStatsRow } from '../ui/SpellcastingStatsRow';
 import { parseAbilityScores, parseProficiencies, proficiencyBonusFromLevel } from '../../lib/abilityScores';
 import { NpcReferencePanel } from './NpcReferencePanel';
+import { useDashboardStore } from '../../hooks/dashboardStore';
 
 export interface CombatantCardProps {
   c: Combatant;
@@ -41,7 +42,9 @@ export function CombatantCard({
   onToggleSelect, onUpdateCombatant, onRemoveCombatant, onConcentrationPrompt, hpMode = 'damage',
 }: CombatantCardProps) {
   const [recentRechargeRolls, setRecentRechargeRolls] = useState<Record<string, number>>({});
-  const { isActiveTurn: isActive, isSelected, isSelectable, isSyncing } = useCombatantCard(c.id);
+  const { isActiveTurn: _isActiveTurn, isSelected, isSelectable, isSyncing } = useCombatantCard(c.id);
+  const combatStarted = (useDashboardStore(s => s.combatState) as any).combatStarted;
+  const isActive = _isActiveTurn && !!combatStarted;
   const parsedProfs = parseProficiencies(c.proficiencies || '');
   const parsedScores = parseAbilityScores(c.abilityScores || '');
   const { handleResourcePoolUpdate } = useCombatantExpanded(c);

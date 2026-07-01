@@ -161,9 +161,6 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
             onOpenTools={() => setIsToolsModalOpen(true)}
             onRollNpcInit={rollInitForNPCs}
             onResetCombat={resetCombat}
-            onCancelEncounter={() => {
-              resetCombat({ cancel: true })
-            }}
             onNextTurn={nextTurn}
             onToggleMultiTargetMode={toggleMultiTargetMode}
             onDeleteSelected={handleDeleteSelected}

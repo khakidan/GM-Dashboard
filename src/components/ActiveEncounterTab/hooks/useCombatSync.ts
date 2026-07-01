@@ -434,7 +434,7 @@ export function useCombatSync() {
     }));
   }, [updateState]);
 
-  const resetCombat = useCallback((opts?: { cancel?: boolean }) => {
+  const resetCombat = useCallback(() => {
     const latestSnapshot = getSnapshot();
     updateState(prev => ({
       ...prev,
@@ -445,6 +445,8 @@ export function useCombatSync() {
         combatants: prev.combatState.combatants.map(c => ({ ...c, initiative: 0 })),
       },
     }));
+
+    useDashboardStore.getState().setCombatStarted(false);
 
     latestSnapshot.combatState.combatants.forEach(c => {
       if (c.encounterCombatantId) {
@@ -462,7 +464,7 @@ export function useCombatSync() {
     
     const currentSpreadsheetId = getSpreadsheetId();
 
-    if (!opts?.cancel && activeCombatLog && currentSpreadsheetId) {
+    if (activeCombatLog && currentSpreadsheetId) {
       // Log combat-end event
       addCombatEvent({
         round: activeCombatLog.currentRound,
@@ -562,18 +564,6 @@ export function useCombatSync() {
       cr: c.challengeRating ?? undefined,
     }))
 
-    // Build initiative order from the same
-    // combatants array, sorted by initiative
-    const initiativeOrder = [...combatants]
-      .sort((a, b) =>
-        (b.initiative ?? 0) - (a.initiative ?? 0))
-      .map(c => ({
-        combatantId: c.id,
-        name: c.name,
-        initiative: c.initiative ?? 0,
-        type: (c.type === 'pc' ? 'pc' : 'npc') as 'pc' | 'npc',
-      }))
-
     // Get encounter name and location from
     // the active encounter in store state
     const activeEncounter = encounters.find(
@@ -588,7 +578,7 @@ export function useCombatSync() {
       encounterName,
       location,
       snapshot,
-      initiativeOrder,
+      [],
     )
 
     addCombatEvent({
@@ -607,6 +597,45 @@ export function useCombatSync() {
     let nextRound = currentState.combatState.round;
     const combatants = currentState.combatState.combatants;
     if (combatants.length === 0) return;
+
+    const state = useDashboardStore.getState();
+    if (!(state.combatState as any).combatStarted) {
+      // First Next Turn click — finalize
+      // initiative order now
+      const currentCombatants =
+        state.combatState.combatants
+
+      const finalInitiativeOrder =
+        [...currentCombatants]
+          .sort((a, b) =>
+            (b.initiative ?? 0) -
+            (a.initiative ?? 0))
+          .map(c => ({
+            combatantId: c.id,
+            name: c.name,
+            initiative: c.initiative ?? 0,
+            type: (c.type === 'pc' 
+              ? 'pc' : 'npc') as
+                'pc' | 'npc',
+          }))
+
+      // Update the log's initiative order
+      // with the now-finalized values
+      if (state.activeCombatLog) {
+        useDashboardStore.setState(prev => ({
+          ...prev,
+          activeCombatLog: prev.activeCombatLog
+            ? {
+                ...prev.activeCombatLog,
+                initiativeOrder:
+                  finalInitiativeOrder,
+              }
+            : null,
+        }))
+      }
+
+      state.setCombatStarted(true)
+    }
 
     const currentIndex = combatants.findIndex(
       c => c.id === currentState.combatState.activeTurnId

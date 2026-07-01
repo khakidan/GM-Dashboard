@@ -12,7 +12,7 @@ import {
 
 // The initial empty state — identical to what 
 // useAppState currently returns on first load
-const initialCombatState: CombatState = {
+const initialCombatState = {
   activeEncounterId: null,
   activeTurnId: null,
   round: 1,
@@ -28,9 +28,10 @@ const initialCombatState: CombatState = {
   isSelectionMode: false,
   syncingIds: [],
   expandedIds: [],
-};
+  combatStarted: false,
+} as CombatState & { combatStarted: boolean };
 
-const initialState: AppState & { activeCombatLog: ActiveCombatLog | null } = {
+const initialState: Omit<AppState, 'combatState'> & { activeCombatLog: ActiveCombatLog | null, combatState: CombatState & { combatStarted: boolean } } = {
   characters: [],
   npcs: [],
   encounters: [],
@@ -50,8 +51,10 @@ const initialState: AppState & { activeCombatLog: ActiveCombatLog | null } = {
 // the two methods that useAppState currently 
 // exposes — this allows the wrapper to delegate 
 // directly to the store
-export interface DashboardStore extends AppState {
+export interface DashboardStore extends Omit<AppState, 'combatState'> {
   activeCombatLog: ActiveCombatLog | null;
+  combatState: CombatState & { combatStarted: boolean };
+  setCombatStarted: (value: boolean) => void;
   updateState: (
     updater: 
       | ((prev: AppState) => AppState) 
@@ -76,11 +79,20 @@ export const useDashboardStore =
       (set, get) => ({
         ...initialState,
 
+        setCombatStarted: (value: boolean) => {
+          set((state) => ({
+            combatState: {
+              ...state.combatState,
+              combatStarted: value,
+            }
+          }));
+        },
+
         updateState: (updater) => {
           if (typeof updater === 'function') {
-            set((state) => updater(state));
+            set((state) => updater(state as unknown as AppState) as unknown as Partial<DashboardStore>);
           } else {
-            set(updater);
+            set(updater as unknown as Partial<DashboardStore>);
           }
         },
 
