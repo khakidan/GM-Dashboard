@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { X, Scroll, ChevronDown, ChevronRight, Calendar } from 'lucide-react';
+import { X, Scroll, ChevronDown, ChevronRight, Calendar, Flag } from 'lucide-react';
 import { useEncounterLogs } from './hooks/useEncounterLogs';
-import { EncounterLog } from '../../lib/combatLog';
+import { EncounterLog, CombatEvent } from '../../lib/combatLog';
 
 interface EncounterLogModalProps {
   encounterId: string;
@@ -145,31 +145,7 @@ export function EncounterLogModal({ encounterId, encounterName, isOpen, onClose 
 
                     {/* Log Details */}
                     {isExpanded && (
-                      <div className="p-4 border-t border-[#e2e8f0] bg-white space-y-4 animate-fade-in">
-                        {/* Summary Block */}
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                          <div className="bg-slate-50/70 p-3 rounded-lg border border-slate-100">
-                            <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Party Size</p>
-                            <p className="text-sm font-semibold text-slate-700">{log.partySnapshot?.length || 0} Members</p>
-                          </div>
-                          <div className="bg-slate-50/70 p-3 rounded-lg border border-slate-100">
-                            <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Events Tracked</p>
-                            <p className="text-sm font-semibold text-slate-700">{log.events?.length || 0} Actions</p>
-                          </div>
-                          <div className="bg-slate-50/70 p-3 rounded-lg border border-slate-100 col-span-2 sm:col-span-1">
-                            <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Outcome</p>
-                            <p className="text-sm font-semibold text-slate-700">{log.outcome}</p>
-                          </div>
-                        </div>
-
-                        {/* Transcript Markdown / Pre */}
-                        <div className="space-y-2">
-                          <p className="text-[11px] uppercase font-bold text-slate-400 tracking-wider">Combat Log Transcript</p>
-                          <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 overflow-y-auto max-h-[40vh] font-mono text-xs text-slate-700 whitespace-pre-wrap select-text leading-relaxed">
-                            {log.transcript || 'No transcript logged.'}
-                          </div>
-                        </div>
-                      </div>
+                      <EncounterLogDetails log={log} />
                     )}
                   </div>
                 );
@@ -188,6 +164,210 @@ export function EncounterLogModal({ encounterId, encounterName, isOpen, onClose 
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+interface EncounterLogDetailsProps {
+  log: EncounterLog;
+}
+
+export function EncounterLogDetails({ log }: EncounterLogDetailsProps) {
+  const [activeTab, setActiveTab] = useState<'structured' | 'raw'>('structured');
+
+  // Filter out round-start/combat-start/combat-end events
+  const displayableEvents = (log.events || []).filter(
+    evt => evt.type !== 'round-start' && evt.type !== 'combat-start' && evt.type !== 'combat-end'
+  );
+
+  // Group events by round
+  const eventsByRound: Record<number, CombatEvent[]> = {};
+  displayableEvents.forEach(evt => {
+    const r = evt.round;
+    if (!eventsByRound[r]) {
+      eventsByRound[r] = [];
+    }
+    eventsByRound[r].push(evt);
+  });
+
+  const roundNumbers = Object.keys(eventsByRound)
+    .map(Number)
+    .sort((a, b) => a - b);
+
+  // By default, the first round is expanded, and others are collapsed.
+  const [expandedRounds, setExpandedRounds] = useState<Record<number, boolean>>(() => {
+    const initial: Record<number, boolean> = {};
+    if (roundNumbers.length > 0) {
+      initial[roundNumbers[0]] = true;
+    }
+    return initial;
+  });
+
+  const toggleRound = (round: number) => {
+    setExpandedRounds(prev => ({
+      ...prev,
+      [round]: !prev[round],
+    }));
+  };
+
+  return (
+    <div className="p-4 border-t border-[#e2e8f0] bg-white space-y-4 animate-fade-in text-[#0f172a]">
+      {/* Summary Block */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <div className="bg-slate-50/70 p-3 rounded-lg border border-slate-100">
+          <p className="text-[10px] uppercase font-bold text-[#8d8db9] tracking-widest">Party Size</p>
+          <p className="text-sm font-semibold text-slate-700">{log.partySnapshot?.length || 0} Members</p>
+        </div>
+        <div className="bg-slate-50/70 p-3 rounded-lg border border-slate-100">
+          <p className="text-[10px] uppercase font-bold text-[#8d8db9] tracking-widest">Events Tracked</p>
+          <p className="text-sm font-semibold text-slate-700">{log.events?.length || 0} Actions</p>
+        </div>
+        <div className="bg-[#f9f8ff] p-3 rounded-lg border border-[#e2e8f0] col-span-2 sm:col-span-1">
+          <p className="text-[10px] uppercase font-bold text-[#2563eb] tracking-widest">Outcome</p>
+          <p className="text-sm font-bold text-[#0f172a]">{log.outcome}</p>
+        </div>
+      </div>
+
+      {/* View Toggle Tabs */}
+      <div className="flex items-center justify-between border-b border-[#e2e8f0] pb-2">
+        <p className="text-[11px] uppercase font-bold text-[#8d8db9] tracking-widest">Combat Log</p>
+        <div className="flex bg-slate-100 p-0.5 rounded-lg border border-[#e2e8f0]">
+          <button
+            onClick={() => setActiveTab('structured')}
+            className={`px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-md transition-all cursor-pointer ${
+              activeTab === 'structured'
+                ? 'bg-white text-[#2563eb] shadow-sm'
+                : 'text-slate-500 hover:text-slate-850'
+            }`}
+          >
+            Structured View
+          </button>
+          <button
+            onClick={() => setActiveTab('raw')}
+            className={`px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-md transition-all cursor-pointer ${
+              activeTab === 'raw'
+                ? 'bg-white text-[#2563eb] shadow-sm'
+                : 'text-slate-500 hover:text-slate-850'
+            }`}
+          >
+            Raw Transcript
+          </button>
+        </div>
+      </div>
+
+      {/* Main log display area */}
+      {activeTab === 'structured' ? (
+        <div className="space-y-3 overflow-y-auto max-h-[45vh] pr-1">
+          {roundNumbers.length === 0 ? (
+            <p className="text-center py-6 text-slate-400 text-xs font-medium">No displayable events logged in this session.</p>
+          ) : (
+            roundNumbers.map(round => {
+              const isRoundExpanded = !!expandedRounds[round];
+              const roundEvents = eventsByRound[round] || [];
+              return (
+                <div key={round} className="border border-[#e2e8f0] rounded-xl overflow-hidden shadow-sm">
+                  {/* Round Header */}
+                  <button
+                    onClick={() => toggleRound(round)}
+                    className="w-full flex items-center justify-between px-4 py-2.5 bg-slate-50/70 hover:bg-slate-50 transition-colors text-left cursor-pointer"
+                  >
+                    <span className="font-bold text-xs text-[#2563eb]">Round {round}</span>
+                    <span className="flex items-center gap-1.5 text-[11px] text-slate-500 font-medium">
+                      {roundEvents.length} {roundEvents.length === 1 ? 'event' : 'events'}
+                      {isRoundExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                    </span>
+                  </button>
+
+                  {/* Round Events List */}
+                  {isRoundExpanded && (
+                    <div className="p-3 bg-white border-t border-[#e2e8f0] space-y-2 animate-fade-in">
+                      {roundEvents.map(evt => (
+                        <CombatEventRow key={evt.id} event={evt} />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
+        </div>
+      ) : (
+        <div className="space-y-2">
+          <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 overflow-y-auto max-h-[40vh] font-mono text-xs text-slate-700 whitespace-pre-wrap select-text leading-relaxed">
+            {log.transcript || 'No transcript logged.'}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function CombatEventRow({ event }: { event: CombatEvent }) {
+  const actorName = event.actorName || 'Unknown Source';
+  const targetName = event.targetName || 'Unknown';
+  const damageTypeStr = event.damageType ? ` ${event.damageType}` : '';
+  const value = event.value ?? 0;
+  const hpBefore = event.hpBefore ?? 0;
+  const hpAfter = event.hpAfter ?? 0;
+  const condition = event.condition || 'condition';
+
+  let text = '';
+  let rowStyle = 'flex items-center gap-2.5 px-3 py-2 text-xs rounded-lg ';
+  let icon: React.ReactNode = null;
+
+  switch (event.type) {
+    case 'damage':
+      text = `${actorName} dealt ${value}${damageTypeStr} damage to ${targetName}`;
+      rowStyle += 'text-rose-700 bg-rose-50/50 border border-rose-100/70';
+      icon = <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0" />;
+      break;
+    case 'healing':
+      text = `${actorName} healed ${targetName} for ${value} HP`;
+      rowStyle += 'text-emerald-700 bg-emerald-50/50 border border-emerald-100/70';
+      icon = <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />;
+      break;
+    case 'condition-applied':
+      text = `${actorName} applied ${condition} to ${targetName}`;
+      rowStyle += 'text-[#2563eb] bg-[#f9f8ff] border border-[#c0d4ff]/70';
+      icon = <span className="w-1.5 h-1.5 rounded-full bg-[#2563eb] shrink-0" />;
+      break;
+    case 'condition-removed':
+      text = `${condition} removed from ${targetName}`;
+      rowStyle += 'text-[#2563eb]/90 bg-[#f9f8ff]/80 border border-[#c0d4ff]/50';
+      icon = <span className="w-1.5 h-1.5 rounded-full bg-[#567eff] shrink-0" />;
+      break;
+    case 'combatant-defeated':
+      text = `${targetName} was defeated`;
+      rowStyle += 'text-slate-900 bg-slate-100 border border-slate-200 font-bold';
+      icon = <span className="w-1.5 h-1.5 rounded-full bg-slate-900 shrink-0" />;
+      break;
+    case 'manual-adjustment':
+      text = `${targetName}: HP adjusted ${hpBefore} → ${hpAfter} (manual correction)`;
+      rowStyle += 'text-slate-700 bg-slate-50 border border-slate-200';
+      icon = <Flag className="w-3.5 h-3.5 text-slate-500 shrink-0" />;
+      break;
+    default:
+      return null;
+  }
+
+  if (event.actionType && event.actionType !== 'attack') {
+    const actionLabels: Record<string, string> = {
+      'opportunity-attack': 'Opportunity Attack',
+      'lair-action': 'Lair Action',
+      'legendary-action': 'Legendary Action',
+      'reaction': 'Reaction',
+      'spell': 'Spell',
+      'environmental': 'Environment',
+      'other': 'Other',
+    };
+    const label = actionLabels[event.actionType] || event.actionType;
+    text = `${label}: ${text}`;
+  }
+
+  return (
+    <div className={rowStyle}>
+      {icon}
+      <span className="font-medium">{text}</span>
     </div>
   );
 }
