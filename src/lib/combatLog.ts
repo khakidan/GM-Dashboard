@@ -99,6 +99,16 @@ function formatDate(dateStr: string): string {
   }
 }
 
+export const ACTION_TYPE_LABELS: Record<string, string> = {
+  'opportunity-attack': 'Opportunity Attack',
+  'lair-action': 'Lair Action',
+  'legendary-action': 'Legendary Action',
+  'reaction': 'Reaction',
+  'spell': 'Spell',
+  'environmental': 'Environment',
+  'other': 'Other',
+};
+
 function formatEventDescription(evt: CombatEvent): string {
   let actor = evt.actorName || 'Unknown';
   if (actor === 'environment') actor = 'Environment';
@@ -115,16 +125,7 @@ function formatEventDescription(evt: CombatEvent): string {
       const typeStr = evt.damageType ? `${evt.damageType} ` : '';
       
       if (evt.actionType && evt.actionType !== 'attack') {
-        const actionLabels: Record<string, string> = {
-          'opportunity-attack': 'Opportunity Attack',
-          'lair-action': 'Lair Action',
-          'legendary-action': 'Legendary Action',
-          'reaction': 'Reaction',
-          'spell': 'Spell',
-          'environmental': 'Environment',
-          'other': 'Other',
-        };
-        const label = actionLabels[evt.actionType] || evt.actionType;
+        const label = ACTION_TYPE_LABELS[evt.actionType] || evt.actionType;
         
         if (evt.actionType === 'lair-action' || evt.actionType === 'environmental' || actor === 'Environment' || actor === 'Lair Action' || actor === 'Unknown') {
           const displayLabel = (actor === 'Environment' || actor === 'Lair Action' || actor === 'Unknown') ? actor : label;

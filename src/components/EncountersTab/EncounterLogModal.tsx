@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { X, Scroll, ChevronDown, ChevronRight, Calendar, Flag } from 'lucide-react';
 import { useEncounterLogs } from './hooks/useEncounterLogs';
-import { EncounterLog, CombatEvent } from '../../lib/combatLog';
+import { EncounterLog, CombatEvent, ACTION_TYPE_LABELS } from '../../lib/combatLog';
 
 interface EncounterLogModalProps {
   encounterId: string;
@@ -351,16 +351,7 @@ export function CombatEventRow({ event }: { event: CombatEvent }) {
   }
 
   if (event.actionType && event.actionType !== 'attack') {
-    const actionLabels: Record<string, string> = {
-      'opportunity-attack': 'Opportunity Attack',
-      'lair-action': 'Lair Action',
-      'legendary-action': 'Legendary Action',
-      'reaction': 'Reaction',
-      'spell': 'Spell',
-      'environmental': 'Environment',
-      'other': 'Other',
-    };
-    const label = actionLabels[event.actionType] || event.actionType;
+    const label = ACTION_TYPE_LABELS[event.actionType] || event.actionType;
     text = `${label}: ${text}`;
   }
 
