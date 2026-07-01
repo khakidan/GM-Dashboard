@@ -1,8 +1,9 @@
 import { RefreshCw } from 'lucide-react';
 import { cn } from '../lib/utils';
 
+import { useGoogleAuth } from '../hooks/useGoogleAuth';
+
 interface SyncStatusIndicatorsProps {
-  isAuthenticated: boolean;
   isSyncing: boolean;
   isOnline: boolean;
   queuedWrites: number;
@@ -12,7 +13,6 @@ interface SyncStatusIndicatorsProps {
 }
 
 export function SyncStatusIndicators({
-  isAuthenticated,
   isSyncing,
   isOnline,
   queuedWrites,
@@ -20,6 +20,7 @@ export function SyncStatusIndicators({
   syncError,
   onSyncWithSheets,
 }: SyncStatusIndicatorsProps) {
+  const { hasToken } = useGoogleAuth();
   return (
     <div className="p-2 border-t border-[#3f3f37] space-y-4 flex flex-col items-center">
       {/* Google Sheets Icon & Status */}
@@ -52,7 +53,7 @@ export function SyncStatusIndicators({
         </button>
         {/* Tooltip */}
         <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 z-50 bg-stone-800 border border-stone-700 text-stone-200 text-xs font-medium px-2.5 py-1.5 rounded-md shadow-lg whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-150">
-          {isSyncing ? 'Syncing...' : isAuthenticated ? 'Pull from Sheets' : 'Connect & Sync'}
+          {isSyncing ? 'Syncing...' : hasToken() ? 'Pull from Sheets' : 'Connect & Sync'}
           <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-stone-800" />
         </div>
       </div>

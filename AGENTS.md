@@ -690,8 +690,8 @@ run all tests at once with `npx vitest run`.
 | Batch | Description | Test Count |
 |-------|-------------|------------|
 | 1     | Lib         | 430        |
-| 2     | Services    | 29         |
-| 3     | Hooks       | 32         |
+| 2     | Services    | 31         |
+| 3     | Hooks       | 39         |
 | 4     | Server      | 7          |
 | 5A    | AET Hooks   | 39         |
 | 5B    | AET Comp    | 26         |
@@ -707,10 +707,10 @@ run all tests at once with `npx vitest run`.
 # BATCH 1 — 430 tests
 npx vitest run src/lib/__tests__
 
-# BATCH 2 — 29 tests
+# BATCH 2 — 31 tests
 npx vitest run src/services/__tests__
 
-# BATCH 3 — 32 tests
+# BATCH 3 — 39 tests
 npx vitest run src/hooks/__tests__
 
 # BATCH 4 — 7 tests
@@ -1187,12 +1187,14 @@ The test must check WHAT was passed.
    after any change. Never report a combined
    total without the per-batch breakdown.
 
-10. **Delete root-level scripts immediately.**
+10. **Never re-report findings or changes from previous prompts in the same session.** Each response should only document what changed in THIS prompt. If verifying something from a prior prompt, state "confirmed unchanged" rather than re-quoting it in full.
+
+11. **Delete root-level scripts immediately.**
     Any `fix*.cjs`, `scan*.ts`, or `replace.js`
     files found in the project root must be
     deleted. They are diagnostic artifacts.
 
-11. **Keep AGENTS.md current.** After any
+12. **Keep AGENTS.md current.** After any
     session that adds files, moves files,
     changes the test baseline, or implements
     features that affect the architecture,
@@ -1213,9 +1215,9 @@ The test must check WHAT was passed.
     - New architectural patterns → add to the
       Patterns and Conventions section
 
-12. **Contrast on Solid Blue backgrounds:** All `bg-[#2563eb]` solid blue elements must use `text-white` text. Never use `text-[#0f172a]` on a solid blue background.
+13. **Contrast on Solid Blue backgrounds:** All `bg-[#2563eb]` solid blue elements must use `text-white` text. Never use `text-[#0f172a]` on a solid blue background.
 
-13. **Avoid inline styles:** Do not use inline `style={{}}` props for anything Tailwind can handle. Dynamic animation math in overlay components is the only exception.
+14. **Avoid inline styles:** Do not use inline `style={{}}` props for anything Tailwind can handle. Dynamic animation math in overlay components is the only exception.
 
 ---
 

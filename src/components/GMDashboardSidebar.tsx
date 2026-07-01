@@ -11,7 +11,6 @@ import { SidebarIcon } from './SidebarIcon';
 import { SyncStatusIndicators } from './SyncStatusIndicators';
 
 export interface GMDashboardSidebarProps {
-  isAuthenticated: boolean;
   activeTab: 'party' | 'encounters' | 'npc-library' | 'combat' | 'settings' | 'npcs';
   onTabChange: (tab: 'party' | 'encounters' | 'npc-library' | 'combat' | 'settings') => void;
   campaignName: string;
@@ -26,7 +25,6 @@ export interface GMDashboardSidebarProps {
 }
 
 export function GMDashboardSidebar({
-  isAuthenticated,
   activeTab,
   onTabChange,
   isSyncing,
@@ -106,7 +104,6 @@ export function GMDashboardSidebar({
       </nav>
 
       <SyncStatusIndicators
-        isAuthenticated={isAuthenticated}
         isSyncing={isSyncing}
         isOnline={isOnline}
         queuedWrites={queuedWrites}

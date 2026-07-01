@@ -97,7 +97,6 @@ export function GMDashboard({ campaign, onCloseCampaign }: GMDashboardProps = {}
   return (
     <div className="w-full h-[100dvh] bg-[#ffffff] flex overflow-hidden font-serif select-none relative">
       <GMDashboardSidebar
-        isAuthenticated={isGoogleConnected}
         activeTab={activeTab}
         onTabChange={handleTabChange}
         campaignName={state.campaignName}
