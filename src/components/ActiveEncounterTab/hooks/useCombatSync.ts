@@ -4,9 +4,10 @@ import { OVERLAY_DURATIONS } from '../../../lib/constants';
 import { useState, useCallback, createElement } from 'react';
 import { useAppState, getSnapshot } from '../../../hooks/useAppState';
 import { useDashboardStore } from '../../../hooks/dashboardStore';
-import { updateSheetData } from '../../../services/sheetsService';
-import { updateCharacterDB, deleteEncounterCombatantDB, updateEncounterCombatantQuantityDB, updateInitiativeDB, updateConditionTimersDB, updateNpcInstanceHpDB, updateNpcInstanceConditionsDB, updateNpcInstanceAcModDB, updateEncounterStateDB } from '../../../services/dbOperations';
+import { updateSheetData, getSpreadsheetId } from '../../../services/sheetsService';
+import { updateCharacterDB, deleteEncounterCombatantDB, updateEncounterCombatantQuantityDB, updateInitiativeDB, updateConditionTimersDB, updateNpcInstanceHpDB, updateNpcInstanceConditionsDB, updateNpcInstanceAcModDB, updateEncounterStateDB, appendEncounterLog } from '../../../services/dbOperations';
 import { Combatant } from '../../../types';
+import { generateTranscript } from '../../../lib/combatLog';
 import { toast } from 'sonner';
 import { useDeathEvent, useDamageEvent, useHealEvent, useUnconsciousEvent, useRageEvent, useInitiativeEvent } from '../../../hooks/useOverlayEvents';
 import { getExpiredConditions } from '../../../lib/combatLogic';
@@ -433,7 +434,7 @@ export function useCombatSync() {
     }));
   }, [updateState]);
 
-  const resetCombat = useCallback(() => {
+  const resetCombat = useCallback((opts?: { cancel?: boolean }) => {
     const latestSnapshot = getSnapshot();
     updateState(prev => ({
       ...prev,
@@ -452,6 +453,86 @@ export function useCombatSync() {
         });
       }
     });
+
+    const {
+      activeCombatLog,
+      clearCombatLog,
+      addCombatEvent,
+    } = useDashboardStore.getState()
+    
+    const currentSpreadsheetId = getSpreadsheetId();
+
+    if (!opts?.cancel && activeCombatLog && currentSpreadsheetId) {
+      // Log combat-end event
+      addCombatEvent({
+        round: activeCombatLog.currentRound,
+        type: 'combat-end',
+        actorId: null,
+        actorName: null,
+        targetId: null,
+        targetName: null,
+        isManualAdjustment: false,
+      })
+
+      // Determine outcome
+      const finalLog =
+        useDashboardStore.getState().activeCombatLog!
+
+      const allNpcsDefeated =
+        finalLog.partySnapshot
+          .filter(p => p.type === 'npc')
+          .every(p =>
+            finalLog.events.some(
+              e => e.type === 'combatant-defeated'
+                && e.targetId === p.id
+            )
+          )
+
+      const allPcsDefeated =
+        finalLog.partySnapshot
+          .filter(p => p.type === 'pc')
+          .every(p =>
+            finalLog.events.some(
+              e => e.type === 'combatant-defeated'
+                && e.targetId === p.id
+            )
+          )
+
+      const outcome =
+        allNpcsDefeated ? 'Victory'
+        : allPcsDefeated ? 'Defeat'
+        : 'Incomplete'
+
+      const transcript =
+        generateTranscript(finalLog, outcome)
+
+      // Write to sheet (fire and forget —
+      // do not await, do not block combat
+      // cleanup on a sheet write)
+      appendEncounterLog(
+        currentSpreadsheetId,
+        {
+          id: `log_${Date.now()}`,
+          encounterId: finalLog.encounterId,
+          encounterName: finalLog.encounterName,
+          location: finalLog.location,
+          date: finalLog.startedAt,
+          durationRounds: finalLog.currentRound,
+          outcome,
+          partySnapshot: JSON.stringify(
+            finalLog.partySnapshot),
+          events: JSON.stringify(finalLog.events),
+          transcript,
+        }
+      ).catch(err =>
+        console.error(
+          '[CombatLog] Failed to write log:',
+          err
+        )
+      )
+    }
+
+    clearCombatLog()
   }, [updateState]);
 
   const handleCallInitiative = useCallback(() => {

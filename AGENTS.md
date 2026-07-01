@@ -227,6 +227,21 @@ conditionImmunities column.
 | M | 12 | higherLevel | |
 | N | 13 | source | |
 
+### EncounterLogs (A2:J — 10 columns)
+
+| Col | Index | Field | Notes |
+|-----|-------|-------|-------|
+| A | 0 | id | Primary key |
+| B | 1 | encounterId | FK → Encounters |
+| C | 2 | encounterName | |
+| D | 3 | location | |
+| E | 4 | date | ISO string |
+| F | 5 | durationRounds | Number |
+| G | 6 | outcome | String |
+| H | 7 | partySnapshot | JSON string |
+| I | 8 | events | JSON string |
+| J | 9 | transcript | Markdown string |
+
 ### Status (read-only)
 IDs: 1=Active, 2=Inactive, 3=Deceased
 
@@ -239,7 +254,7 @@ IDs: 1=Easy, 2=Medium, 3=Hard, 4=Deadly
 
 `POST /api/campaigns/create` in
 `src/server/routes/campaigns.ts` creates all
-6 sheets with the correct headers. When adding
+7 sheets with the correct headers. When adding
 a column to any sheet, update this endpoint
 too or existing campaigns will have the wrong
 schema.
@@ -267,6 +282,7 @@ schema.
   existing parseNPCs.
 - `combatLogic.ts` — HP/damage/healing math,
   IRV application, health status calculation
+- `combatLog.ts` — Generates readable Markdown transcripts from structured combat events
 - `combatantBuilder.ts` — Pure function that
   builds combatant state from characters +
   npcs + encounterCombatants. Combatant type
@@ -370,7 +386,7 @@ schema.
 - `dashboardStore.ts` — Single Zustand store.
   Holds: characters, npcs, encounters,
   encounterCombatants, statuses, difficulties,
-  campaign context, combatState. Has
+  campaign context, combatState, combatLog. Has
   localStorage persistence.
 - `useAppState.ts` — Thin wrapper re-exporting
   `useDashboardStore`
@@ -382,8 +398,10 @@ schema.
   now also fetches Conditions!A2:C and
   Spells!A2:N, wrapped in try/catch since
   older campaigns may not have these tabs.
-- `useEncounterLifecycle.ts` — Combat setup,
-  initiative, round advancement, battle end
+- `useEncounterLifecycle.ts` / `useCombatSync.ts` — Combat setup,
+  initiative, round advancement, battle end.
+  Now call initCombatLog, addCombatEvent,
+  advanceCombatLogRound, and clearCombatLog.
 - `useEncounterResume.ts` — Detects and
   restores in-progress encounters on sync
 - `useAudioEngine.ts` — Two-deck crossfade,
@@ -565,6 +583,9 @@ test files. Not tests themselves.
   and htmlFor attributes for accessibility.
 
 ### src/components/ActiveEncounterTab/
+- `CombatHeader.tsx` — Encounter controls. Now
+  includes a Destructive Cancel Encounter button
+  that discards the log without writing it.
 - `CombatantCardHeader.tsx` — Compact
   `[-] N/M [+]` counter row for ALL resource
   pools on PC combatant cards (collapsed view)
