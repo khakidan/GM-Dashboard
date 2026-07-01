@@ -282,7 +282,7 @@ schema.
   existing parseNPCs.
 - `combatLogic.ts` — HP/damage/healing math,
   IRV application, health status calculation
-- `combatLog.ts` — Generates readable Markdown transcripts from structured combat events
+- `combatLog.ts` — Generates readable Markdown transcripts from structured combat events. Also exports ACTION_TYPE_LABELS shared constant.
 - `combatantBuilder.ts` — Pure function that
   builds combatant state from characters +
   npcs + encounterCombatants. Combatant type
@@ -404,6 +404,9 @@ schema.
   advanceCombatLogRound, and clearCombatLog.
 - `useEncounterResume.ts` — Detects and
   restores in-progress encounters on sync
+- `useEncounterLogs.ts` — On-demand fetch hook
+  for EncounterLogs sheet data. Exposes
+  fetchLogsForEncounter and deleteLog.
 - `useAudioEngine.ts` — Two-deck crossfade,
   IndexedDB audio, ambient + sound effects.
   Called ONCE in GMDashboard only.
@@ -442,6 +445,9 @@ test files. Not tests themselves.
   selection to: PartyTab, EncountersTab,
   NpcLibraryTab, ActiveEncounterTab,
   SettingsPage
+- `EncounterLogModal.tsx` — Modal for browsing
+  past encounter logs. Shows collapsible
+  event view and raw transcript toggle.
 - `CampaignSelector.tsx` — Pre-dashboard
   launcher for campaign create/connect/switch
 - `PlayerView.tsx` — Cross-tab broadcast
@@ -583,14 +589,15 @@ test files. Not tests themselves.
   and htmlFor attributes for accessibility.
 
 ### src/components/ActiveEncounterTab/
-- `CombatHeader.tsx` — Encounter controls. Now
-  includes a Destructive Cancel Encounter button
-  that discards the log without writing it.
+- `CombatHeader.tsx` — Encounter controls. Has "End Encounter" (writes log) and "Cancel Encounter" (discards log, destructive style).
 - `CombatantCardHeader.tsx` — Compact
   `[-] N/M [+]` counter row for ALL resource
   pools on PC combatant cards (collapsed view)
 - `CombatantCardExpanded.tsx` — Full
   ResourcePoolsSection for PC combatants
+- `GlobalActionContextPanel.tsx` — Global Source/Type
+  context panel rendered in the Active Encounter
+  Tab when combat is active (combatStarted: true).
 - `NpcReferencePanel.tsx` — Collapsible stat
   block reference panel shown on NPC combatant
   cards during active encounters. Manages its
@@ -621,6 +628,13 @@ test files. Not tests themselves.
 - `hooks/useHealthChange.ts` — Damage/heal
   with IRV math. Fires `fireConcentrationAlert`
   when a concentrating combatant takes damage.
+- `hooks/useCombatSync.ts` — Turn/round/
+  combatant sync. Calls initCombatLog,
+  addCombatEvent, advanceCombatLogRound, and
+  clearCombatLog. Contains cancelCombat and
+  resetCombat. nextTurn sorts by initiative on
+  first call (combatStarted fix) and skips
+  dead NPCs.
 - `hooks/useBatchActions.ts` — Batch
   damage/heal/condition/delete
 - `hooks/useCombatSync.ts` — Turn/round/
@@ -665,7 +679,7 @@ this whitelist and to `dbOperations.ts`.
 
 ## Testing Structure — 12-Batch System
 
-**Current baseline: 640 tests.**
+**Current baseline: 651 tests.**
 All batches must pass with zero failures.
 No batch should exceed 35 seconds.
 
@@ -679,7 +693,7 @@ run all tests at once with `npx vitest run`.
 | 2     | Services    | 29         |
 | 3     | Hooks       | 32         |
 | 4     | Server      | 7          |
-| 5A    | AET Hooks   | 36         |
+| 5A    | AET Hooks   | 39         |
 | 5B    | AET Comp    | 26         |
 | 6A    | PartyTab    | 38         |
 | 6B    | Encounters  | 8          |
@@ -687,7 +701,7 @@ run all tests at once with `npx vitest run`.
 | 7B-1  | Top-Level 1 | 11         |
 | 7B-2  | Top-Level 2 | 4          |
 | 8     | UI          | 2          |
-| **Total** | | **640** |
+| **Total** | | **651** |
 
 ```bash
 # BATCH 1 — 420 tests
@@ -702,7 +716,7 @@ npx vitest run src/hooks/__tests__
 # BATCH 4 — 7 tests
 npx vitest run src/server/__tests__ src/__tests__
 
-# BATCH 5A — 36 tests
+# BATCH 5A — 39 tests
 npx vitest run src/components/ActiveEncounterTab/__tests__/useBatchActions.test.ts src/components/ActiveEncounterTab/__tests__/useCombatSync.test.ts src/components/ActiveEncounterTab/__tests__/useCombatantCard.test.ts src/components/ActiveEncounterTab/__tests__/useEncounterPresetLoader.test.ts src/components/ActiveEncounterTab/__tests__/useHealthChange.test.ts src/components/ActiveEncounterTab/__tests__/useSelectionMode.test.ts
 
 # BATCH 5B — 26 tests
@@ -1237,30 +1251,18 @@ automatically. See session history.
 #### Fix components importing directly
 from services
 
-Three components violate the layer
-dependency rule (lib → services → hooks →
-components) by importing database
-functions directly instead of going
-through hooks:
-
-  CombatantCardHeader.tsx →
-    imports updateCharacterDB
-  CommandPalette.tsx →
-    imports updateCharacterDB
-  EncounterCard.tsx →
-    imports updateEncounterDB
-
-Fix: Move the database call logic for
-each component into its respective hook
-(useEncounterLifecycle, useParty, or a
-new hook as appropriate), and have the
-component call the hook function instead.
-
-This is a dedicated refactor session —
-tackle separately from feature work since
-it touches multiple files and requires
-careful testing of all affected batches
-after completion.
+- `CampaignSelector.tsx`, `AuthRelay.tsx`,
+  `GMDashboard.tsx`, `SyncStatusIndicators.tsx`
+  importing from `services/googleAuth`
+  (pre-existing architectural shortcut).
+- `EncounterLogModal.tsx` and
+  `GlobalActionContextPanel.tsx` using named
+  Tailwind colors (rose, emerald, slate) instead
+  of the hex tokens in `STYLE_GUIDE.md`.
+- `rollNpcInitiatives` in `combatLogic.ts` is
+  dead code (logic moved to `useCombatSync.ts`).
+- Zero test coverage on `EncounterLogModal.tsx`
+  and `useEncounterLogs.ts`.
 
 ---
 

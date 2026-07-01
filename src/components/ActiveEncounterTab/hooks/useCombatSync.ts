@@ -538,6 +538,32 @@ export function useCombatSync() {
     clearCombatLog()
   }, [updateState]);
 
+  const cancelCombat = useCallback(() => {
+    const latestSnapshot = getSnapshot();
+    updateState(prev => ({
+      ...prev,
+      combatState: {
+        ...prev.combatState,
+        activeTurnId: null,
+        round: 1,
+        combatants: prev.combatState.combatants.map(c => ({ ...c, initiative: 0 })),
+        actionContext: { sourceOverride: null, actionType: 'attack' }
+      },
+    }));
+
+    useDashboardStore.getState().setCombatStarted(false);
+
+    latestSnapshot.combatState.combatants.forEach(c => {
+      if (c.encounterCombatantId) {
+        updateInitiativeDB(c.encounterCombatantId, 0).catch(err => {
+          console.error(`Failed to reset initiative for combatant ${c.id}`, err);
+        });
+      }
+    });
+
+    useDashboardStore.getState().clearCombatLog();
+  }, [updateState]);
+
   const handleCallInitiative = useCallback(() => {
     fireInitiativeEvent(true);
     toast('Initiative called!', {
@@ -636,19 +662,83 @@ export function useCombatSync() {
       }
 
       state.setCombatStarted(true)
+
+      // FIX 1A: Sort the live combatants and set first turn
+      const sortedCombatants = [...currentCombatants].sort((a, b) => 
+        (b.initiative ?? 0) - (a.initiative ?? 0)
+      );
+      const firstActiveId = sortedCombatants.length > 0 ? sortedCombatants[0].id : null;
+
+      updateState(prev => ({
+        ...prev,
+        combatState: {
+          ...prev.combatState,
+          combatants: sortedCombatants,
+          activeTurnId: firstActiveId,
+          combatStarted: true
+        }
+      }));
+
+      if (firstActiveId) {
+        updateEncounterStateDB(currentState.combatState.activeEncounterId ?? '', currentState.combatState.round, firstActiveId).catch(err => {
+          console.warn("Failed to write initial sorted turn state to sheet", err);
+        });
+      }
+
+      return; // Return early - first click establishes order
     }
 
     const currentIndex = combatants.findIndex(
       c => c.id === currentState.combatState.activeTurnId
     );
-    const nextIndex =
-      currentIndex + 1 >= combatants.length ? 0 : currentIndex + 1;
 
-    if (currentIndex !== -1 && nextIndex === 0) {
+    // FIX 2A: Find next valid combatant, skipping dead NPCs
+    let nextIndex = -1;
+    if (currentIndex !== -1) {
+      let candidateIndex = (currentIndex + 1) % combatants.length;
+      let fullLoopCount = 0;
+      
+      while (fullLoopCount < combatants.length) {
+        const candidate = combatants[candidateIndex];
+        const isDeadNpc = candidate.type === 'npc' && candidate.currentHp <= 0;
+        
+        if (!isDeadNpc) {
+          nextIndex = candidateIndex;
+          break;
+        }
+        
+        candidateIndex = (candidateIndex + 1) % combatants.length;
+        fullLoopCount++;
+      }
+    } else if (combatants.length > 0) {
+      // If somehow no active turn, start at 0 if not dead NPC
+      nextIndex = (combatants[0].type === 'npc' && combatants[0].currentHp <= 0) ? -1 : 0;
+      if (nextIndex === -1 && combatants.length > 1) {
+        // Find first non-dead
+        nextIndex = combatants.findIndex(c => !(c.type === 'npc' && c.currentHp <= 0));
+      }
+    }
+
+    // If a full loop finds no valid combatant, set activeTurnId to null
+    if (nextIndex === -1) {
+      updateState(prev => ({
+        ...prev,
+        combatState: {
+          ...prev.combatState,
+          activeTurnId: null,
+        }
+      }));
+      updateEncounterStateDB(currentState.combatState.activeEncounterId ?? '', nextRound, '').catch(err => {
+        console.warn("Failed to clear turn state in sheet", err);
+      });
+      return;
+    }
+
+    if (currentIndex !== -1 && nextIndex <= currentIndex) {
       nextRound += 1;
     }
 
-    if (currentIndex !== -1 && nextIndex === 0) {
+    if (currentIndex !== -1 && nextIndex <= currentIndex) {
       const { advanceCombatLogRound,
         addCombatEvent, activeCombatLog }
         = useDashboardStore.getState()
@@ -870,6 +960,7 @@ export function useCombatSync() {
     fireRageEvent,
     rollInitForNPCs,
     resetCombat,
+    cancelCombat,
     handleCallInitiative,
     nextTurn,
     handleConcentrationPrompt,

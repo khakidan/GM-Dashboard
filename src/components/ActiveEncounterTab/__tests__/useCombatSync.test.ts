@@ -52,6 +52,7 @@ describe('useCombatSync', () => {
           syncingIds: [],
           expandedIds: [],
           concentrationLinks: {},
+          combatStarted: true,
           combatants: [
             { id: 'c1', name: 'PC 1', type: 'pc', initiative: 20, reactionUsed: true },
             { id: 'c2', name: 'NPC 1', type: 'npc', initiative: 15, reactionUsed: true, legendaryActions: { max: 3, remaining: 1 } },
@@ -64,6 +65,112 @@ describe('useCombatSync', () => {
         encounterCombatants: []
       });
     });
+  });
+
+  it('nextTurn sorts and establishes first turn when combatStarted is false', () => {
+    act(() => {
+      useDashboardStore.setState(prev => ({
+        ...prev,
+        combatState: {
+          ...prev.combatState,
+          combatStarted: false,
+          activeTurnId: 'c2', // Incorrect turn before sorting
+          combatants: [
+            { id: 'c3', name: 'PC 2', type: 'pc', initiative: 10 },
+            { id: 'c1', name: 'PC 1', type: 'pc', initiative: 20 },
+            { id: 'c2', name: 'NPC 1', type: 'npc', initiative: 15 }
+          ]
+        }
+      }));
+    });
+
+    const { result } = renderHook(() => useCombatSync());
+
+    act(() => {
+      result.current.nextTurn();
+    });
+
+    const state = getSnapshot();
+    // Should be sorted by initiative descending
+    expect(state.combatState.combatants[0].id).toBe('c1');
+    expect(state.combatState.combatants[1].id).toBe('c2');
+    expect(state.combatState.combatants[2].id).toBe('c3');
+    // Active turn should be the one with highest initiative
+    expect(state.combatState.activeTurnId).toBe('c1');
+    expect(state.combatState.combatStarted).toBe(true);
+    expect(vi.mocked(updateEncounterStateDB)).toHaveBeenCalledWith('enc-1', 1, 'c1');
+  });
+
+  it('nextTurn skips NPCs at 0 HP', () => {
+    act(() => {
+      useDashboardStore.setState(prev => ({
+        ...prev,
+        combatState: {
+          ...prev.combatState,
+          activeTurnId: 'c1',
+          combatants: [
+            { id: 'c1', name: 'PC 1', type: 'pc', initiative: 20, currentHp: 50 },
+            { id: 'c2', name: 'NPC 1', type: 'npc', initiative: 15, currentHp: 0 },
+            { id: 'c3', name: 'PC 2', type: 'pc', initiative: 10, currentHp: 0 } // PC at 0 should NOT be skipped
+          ]
+        }
+      }));
+    });
+
+    const { result } = renderHook(() => useCombatSync());
+
+    // From c1, it should skip c2 (NPC at 0 HP) and go to c3 (PC at 0 HP)
+    act(() => {
+      result.current.nextTurn();
+    });
+
+    const state1 = getSnapshot();
+    expect(state1.combatState.activeTurnId).toBe('c3');
+
+    // From c3, it should wrap to c1
+    act(() => {
+      result.current.nextTurn();
+    });
+
+    const state2 = getSnapshot();
+    expect(state2.combatState.activeTurnId).toBe('c1');
+    expect(state2.combatState.round).toBe(2);
+  });
+
+  it('nextTurn sets activeTurnId to null if all remaining combatants are dead NPCs', () => {
+    act(() => {
+      useDashboardStore.setState(prev => ({
+        ...prev,
+        combatState: {
+          ...prev.combatState,
+          activeTurnId: 'c1',
+          combatants: [
+            { id: 'c1', name: 'NPC 1', type: 'npc', initiative: 20, currentHp: 10 },
+            { id: 'c2', name: 'NPC 2', type: 'npc', initiative: 10, currentHp: 0 }
+          ]
+        }
+      }));
+    });
+
+    const { result } = renderHook(() => useCombatSync());
+
+    // Reduce c1 to 0 HP
+    act(() => {
+      useDashboardStore.setState(prev => ({
+        ...prev,
+        combatState: {
+          ...prev.combatState,
+          combatants: prev.combatState.combatants.map(c => c.id === 'c1' ? { ...c, currentHp: 0 } : c)
+        }
+      }));
+    });
+
+    act(() => {
+      result.current.nextTurn();
+    });
+
+    const state = getSnapshot();
+    expect(state.combatState.activeTurnId).toBeNull();
   });
 
   it('nextTurn advances activeTurnId to the next combatant in order', () => {

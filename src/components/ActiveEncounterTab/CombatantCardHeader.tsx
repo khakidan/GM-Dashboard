@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { ChevronDown, Zap, ZapOff, Shield } from 'lucide-react';
+import { ChevronDown, Zap, ZapOff, Shield, Skull } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { Combatant, DamageType } from '../../types';
 import { getHealthStatus, effectiveAc, effectiveMaxHp } from '../../lib/conditions';
@@ -194,8 +194,16 @@ export function CombatantCardHeader({
 
           {/* 3. Combatant name and AC badge */}
           <div className="min-w-0 flex flex-wrap items-center gap-2">
-            <h3 className={cn('text-lg font-bold font-serif truncate', type === 'npc' ? 'text-red-800' : 'text-[#0f172a]')}>
+            <h3 className={cn(
+              'text-lg font-bold font-serif truncate flex items-center gap-2', 
+              type === 'npc' 
+                ? (c.currentHp <= 0 ? 'text-[#8d8db9]' : 'text-red-800') 
+                : 'text-[#0f172a]'
+            )}>
               {name}
+              {type === 'npc' && c.currentHp <= 0 && (
+                <Skull className="w-4 h-4 text-[#8d8db9] shrink-0" />
+              )}
             </h3>
             {c.conditions?.toLowerCase().includes('concentrating') && (
               <span className="ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded border bg-purple-100 text-purple-700 border-purple-200">

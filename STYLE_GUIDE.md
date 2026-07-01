@@ -189,6 +189,19 @@ The search overlay (activated via `Cmd+K` or `Ctrl+K`) uses a highly interactive
 
 ---
 
+## Global Action Context Panel
+
+Overlay/toolbar element in the Active Encounter Tab for setting damage context.
+
+- **Panel container**: `flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-[#f8fafc] border-b border-[#e2e8f0] px-6 py-2 w-full`
+- **Source picker**: Standard Input pattern (`bg-white border border-[#e2e8f0] rounded px-2 h-7 text-xs focus:border-[#2563eb]`)
+- **Type pills (active)**: `bg-[#2563eb] text-white px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase`
+- **Type pills (inactive)**: `bg-[#f1f5f9] text-[#8d8db9] hover:bg-[#e2e8f0] hover:text-[#0f172a] px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase`
+
+Note: `bg-[#f8fafc]` and `bg-[#f1f5f9]` are structural background neutrals.
+
+---
+
 ## Inputs
 Background:   bg-white
 
@@ -289,6 +302,16 @@ hover:text-[#2563eb]
 
 transition-colors
 
+### Structured/Raw Toggle
+
+Used in EncounterLogModal to switch between views.
+
+- **Container**: `flex bg-slate-100 p-0.5 rounded-lg border border-[#e2e8f0]`
+- **Active pill**: `bg-white text-[#2563eb] shadow-sm px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-md transition-all`
+- **Inactive pill**: `text-[#8d8db9] px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-md transition-all hover:text-[#0f172a]`
+
+Note: `bg-slate-100` is used purely as a neutral structural container background.
+
 ---
 
 ## Section Headers
@@ -385,6 +408,17 @@ border border-[#e2e8f0]
 - **General Info tags**: `bg-[#f9f8ff] text-[#8d8db9] border border-[#e2e8f0] text-[10px] font-bold uppercase rounded-md px-2 py-1`
 - **Concentration**: `bg-red-50 text-red-600 border border-red-100 text-[10px] font-bold uppercase rounded-md px-2 py-1`
 - **Ritual**: `bg-[#f9f8ff] text-[#567eff] border border-[#c0d4ff] text-[10px] font-bold uppercase rounded-md px-2 py-1`
+
+### Combat Event Rows
+
+Visual cues for different combat events in the log.
+
+- **Damage events**: `bg-red-50 text-red-600 border border-red-100` (Red/Rose)
+- **Healing events**: `bg-green-50 text-green-700 border border-green-100` (Green/Emerald)
+- **Condition events**: `bg-[#f9f8ff] text-[#2563eb] border border-[#c0d4ff]` (Blue)
+- **Combatant defeated**: `bg-[#f9f8ff] text-[#0f172a] border border-[#e2e8f0] font-bold` (Slate)
+- **Manual adjustment**: `bg-[#f9f8ff] text-[#8d8db9] border border-[#e2e8f0]` (Purple)
+- **Event row base**: `flex items-center gap-2.5 px-3 py-2 text-xs rounded-lg`
 
 ### Nested Panels and Callouts
 For sub-sections or detailed context inside modals (e.g. "At Higher Levels"):

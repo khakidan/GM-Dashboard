@@ -9,6 +9,7 @@ import { CombatantLegendaryTracker } from './CombatantLegendaryTracker';
 import { ResourcePoolsSection } from '../ui/ResourcePoolsSection';
 import { StatBlock } from '../ui/StatBlock';
 import { parseAbilityScores, parseProficiencies } from '../../lib/abilityScores';
+import { getEffectiveResistances } from '../../lib/combatLogic';
 import { useCombatantExpanded } from './hooks/useCombatantExpanded';
 import { CombatMechanicsSummary } from './CombatMechanicsSummary';
 import { CombatantIrvDisplay } from './CombatantIrvDisplay';
@@ -83,7 +84,7 @@ export function CombatantCardExpanded({
 
       <div id={`combatant-stat-grid-${c.id}`} className="flex gap-4">
         <CombatantIrvDisplay
-          resistances={c.resistances || ''}
+          resistances={getEffectiveResistances(c)}
           immunities={c.immunities || ''}
           vulnerabilities={c.vulnerabilities || ''}
         />

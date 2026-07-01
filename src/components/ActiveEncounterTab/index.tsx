@@ -60,6 +60,7 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
     updateCombatant,
     rollInitForNPCs,
     resetCombat,
+    cancelCombat,
     handleCallInitiative,
     nextTurn,
     handleConcentrationPrompt,
@@ -162,6 +163,7 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
             onOpenTools={() => setIsToolsModalOpen(true)}
             onRollNpcInit={rollInitForNPCs}
             onResetCombat={resetCombat}
+            onCancelEncounter={cancelCombat}
             onNextTurn={nextTurn}
             onToggleMultiTargetMode={toggleMultiTargetMode}
             onDeleteSelected={handleDeleteSelected}

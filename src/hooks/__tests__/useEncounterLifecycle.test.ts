@@ -101,6 +101,7 @@ describe('useEncounterLifecycle & useCombatSync Tests', () => {
         isSelectionMode: false,
         syncingIds: [],
         expandedIds: [],
+        combatStarted: true,
       }
     });
 
@@ -115,8 +116,8 @@ describe('useEncounterLifecycle & useCombatSync Tests', () => {
   });
 
   it('nextTurn advances activeTurnId to the next combatant in initiative order', async () => {
-    const comb1 = { id: 'c-1', name: 'Hero', initiative: 20 } as any;
-    const comb2 = { id: 'c-2', name: 'Goblin', initiative: 10 } as any;
+    const comb1 = { id: 'c-1', name: 'Hero', initiative: 20, type: 'pc', currentHp: 10 } as any;
+    const comb2 = { id: 'c-2', name: 'Goblin', initiative: 10, type: 'pc', currentHp: 10 } as any;
 
     useDashboardStore.setState({
       combatState: {
@@ -135,6 +136,7 @@ describe('useEncounterLifecycle & useCombatSync Tests', () => {
         isSelectionMode: false,
         syncingIds: [],
         expandedIds: [],
+        combatStarted: true,
       }
     });
 
@@ -150,8 +152,8 @@ describe('useEncounterLifecycle & useCombatSync Tests', () => {
   });
 
   it('nextTurn increments the round number when wrapping from last to first combatant', async () => {
-    const comb1 = { id: 'c-1', name: 'Hero', initiative: 20 } as any;
-    const comb2 = { id: 'c-2', name: 'Goblin', initiative: 10 } as any;
+    const comb1 = { id: 'c-1', name: 'Hero', initiative: 20, type: 'pc', currentHp: 10 } as any;
+    const comb2 = { id: 'c-2', name: 'Goblin', initiative: 10, type: 'pc', currentHp: 10 } as any;
 
     useDashboardStore.setState({
       combatState: {
@@ -170,6 +172,7 @@ describe('useEncounterLifecycle & useCombatSync Tests', () => {
         isSelectionMode: false,
         syncingIds: [],
         expandedIds: [],
+        combatStarted: true,
       }
     });
 

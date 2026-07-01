@@ -9,6 +9,7 @@ import { render, screen, fireEvent, act, cleanup } from '@testing-library/react'
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { ActiveEncounterTab } from '../index';
 import { useAppState } from '../../../hooks/useAppState';
+import { useDashboardStore } from '../../../hooks/dashboardStore';
 
 import { updateEncounterStateDB } from '../../../services/dbOperations';
 
@@ -48,39 +49,34 @@ describe('ActiveEncounterTab nextTurn logic', () => {
   it('When nextTurn is called, updateEncounterStateDB is called with the updated activeTurnId', async () => {
     // Create initial state with 2 combatants
     let updateStateCalledWith: any;
+    const mockState = {
+      campaignName: 'Test',
+      hasInitialSynced: true,
+      encounters: [{ id: 'enc-1', name: 'Test Enc' }],
+      characters: [],
+      npcs: [],
+      statuses: {},
+      difficulties: {},
+      encounterCombatants: [],
+      combatState: {
+        activeEncounterId: 'enc-1',
+        round: 1,
+        activeTurnId: 'combat-1',
+        combatStarted: true,
+        actionContext: { sourceOverride: null, actionType: 'attack' as any },
+        combatants: [
+          { id: 'combat-1', initiative: 20, conditions: '', type: 'pc', currentHp: 10 },
+          { id: 'combat-2', initiative: 10, conditions: '', type: 'pc', currentHp: 10 },
+        ],
+      }
+    };
+
+    useDashboardStore.setState(mockState as any);
     vi.mocked(useAppState).mockReturnValue({
-      state: {
-        campaignName: 'Test',
-        hasInitialSynced: true,
-        encounters: [{ id: 'enc-1', name: 'Test Enc' }],
-        characters: [],
-        npcs: [],
-        statuses: {},
-        difficulties: {},
-        encounterCombatants: [],
-        combatState: {
-          activeEncounterId: 'enc-1',
-          round: 1,
-          activeTurnId: 'combat-1',
-          combatants: [
-            { id: 'combat-1', initiative: 20, conditions: '' },
-            { id: 'combat-2', initiative: 10, conditions: '' },
-          ],
-        }
-      },
+      state: mockState,
       updateState: (fn: any) => { 
         if (typeof fn === 'function') {
-          updateStateCalledWith = fn({
-            combatState: {
-              activeEncounterId: 'enc-1',
-              round: 1,
-              activeTurnId: 'combat-1',
-              combatants: [
-                { id: 'combat-1', initiative: 20, conditions: '' },
-                { id: 'combat-2', initiative: 10, conditions: '' },
-              ],
-            }
-          });
+          useDashboardStore.setState(fn);
         }
       }
     } as any);
@@ -114,9 +110,11 @@ describe('ActiveEncounterTab nextTurn logic', () => {
           activeEncounterId: 'enc-1',
           round: 1,
           activeTurnId: 'combat-2',
+          combatStarted: true,
+          actionContext: { sourceOverride: null, actionType: 'attack' as any },
           combatants: [
-            { id: 'combat-1', initiative: 20, conditions: '' },
-            { id: 'combat-2', initiative: 10, conditions: '' },
+            { id: 'combat-1', initiative: 20, conditions: '', type: 'pc', currentHp: 10 },
+            { id: 'combat-2', initiative: 10, conditions: '', type: 'pc', currentHp: 10 },
           ],
         }
       },
@@ -127,9 +125,11 @@ describe('ActiveEncounterTab nextTurn logic', () => {
               activeEncounterId: 'enc-1',
               round: 1,
               activeTurnId: 'combat-2',
+              combatStarted: true,
+              actionContext: { sourceOverride: null, actionType: 'attack' as any },
               combatants: [
-                { id: 'combat-1', initiative: 20, conditions: '' },
-                { id: 'combat-2', initiative: 10, conditions: '' },
+                { id: 'combat-1', initiative: 20, conditions: '', type: 'pc', currentHp: 10 },
+                { id: 'combat-2', initiative: 10, conditions: '', type: 'pc', currentHp: 10 },
               ],
             }
           });
@@ -165,9 +165,11 @@ describe('ActiveEncounterTab nextTurn logic', () => {
           activeEncounterId: 'enc-1',
           round: 1,
           activeTurnId: 'combat-1',
+          combatStarted: true,
+          actionContext: { sourceOverride: null, actionType: 'attack' as any },
           combatants: [
-            { id: 'combat-1', initiative: 20, conditions: '', reactionUsed: true },
-            { id: 'combat-2', initiative: 10, conditions: '', reactionUsed: true },
+            { id: 'combat-1', initiative: 20, conditions: '', reactionUsed: true, type: 'pc', currentHp: 10 },
+            { id: 'combat-2', initiative: 10, conditions: '', reactionUsed: true, type: 'pc', currentHp: 10 },
           ],
         }
       },
@@ -178,9 +180,11 @@ describe('ActiveEncounterTab nextTurn logic', () => {
               activeEncounterId: 'enc-1',
               round: 1,
               activeTurnId: 'combat-1',
+              combatStarted: true,
+              actionContext: { sourceOverride: null, actionType: 'attack' as any },
               combatants: [
-                { id: 'combat-1', initiative: 20, conditions: '', reactionUsed: true },
-                { id: 'combat-2', initiative: 10, conditions: '', reactionUsed: true },
+                { id: 'combat-1', initiative: 20, conditions: '', reactionUsed: true, type: 'pc', currentHp: 10 },
+                { id: 'combat-2', initiative: 10, conditions: '', reactionUsed: true, type: 'pc', currentHp: 10 },
               ],
             }
           });
@@ -221,18 +225,24 @@ describe('ActiveEncounterTab nextTurn logic', () => {
           activeEncounterId: 'enc-1',
           round: 1,
           activeTurnId: 'combat-1',
+          combatStarted: true,
+          actionContext: { sourceOverride: null, actionType: 'attack' as any },
           combatants: [
             { 
               id: 'combat-1', 
               initiative: 20, 
               conditions: '', 
-              reactionUsed: false 
+              reactionUsed: false,
+              type: 'pc',
+              currentHp: 10
             },
             { 
               id: 'combat-2', 
               initiative: 10, 
               conditions: '', 
               reactionUsed: false,
+              type: 'pc',
+              currentHp: 10,
               legendaryActions: { max: 3, remaining: 1 },
               legendaryResistances: { max: 3, remaining: 1 }
             },
@@ -246,18 +256,24 @@ describe('ActiveEncounterTab nextTurn logic', () => {
               activeEncounterId: 'enc-1',
               round: 1,
               activeTurnId: 'combat-1',
+              combatStarted: true,
+              actionContext: { sourceOverride: null, actionType: 'attack' as any },
               combatants: [
                 { 
                   id: 'combat-1', 
                   initiative: 20, 
                   conditions: '', 
-                  reactionUsed: false 
+                  reactionUsed: false,
+                  type: 'pc',
+                  currentHp: 10
                 },
                 { 
                   id: 'combat-2', 
                   initiative: 10, 
                   conditions: '', 
                   reactionUsed: false,
+                  type: 'pc',
+                  currentHp: 10,
                   legendaryActions: { max: 3, remaining: 1 },
                   legendaryResistances: { max: 3, remaining: 1 }
                 },

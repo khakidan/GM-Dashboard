@@ -13,6 +13,7 @@ interface CombatHeaderProps {
   onOpenTools: () => void;
   onRollNpcInit: () => void;
   onResetCombat: () => void;
+  onCancelEncounter: () => void;
   onNextTurn: () => void;
   onToggleMultiTargetMode: () => void;
   onDeleteSelected: () => void;
@@ -34,6 +35,7 @@ export function CombatHeader({
   onOpenTools,
   onRollNpcInit,
   onResetCombat,
+  onCancelEncounter,
   onNextTurn,
   onToggleMultiTargetMode,
   onDeleteSelected,
@@ -148,6 +150,18 @@ export function CombatHeader({
           >
             <RefreshCcw className="w-3 h-3" />
             <span>End Encounter</span>
+          </button>
+
+          {/* CANCEL ENCOUNTER BUTTON */}
+          <button
+            onClick={() => {
+              if (window.confirm("Cancel this encounter? The combat log will be discarded and this cannot be undone.")) {
+                onCancelEncounter();
+              }
+            }}
+            className="bg-red-50 text-red-600 border border-red-100 rounded-xl uppercase text-xs font-bold px-3 py-2 hover:bg-red-100 transition-colors cursor-pointer"
+          >
+            Cancel Encounter
           </button>
 
           {/* NEXT TURN BUTTON */}
