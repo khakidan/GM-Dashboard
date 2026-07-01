@@ -3,6 +3,7 @@ import { OVERLAY_CLEAR_BUFFER_MS } from '../../../lib/constants';
 import { OVERLAY_DURATIONS } from '../../../lib/constants';
 import { useState, useCallback, createElement } from 'react';
 import { useAppState, getSnapshot } from '../../../hooks/useAppState';
+import { useDashboardStore } from '../../../hooks/dashboardStore';
 import { updateSheetData } from '../../../services/sheetsService';
 import { updateCharacterDB, deleteEncounterCombatantDB, updateEncounterCombatantQuantityDB, updateInitiativeDB, updateConditionTimersDB, updateNpcInstanceHpDB, updateNpcInstanceConditionsDB, updateNpcInstanceAcModDB, updateEncounterStateDB } from '../../../services/dbOperations';
 import { Combatant } from '../../../types';
@@ -310,6 +311,84 @@ export function useCombatSync() {
       });
       throw error;
     }
+
+    if (updates.conditions !== undefined) {
+      const { addCombatEvent,
+        activeCombatLog, combatState } =
+        useDashboardStore.getState()
+
+      if (activeCombatLog) {
+        const activeTurnCombatant =
+          combatState.combatants.find(
+            x => x.id ===
+              combatState.activeTurnId)
+
+        // Find the current combatant
+        // to compare old vs new conditions
+        const currentCombatant =
+          combatState.combatants.find(
+            x => x.id === id)
+
+        const oldConditions = (
+          currentCombatant?.conditions || ''
+        ).split(',')
+          .map(s => s.trim())
+          .filter(Boolean)
+
+        const newConditions =
+          updates.conditions.split(',')
+            .map(s => s.trim())
+            .filter(Boolean)
+
+        // Log newly added conditions
+        newConditions
+          .filter(c =>
+            !oldConditions.includes(c))
+          .forEach(condition => {
+            addCombatEvent({
+              round:
+                activeCombatLog.currentRound,
+              type: 'condition-applied',
+              actorId:
+                activeTurnCombatant?.id
+                ?? null,
+              actorName:
+                activeTurnCombatant?.name
+                ?? null,
+              targetId: id,
+              targetName:
+                currentCombatant?.name
+                ?? null,
+              condition,
+              isManualAdjustment: false,
+            })
+          })
+
+        // Log removed conditions
+        oldConditions
+          .filter(c =>
+            !newConditions.includes(c))
+          .forEach(condition => {
+            addCombatEvent({
+              round:
+                activeCombatLog.currentRound,
+              type: 'condition-removed',
+              actorId:
+                activeTurnCombatant?.id
+                ?? null,
+              actorName:
+                activeTurnCombatant?.name
+                ?? null,
+              targetId: id,
+              targetName:
+                currentCombatant?.name
+                ?? null,
+              condition,
+              isManualAdjustment: false,
+            })
+          })
+      }
+    }
   };
 
   const rollInitForNPCs = useCallback(() => {
@@ -381,6 +460,65 @@ export function useCombatSync() {
       description: 'Players can see the overlay on the Player View.',
       duration: 3000,
     });
+
+    const latestState = getSnapshot();
+    const combatants = latestState.combatState.combatants;
+    const encounterId = latestState.combatState.activeEncounterId || '';
+    const encounters = latestState.encounters;
+
+    const { initCombatLog, addCombatEvent }
+      = useDashboardStore.getState()
+
+    // Build party snapshot from combatants
+    // already set up by handleCallInitiative
+    const snapshot = combatants.map(c => ({
+      id: c.id,
+      name: c.name,
+      type: (c.type === 'pc' ? 'pc' : 'npc') as 'pc' | 'npc',
+      startingHp: c.currentHp,
+      maxHp: c.maxHp,
+      level: c.level ?? undefined,
+      cr: c.challengeRating ?? undefined,
+    }))
+
+    // Build initiative order from the same
+    // combatants array, sorted by initiative
+    const initiativeOrder = [...combatants]
+      .sort((a, b) =>
+        (b.initiative ?? 0) - (a.initiative ?? 0))
+      .map(c => ({
+        combatantId: c.id,
+        name: c.name,
+        initiative: c.initiative ?? 0,
+        type: (c.type === 'pc' ? 'pc' : 'npc') as 'pc' | 'npc',
+      }))
+
+    // Get encounter name and location from
+    // the active encounter in store state
+    const activeEncounter = encounters.find(
+      e => e.id === encounterId)
+    const encounterName =
+      activeEncounter?.name ?? 'Unknown'
+    const location =
+      activeEncounter?.location ?? ''
+
+    initCombatLog(
+      encounterId,
+      encounterName,
+      location,
+      snapshot,
+      initiativeOrder,
+    )
+
+    addCombatEvent({
+      round: 1,
+      type: 'combat-start',
+      actorId: null,
+      actorName: null,
+      targetId: null,
+      targetName: null,
+      isManualAdjustment: false,
+    })
   }, [fireInitiativeEvent]);
 
   const nextTurn = useCallback(() => {
@@ -397,6 +535,24 @@ export function useCombatSync() {
 
     if (currentIndex !== -1 && nextIndex === 0) {
       nextRound += 1;
+    }
+
+    if (currentIndex !== -1 && nextIndex === 0) {
+      const { advanceCombatLogRound,
+        addCombatEvent, activeCombatLog }
+        = useDashboardStore.getState()
+      advanceCombatLogRound()
+      addCombatEvent({
+        round: activeCombatLog
+          ? activeCombatLog.currentRound + 1
+          : 1,
+        type: 'round-start',
+        actorId: null,
+        actorName: null,
+        targetId: null,
+        targetName: null,
+        isManualAdjustment: false,
+      })
     }
 
     const nextActiveId = combatants[nextIndex].id;

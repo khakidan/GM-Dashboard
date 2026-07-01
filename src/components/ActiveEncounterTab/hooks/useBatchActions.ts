@@ -1,4 +1,5 @@
 import { useAppState, getSnapshot } from '../../../hooks/useAppState';
+import { useDashboardStore } from '../../../hooks/dashboardStore';
 import { useHealthChange } from './useHealthChange';
 import { Combatant, DamageType } from '../../../types';
 import { toast } from 'sonner';
@@ -115,8 +116,52 @@ export function useBatchActions({ selectedIds, combatants, onSuccess }: UseBatch
     const affectedNames = selectedList.map(c => c.name);
     const previousState = getSnapshot();
     try {
+      const { addCombatEvent, activeCombatLog, combatState } =
+        useDashboardStore.getState()
+
       for (const c of selectedList) {
+        const hpBefore = c.currentHp;
         handleHealthChange(c.id, c, true, type, amount, false, true); // pass skipOverlay=true
+
+        // Find the updated state
+        const latestState = getSnapshot();
+        const updatedCombatant = latestState.combatState.combatants.find(x => x.id === c.id);
+        const hpAfter = updatedCombatant?.currentHp ?? hpBefore;
+
+        if (activeCombatLog) {
+          const activeTurnCombatant = combatState.combatants.find(
+            x => x.id === combatState.activeTurnId
+          );
+
+          const hpDelta = hpAfter - hpBefore;
+          const isManual = combatState.activeTurnId === null;
+
+          addCombatEvent({
+            round: activeCombatLog.currentRound,
+            type: 'damage',
+            actorId: isManual ? null : (activeTurnCombatant?.id ?? null),
+            actorName: isManual ? null : (activeTurnCombatant?.name ?? null),
+            targetId: c.id,
+            targetName: c.name,
+            value: Math.abs(hpDelta),
+            damageType: type ?? undefined,
+            hpBefore,
+            hpAfter,
+            isManualAdjustment: isManual,
+          });
+
+          if (hpAfter <= 0) {
+            addCombatEvent({
+              round: activeCombatLog.currentRound,
+              type: 'combatant-defeated',
+              actorId: isManual ? null : (activeTurnCombatant?.id ?? null),
+              actorName: isManual ? null : (activeTurnCombatant?.name ?? null),
+              targetId: c.id,
+              targetName: c.name,
+              isManualAdjustment: false,
+            });
+          }
+        }
       }
       
       // Fire ONE overlay event with all names
@@ -142,8 +187,39 @@ export function useBatchActions({ selectedIds, combatants, onSuccess }: UseBatch
     const affectedNames = selectedList.map(c => c.name);
     const previousState = getSnapshot();
     try {
+      const { addCombatEvent, activeCombatLog, combatState } =
+        useDashboardStore.getState()
+
       for (const c of selectedList) {
+        const hpBefore = c.currentHp;
         handleHealthChange(c.id, c, false, null, amount, false, true); // pass skipOverlay=true
+
+        // Find the updated state
+        const latestState = getSnapshot();
+        const updatedCombatant = latestState.combatState.combatants.find(x => x.id === c.id);
+        const hpAfter = updatedCombatant?.currentHp ?? hpBefore;
+
+        if (activeCombatLog) {
+          const activeTurnCombatant = combatState.combatants.find(
+            x => x.id === combatState.activeTurnId
+          );
+
+          const hpDelta = hpAfter - hpBefore;
+          const isManual = combatState.activeTurnId === null;
+
+          addCombatEvent({
+            round: activeCombatLog.currentRound,
+            type: 'healing',
+            actorId: isManual ? null : (activeTurnCombatant?.id ?? null),
+            actorName: isManual ? null : (activeTurnCombatant?.name ?? null),
+            targetId: c.id,
+            targetName: c.name,
+            value: Math.abs(hpDelta),
+            hpBefore,
+            hpAfter,
+            isManualAdjustment: isManual,
+          });
+        }
       }
       
       // Fire ONE healEvent after the loop with all names
@@ -167,12 +243,32 @@ export function useBatchActions({ selectedIds, combatants, onSuccess }: UseBatch
 
     const previousState = getSnapshot();
     try {
+      const { addCombatEvent, activeCombatLog, combatState } =
+        useDashboardStore.getState()
+
       for (const c of selectedList) {
         const currentConditions = c.conditions || '';
         const list = currentConditions.split(',').map(s => s.trim()).filter(Boolean);
         if (!list.includes(condition)) {
           const next = [...list, condition].join(', ');
           await updateCombatant(c.id, { conditions: next });
+
+          if (activeCombatLog) {
+            const activeTurnCombatant = combatState.combatants.find(
+              x => x.id === combatState.activeTurnId
+            );
+
+            addCombatEvent({
+              round: activeCombatLog.currentRound,
+              type: 'condition-applied',
+              actorId: activeTurnCombatant?.id ?? null,
+              actorName: activeTurnCombatant?.name ?? null,
+              targetId: c.id,
+              targetName: c.name,
+              condition,
+              isManualAdjustment: false,
+            });
+          }
         }
       }
       toast.success(`${condition} applied to ${selectedList.length} targets`);

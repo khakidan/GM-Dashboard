@@ -2,6 +2,13 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { AppState, CombatState } from '../types';
 import { STORAGE_KEYS } from '../lib/constants';
+import {
+  ActiveCombatLog,
+  CombatEvent,
+  PartySnapshot,
+  InitiativeEntry,
+  generateCombatEventId,
+} from '../lib/combatLog';
 
 // The initial empty state — identical to what 
 // useAppState currently returns on first load
@@ -23,7 +30,7 @@ const initialCombatState: CombatState = {
   expandedIds: [],
 };
 
-const initialState: AppState = {
+const initialState: AppState & { activeCombatLog: ActiveCombatLog | null } = {
   characters: [],
   npcs: [],
   encounters: [],
@@ -36,6 +43,7 @@ const initialState: AppState = {
   hasInitialSynced: false,
   openDialog: null,
   combatState: initialCombatState,
+  activeCombatLog: null,
 };
 
 // The Zustand store type extends AppState with 
@@ -43,12 +51,23 @@ const initialState: AppState = {
 // exposes — this allows the wrapper to delegate 
 // directly to the store
 export interface DashboardStore extends AppState {
+  activeCombatLog: ActiveCombatLog | null;
   updateState: (
     updater: 
       | ((prev: AppState) => AppState) 
       | Partial<AppState>
   ) => void;
   getSnapshot: () => AppState;
+  initCombatLog: (
+    encounterId: string,
+    encounterName: string,
+    location: string,
+    partySnapshot: PartySnapshot[],
+    initiativeOrder: InitiativeEntry[]
+  ) => void;
+  addCombatEvent: (event: Omit<CombatEvent, 'id' | 'timestamp'>) => void;
+  advanceCombatLogRound: () => void;
+  clearCombatLog: () => void;
 }
 
 export const useDashboardStore = 
@@ -84,6 +103,56 @@ export const useDashboardStore =
             combatState: state.combatState,
           };
         },
+
+        initCombatLog: (encounterId, encounterName, location, partySnapshot, initiativeOrder) => {
+          set(() => ({
+            activeCombatLog: {
+              encounterId,
+              encounterName,
+              location,
+              startedAt: new Date().toISOString(),
+              currentRound: 1,
+              partySnapshot,
+              initiativeOrder,
+              events: [],
+            },
+          }));
+        },
+
+        addCombatEvent: (event) => {
+          set((state) => {
+            if (!state.activeCombatLog) return {};
+            const newEvent: CombatEvent = {
+              ...event,
+              id: generateCombatEventId(),
+              timestamp: new Date().toISOString(),
+            };
+            return {
+              activeCombatLog: {
+                ...state.activeCombatLog,
+                events: [...state.activeCombatLog.events, newEvent],
+              },
+            };
+          });
+        },
+
+        advanceCombatLogRound: () => {
+          set((state) => {
+            if (!state.activeCombatLog) return {};
+            return {
+              activeCombatLog: {
+                ...state.activeCombatLog,
+                currentRound: state.activeCombatLog.currentRound + 1,
+              },
+            };
+          });
+        },
+
+        clearCombatLog: () => {
+          set(() => ({
+            activeCombatLog: null,
+          }));
+        },
       }),
 
       {
@@ -116,6 +185,7 @@ export const useDashboardStore =
             isSelectionMode: false,
             expandedIds: [],
           },
+          activeCombatLog: state.activeCombatLog,
         }),
       }
     )
@@ -151,6 +221,11 @@ if (typeof window !== 'undefined') {
         if (incoming?.campaignName !== undefined) {
           useDashboardStore.setState({
             campaignName: incoming.campaignName,
+          });
+        }
+        if (incoming?.activeCombatLog !== undefined) {
+          useDashboardStore.setState({
+            activeCombatLog: incoming.activeCombatLog,
           });
         }
       } catch (error) {

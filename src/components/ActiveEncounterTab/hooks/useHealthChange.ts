@@ -4,6 +4,7 @@ import { Combatant, DamageType } from '../../../types';
 import { applyHealthChange, computeDamageWithIrv } from '../../../lib/combatLogic';
 import { toast } from 'sonner';
 import { useAppState } from '../../../hooks/useAppState';
+import { useDashboardStore } from '../../../hooks/dashboardStore';
 import { useDamageEvent, useHealEvent, useUnconsciousEvent } from '../../../hooks/useOverlayEvents';
 import { useDeathSaves } from '../../../hooks/useDeathSaves';
 import { isConcentrating, fireConcentrationAlert } from '../../../lib/concentrationCheck';
@@ -146,6 +147,44 @@ export function useHealthChange(
           updateCombatant(id, {
             currentHp: newCurrentHp,
             tempHp: newTempHp,
+          });
+        }
+      }
+
+      const { addCombatEvent, activeCombatLog, combatState } = useDashboardStore.getState();
+
+      if (activeCombatLog && !skipOverlay) {
+        const activeTurnCombatant = combatState.combatants.find(
+          x => x.id === combatState.activeTurnId
+        );
+
+        const hpDelta = newCurrentHp - c.currentHp;
+        const isManual = combatState.activeTurnId === null;
+
+        addCombatEvent({
+          round: activeCombatLog.currentRound,
+          type: isDamage ? 'damage' : 'healing',
+          actorId: isManual ? null : (activeTurnCombatant?.id ?? null),
+          actorName: isManual ? null : (activeTurnCombatant?.name ?? null),
+          targetId: id,
+          targetName: c.name,
+          value: Math.abs(hpDelta),
+          damageType: isDamage ? (damageType ?? undefined) : undefined,
+          hpBefore: c.currentHp,
+          hpAfter: newCurrentHp,
+          isManualAdjustment: isManual,
+        });
+
+        // If HP reached 0 or below, also log a combatant-defeated event
+        if (newCurrentHp <= 0) {
+          addCombatEvent({
+            round: activeCombatLog.currentRound,
+            type: 'combatant-defeated',
+            actorId: isManual ? null : (activeTurnCombatant?.id ?? null),
+            actorName: isManual ? null : (activeTurnCombatant?.name ?? null),
+            targetId: id,
+            targetName: c.name,
+            isManualAdjustment: false,
           });
         }
       }
