@@ -36,6 +36,7 @@ export function useEncounterLifecycle(onActiveTabChange?: (tab: 'party' | 'encou
         syncingIds: [],
         expandedIds: [],
         combatStarted: false,
+        actionContext: { sourceOverride: null, actionType: 'attack' },
       } as any,
     }));
 
@@ -57,6 +58,7 @@ export function useEncounterLifecycle(onActiveTabChange?: (tab: 'party' | 'encou
         damageEvent: null,
         initiativeEvent: false,
         combatStarted: false,
+        actionContext: { sourceOverride: null, actionType: 'attack' },
       } as any,
     }));
 

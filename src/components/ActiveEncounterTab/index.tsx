@@ -17,6 +17,7 @@ import { useEncounterKeyboard } from './hooks/useEncounterKeyboard';
 import { useEncounterPresetLoader } from './hooks/useEncounterPresetLoader';
 import { ShortcutCheatSheet } from './ShortcutCheatSheet';
 import { useBatchActions } from './hooks/useBatchActions';
+import { GlobalActionContextPanel } from './GlobalActionContextPanel';
 
 export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
   const { state, updateState } = useAppState();
@@ -173,6 +174,7 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
             onApplyHealing={handleApplyMultiHealing}
             onApplyCondition={handleApplyMultiCondition}
           />
+          <GlobalActionContextPanel />
 
           <div className="flex-1 bg-white w-full p-6">
             <div className="grid grid-cols-1 gap-4">

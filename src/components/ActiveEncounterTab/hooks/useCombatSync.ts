@@ -443,6 +443,7 @@ export function useCombatSync() {
         activeTurnId: null,
         round: 1,
         combatants: prev.combatState.combatants.map(c => ({ ...c, initiative: 0 })),
+        actionContext: { sourceOverride: null, actionType: 'attack' }
       },
     }));
 

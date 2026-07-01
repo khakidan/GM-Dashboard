@@ -129,18 +129,21 @@ export function useBatchActions({ selectedIds, combatants, onSuccess }: UseBatch
         const hpAfter = updatedCombatant?.currentHp ?? hpBefore;
 
         if (activeCombatLog) {
-          const activeTurnCombatant = combatState.combatants.find(
-            x => x.id === combatState.activeTurnId
-          );
+          const { actionContext } = combatState;
+          const sourceId = actionContext.sourceOverride ?? combatState.activeTurnId;
+          const sourceName = actionContext.sourceOverride
+            ? (combatState.combatants.find(c => c.id === actionContext.sourceOverride)?.name ?? actionContext.sourceOverride)
+            : (combatState.combatants.find(x => x.id === combatState.activeTurnId)?.name ?? null);
 
           const hpDelta = hpAfter - hpBefore;
-          const isManual = combatState.activeTurnId === null;
+          const isManual = combatState.activeTurnId === null && actionContext.sourceOverride === null;
 
           addCombatEvent({
             round: activeCombatLog.currentRound,
             type: 'damage',
-            actorId: isManual ? null : (activeTurnCombatant?.id ?? null),
-            actorName: isManual ? null : (activeTurnCombatant?.name ?? null),
+            actorId: isManual ? null : sourceId,
+            actorName: isManual ? null : sourceName,
+            actionType: actionContext.actionType,
             targetId: c.id,
             targetName: c.name,
             value: Math.abs(hpDelta),
@@ -154,8 +157,9 @@ export function useBatchActions({ selectedIds, combatants, onSuccess }: UseBatch
             addCombatEvent({
               round: activeCombatLog.currentRound,
               type: 'combatant-defeated',
-              actorId: isManual ? null : (activeTurnCombatant?.id ?? null),
-              actorName: isManual ? null : (activeTurnCombatant?.name ?? null),
+              actorId: isManual ? null : sourceId,
+              actorName: isManual ? null : sourceName,
+              actionType: actionContext.actionType,
               targetId: c.id,
               targetName: c.name,
               isManualAdjustment: false,
@@ -200,18 +204,21 @@ export function useBatchActions({ selectedIds, combatants, onSuccess }: UseBatch
         const hpAfter = updatedCombatant?.currentHp ?? hpBefore;
 
         if (activeCombatLog) {
-          const activeTurnCombatant = combatState.combatants.find(
-            x => x.id === combatState.activeTurnId
-          );
+          const { actionContext } = combatState;
+          const sourceId = actionContext.sourceOverride ?? combatState.activeTurnId;
+          const sourceName = actionContext.sourceOverride
+            ? (combatState.combatants.find(c => c.id === actionContext.sourceOverride)?.name ?? actionContext.sourceOverride)
+            : (combatState.combatants.find(x => x.id === combatState.activeTurnId)?.name ?? null);
 
           const hpDelta = hpAfter - hpBefore;
-          const isManual = combatState.activeTurnId === null;
+          const isManual = combatState.activeTurnId === null && actionContext.sourceOverride === null;
 
           addCombatEvent({
             round: activeCombatLog.currentRound,
             type: 'healing',
-            actorId: isManual ? null : (activeTurnCombatant?.id ?? null),
-            actorName: isManual ? null : (activeTurnCombatant?.name ?? null),
+            actorId: isManual ? null : sourceId,
+            actorName: isManual ? null : sourceName,
+            actionType: actionContext.actionType,
             targetId: c.id,
             targetName: c.name,
             value: Math.abs(hpDelta),

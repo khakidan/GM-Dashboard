@@ -8,6 +8,7 @@ import {
   PartySnapshot,
   InitiativeEntry,
   generateCombatEventId,
+  ActionType,
 } from '../lib/combatLog';
 
 // The initial empty state — identical to what 
@@ -29,9 +30,22 @@ const initialCombatState = {
   syncingIds: [],
   expandedIds: [],
   combatStarted: false,
-} as CombatState & { combatStarted: boolean };
+  actionContext: {
+    sourceOverride: null,
+    actionType: 'attack'
+  },
+} as CombatState & { 
+  combatStarted: boolean; 
+  actionContext: { sourceOverride: string | null; actionType: ActionType } 
+};
 
-const initialState: Omit<AppState, 'combatState'> & { activeCombatLog: ActiveCombatLog | null, combatState: CombatState & { combatStarted: boolean } } = {
+const initialState: Omit<AppState, 'combatState'> & { 
+  activeCombatLog: ActiveCombatLog | null, 
+  combatState: CombatState & { 
+    combatStarted: boolean;
+    actionContext: { sourceOverride: string | null; actionType: ActionType };
+  } 
+} = {
   characters: [],
   npcs: [],
   encounters: [],
@@ -53,8 +67,12 @@ const initialState: Omit<AppState, 'combatState'> & { activeCombatLog: ActiveCom
 // directly to the store
 export interface DashboardStore extends Omit<AppState, 'combatState'> {
   activeCombatLog: ActiveCombatLog | null;
-  combatState: CombatState & { combatStarted: boolean };
+  combatState: CombatState & { 
+    combatStarted: boolean;
+    actionContext: { sourceOverride: string | null; actionType: ActionType };
+  };
   setCombatStarted: (value: boolean) => void;
+  setActionContext: (sourceOverride: string | null, actionType: ActionType) => void;
   updateState: (
     updater: 
       | ((prev: AppState) => AppState) 
@@ -84,6 +102,18 @@ export const useDashboardStore =
             combatState: {
               ...state.combatState,
               combatStarted: value,
+            }
+          }));
+        },
+
+        setActionContext: (sourceOverride: string | null, actionType: ActionType) => {
+          set((state) => ({
+            combatState: {
+              ...state.combatState,
+              actionContext: {
+                sourceOverride,
+                actionType,
+              }
             }
           }));
         },

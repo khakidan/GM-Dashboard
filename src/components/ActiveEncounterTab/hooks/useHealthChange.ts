@@ -154,18 +154,21 @@ export function useHealthChange(
       const { addCombatEvent, activeCombatLog, combatState } = useDashboardStore.getState();
 
       if (activeCombatLog && !skipOverlay) {
-        const activeTurnCombatant = combatState.combatants.find(
-          x => x.id === combatState.activeTurnId
-        );
+        const { actionContext } = combatState;
+        const sourceId = actionContext.sourceOverride ?? combatState.activeTurnId;
+        const sourceName = actionContext.sourceOverride
+          ? (combatState.combatants.find(c => c.id === actionContext.sourceOverride)?.name ?? actionContext.sourceOverride)
+          : (combatState.combatants.find(x => x.id === combatState.activeTurnId)?.name ?? null);
 
         const hpDelta = newCurrentHp - c.currentHp;
-        const isManual = combatState.activeTurnId === null;
+        const isManual = combatState.activeTurnId === null && actionContext.sourceOverride === null;
 
         addCombatEvent({
           round: activeCombatLog.currentRound,
           type: isDamage ? 'damage' : 'healing',
-          actorId: isManual ? null : (activeTurnCombatant?.id ?? null),
-          actorName: isManual ? null : (activeTurnCombatant?.name ?? null),
+          actorId: isManual ? null : sourceId,
+          actorName: isManual ? null : sourceName,
+          actionType: actionContext.actionType,
           targetId: id,
           targetName: c.name,
           value: Math.abs(hpDelta),
@@ -180,8 +183,9 @@ export function useHealthChange(
           addCombatEvent({
             round: activeCombatLog.currentRound,
             type: 'combatant-defeated',
-            actorId: isManual ? null : (activeTurnCombatant?.id ?? null),
-            actorName: isManual ? null : (activeTurnCombatant?.name ?? null),
+            actorId: isManual ? null : sourceId,
+            actorName: isManual ? null : sourceName,
+            actionType: actionContext.actionType,
             targetId: id,
             targetName: c.name,
             isManualAdjustment: false,

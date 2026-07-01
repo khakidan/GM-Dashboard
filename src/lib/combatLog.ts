@@ -26,6 +26,16 @@ export type CombatEventType =
   | 'combatant-defeated'
   | 'manual-adjustment';
 
+export type ActionType =
+  | 'attack'
+  | 'opportunity-attack'
+  | 'lair-action'
+  | 'legendary-action'
+  | 'reaction'
+  | 'spell'
+  | 'environmental'
+  | 'other';
+
 export interface CombatEvent {
   id: string;
   round: number;
@@ -34,6 +44,7 @@ export interface CombatEvent {
   actorName: string | null;
   targetId: string | null;
   targetName: string | null;
+  actionType?: ActionType;
   value?: number;
   damageType?: string;
   condition?: string;
@@ -76,7 +87,11 @@ function formatDate(dateStr: string): string {
 }
 
 function formatEventDescription(evt: CombatEvent): string {
-  const actor = evt.actorName || 'Unknown';
+  let actor = evt.actorName || 'Unknown';
+  if (actor === 'environment') actor = 'Environment';
+  if (actor === 'lair-action') actor = 'Lair Action';
+  if (actor === 'unknown') actor = 'Unknown';
+  
   const target = evt.targetName || 'Unknown';
   const hpBefore = evt.hpBefore ?? 0;
   const hpAfter = evt.hpAfter ?? 0;
@@ -85,9 +100,35 @@ function formatEventDescription(evt: CombatEvent): string {
   switch (evt.type) {
     case 'damage': {
       const typeStr = evt.damageType ? `${evt.damageType} ` : '';
+      
+      if (evt.actionType && evt.actionType !== 'attack') {
+        const actionLabels: Record<string, string> = {
+          'opportunity-attack': 'Opportunity Attack',
+          'lair-action': 'Lair Action',
+          'legendary-action': 'Legendary Action',
+          'reaction': 'Reaction',
+          'spell': 'Spell',
+          'environmental': 'Environment',
+          'other': 'Other',
+        };
+        const label = actionLabels[evt.actionType] || evt.actionType;
+        
+        if (evt.actionType === 'lair-action' || evt.actionType === 'environmental' || actor === 'Environment' || actor === 'Lair Action' || actor === 'Unknown') {
+          const displayLabel = (actor === 'Environment' || actor === 'Lair Action' || actor === 'Unknown') ? actor : label;
+          return `${displayLabel}: ${val} ${typeStr}damage to ${target} (${hpBefore} -> ${hpAfter} HP)`;
+        }
+        return `${actor} used ${label}: dealt ${val} ${typeStr}damage to ${target} (${hpBefore} -> ${hpAfter} HP)`;
+      }
+
+      if (actor === 'Environment' || actor === 'Lair Action' || actor === 'Unknown') {
+        return `${actor}: ${val} ${typeStr}damage to ${target} (${hpBefore} -> ${hpAfter} HP)`;
+      }
       return `${actor} dealt ${val} ${typeStr}damage to ${target} (${hpBefore} -> ${hpAfter} HP)`;
     }
     case 'healing':
+      if (actor === 'Environment' || actor === 'Lair Action' || actor === 'Unknown') {
+        return `${actor}: healed ${target} for ${val} HP (${hpBefore} -> ${hpAfter} HP)`;
+      }
       return `${actor} healed ${target} for ${val} HP (${hpBefore} -> ${hpAfter} HP)`;
     case 'condition-applied':
       return `${actor} applied ${evt.condition || 'condition'} to ${target}`;
