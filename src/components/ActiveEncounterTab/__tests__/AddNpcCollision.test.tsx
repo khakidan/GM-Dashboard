@@ -10,6 +10,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { ActiveEncounterTab } from '../index';
 import { useAppState } from '../../../hooks/useAppState';
 import { MemoryRouter } from 'react-router-dom';
+import { buildCombatantsFromState } from '../../../lib/combatantBuilder';
 
 // Mock the dependencies
 vi.mock('../../../hooks/useAppState', () => ({
@@ -129,5 +130,61 @@ describe('ActiveEncounterTab ID Uniqueness', () => {
     expect(customNpc).toBeDefined();
     // Verify ID pattern includes random suffixes
     expect(customNpc.id).toMatch(/combat-npc-temp-npc-\d+-[a-z0-9]+-0-\d+-[a-z0-9]+/);
+  });
+
+  it('rebuilds combatants from state sharing the same npcId with distinct ids and names', () => {
+    const mockEncounter = {
+      id: 'enc1',
+      name: 'Test Encounter',
+      location: '',
+      difficultyId: 1,
+      npcDefinitions: '',
+      currentRound: 1,
+      activeTurnId: '',
+    };
+
+    const mockEncounterCombatants = [
+      {
+        id: 'ec1',
+        encounterId: 'enc1',
+        playerId: null,
+        npcId: 'npc1',
+        quantity: 1,
+        initiative: 10,
+        npcCurrentHp: 7,
+        npcTempHp: 0,
+      },
+      {
+        id: 'ec2',
+        encounterId: 'enc1',
+        playerId: null,
+        npcId: 'npc1',
+        quantity: 1,
+        initiative: 12,
+        npcCurrentHp: 7,
+        npcTempHp: 0,
+      }
+    ];
+
+    const mockNpcs = [
+      {
+        id: 'npc1',
+        name: 'Goblin',
+        ac: 12,
+        maxHp: 7,
+        currentHp: 7,
+        tempHp: 0,
+        conditions: '',
+        notes: '',
+      }
+    ];
+
+    const result = buildCombatantsFromState(mockEncounter, mockEncounterCombatants, [], mockNpcs);
+
+    expect(result).toHaveLength(2);
+    expect(result[0].id).toBe('combat-npc-ec1-0');
+    expect(result[1].id).toBe('combat-npc-ec2-0');
+    expect(result[0].name).toBe('Goblin 1');
+    expect(result[1].name).toBe('Goblin 2');
   });
 });

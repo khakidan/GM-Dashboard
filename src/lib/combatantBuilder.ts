@@ -133,6 +133,16 @@ export function buildCombatantsFromState(
   const linkedCombatants = encounterCombatants.filter(ec => ec.encounterId === encounter.id);
 
   if (linkedCombatants.length > 0) {
+    // Count total occurrences of each npcId in the linked combatants
+    const npcCounts: Record<string, number> = {};
+    linkedCombatants.forEach(ec => {
+      if (ec.npcId) {
+        npcCounts[ec.npcId] = (npcCounts[ec.npcId] || 0) + ec.quantity;
+      }
+    });
+
+    const npcIndices: Record<string, number> = {};
+
     linkedCombatants.forEach(ec => {
       const parsedTimers: Record<string, number> = ec.conditionTimers || {};
 
@@ -171,14 +181,18 @@ export function buildCombatantsFromState(
       } else if (ec.npcId) {
         const npcTemplate = npcs.find(n => n.id === ec.npcId);
         if (npcTemplate) {
+          const totalQty = npcCounts[ec.npcId] || 0;
           for (let i = 0; i < ec.quantity; i++) {
-            const combatantId = `combat-npc-${npcTemplate.id}-${i}-${Date.now()}`;
+            npcIndices[ec.npcId] = (npcIndices[ec.npcId] || 0) + 1;
+            const instanceNum = npcIndices[ec.npcId];
+
+            const combatantId = `combat-npc-${ec.id}-${i}`;
             const combatant = buildSingleNpcCombatant(
               npcTemplate,
               {
                 id: combatantId,
                 encounterCombatantId: ec.id,
-                name: `${npcTemplate.name}${ec.quantity > 1 ? ` ${i + 1}` : ''}`,
+                name: `${npcTemplate.name}${totalQty > 1 ? ` ${instanceNum}` : ''}`,
                 npcId: npcTemplate.id,
                 initiative: ec.initiative || 0,
                 currentHp: ec.npcCurrentHp !== undefined && ec.npcCurrentHp >= 0 

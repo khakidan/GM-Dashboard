@@ -77,7 +77,9 @@ describe('combatLogSlice', () => {
     expect(log?.events).toHaveLength(1);
     const event = log?.events[0];
     expect(event?.id).toMatch(/^evt_/);
-    expect(event?.timestamp).toBeDefined();
+    expect(event?.timestamp).toEqual(
+      expect.any(String)
+    );
     expect(event?.type).toBe('damage');
   });
 
