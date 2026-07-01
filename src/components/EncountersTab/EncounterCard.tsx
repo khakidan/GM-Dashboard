@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useAppState } from '../../hooks/useAppState';
 import { Encounter } from '../../types';
-import { Swords, MapPin, Skull, Trash2, Loader2, AlertCircle, ChevronDown } from 'lucide-react';
+import { Swords, MapPin, Skull, Trash2, Loader2, AlertCircle, ChevronDown, ScrollText } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'motion/react';
 import { DebouncedInput } from '../ui/DebouncedInput';
+import { EncounterLogModal } from './EncounterLogModal';
 
 export interface EncounterCardProps {
   enc: Encounter;
@@ -35,6 +36,7 @@ export const EncounterCard: React.FC<EncounterCardProps> = ({
   const [difficultyId, setDifficultyId] = useState(enc.difficultyId);
   const [isUpdating, setIsUpdating] = useState(false);
   const [errorStatus, setErrorStatus] = useState<string | null>(null);
+  const [isLogModalOpen, setIsLogModalOpen] = useState(false);
 
   useEffect(() => {
     setName(enc.name || '');
@@ -162,6 +164,15 @@ export const EncounterCard: React.FC<EncounterCardProps> = ({
         {/* Action Buttons */}
         <div className="flex items-center gap-2 border-t border-[#e2e8f0] pt-4 md:pt-0 md:border-t-0 md:border-l md:pl-4">
           <button 
+            onClick={() => setIsLogModalOpen(true)}
+            disabled={isDeleting || isUpdating}
+            className="flex-1 md:flex-none p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-30 cursor-pointer"
+            title="View Past Encounter Logs"
+          >
+            <ScrollText className="w-5 h-5" />
+            <span className="md:hidden text-[10px] font-bold uppercase tracking-widest">Logs</span>
+          </button>
+          <button 
             onClick={() => onStart(enc)}
             disabled={isDeleting || isUpdating}
             className="flex-1 md:flex-none p-2.5 bg-[#2563eb]/10 hover:bg-[#2563eb]/20 text-[#2563eb] rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-30"
@@ -187,6 +198,13 @@ export const EncounterCard: React.FC<EncounterCardProps> = ({
           </div>
         )}
       </div>
+
+      <EncounterLogModal
+        encounterId={enc.id}
+        encounterName={name}
+        isOpen={isLogModalOpen}
+        onClose={() => setIsLogModalOpen(false)}
+      />
     </div>
   );
 };

@@ -8,6 +8,7 @@ import {
 import { Character, NPC, Encounter, EncounterCombatant } from '../types';
 import { DEFAULT_ABILITY_SCORES, DEFAULT_PROFICIENCIES, parseProficiencies } from './abilityScores';
 import { parseSpellcastingAbility } from './spellcasting';
+import { EncounterLog } from './combatLog';
 
 export type CharacterRowData = z.infer<typeof CharacterRowSchema>;
 export type NpcRowData = z.infer<typeof NpcRowSchema>;
@@ -222,4 +223,67 @@ export function mapEncounterCombatantRowToEC(
     npcCurrentConditions,
     npcTempAcMod: npcTempAcMod ?? 0,
   };
+}
+
+export function parseEncounterLogRow(row: any[]): EncounterLog | null {
+  if (!row || row.length < 10) return null;
+
+  const id = row[0];
+  const encounterId = row[1];
+  const encounterName = row[2];
+  const location = row[3] || '';
+  const date = row[4];
+  const durationRoundsRaw = row[5];
+  const outcomeRaw = row[6];
+  const partySnapshotRaw = row[7];
+  const eventsRaw = row[8];
+  const transcript = row[9] || '';
+
+  if (!id || !encounterId || !encounterName || !date) {
+    return null;
+  }
+
+  const durationRounds = Number(durationRoundsRaw);
+  if (isNaN(durationRounds)) {
+    return null;
+  }
+
+  const validOutcomes = ['Victory', 'Defeat', 'Abandoned', 'Incomplete'];
+  const outcome = validOutcomes.includes(outcomeRaw) ? (outcomeRaw as EncounterLog['outcome']) : 'Incomplete';
+
+  let partySnapshot = [];
+  if (partySnapshotRaw) {
+    try {
+      partySnapshot = JSON.parse(partySnapshotRaw);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  let events = [];
+  if (eventsRaw) {
+    try {
+      events = JSON.parse(eventsRaw);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  return {
+    id: String(id),
+    encounterId: String(encounterId),
+    encounterName: String(encounterName),
+    location: String(location),
+    date: String(date),
+    durationRounds,
+    outcome,
+    partySnapshot,
+    events,
+    transcript: String(transcript),
+  };
+}
+
+export function parseEncounterLogs(rows: any[][]): EncounterLog[] {
+  if (!rows) return [];
+  return rows.map(row => parseEncounterLogRow(row)).filter((log): log is EncounterLog => log !== null);
 }

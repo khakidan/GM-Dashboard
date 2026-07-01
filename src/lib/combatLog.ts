@@ -65,6 +65,19 @@ export interface ActiveCombatLog {
   events: CombatEvent[];
 }
 
+export interface EncounterLog {
+  id: string;
+  encounterId: string;
+  encounterName: string;
+  location: string;
+  date: string;
+  durationRounds: number;
+  outcome: 'Victory' | 'Defeat' | 'Abandoned' | 'Incomplete';
+  partySnapshot: PartySnapshot[];
+  events: CombatEvent[];
+  transcript: string;
+}
+
 /**
  * Returns a unique string combining Date.now() and Math.random() without an external library.
  */

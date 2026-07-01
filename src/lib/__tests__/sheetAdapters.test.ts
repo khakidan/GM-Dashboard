@@ -14,6 +14,8 @@ import {
   NpcRowData,
   EncounterRowData,
   ECRowData,
+  parseEncounterLogRow,
+  parseEncounterLogs,
 } from '../sheetAdapters';
 
 describe('sheetAdapters', () => {
@@ -395,6 +397,125 @@ describe('sheetAdapters', () => {
       const ec = mapEncounterCombatantRowToEC(data, 5);
       expect(ec.npcCurrentHp).toBe(-1);
       expect(ec.npcTempHp).toBe(0);
+    });
+  });
+
+  describe('EncounterLog parsing', () => {
+    it('parses valid log row correctly', () => {
+      const row = [
+        'log-1',
+        'enc-123',
+        'Goblins Ambush',
+        'Forest Trail',
+        '2026-07-01T12:00:00Z',
+        3,
+        'Victory',
+        '[{"id":"char-1","name":"Thor","currentHp":20,"maxHp":20}]',
+        '[{"type":"turn_start","round":1}]',
+        '# Combat Log\nThor won!'
+      ];
+
+      const parsed = parseEncounterLogRow(row);
+      expect(parsed).toEqual({
+        id: 'log-1',
+        encounterId: 'enc-123',
+        encounterName: 'Goblins Ambush',
+        location: 'Forest Trail',
+        date: '2026-07-01T12:00:00Z',
+        durationRounds: 3,
+        outcome: 'Victory',
+        partySnapshot: [{ id: 'char-1', name: 'Thor', currentHp: 20, maxHp: 20 }],
+        events: [{ type: 'turn_start', round: 1 }],
+        transcript: '# Combat Log\nThor won!'
+      });
+    });
+
+    it('returns null if row has length less than 10', () => {
+      const row = [
+        'log-1',
+        'enc-123',
+        'Goblins Ambush',
+        'Forest Trail',
+        '2026-07-01T12:00:00Z',
+        3,
+        'Victory'
+      ];
+      expect(parseEncounterLogRow(row)).toBeNull();
+    });
+
+    it('defaults outcome to Incomplete if outcome is not a valid outcome string', () => {
+      const row = [
+        'log-1',
+        'enc-123',
+        'Goblins Ambush',
+        'Forest Trail',
+        '2026-07-01T12:00:00Z',
+        3,
+        'SuperVictory', // invalid
+        '[{"id":"char-1","name":"Thor","currentHp":20,"maxHp":20}]',
+        '[]',
+        ''
+      ];
+      const parsed = parseEncounterLogRow(row);
+      expect(parsed).not.toBeNull();
+      expect(parsed?.outcome).toBe('Incomplete');
+    });
+
+    it('returns null on invalid durationRounds', () => {
+      const row = [
+        'log-1',
+        'enc-123',
+        'Goblins Ambush',
+        'Forest Trail',
+        '2026-07-01T12:00:00Z',
+        'not-a-number',
+        'Victory',
+        '[]',
+        '[]',
+        ''
+      ];
+      expect(parseEncounterLogRow(row)).toBeNull();
+    });
+
+    it('returns null on invalid JSON parsing', () => {
+      const row = [
+        'log-1',
+        'enc-123',
+        'Goblins Ambush',
+        'Forest Trail',
+        '2026-07-01T12:00:00Z',
+        3,
+        'Victory',
+        '{bad-json}',
+        '[]',
+        ''
+      ];
+      expect(parseEncounterLogRow(row)).toBeNull();
+    });
+
+    it('parseEncounterLogs filters out null rows', () => {
+      const rows = [
+        [
+          'log-1',
+          'enc-123',
+          'Goblins Ambush',
+          'Forest Trail',
+          '2026-07-01T12:00:00Z',
+          3,
+          'Victory',
+          '[]',
+          '[]',
+          'Transcript'
+        ],
+        [
+          'log-2',
+          'enc-123'
+          // incomplete row
+        ]
+      ];
+      const results = parseEncounterLogs(rows);
+      expect(results).toHaveLength(1);
+      expect(results[0].id).toBe('log-1');
     });
   });
 });
