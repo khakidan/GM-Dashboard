@@ -136,11 +136,11 @@ export function CombatHeader({
           {/* ROLL NPC INIT BUTTON */}
           <button
             onClick={onRollNpcInit}
-            className="text-xs font-medium px-2 py-1 border border-gray-300 text-gray-500 rounded hover:text-gray-700 hover:border-gray-400 bg-transparent flex items-center gap-1.5 transition-colors cursor-pointer"
+            className="text-xs font-medium px-2 py-1 border border-[#e2e8f0] text-[#8d8db9] rounded hover:text-[#0f172a] hover:border-[#2563eb] bg-transparent flex items-center gap-1.5 transition-colors cursor-pointer"
             title="Roll 1d20 for all NPCs"
           >
             <span>Roll NPC Init</span>
-            <span className="text-[9px] bg-stone-100 px-1 py-0.5 rounded border border-gray-200 font-mono">R</span>
+            <span className="text-[9px] bg-[#f9f8ff] px-1 py-0.5 rounded border border-[#e2e8f0] font-mono text-[#8d8db9]">R</span>
           </button>
 
           {/* RESET BUTTON */}

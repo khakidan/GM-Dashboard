@@ -83,7 +83,7 @@ export function GlobalActionContextPanel() {
                   "px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase transition-colors outline-none",
                   isActive
                     ? "bg-[#2563eb] text-white"
-                    : "bg-[#f1f5f9] text-[#8d8db9] hover:bg-[#e2e8f0] hover:text-[#0f172a]"
+                    : "bg-[#f9f8ff] text-[#8d8db9] hover:bg-[#e2e8f0] hover:text-[#0f172a]"
                 )}
               >
                 {t.label}

@@ -115,16 +115,6 @@ export function rollD20(rng: () => number = Math.random): number {
   return Math.floor(rng() * 20) + 1;
 }
 
-/** Roll initiative for every NPC in the list and re-sort descending. */
-export function rollNpcInitiatives(
-  combatants: Combatant[],
-  rng?: () => number
-): Combatant[] {
-  return [...combatants]
-    .map(c => c.type === 'npc' ? { ...c, initiative: rollD20(rng) } : c)
-    .sort((a, b) => b.initiative - a.initiative);
-}
-
 // ─── IRV (Immunity, Resistance, Vulnerability) Math ────────────────────────────
 
 export function getEffectiveResistances(

@@ -8,7 +8,7 @@ import { getHealthStatus, getEffectiveResistances, effectiveMaxHp, effectiveAc }
 // ────────────────────────────────────────────────────
 
 import { describe, it, expect } from 'vitest';
-import { applyHealthChange, nextTurnIndex, isNewRound, rollD20, rollNpcInitiatives, checkIrvMatch, computeDamageWithIrv, getExpiredConditions, computeConcentrationDC } from '../combatLogic';
+import { applyHealthChange, nextTurnIndex, isNewRound, rollD20, checkIrvMatch, computeDamageWithIrv, getExpiredConditions, computeConcentrationDC } from '../combatLogic';
 import type { Combatant } from '../../types';
 
 // ─── applyHealthChange — damage ───────────────────────────────────────────────
@@ -195,50 +195,6 @@ describe('rollD20', () => {
       expect(roll).toBeGreaterThanOrEqual(1);
       expect(roll).toBeLessThanOrEqual(20);
     }
-  });
-});
-
-// ─── rollNpcInitiatives ───────────────────────────────────────────────────────
-
-describe('rollNpcInitiatives', () => {
-  const pc: Combatant = {
-    id: 'pc1', type: 'pc', name: 'Aria', initiative: 15,
-    ac: 16, maxHp: 30, currentHp: 30, passivePerception: 14,
-  } as Combatant;
-
-  const npc1: Combatant = {
-    id: 'npc1', type: 'npc', name: 'Goblin 1', initiative: 0,
-    ac: 13, maxHp: 10, currentHp: 10, passivePerception: 9,
-  } as Combatant;
-
-  const npc2: Combatant = {
-    id: 'npc2', type: 'npc', name: 'Goblin 2', initiative: 0,
-    ac: 13, maxHp: 10, currentHp: 10, passivePerception: 9,
-  } as Combatant;
-
-  it('assigns initiative only to NPCs, not PCs', () => {
-    // rng always returns 0.5 → rollD20 = 11
-    const result = rollNpcInitiatives([pc, npc1, npc2], () => 0.5);
-    const resultPc = result.find(c => c.id === 'pc1')!;
-    expect(resultPc.initiative).toBe(15); // PC unchanged
-
-    const resultNpc = result.find(c => c.id === 'npc1')!;
-    expect(resultNpc.initiative).toBe(11);
-  });
-
-  it('does not mutate the original array', () => {
-    const original = [pc, npc1, npc2];
-    rollNpcInitiatives(original, () => 0.5);
-    expect(original[1].initiative).toBe(0); // npc1 still 0
-  });
-
-  it('returns combatants sorted by initiative descending', () => {
-    let call = 0;
-    // npc1 rolls 1 (rng → 0), npc2 rolls 20 (rng → 0.999)
-    const rng = () => call++ === 0 ? 0 : 0.999;
-    const result = rollNpcInitiatives([pc, npc1, npc2], rng);
-    const initiatives = result.map(c => c.initiative);
-    expect(initiatives).toEqual([...initiatives].sort((a, b) => b - a));
   });
 });
 

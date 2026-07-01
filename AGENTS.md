@@ -679,7 +679,7 @@ this whitelist and to `dbOperations.ts`.
 
 ## Testing Structure — 12-Batch System
 
-**Current baseline: 651 tests.**
+**Current baseline: 648 tests.**
 All batches must pass with zero failures.
 No batch should exceed 35 seconds.
 
@@ -689,7 +689,7 @@ run all tests at once with `npx vitest run`.
 
 | Batch | Description | Test Count |
 |-------|-------------|------------|
-| 1     | Lib         | 420        |
+| 1     | Lib         | 430        |
 | 2     | Services    | 29         |
 | 3     | Hooks       | 32         |
 | 4     | Server      | 7          |
@@ -701,10 +701,10 @@ run all tests at once with `npx vitest run`.
 | 7B-1  | Top-Level 1 | 11         |
 | 7B-2  | Top-Level 2 | 4          |
 | 8     | UI          | 2          |
-| **Total** | | **651** |
+| **Total** | | **648** |
 
 ```bash
-# BATCH 1 — 420 tests
+# BATCH 1 — 430 tests
 npx vitest run src/lib/__tests__
 
 # BATCH 2 — 29 tests

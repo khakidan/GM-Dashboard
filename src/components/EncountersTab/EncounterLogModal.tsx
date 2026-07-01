@@ -51,13 +51,14 @@ export function EncounterLogModal({ encounterId, encounterName, isOpen, onClose 
   const getOutcomeBadgeClass = (outcome: string) => {
     switch (outcome) {
       case 'Victory':
-        return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+        return 'bg-green-50 text-green-700 border border-green-200';
       case 'Defeat':
-        return 'bg-rose-50 text-rose-700 border-rose-200';
+        return 'bg-red-50 text-red-600 border border-red-100';
       case 'Abandoned':
-        return 'bg-amber-50 text-amber-700 border-amber-200';
+      case 'Incomplete':
+        return 'bg-[#f9f8ff] text-[#8d8db9] border border-[#e2e8f0]';
       default:
-        return 'bg-slate-50 text-slate-700 border-slate-200';
+        return 'bg-[#f9f8ff] text-[#8d8db9] border border-[#e2e8f0]';
     }
   };
 
@@ -92,15 +93,15 @@ export function EncounterLogModal({ encounterId, encounterName, isOpen, onClose 
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-12 space-y-3">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#2563eb]"></div>
-              <p className="text-slate-500 font-medium">Fetching past logs...</p>
+              <p className="text-[#8d8db9] font-medium">Fetching past logs...</p>
             </div>
           ) : error ? (
-            <div className="bg-rose-50 text-rose-700 border border-rose-200 rounded-lg p-4 text-center">
+            <div className="bg-red-50 text-red-600 border border-red-100 rounded-lg p-4 text-center">
               <p className="font-semibold">Error Loading Logs</p>
               <p className="text-xs mt-1">{error}</p>
             </div>
           ) : logs.length === 0 ? (
-            <div className="text-center py-12 text-slate-500 font-medium">
+            <div className="text-center py-12 text-[#8d8db9] font-medium">
               No completed encounters logged yet.
             </div>
           ) : (
@@ -115,17 +116,17 @@ export function EncounterLogModal({ encounterId, encounterName, isOpen, onClose 
                     {/* Log Accordion Trigger */}
                     <button
                       onClick={() => toggleExpand(log.id)}
-                      className="w-full flex items-center justify-between p-4 bg-slate-50/50 hover:bg-slate-50 transition-colors text-left cursor-pointer"
+                      className="w-full flex items-center justify-between p-4 bg-[#f9f8ff]/50 hover:bg-[#f9f8ff] transition-colors text-left cursor-pointer"
                     >
                       <div className="flex items-center gap-4">
                         {isExpanded ? (
-                          <ChevronDown className="w-5 h-5 text-slate-500" />
+                          <ChevronDown className="w-5 h-5 text-[#8d8db9]" />
                         ) : (
-                          <ChevronRight className="w-5 h-5 text-slate-500" />
+                          <ChevronRight className="w-5 h-5 text-[#8d8db9]" />
                         )}
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
-                            <Calendar className="w-4 h-4 text-slate-400" />
+                            <Calendar className="w-4 h-4 text-[#8d8db9]" />
                             <span className="font-bold text-[#0f172a]">
                               {new Date(log.date).toLocaleString([], {
                                 year: 'numeric',
@@ -137,14 +138,14 @@ export function EncounterLogModal({ encounterId, encounterName, isOpen, onClose 
                             </span>
                           </div>
                           {log.location && (
-                            <p className="text-xs text-slate-500 pl-6">
+                            <p className="text-xs text-[#8d8db9] pl-6">
                               Location: {log.location}
                             </p>
                           )}
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className="text-xs text-slate-500">
+                        <span className="text-xs text-[#8d8db9]">
                           {log.durationRounds} {log.durationRounds === 1 ? 'Round' : 'Rounds'}
                         </span>
                         <span
@@ -176,10 +177,10 @@ export function EncounterLogModal({ encounterId, encounterName, isOpen, onClose 
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 bg-slate-50 border-t border-[#e2e8f0] flex justify-end rounded-b-2xl">
+        <div className="px-6 py-4 bg-[#f9f8ff] border-t border-[#e2e8f0] flex justify-end rounded-b-2xl">
           <button
             onClick={onClose}
-            className="bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-semibold px-4 py-2 rounded-xl transition-colors cursor-pointer text-sm"
+            className="bg-white hover:bg-[#e2e8f0] text-[#0f172a] border border-[#e2e8f0] font-semibold px-4 py-2 rounded-xl transition-colors cursor-pointer text-sm"
           >
             Close
           </button>
@@ -243,13 +244,13 @@ export function EncounterLogDetails({ log }: EncounterLogDetailsProps) {
     <div className="p-4 border-t border-[#e2e8f0] bg-white space-y-4 animate-fade-in text-[#0f172a]">
       {/* Summary Block */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        <div className="bg-slate-50/70 p-3 rounded-lg border border-slate-100">
+        <div className="bg-[#f9f8ff]/70 p-3 rounded-lg border border-[#e2e8f0]">
           <p className="text-[10px] uppercase font-bold text-[#8d8db9] tracking-widest">Party Size</p>
-          <p className="text-sm font-semibold text-slate-700">{log.partySnapshot?.length || 0} Members</p>
+          <p className="text-sm font-semibold text-[#0f172a]">{log.partySnapshot?.length || 0} Members</p>
         </div>
-        <div className="bg-slate-50/70 p-3 rounded-lg border border-slate-100">
+        <div className="bg-[#f9f8ff]/70 p-3 rounded-lg border border-[#e2e8f0]">
           <p className="text-[10px] uppercase font-bold text-[#8d8db9] tracking-widest">Events Tracked</p>
-          <p className="text-sm font-semibold text-slate-700">{log.events?.length || 0} Actions</p>
+          <p className="text-sm font-semibold text-[#0f172a]">{log.events?.length || 0} Actions</p>
         </div>
         <div className="bg-[#f9f8ff] p-3 rounded-lg border border-[#e2e8f0] col-span-2 sm:col-span-1">
           <p className="text-[10px] uppercase font-bold text-[#2563eb] tracking-widest">Outcome</p>
@@ -268,7 +269,7 @@ export function EncounterLogDetails({ log }: EncounterLogDetailsProps) {
           >
             {copied ? (
               <>
-                <Check className="w-3.5 h-3.5 text-emerald-500" />
+                <Check className="w-3.5 h-3.5 text-green-600" />
                 <span>Copied!</span>
               </>
             ) : (
@@ -285,7 +286,7 @@ export function EncounterLogDetails({ log }: EncounterLogDetailsProps) {
               className={`px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-md transition-all cursor-pointer ${
                 activeTab === 'structured'
                   ? 'bg-white text-[#2563eb] shadow-sm'
-                  : 'text-slate-500 hover:text-slate-850'
+                  : 'text-[#8d8db9] hover:text-[#0f172a]'
               }`}
             >
               Structured View
@@ -295,7 +296,7 @@ export function EncounterLogDetails({ log }: EncounterLogDetailsProps) {
               className={`px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-md transition-all cursor-pointer ${
                 activeTab === 'raw'
                   ? 'bg-white text-[#2563eb] shadow-sm'
-                  : 'text-slate-500 hover:text-slate-850'
+                  : 'text-[#8d8db9] hover:text-[#0f172a]'
               }`}
             >
               Raw Transcript
@@ -308,7 +309,7 @@ export function EncounterLogDetails({ log }: EncounterLogDetailsProps) {
       {activeTab === 'structured' ? (
         <div className="space-y-3 overflow-y-auto max-h-[45vh] pr-1">
           {roundNumbers.length === 0 ? (
-            <p className="text-center py-6 text-slate-400 text-xs font-medium">No displayable events logged in this session.</p>
+            <p className="text-center py-6 text-[#8d8db9] text-xs font-medium">No displayable events logged in this session.</p>
           ) : (
             roundNumbers.map(round => {
               const isRoundExpanded = !!expandedRounds[round];
@@ -318,10 +319,10 @@ export function EncounterLogDetails({ log }: EncounterLogDetailsProps) {
                   {/* Round Header */}
                   <button
                     onClick={() => toggleRound(round)}
-                    className="w-full flex items-center justify-between px-4 py-2.5 bg-slate-50/70 hover:bg-slate-50 transition-colors text-left cursor-pointer"
+                    className="w-full flex items-center justify-between px-4 py-2.5 bg-[#f9f8ff]/70 hover:bg-[#f9f8ff] transition-colors text-left cursor-pointer"
                   >
                     <span className="font-bold text-xs text-[#2563eb]">Round {round}</span>
-                    <span className="flex items-center gap-1.5 text-[11px] text-slate-500 font-medium">
+                    <span className="flex items-center gap-1.5 text-[11px] text-[#8d8db9] font-medium">
                       {roundEvents.length} {roundEvents.length === 1 ? 'event' : 'events'}
                       {isRoundExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                     </span>
@@ -342,7 +343,7 @@ export function EncounterLogDetails({ log }: EncounterLogDetailsProps) {
         </div>
       ) : (
         <div className="space-y-2">
-          <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 overflow-y-auto max-h-[40vh] font-mono text-xs text-slate-700 whitespace-pre-wrap select-text leading-relaxed">
+          <div className="bg-[#f9f8ff] p-4 rounded-xl border border-[#e2e8f0] overflow-y-auto max-h-[40vh] font-mono text-xs text-[#0f172a] whitespace-pre-wrap select-text leading-relaxed">
             {log.transcript || 'No transcript logged.'}
           </div>
         </div>
@@ -367,17 +368,17 @@ export function CombatEventRow({ event }: { event: CombatEvent }) {
   switch (event.type) {
     case 'damage':
       text = `${actorName} dealt ${value}${damageTypeStr} damage to ${targetName}`;
-      rowStyle += 'text-rose-700 bg-rose-50/50 border border-rose-100/70';
-      icon = <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0" />;
+      rowStyle += 'bg-red-50 text-red-600 border border-red-100';
+      icon = <span className="w-1.5 h-1.5 rounded-full bg-red-600 shrink-0" />;
       break;
     case 'healing':
       text = `${actorName} healed ${targetName} for ${value} HP`;
-      rowStyle += 'text-emerald-700 bg-emerald-50/50 border border-emerald-100/70';
-      icon = <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />;
+      rowStyle += 'bg-green-50 text-green-700 border border-green-100';
+      icon = <span className="w-1.5 h-1.5 rounded-full bg-green-700 shrink-0" />;
       break;
     case 'condition-applied':
       text = `${actorName} applied ${condition} to ${targetName}`;
-      rowStyle += 'text-[#2563eb] bg-[#f9f8ff] border border-[#c0d4ff]/70';
+      rowStyle += 'text-[#2563eb] bg-[#f9f8ff] border border-[#c0d4ff]';
       icon = <span className="w-1.5 h-1.5 rounded-full bg-[#2563eb] shrink-0" />;
       break;
     case 'condition-removed':
@@ -387,13 +388,13 @@ export function CombatEventRow({ event }: { event: CombatEvent }) {
       break;
     case 'combatant-defeated':
       text = `${targetName} was defeated`;
-      rowStyle += 'text-slate-900 bg-slate-100 border border-slate-200 font-bold';
-      icon = <span className="w-1.5 h-1.5 rounded-full bg-slate-900 shrink-0" />;
+      rowStyle += 'bg-[#f9f8ff] text-[#0f172a] border border-[#e2e8f0] font-bold';
+      icon = <span className="w-1.5 h-1.5 rounded-full bg-[#0f172a] shrink-0" />;
       break;
     case 'manual-adjustment':
       text = `${targetName}: HP adjusted ${hpBefore} → ${hpAfter} (manual correction)`;
-      rowStyle += 'text-slate-700 bg-slate-50 border border-slate-200';
-      icon = <Flag className="w-3.5 h-3.5 text-slate-500 shrink-0" />;
+      rowStyle += 'bg-[#f9f8ff] text-[#8d8db9] border border-[#e2e8f0]';
+      icon = <Flag className="w-3.5 h-3.5 text-[#8d8db9] shrink-0" />;
       break;
     default:
       return null;
