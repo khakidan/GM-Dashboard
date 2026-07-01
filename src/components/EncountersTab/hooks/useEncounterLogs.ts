@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { readEncounterLogs } from '../../../services/dbOperations';
+import { readEncounterLogs, deleteEncounterLog } from '../../../services/dbOperations';
 import { getSpreadsheetId } from '../../../services/sheetsService';
 import { STORAGE_KEYS } from '../../../lib/constants';
 import { EncounterLog } from '../../../lib/combatLog';
@@ -41,8 +41,34 @@ export function useEncounterLogs() {
     }
   };
 
+  const deleteLog = async (logId: string): Promise<boolean> => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const spreadsheetId = localStorage.getItem(STORAGE_KEYS.activeCampaignSpreadsheetId) ||
+                            localStorage.getItem(STORAGE_KEYS.spreadsheetId) ||
+                            getSpreadsheetId() ||
+                            import.meta.env.VITE_SPREADSHEET_ID || '';
+
+      if (!spreadsheetId) {
+        throw new Error('No campaign spreadsheet ID found.');
+      }
+
+      await deleteEncounterLog(spreadsheetId, logId);
+      return true;
+    } catch (err: any) {
+      console.error('[useEncounterLogs] deleteLog failed:', err);
+      const errMsg = err instanceof Error ? err.message : 'Failed to delete encounter log.';
+      setError(errMsg);
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return {
     fetchLogsForEncounter,
+    deleteLog,
     isLoading,
     error,
   };

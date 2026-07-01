@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { X, Scroll, ChevronDown, ChevronRight, Calendar, Flag } from 'lucide-react';
+import { X, Scroll, ChevronDown, ChevronRight, Calendar, Flag, Trash2, Copy, Check } from 'lucide-react';
 import { useEncounterLogs } from './hooks/useEncounterLogs';
 import { EncounterLog, CombatEvent, ACTION_TYPE_LABELS } from '../../lib/combatLog';
 
@@ -11,7 +11,7 @@ interface EncounterLogModalProps {
 }
 
 export function EncounterLogModal({ encounterId, encounterName, isOpen, onClose }: EncounterLogModalProps) {
-  const { fetchLogsForEncounter, isLoading, error } = useEncounterLogs();
+  const { fetchLogsForEncounter, deleteLog, isLoading, error } = useEncounterLogs();
   const [logs, setLogs] = useState<EncounterLog[]>([]);
   const [expandedLogId, setExpandedLogId] = useState<string | null>(null);
 
@@ -32,6 +32,20 @@ export function EncounterLogModal({ encounterId, encounterName, isOpen, onClose 
 
   const toggleExpand = (id: string) => {
     setExpandedLogId(prev => (prev === id ? null : id));
+  };
+
+  const handleDelete = async (e: React.MouseEvent, logId: string) => {
+    e.stopPropagation();
+    const confirmed = window.confirm('Delete this encounter log? This cannot be undone.');
+    if (!confirmed) return;
+
+    const success = await deleteLog(logId);
+    if (success) {
+      setLogs(prev => prev.filter(log => log.id !== logId));
+      if (expandedLogId === logId) {
+        setExpandedLogId(null);
+      }
+    }
   };
 
   const getOutcomeBadgeClass = (outcome: string) => {
@@ -140,6 +154,13 @@ export function EncounterLogModal({ encounterId, encounterName, isOpen, onClose 
                         >
                           {log.outcome}
                         </span>
+                        <button
+                          onClick={(e) => handleDelete(e, log.id)}
+                          className="text-[#8d8db9] hover:text-red-600 hover:bg-red-50 rounded-lg p-1.5 transition-colors cursor-pointer"
+                          title="Delete Log"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
                     </button>
 
@@ -174,6 +195,14 @@ interface EncounterLogDetailsProps {
 
 export function EncounterLogDetails({ log }: EncounterLogDetailsProps) {
   const [activeTab, setActiveTab] = useState<'structured' | 'raw'>('structured');
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(log.transcript || '').then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
 
   // Filter out round-start/combat-start/combat-end events
   const displayableEvents = (log.events || []).filter(
@@ -231,27 +260,47 @@ export function EncounterLogDetails({ log }: EncounterLogDetailsProps) {
       {/* View Toggle Tabs */}
       <div className="flex items-center justify-between border-b border-[#e2e8f0] pb-2">
         <p className="text-[11px] uppercase font-bold text-[#8d8db9] tracking-widest">Combat Log</p>
-        <div className="flex bg-slate-100 p-0.5 rounded-lg border border-[#e2e8f0]">
+        <div className="flex items-center gap-2">
+          {/* Copy Transcript Button */}
           <button
-            onClick={() => setActiveTab('structured')}
-            className={`px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-md transition-all cursor-pointer ${
-              activeTab === 'structured'
-                ? 'bg-white text-[#2563eb] shadow-sm'
-                : 'text-slate-500 hover:text-slate-850'
-            }`}
+            onClick={handleCopy}
+            className="text-[#8d8db9] border border-[#e2e8f0] rounded-xl px-3 py-1.5 text-xs hover:border-[#2563eb] hover:text-[#2563eb] transition-colors font-medium flex items-center gap-1.5 cursor-pointer bg-white"
           >
-            Structured View
+            {copied ? (
+              <>
+                <Check className="w-3.5 h-3.5 text-emerald-500" />
+                <span>Copied!</span>
+              </>
+            ) : (
+              <>
+                <Copy className="w-3.5 h-3.5" />
+                <span>Copy Transcript</span>
+              </>
+            )}
           </button>
-          <button
-            onClick={() => setActiveTab('raw')}
-            className={`px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-md transition-all cursor-pointer ${
-              activeTab === 'raw'
-                ? 'bg-white text-[#2563eb] shadow-sm'
-                : 'text-slate-500 hover:text-slate-850'
-            }`}
-          >
-            Raw Transcript
-          </button>
+
+          <div className="flex bg-slate-100 p-0.5 rounded-lg border border-[#e2e8f0]">
+            <button
+              onClick={() => setActiveTab('structured')}
+              className={`px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-md transition-all cursor-pointer ${
+                activeTab === 'structured'
+                  ? 'bg-white text-[#2563eb] shadow-sm'
+                  : 'text-slate-500 hover:text-slate-850'
+              }`}
+            >
+              Structured View
+            </button>
+            <button
+              onClick={() => setActiveTab('raw')}
+              className={`px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-md transition-all cursor-pointer ${
+                activeTab === 'raw'
+                  ? 'bg-white text-[#2563eb] shadow-sm'
+                  : 'text-slate-500 hover:text-slate-850'
+              }`}
+            >
+              Raw Transcript
+            </button>
+          </div>
         </div>
       </div>
 
