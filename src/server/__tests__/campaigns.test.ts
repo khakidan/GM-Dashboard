@@ -69,21 +69,22 @@ describe('Campaigns Router', () => {
     expect(sheetsCall[0]).toBe('https://sheets.googleapis.com/v4/spreadsheets/spread-123:batchUpdate');
     const sheetsBody = JSON.parse(sheetsCall[1]!.body as string);
     
-    // Should have 7 requests (6 addSheets + 1 delete default sheet)
-    expect(sheetsBody.requests).toHaveLength(7);
+    // Should have 8 requests (7 addSheets + 1 delete default sheet)
+    expect(sheetsBody.requests).toHaveLength(8);
     expect(sheetsBody.requests[0].addSheet.properties.title).toBe('Characters');
     expect(sheetsBody.requests[1].addSheet.properties.title).toBe('NPCs');
     expect(sheetsBody.requests[2].addSheet.properties.title).toBe('Encounters');
     expect(sheetsBody.requests[3].addSheet.properties.title).toBe('Encounter_Combatants');
     expect(sheetsBody.requests[4].addSheet.properties.title).toBe('Status');
     expect(sheetsBody.requests[5].addSheet.properties.title).toBe('Difficulty_Level');
-    expect(sheetsBody.requests[6].deleteSheet.sheetId).toBe(0);
+    expect(sheetsBody.requests[6].addSheet.properties.title).toBe('EncounterLogs');
+    expect(sheetsBody.requests[7].deleteSheet.sheetId).toBe(0);
 
     // Verify values write request
     const valuesCall = vi.mocked(fetch).mock.calls[2];
     expect(valuesCall[0]).toBe('https://sheets.googleapis.com/v4/spreadsheets/spread-123/values:batchUpdate');
     const valuesBody = JSON.parse(valuesCall[1]!.body as string);
-    expect(valuesBody.data).toHaveLength(6);
+    expect(valuesBody.data).toHaveLength(7);
 
     // Characters sheet header assertion
     const charsData = valuesBody.data.find((d: any) => d.range.startsWith('Characters!'));
@@ -98,6 +99,16 @@ describe('Campaigns Router', () => {
       'Death_Saves_Successes', 'Class',
       'Hit_Dice_Config', 'Hit_Dice_Used', 'Resource_Pools',
       'Ability_Scores', 'Proficiencies', 'Spellcasting_Ability'
+    ]);
+
+    // EncounterLogs sheet header assertion
+    const logsData = valuesBody.data.find((d: any) => d.range.startsWith('EncounterLogs!'));
+    expect(logsData).toBeDefined();
+    expect(logsData.values[0]).toEqual([
+      'id', 'encounterId', 'encounterName',
+      'location', 'date', 'durationRounds',
+      'outcome', 'partySnapshot', 'events',
+      'transcript'
     ]);
   });
 

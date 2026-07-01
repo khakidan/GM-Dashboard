@@ -1249,3 +1249,50 @@ export async function updateEncounterDB(
     throw err;
   }
 }
+
+export async function appendEncounterLog(
+  spreadsheetId: string,
+  log: {
+    id: string;
+    encounterId: string;
+    encounterName: string;
+    location: string;
+    date: string;
+    durationRounds: number;
+    outcome: string;
+    partySnapshot: string;
+    events: string;
+    transcript: string;
+  }
+): Promise<void> {
+  try {
+    const resolvedId = resolveSpreadsheetId(spreadsheetId);
+    const rowData = [
+      log.id,
+      log.encounterId,
+      log.encounterName,
+      log.location,
+      log.date,
+      log.durationRounds,
+      log.outcome,
+      log.partySnapshot,
+      log.events,
+      log.transcript
+    ];
+    await appendSheetData(resolvedId, 'EncounterLogs!A:J', [rowData]);
+  } catch (err) {
+    console.error('[DB] appendEncounterLog failed:', err);
+    throw err;
+  }
+}
+
+export async function readEncounterLogs(spreadsheetId: string): Promise<any[][]> {
+  try {
+    const resolvedId = resolveSpreadsheetId(spreadsheetId);
+    const data = await fetchSheetData(resolvedId, 'EncounterLogs!A2:J');
+    return data.values || [];
+  } catch (err) {
+    console.error('[DB] readEncounterLogs failed:', err);
+    throw err;
+  }
+}

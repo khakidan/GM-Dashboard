@@ -107,6 +107,16 @@ router.post('/create', async (req, res) => {
           ['3', 'Hard'],
           ['4', 'Deadly']
         ]
+      },
+      {
+        title: 'EncounterLogs',
+        headers: [
+          'id', 'encounterId', 'encounterName',
+          'location', 'date', 'durationRounds',
+          'outcome', 'partySnapshot', 'events',
+          'transcript'
+        ],
+        rows: []
       }
     ];
 
