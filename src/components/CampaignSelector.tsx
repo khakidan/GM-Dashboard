@@ -10,7 +10,7 @@ import {
   FolderOpen
 } from 'lucide-react';
 import { Campaign } from '../hooks/useCampaign';
-import { clearTokens } from '../services/googleAuth';
+import { useGoogleAuth } from '../hooks/useGoogleAuth';
 
 interface CampaignSelectorProps {
   campaigns: Campaign[];
@@ -61,6 +61,7 @@ export function CampaignSelector({
   const [email, setEmail] = useState<string>('Google User');
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const { clearTokens } = useGoogleAuth();
 
   useEffect(() => {
     const fetchEmail = async () => {

@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAppState } from '../hooks/useAppState';
-import { hasToken } from '../services/googleAuth';
 import { useGoogleAuth } from '../hooks/useGoogleAuth';
 import { useSheetSync } from '../hooks/useSheetSync';
 import { useEncounterLifecycle } from '../hooks/useEncounterLifecycle';
@@ -64,6 +63,7 @@ export function GMDashboard({ campaign, onCloseCampaign }: GMDashboardProps = {}
     setIsGoogleConnected,
     handleSignIn,
     handleSignOut,
+    hasToken,
   } = useGoogleAuth({
     onLog: addLog,
     onAuthSuccess: () => handleSyncWithSheets(false),
@@ -97,6 +97,7 @@ export function GMDashboard({ campaign, onCloseCampaign }: GMDashboardProps = {}
   return (
     <div className="w-full h-[100dvh] bg-[#ffffff] flex overflow-hidden font-serif select-none relative">
       <GMDashboardSidebar
+        isAuthenticated={isGoogleConnected}
         activeTab={activeTab}
         onTabChange={handleTabChange}
         campaignName={state.campaignName}

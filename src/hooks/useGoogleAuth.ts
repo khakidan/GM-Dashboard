@@ -6,6 +6,7 @@ import {
   hasToken,
   signInWithRedirect,
   clearTokens,
+  signInWithToken,
 } from '../services/googleAuth';
 
 interface UseGoogleAuthProps {
@@ -59,5 +60,9 @@ export function useGoogleAuth(props?: UseGoogleAuthProps) {
     setIsGoogleConnected,
     handleSignIn,
     handleSignOut,
+    signInWithRedirect,
+    signInWithToken,
+    hasToken,
+    clearTokens,
   };
 }
