@@ -24,7 +24,8 @@ export type CombatEventType =
   | 'condition-applied'
   | 'condition-removed'
   | 'combatant-defeated'
-  | 'manual-adjustment';
+  | 'manual-adjustment'
+  | 'resource-changed';
 
 export type ActionType =
   | 'attack'
@@ -50,6 +51,10 @@ export interface CombatEvent {
   condition?: string;
   hpBefore?: number;
   hpAfter?: number;
+  resourceName?: string;
+  resourceBefore?: number;
+  resourceAfter?: number;
+  resourceMax?: number;
   isManualAdjustment: boolean;
   timestamp: string;
 }
@@ -152,6 +157,15 @@ function formatEventDescription(evt: CombatEvent): string {
       return `${target} was defeated`;
     case 'manual-adjustment':
       return `${target}: HP adjusted ${hpBefore} -> ${hpAfter} (manual correction)`;
+    case 'resource-changed': {
+      const rName = evt.resourceName || 'Resource';
+      const rBefore = evt.resourceBefore ?? 0;
+      const rAfter = evt.resourceAfter ?? 0;
+      if (rAfter > rBefore) {
+        return `${target}: ${rName} ${rBefore} -> ${rAfter} (restored)`;
+      }
+      return `${target}: ${rName} ${rBefore} -> ${rAfter}`;
+    }
     default:
       return '';
   }

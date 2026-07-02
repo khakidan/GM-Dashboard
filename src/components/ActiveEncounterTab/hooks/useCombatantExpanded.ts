@@ -3,6 +3,7 @@ import { useAppState } from '../../../hooks/useAppState';
 import { updateCharacterDB } from '../../../services/dbOperations';
 import { getResourceForEffect, parseResourcePools, spendResourcePip, serializeResourcePools } from '../../../lib/resourcePools';
 import { toast } from 'sonner';
+import { useDashboardStore } from '../../../hooks/dashboardStore';
 
 /**
  * useCombatantExpanded hook
@@ -23,6 +24,36 @@ export function useCombatantExpanded(c: Combatant) {
     const { characters } = getSnapshot();
     const char = characters.find(charItem => charItem.id === charId);
     if (!char) return;
+
+    // Log any resource pool value changes specifically when combat is active
+    if (updates.resourcePools !== undefined) {
+      const prevPools = parseResourcePools(char.resourcePools || '');
+      const nextPools = parseResourcePools(updates.resourcePools);
+
+      for (const nextPool of nextPools) {
+        const prevPool = prevPools.find(p => p.name.toLowerCase() === nextPool.name.toLowerCase());
+        if (prevPool) {
+          if (prevPool.current !== nextPool.current) {
+            const { activeCombatLog, addCombatEvent } = useDashboardStore.getState();
+            if (activeCombatLog) {
+              addCombatEvent({
+                round: activeCombatLog.currentRound,
+                type: 'resource-changed',
+                actorId: null,
+                actorName: null,
+                targetId: c.id,
+                targetName: c.name,
+                resourceName: nextPool.name,
+                resourceBefore: prevPool.current,
+                resourceAfter: nextPool.current,
+                resourceMax: nextPool.max,
+                isManualAdjustment: true,
+              });
+            }
+          }
+        }
+      }
+    }
 
     // 1. Optimistic local state update in Zustand
     updateState((prev) => ({
@@ -67,22 +98,7 @@ export function useCombatantExpanded(c: Combatant) {
     if (matchedPool.current > 0) {
       const updatedPools = spendResourcePip(pools, resourceName, 1);
       const serialized = serializeResourcePools(updatedPools);
-
-      // 1. Optimistic local state update in Zustand
-      updateState((prev) => ({
-        ...prev,
-        characters: prev.characters.map((charItem) =>
-          charItem.id === charId ? { ...charItem, resourcePools: serialized } : charItem
-        ),
-      }));
-
-      // 2. Call updateCharacterDB with the changed fields
-      try {
-        await updateCharacterDB({ resourcePools: serialized }, char);
-      } catch (err) {
-        console.error("Failed to update character resource pools: ", err);
-        toast.error(`Failed to sync resource update for ${char.characterName}`);
-      }
+      await handleResourcePoolUpdate({ resourcePools: serialized });
     } else {
       toast.warning(`${matchedPool.name} is already depleted.`);
     }

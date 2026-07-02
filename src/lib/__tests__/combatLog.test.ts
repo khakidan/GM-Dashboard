@@ -189,5 +189,26 @@ describe('combatLog', () => {
       const transcript = generateTranscript(log, 'Victory');
       expect(transcript).toContain('Aria\'s turn: Aria used Opportunity Attack: dealt 8 slashing damage to Goblin');
     });
+
+    it('TEST 1.8 — Resource changed event formatting', () => {
+      const log: ActiveCombatLog = {
+        encounterId: 'enc-1', encounterName: 'Test', location: 'Test', startedAt: '...', currentRound: 1,
+        partySnapshot: [], initiativeOrder: [],
+        events: [
+          {
+            id: 'e1', round: 1, type: 'resource-changed', actorId: null, actorName: null,
+            targetId: 'aria-1', targetName: 'Aria', resourceName: 'Ki Points', resourceBefore: 3, resourceAfter: 2, resourceMax: 3, isManualAdjustment: true, timestamp: '...'
+          },
+          {
+            id: 'e2', round: 1, type: 'resource-changed', actorId: null, actorName: null,
+            targetId: 'aria-1', targetName: 'Aria', resourceName: 'Ki Points', resourceBefore: 2, resourceAfter: 3, resourceMax: 3, isManualAdjustment: true, timestamp: '...'
+          }
+        ]
+      };
+
+      const transcript = generateTranscript(log, 'Victory');
+      expect(transcript).toContain('Aria: Ki Points 3 -> 2');
+      expect(transcript).toContain('Aria: Ki Points 2 -> 3 (restored)');
+    });
   });
 });
