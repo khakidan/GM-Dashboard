@@ -8,7 +8,10 @@ vi.mock('../../services/dbOperations', () => ({
   updateEncounterStateDB: vi.fn().mockResolvedValue(undefined),
   clearEncounterStateDB: vi.fn().mockResolvedValue(undefined),
   updateInitiativeDB: vi.fn().mockResolvedValue(undefined),
+  addEncounterCombatantDB: vi.fn().mockResolvedValue([]),
 }));
+
+import { addEncounterCombatantDB } from '../../services/dbOperations';
 
 vi.mock('sonner', () => ({
   toast: Object.assign(vi.fn(), {
@@ -224,5 +227,44 @@ describe('useEncounterLifecycle & useCombatSync Tests', () => {
     // Initiative is rolled with 1d20 + 2. It should be >= 3 and <= 22.
     expect(updatedCombatant.initiative).toBeGreaterThanOrEqual(1);
     expect(updatedCombatant.initiative).toBeLessThanOrEqual(22);
+  });
+
+  it('startEncounter auto-adds and persists active PCs when encounter has no combatants', async () => {
+    const mockEncounter: any = { id: 'enc-1', name: 'New Encounter', status: 'planned' };
+    const mockPc: any = { id: 'pc-1', characterName: 'Hero', statusId: 1, isActive: true }; // isActive is used by builder fallback
+
+    useDashboardStore.setState({
+      encounters: [mockEncounter],
+      characters: [mockPc],
+      encounterCombatants: [], // Empty means first entry
+    });
+
+    const { result } = setupHook();
+
+    await act(async () => {
+      await result.current.lifecycle.startEncounter('enc-1');
+    });
+
+    expect(addEncounterCombatantDB).toHaveBeenCalledWith('enc-1', 'pc-1', null, 1);
+  });
+
+  it('startEncounter does NOT call addEncounterCombatantDB if combatants already exist', async () => {
+    const mockEncounter: any = { id: 'enc-1', name: 'Existing Encounter', status: 'planned' };
+    const mockEc: any = { id: 'ec-1', encounterId: 'enc-1', playerId: 'pc-1', quantity: 1 };
+    const mockPc: any = { id: 'pc-1', characterName: 'Hero', statusId: 1, isActive: true };
+
+    useDashboardStore.setState({
+      encounters: [mockEncounter],
+      characters: [mockPc],
+      encounterCombatants: [mockEc], // Not empty for this encounter
+    });
+
+    const { result } = setupHook();
+
+    await act(async () => {
+      await result.current.lifecycle.startEncounter('enc-1');
+    });
+
+    expect(addEncounterCombatantDB).not.toHaveBeenCalled();
   });
 });
