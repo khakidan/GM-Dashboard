@@ -66,7 +66,7 @@ describe('useEncounterPresetLoader', () => {
       updateState: mockUpdateState,
     });
     
-    (getSnapshot as any).mockReturnValue(mockState);
+    (getSnapshot as any).mockImplementation(() => mockState);
   });
 
   it('handleAddNpc builds a combatant with correct rechargeAbilities derived from actions recharge field', async () => {
@@ -158,7 +158,7 @@ describe('useEncounterPresetLoader', () => {
     const containsOrc = resState.combatState.combatants.some((c: any) => c.name === 'Orc');
     expect(containsOrc).toBe(false);
 
-    expect(toast.error).toHaveBeenCalledWith('Failed to save changes. Please try again.', expect.objectContaining({
+    expect(toast.error).toHaveBeenCalledWith('Failed to add Orc to the encounter. Please try again.', expect.objectContaining({
       description: 'DB Failed'
     }));
 
@@ -183,7 +183,7 @@ describe('useEncounterPresetLoader', () => {
     const count = resState.combatState.combatants.length;
     expect(count).toBe(1);
 
-    expect(toast.error).toHaveBeenCalledWith('Failed to save changes. Please try again.', expect.objectContaining({
+    expect(toast.error).toHaveBeenCalledWith('Failed to add Dragon to the encounter. Please try again.', expect.objectContaining({
       description: 'Network Error'
     }));
 
@@ -207,5 +207,33 @@ describe('useEncounterPresetLoader', () => {
       rechargeOn: 5,
       isCharged: true
     }]);
+  });
+
+  it('verifies rollback captures state BEFORE optimistic update', async () => {
+    // 1. Initial state has 1 combatant
+    const initialState = { ...mockState };
+    (addEncounterCombatantDB as any).mockRejectedValue(new Error('Rollback Test Error'));
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    const { result } = renderHook(() => useEncounterPresetLoader(undefined, vi.fn()));
+
+    await expect(
+      act(async () => {
+        await result.current.handleAddPreset('npc', 'npc1', 1);
+      })
+    ).rejects.toThrow('Rollback Test Error');
+
+    // The last call to updateState should be the rollback
+    const rollbackUpdater = mockUpdateState.mock.calls[mockUpdateState.mock.calls.length - 1][0];
+    const rolledBackState = typeof rollbackUpdater === 'function' ? rollbackUpdater(mockState) : rollbackUpdater;
+
+    // 2. State should be back to 1 combatant, NOT 2
+    expect(rolledBackState.combatState.combatants.length).toBe(1);
+    expect(rolledBackState.combatState.combatants[0].name).toBe('Existing');
+    
+    // Explicitly verify it's NOT the optimistic state (which would have 2 combatants)
+    expect(rolledBackState.combatState.combatants.length).not.toBe(2);
+
+    consoleErrorSpy.mockRestore();
   });
 });

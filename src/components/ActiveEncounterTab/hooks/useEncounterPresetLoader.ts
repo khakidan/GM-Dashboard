@@ -11,6 +11,9 @@ export function useEncounterPresetLoader(
   const { state, updateState } = useAppState();
 
   const handleAddPreset = async (type: 'pc' | 'npc', selectedPreset: string, presetQuantity: number) => {
+    const preUpdateSnapshot = getSnapshot();
+    let targetName = type === 'pc' ? 'character' : 'NPC';
+
     try {
       const actualQty = type === 'pc' ? 1 : presetQuantity;
       const tempEcIds = Array.from({ length: actualQty }, (_, idx) => `temp-ec-${idx}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`);
@@ -21,6 +24,7 @@ export function useEncounterPresetLoader(
       if (type === 'pc') {
         const c = state.characters.find(char => char.id === selectedPreset);
         if (c) {
+          targetName = c.characterName;
           newCombatants.push({
             id: `combat-pc-${c.id}`,
             encounterCombatantId: tempEcIds[0],
@@ -50,6 +54,7 @@ export function useEncounterPresetLoader(
       } else {
         const npcTemplate = state.npcs.find(n => n.id === selectedPreset);
         if (npcTemplate) {
+          targetName = npcTemplate.name;
           for (let i = 0; i < actualQty; i++) {
             const combatantId = `combat-npc-${npcTemplate.id}-${i}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
             const combatant = buildSingleNpcCombatant(
@@ -86,6 +91,18 @@ export function useEncounterPresetLoader(
           combatants: [...prev.combatState.combatants, ...newCombatants],
         },
       }));
+
+      if (type === 'pc') {
+        const character = state.characters.find(c => c.id === selectedPreset);
+        if (character) {
+          // TODO: REMOVE AFTER DEBUGGING
+          console.log('[AddCombatant][PC] Writing row:', {
+            encounterId: encounter?.id,
+            playerId: character.id,
+            characterName: character.characterName,
+          });
+        }
+      }
 
       const ecResList = await addEncounterCombatantDB(
         encounter?.id || '',
@@ -126,11 +143,10 @@ export function useEncounterPresetLoader(
         };
       });
     } catch (error: any) {
-      updateState(() => {
-        const snap = getSnapshot();
-        return snap;
-      });
-      toast.error('Failed to save changes. Please try again.', {
+      // TODO: REMOVE AFTER DEBUGGING
+      console.error('[AddCombatant][PC] DB write failed:', error);
+      updateState(() => preUpdateSnapshot);
+      toast.error(`Failed to add ${targetName} to the encounter. Please try again.`, {
         description: error instanceof Error ? error.message : 'Unknown error',
         duration: 5000,
       });
@@ -142,6 +158,7 @@ export function useEncounterPresetLoader(
   const handleAddNpc = async (
     npcData: Omit<NPC, 'id' | 'sheetRowIndex'>
   ) => {
+    const preUpdateSnapshot = getSnapshot();
     try {
       const nextIdStr = `temp-npc-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
       const nextEcId = `temp-ec-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
@@ -208,11 +225,8 @@ export function useEncounterPresetLoader(
         },
       }));
     } catch (error: any) {
-      updateState(() => {
-        const snap = getSnapshot();
-        return snap;
-      });
-      toast.error('Failed to save changes. Please try again.', {
+      updateState(() => preUpdateSnapshot);
+      toast.error(`Failed to add ${npcData.name} to the encounter. Please try again.`, {
         description: error instanceof Error ? error.message : 'Unknown error',
         duration: 5000,
       });
