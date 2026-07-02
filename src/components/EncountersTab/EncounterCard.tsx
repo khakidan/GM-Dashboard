@@ -10,6 +10,7 @@ import { EncounterLogModal } from './EncounterLogModal';
 
 export interface EncounterCardProps {
   enc: Encounter;
+  isCompleted: boolean;
   isDeleting: boolean;
   onDelete: (enc: Encounter) => void;
   onStart: (enc: Encounter) => void;
@@ -24,6 +25,7 @@ export interface EncounterCardProps {
 
 export const EncounterCard: React.FC<EncounterCardProps> = ({ 
   enc, 
+  isCompleted,
   isDeleting,
   onDelete, 
   onStart, 
@@ -95,7 +97,8 @@ export const EncounterCard: React.FC<EncounterCardProps> = ({
   return (
     <div className={cn(
       "bg-white rounded-2xl border border-[#e2e8f0] overflow-hidden group transition-all hover:shadow-md",
-      (isUpdating || isDeleting) && "opacity-75 pointer-events-none"
+      (isUpdating || isDeleting) && "opacity-75 pointer-events-none",
+      isCompleted && "bg-slate-50 border-slate-200"
     )}>
       <div className="p-4 flex flex-col md:flex-row items-stretch md:items-center gap-4 px-6">
         {/* Name Field */}
@@ -174,9 +177,12 @@ export const EncounterCard: React.FC<EncounterCardProps> = ({
           </button>
           <button 
             onClick={() => onStart(enc)}
-            disabled={isDeleting || isUpdating}
-            className="flex-1 md:flex-none p-2.5 bg-[#2563eb]/10 hover:bg-[#2563eb]/20 text-[#2563eb] rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-30"
-            title="View / Run Encounter"
+            disabled={isDeleting || isUpdating || isCompleted}
+            className={cn(
+              "flex-1 md:flex-none p-2.5 bg-[#2563eb]/10 hover:bg-[#2563eb]/20 text-[#2563eb] rounded-xl transition-all flex items-center justify-center gap-2",
+              (isDeleting || isUpdating || isCompleted) && "opacity-30 cursor-not-allowed"
+            )}
+            title={isCompleted ? "This encounter has already been completed" : "View / Run Encounter"}
           >
             <Swords className="w-5 h-5" />
             <span className="md:hidden text-[10px] font-bold uppercase tracking-widest">Run</span>

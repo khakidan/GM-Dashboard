@@ -15,6 +15,7 @@ vi.mock('sonner', () => ({
 vi.mock('../../services/sheetsService', () => ({
   getSpreadsheetId: vi.fn().mockReturnValue('mock-id'),
   setSpreadsheetId: vi.fn(),
+  resolveActiveSpreadsheetId: vi.fn().mockReturnValue('mock-id'),
 }));
 
 vi.mock('../../services/googleAuth', () => ({

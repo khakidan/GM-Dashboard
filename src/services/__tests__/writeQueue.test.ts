@@ -10,6 +10,7 @@ const RETRY_STORAGE_KEY = STORAGE_KEYS.writeRetryQueue;
 vi.mock('../sheetsService', () => ({
   batchUpdateValues: vi.fn(),
   getSpreadsheetId: vi.fn().mockReturnValue('mock-id'),
+  resolveActiveSpreadsheetId: vi.fn().mockReturnValue('mock-id'),
 }));
 
 describe('writeQueue tests', () => {
@@ -39,7 +40,7 @@ describe('writeQueue tests', () => {
     await flushQueue();
     
     expect(batchUpdateValues).toHaveBeenCalledTimes(1);
-    expect(batchUpdateValues).toHaveBeenCalledWith([
+    expect(batchUpdateValues).toHaveBeenCalledWith('mock-id', [
       { range: 'A1', values: [[1]] },
       { range: 'B2', values: [[2]] },
       { range: 'C3', values: [[3]] },
@@ -53,7 +54,7 @@ describe('writeQueue tests', () => {
     await flushQueue();
     
     const stored = JSON.parse(localStorage.getItem(RETRY_STORAGE_KEY) || '[]');
-    expect(stored).toEqual([{ range: 'A1', values: [[1]] }]);
+    expect(stored).toEqual([{ range: 'A1', spreadsheetId: 'mock-id', values: [[1]] }]);
   });
 
   it('retryPersistedWrites processes queued items from localStorage', async () => {

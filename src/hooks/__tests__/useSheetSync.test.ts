@@ -12,6 +12,7 @@ vi.mock('../../services/sheetsService', () => ({
   fetchSheetData: vi.fn(),
   initializeDatabaseSchema: vi.fn(),
   getSpreadsheetId: vi.fn().mockReturnValue('mock-id'),
+  resolveActiveSpreadsheetId: vi.fn().mockReturnValue('mock-id'),
 }));
 
 vi.mock('../useAppState', () => ({

@@ -1,4 +1,4 @@
-import { batchUpdateValues } from './sheetsService';
+import { batchUpdateValues, resolveActiveSpreadsheetId } from './sheetsService';
 import { toast } from 'sonner';
 import { STORAGE_KEYS, TIMERS } from '../lib/constants';
 
@@ -75,9 +75,7 @@ export function queueWrite(spreadsheetIdOrRange: string, rangeOrValues: WriteGri
   } else {
     range = spreadsheetIdOrRange;
     values = rangeOrValues as WriteGrid;
-    spreadsheetId = localStorage.getItem(STORAGE_KEYS.activeCampaignSpreadsheetId) ||
-                    localStorage.getItem(STORAGE_KEYS.spreadsheetId) ||
-                    import.meta.env.VITE_SPREADSHEET_ID || '';
+    spreadsheetId = resolveActiveSpreadsheetId();
   }
 
   const queueKey = `${spreadsheetId}|${range}`;

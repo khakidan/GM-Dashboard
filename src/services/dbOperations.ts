@@ -56,10 +56,7 @@ function resolveSpreadsheetId(spreadsheetId: string | undefined): string {
     // Fallback for mock environments
   }
   if (typeof window !== 'undefined') {
-    return localStorage.getItem(STORAGE_KEYS.activeCampaignSpreadsheetId) ||
-           localStorage.getItem(STORAGE_KEYS.spreadsheetId) ||
-           getSpId ||
-           import.meta.env.VITE_SPREADSHEET_ID || '';
+    return sheetsService.resolveActiveSpreadsheetId();
   }
   return getSpId || process.env.SPREADSHEET_ID || '';
 }
@@ -290,8 +287,32 @@ export async function deleteEncounterFully(
     const resolvedId = resolveSpreadsheetId(spreadsheetId);
     const ids = await getSheetIds(resolvedId);
     // Encounter_ID is column index 1 in Encounter_Combatants
-    const requests = await buildCascadeDeleteRequests(resolvedId, 'Encounters', encounterId, 1, ids);
-    if (requests && requests.length > 0) {
+    const requests = await buildCascadeDeleteRequests(resolvedId, 'Encounters', encounterId, 1, ids) || [];
+
+    // Add encounter log deletion
+    const logData = await fetchSheetData(resolvedId, 'EncounterLogs!A2:J');
+    const logRows = logData.values || [];
+    
+    const logsToDelete = logRows
+      .map((row, i) => ({ row, i }))
+      .filter(({ row }) => row && String(row[1]).trim() === String(encounterId).trim())
+      .map(({ i }) => i + 1)
+      .sort((a, b) => b - a);
+
+    logsToDelete.forEach(idx => {
+      requests.push({
+        deleteDimension: {
+          range: {
+            sheetId: ids['EncounterLogs'],
+            dimension: 'ROWS' as const,
+            startIndex: idx,
+            endIndex: idx + 1,
+          },
+        },
+      });
+    });
+
+    if (requests.length > 0) {
       await batchUpdateSpreadsheet(resolvedId, requests);
     }
   } catch (err) {
@@ -1251,7 +1272,6 @@ export async function updateEncounterDB(
 }
 
 export async function appendEncounterLog(
-  spreadsheetId: string,
   log: {
     id: string;
     encounterId: string;
@@ -1264,7 +1284,46 @@ export async function appendEncounterLog(
     events: string;
     transcript: string;
   }
+): Promise<void>;
+export async function appendEncounterLog(
+  spreadsheetId: string | undefined,
+  log: {
+    id: string;
+    encounterId: string;
+    encounterName: string;
+    location: string;
+    date: string;
+    durationRounds: number;
+    outcome: string;
+    partySnapshot: string;
+    events: string;
+    transcript: string;
+  }
+): Promise<void>;
+export async function appendEncounterLog(
+  arg1: any,
+  arg2?: any
 ): Promise<void> {
+  let spreadsheetId: string | undefined;
+  let log: {
+    id: string;
+    encounterId: string;
+    encounterName: string;
+    location: string;
+    date: string;
+    durationRounds: number;
+    outcome: string;
+    partySnapshot: string;
+    events: string;
+    transcript: string;
+  };
+  if (arg2 === undefined) {
+    spreadsheetId = undefined;
+    log = arg1;
+  } else {
+    spreadsheetId = arg1;
+    log = arg2;
+  }
   try {
     const resolvedId = resolveSpreadsheetId(spreadsheetId);
     const rowData = [
@@ -1286,7 +1345,7 @@ export async function appendEncounterLog(
   }
 }
 
-export async function readEncounterLogs(spreadsheetId: string): Promise<any[][]> {
+export async function readEncounterLogs(spreadsheetId?: string): Promise<any[][]> {
   try {
     const resolvedId = resolveSpreadsheetId(spreadsheetId);
     const data = await fetchSheetData(resolvedId, 'EncounterLogs!A2:J');

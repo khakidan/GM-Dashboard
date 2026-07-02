@@ -398,15 +398,13 @@ schema.
   now also fetches Conditions!A2:C and
   Spells!A2:N, wrapped in try/catch since
   older campaigns may not have these tabs.
-- `useEncounterLifecycle.ts` / `useCombatSync.ts` — Combat setup,
+- `useEncounterLifecycle.ts` — Combat setup,
   initiative, round advancement, battle end.
   Now call initCombatLog, addCombatEvent,
   advanceCombatLogRound, and clearCombatLog.
 - `useEncounterResume.ts` — Detects and
   restores in-progress encounters on sync
-- `useEncounterLogs.ts` — On-demand fetch hook
-  for EncounterLogs sheet data. Exposes
-  fetchLogsForEncounter and deleteLog.
+
 - `useAudioEngine.ts` — Two-deck crossfade,
   IndexedDB audio, ambient + sound effects.
   Called ONCE in GMDashboard only.
@@ -419,6 +417,8 @@ schema.
 - `useTabState.ts` — Active navigation tab
   with localStorage persistence
 - `useSettings.ts` — App config, JSON export
+- `useReferenceDataSeeder.ts` — Seeder utility
+  functions for Conditions/Spells reference data.
 
 ### src/server/routes/
 - `campaigns.ts` — `POST /api/campaigns/create`
@@ -634,17 +634,21 @@ test files. Not tests themselves.
   clearCombatLog. Contains cancelCombat and
   resetCombat. nextTurn sorts by initiative on
   first call (combatStarted fix) and skips
-  dead NPCs.
-- `hooks/useBatchActions.ts` — Batch
-  damage/heal/condition/delete
-- `hooks/useCombatSync.ts` — Turn/round/
-  combatant sync. NPC initiative uses DEX
-  modifier (1d20 + DEX mod).
+  dead NPCs. Uses DEX modifier for NPC
+  initiative (1d20 + DEX mod).
 - `hooks/useEncounterKeyboard.ts` — Global
   keyboard shortcuts for combat. Pressing
   Escape now correctly calls exitSelectionMode
   in addition to clearing expandedIds and
   closing modals.
+
+### src/components/EncountersTab/
+- `hooks/useEncounterLogs.ts` — On-demand fetch
+  hook for EncounterLogs sheet data. Not part of
+  global Zustand sync. Exposes
+  fetchLogsForEncounter (returns EncounterLog[]
+  filtered by encounterId, most recent first)
+  and deleteLog.
 
 ### src/components/NpcLibraryTab/
 - `NpcCard.tsx` — NPC library card. Expanded
@@ -679,7 +683,7 @@ this whitelist and to `dbOperations.ts`.
 
 ## Testing Structure — 12-Batch System
 
-**Current baseline: 648 tests.**
+**Current baseline: 657 tests.**
 All batches must pass with zero failures.
 No batch should exceed 35 seconds.
 
@@ -696,12 +700,14 @@ run all tests at once with `npx vitest run`.
 | 5A    | AET Hooks   | 39         |
 | 5B    | AET Comp    | 26         |
 | 6A    | PartyTab    | 38         |
-| 6B    | Encounters  | 8          |
+| 6B    | Encounters  | 17         |
 | 6C    | NpcLibrary  | 13         |
 | 7B-1  | Top-Level 1 | 11         |
 | 7B-2  | Top-Level 2 | 4          |
 | 8     | UI          | 2          |
-| **Total** | | **648** |
+| **Total** | | **657** |
+
+*Note: EncounterLogModal.test.tsx (5 tests) and useEncounterLogs.test.ts (4 tests) were added to Batch 6B.*
 
 ```bash
 # BATCH 1 — 430 tests
@@ -725,7 +731,7 @@ npx vitest run src/components/ActiveEncounterTab/__tests__/AddNpcCollision.test.
 # BATCH 6A — 38 tests
 npx vitest run src/components/PartyTab/__tests__
 
-# BATCH 6B — 8 tests
+# BATCH 6B — 17 tests
 npx vitest run src/components/EncountersTab/__tests__
 
 # BATCH 6C — 13 tests
@@ -1159,6 +1165,12 @@ The test must check WHAT was passed.
    reorganize which tests are in which batch
    without updating AGENTS.md.
 
+   3.1. **No parallel test execution.** Never run multiple test batches simultaneously or in parallel. Each batch command must be issued as a single terminal call, waited on until it completes and prints its result, and only then may the next batch command be issued. Do not use background tasks, scheduled timers, or task queues to run tests. Run one batch, read the result, run the next.
+
+   3.2. **No interleaving edits and test runs.** Never attempt to fix a file while other test runs are in progress. Complete all running tests first, read their output, then make targeted fixes. Interleaving edits with in-progress test runs causes cascading failures that are harder to diagnose than if each step was done sequentially.
+
+   3.3. **Syntax error recovery.** If a test run fails due to a transform/syntax error in a file you just edited, stop immediately, read the file, fix only the syntax error, and re-run only the affected batch before proceeding. Do not attempt to fix multiple things at once.
+
 4. **Never delete tests instead of fixing
    them.** If a test fails after a refactor,
    update it to match the new behavior. Deleting
@@ -1250,21 +1262,26 @@ automatically. See session history.
 
 ### 🔵 Architecture / Technical Debt
 
-#### Fix components importing directly
-from services
+#### Remaining Technical Debt
 
-- `CampaignSelector.tsx`, `AuthRelay.tsx`,
-  `GMDashboard.tsx`, `SyncStatusIndicators.tsx`
-  importing from `services/googleAuth`
-  (pre-existing architectural shortcut).
-- `EncounterLogModal.tsx` and
-  `GlobalActionContextPanel.tsx` using named
-  Tailwind colors (rose, emerald, slate) instead
-  of the hex tokens in `STYLE_GUIDE.md`.
-- `rollNpcInitiatives` in `combatLogic.ts` is
-  dead code (logic moved to `useCombatSync.ts`).
-- Zero test coverage on `EncounterLogModal.tsx`
-  and `useEncounterLogs.ts`.
+- `appendEncounterLog` and
+  `readEncounterLogs` in
+  `dbOperations.ts` are missing the
+  dual-signature overload pattern
+  (arg1: any, arg2?: any) used by
+  all other DB functions — low
+  priority cosmetic inconsistency
+- `dbOperations.ts` is over 1,300
+  lines; a future session could split
+  it into per-entity files
+  (characters, npcs, encounters,
+  combatants, logs)
+- `useCombatSync.ts` handles
+  initiative, dead-NPC skipping,
+  cancel/end combat, combat log
+  wiring, condition timers, and sheet
+  persistence — a candidate for
+  decomposition in a future session
 
 ---
 

@@ -46,13 +46,35 @@ async function withSheetToast<T>(promise: Promise<T>): Promise<T> {
   }
 }
 
-let currentSpreadsheetId = localStorage.getItem(STORAGE_KEYS.spreadsheetId) || import.meta.env.VITE_DEFAULT_SPREADSHEET_ID || '';
+let currentSpreadsheetId = (typeof localStorage !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.spreadsheetId) : null) || import.meta.env.VITE_SPREADSHEET_ID || '';
 
 export const getSpreadsheetId = () => currentSpreadsheetId;
 export const setSpreadsheetId = (id: string) => {
   currentSpreadsheetId = id;
-  localStorage.setItem(STORAGE_KEYS.spreadsheetId, id);
+  if (typeof localStorage !== 'undefined') {
+    localStorage.setItem(STORAGE_KEYS.spreadsheetId, id);
+  }
 };
+
+/**
+ * Resolves the active spreadsheet ID using the standard fallback chain:
+ * 1. Active Campaign (from localStorage)
+ * 2. Primary Spreadsheet ID (from localStorage)
+ * 3. In-memory currentSpreadsheetId
+ * 4. Environment variable fallback
+ */
+export function resolveActiveSpreadsheetId(): string {
+  const activeCampaignId = typeof localStorage !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.activeCampaignSpreadsheetId) : null;
+  const primaryId = typeof localStorage !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.spreadsheetId) : null;
+
+  return (
+    activeCampaignId ||
+    primaryId ||
+    getSpreadsheetId() ||
+    import.meta.env.VITE_SPREADSHEET_ID ||
+    ''
+  );
+}
 
 async function googleFetch(url: string, options: RequestInit = {}): Promise<Response> {
   let token: string;

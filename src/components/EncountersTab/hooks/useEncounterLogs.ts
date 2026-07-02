@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { readEncounterLogs, deleteEncounterLog } from '../../../services/dbOperations';
-import { getSpreadsheetId } from '../../../services/sheetsService';
+import { getSpreadsheetId, resolveActiveSpreadsheetId } from '../../../services/sheetsService';
 import { STORAGE_KEYS } from '../../../lib/constants';
 import { EncounterLog } from '../../../lib/combatLog';
 import { parseEncounterLogs } from '../../../lib/sheetAdapters';
@@ -13,10 +13,7 @@ export function useEncounterLogs() {
     setIsLoading(true);
     setError(null);
     try {
-      const spreadsheetId = localStorage.getItem(STORAGE_KEYS.activeCampaignSpreadsheetId) ||
-                            localStorage.getItem(STORAGE_KEYS.spreadsheetId) ||
-                            getSpreadsheetId() ||
-                            import.meta.env.VITE_SPREADSHEET_ID || '';
+      const spreadsheetId = resolveActiveSpreadsheetId();
 
       if (!spreadsheetId) {
         throw new Error('No campaign spreadsheet ID found.');
@@ -45,10 +42,7 @@ export function useEncounterLogs() {
     setIsLoading(true);
     setError(null);
     try {
-      const spreadsheetId = localStorage.getItem(STORAGE_KEYS.activeCampaignSpreadsheetId) ||
-                            localStorage.getItem(STORAGE_KEYS.spreadsheetId) ||
-                            getSpreadsheetId() ||
-                            import.meta.env.VITE_SPREADSHEET_ID || '';
+      const spreadsheetId = resolveActiveSpreadsheetId();
 
       if (!spreadsheetId) {
         throw new Error('No campaign spreadsheet ID found.');

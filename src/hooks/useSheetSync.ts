@@ -6,6 +6,7 @@ import {
   fetchSheetData,
   initializeDatabaseSchema,
   getSpreadsheetId,
+  resolveActiveSpreadsheetId,
 } from '../services/sheetsService';
 import { clearRetryQueue } from '../services/writeQueue';
 import { Character, Encounter, NPC, EncounterCombatant, Condition, Spell } from '../types';
@@ -39,10 +40,7 @@ export function useSheetSync({ setIsGoogleConnected, onActiveTabChange }: UseShe
 
   const handleSyncWithSheets = async (isManual = true) => {
     let hadError = false;
-    const sid = localStorage.getItem(STORAGE_KEYS.activeCampaignSpreadsheetId) ||
-                localStorage.getItem(STORAGE_KEYS.spreadsheetId) ||
-                getSpreadsheetId() ||
-                import.meta.env.VITE_SPREADSHEET_ID || '';
+    const sid = resolveActiveSpreadsheetId();
 
     if (isManual) {
       setSyncLogs([]);

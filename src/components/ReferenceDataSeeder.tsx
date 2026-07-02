@@ -3,13 +3,7 @@
 import { useState } from 'react';
 import { Database, Loader2, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
-import {
-  fetchSpreadsheetMetadata,
-  batchUpdateSpreadsheet,
-  updateSheetData,
-  appendSheetData,
-  fetchSheetData,
-} from '../services/sheetsService';
+import { useReferenceDataSeeder } from '../hooks/useReferenceDataSeeder';
 
 interface ReferenceDataSeederProps {
   isGoogleConnected: boolean;
@@ -18,6 +12,7 @@ interface ReferenceDataSeederProps {
 export function ReferenceDataSeeder({ isGoogleConnected }: ReferenceDataSeederProps) {
   const [status, setStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle');
   const [progress, setProgress] = useState<string>('');
+  const seeder = useReferenceDataSeeder();
 
   const handleSeed = async () => {
     if (!isGoogleConnected) {
@@ -32,7 +27,7 @@ export function ReferenceDataSeeder({ isGoogleConnected }: ReferenceDataSeederPr
 
     try {
       // Step 1: Fetch spreadsheet metadata to check for existing tabs
-      const metadata = await fetchSpreadsheetMetadata();
+      const metadata = await seeder.fetchSpreadsheetMetadata();
       const existingSheets: string[] = (metadata.sheets || []).map(
         (s: { properties: { title: string } }) => s.properties.title
       );
@@ -43,7 +38,7 @@ export function ReferenceDataSeeder({ isGoogleConnected }: ReferenceDataSeederPr
       if (!conditionsExists) {
         setProgress('Creating Conditions sheet tab...');
         try {
-          await batchUpdateSpreadsheet([
+          await seeder.batchUpdateSpreadsheet([
             { addSheet: { properties: { title: 'Conditions' } } },
           ]);
         } catch (err: any) {
@@ -57,7 +52,7 @@ export function ReferenceDataSeeder({ isGoogleConnected }: ReferenceDataSeederPr
 
       setProgress('Writing Conditions headers...');
       const conditionsHeaders = ['name', 'description', 'source'];
-      await updateSheetData('Conditions!A1:C1', [conditionsHeaders]);
+      await seeder.updateSheetData('Conditions!A1:C1', [conditionsHeaders]);
 
       let conditionsSkipped = false;
       let spellsSkipped = false;
@@ -68,7 +63,7 @@ export function ReferenceDataSeeder({ isGoogleConnected }: ReferenceDataSeederPr
       // If your 'Conditions' or 'Spells' tabs have duplicate/contaminated entries,
       // you must manually clear those tabs' rows in Google Sheets before re-running
       // this seeder to fetch clean, correctly filtered 2014 SRD data.
-      const existingConditionsData = await fetchSheetData('Conditions!A:C');
+      const existingConditionsData = await seeder.fetchSheetData('Conditions!A:C');
       if (existingConditionsData?.values && existingConditionsData.values.length > 1) {
         setProgress('Conditions already seeded — skipped');
         conditionsSkipped = true;
@@ -92,7 +87,7 @@ export function ReferenceDataSeeder({ isGoogleConnected }: ReferenceDataSeederPr
         const chunkSize = 50;
         for (let i = 0; i < conditionRows.length; i += chunkSize) {
           const chunk = conditionRows.slice(i, i + chunkSize);
-          await appendSheetData('Conditions!A:C', chunk);
+          await seeder.appendSheetData('Conditions!A:C', chunk);
         }
       }
 
@@ -102,7 +97,7 @@ export function ReferenceDataSeeder({ isGoogleConnected }: ReferenceDataSeederPr
       if (!spellsExists) {
         setProgress('Creating Spells sheet tab...');
         try {
-          await batchUpdateSpreadsheet([
+          await seeder.batchUpdateSpreadsheet([
             { addSheet: { properties: { title: 'Spells' } } },
           ]);
         } catch (err: any) {
@@ -131,7 +126,7 @@ export function ReferenceDataSeeder({ isGoogleConnected }: ReferenceDataSeederPr
         'higherLevel',
         'source',
       ];
-      await updateSheetData('Spells!A1:N1', [spellsHeaders]);
+      await seeder.updateSheetData('Spells!A1:N1', [spellsHeaders]);
 
       setProgress('Checking existing Spells data...');
       // NOTE TO USER: Since we only check if the tab is populated (length > 1),
@@ -139,7 +134,7 @@ export function ReferenceDataSeeder({ isGoogleConnected }: ReferenceDataSeederPr
       // If your 'Conditions' or 'Spells' tabs have duplicate/contaminated entries,
       // you must manually clear those tabs' rows in Google Sheets before re-running
       // this seeder to fetch clean, correctly filtered 2014 SRD data.
-      const existingSpellsData = await fetchSheetData('Spells!A:N');
+      const existingSpellsData = await seeder.fetchSheetData('Spells!A:N');
       if (existingSpellsData?.values && existingSpellsData.values.length > 1) {
         setProgress('Spells already seeded — skipped');
         spellsSkipped = true;
@@ -185,7 +180,7 @@ export function ReferenceDataSeeder({ isGoogleConnected }: ReferenceDataSeederPr
         for (let i = 0; i < spellRows.length; i += chunkSize) {
           setProgress(`Saving spells chunk ${Math.floor(i / chunkSize) + 1} of ${Math.ceil(spellRows.length / chunkSize)}...`);
           const chunk = spellRows.slice(i, i + chunkSize);
-          await appendSheetData('Spells!A:N', chunk);
+          await seeder.appendSheetData('Spells!A:N', chunk);
         }
       }
 
@@ -213,6 +208,7 @@ export function ReferenceDataSeeder({ isGoogleConnected }: ReferenceDataSeederPr
       });
     }
   };
+
 
   return (
     <div

@@ -13,6 +13,7 @@ vi.mock('../../services/googleAuth', () => ({
 vi.mock('../../services/sheetsService', () => ({
   fetchSheetData: vi.fn(),
   setSpreadsheetId: vi.fn(),
+  resolveActiveSpreadsheetId: vi.fn().mockReturnValue('mock-id'),
 }));
 
 describe('useCampaign Tests', () => {

@@ -5,6 +5,7 @@ import { useEncounters } from './EncountersTab/hooks/useEncounters';
 import { EncounterCard } from './EncountersTab/EncounterCard';
 import { NewEncounterDialog } from './EncountersTab/NewEncounterDialog';
 import { DifficultyLevel } from '../types';
+import { readEncounterLogs } from '../services/dbOperations';
 
 export function EncountersTab({ 
   onSelectEncounter, 
@@ -23,6 +24,21 @@ export function EncountersTab({
     handleDelete,
     handleUpdateEncounter,
   } = useEncounters({ onSelectEncounter, onSyncRequested });
+
+  const [completedEncounterIds, setCompletedEncounterIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    async function loadLogs() {
+      try {
+        const logs = await readEncounterLogs();
+        const encounterIds = new Set(logs.map(log => String(log[1])));
+        setCompletedEncounterIds(encounterIds);
+      } catch (err) {
+        console.error('Failed to load encounter logs for completed check:', err);
+      }
+    }
+    loadLogs();
+  }, [state.encounters]);
 
   const [isNewDialogOpen, setIsNewDialogOpen] = useState(false);
 
@@ -88,6 +104,7 @@ export function EncountersTab({
             <EncounterCard 
               key={enc.id} 
               enc={enc} 
+              isCompleted={completedEncounterIds.has(enc.id)}
               isDeleting={isDeletingId === enc.id}
               onDelete={handleDelete} 
               onStart={(e) => onSelectEncounter(e.id)} 

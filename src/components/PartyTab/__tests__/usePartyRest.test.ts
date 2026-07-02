@@ -12,6 +12,7 @@ vi.mock('../../../services/sheetsService', () => ({
   batchUpdateSpreadsheet: vi.fn(),
   fetchSpreadsheetMetadata: vi.fn(),
   getSpreadsheetId: vi.fn().mockReturnValue('mock-spreadsheet-id'),
+  resolveActiveSpreadsheetId: vi.fn().mockReturnValue('mock-spreadsheet-id'),
 }));
 
 vi.mock('../../../services/writeQueue', () => ({
