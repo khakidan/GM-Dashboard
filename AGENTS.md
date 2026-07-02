@@ -368,6 +368,7 @@ Shared test data factories used across many test files. These are not tests them
 - `hooks/useCombatantExpanded.ts` — Encapsulates resource pool updates and condition-triggered resource depletion via `onConditionAdded`. Used by `CombatantCardExpanded`.
 - `hooks/useHealthChange.ts` — Damage/healing with IRV math. Fires `fireConcentrationAlert()` whenever a concentrating combatant takes damage.
 - `hooks/useCombatSync.ts` — Turn, round, and combatant synchronization. Calls `initCombatLog`, `addCombatEvent`, `advanceCombatLogRound`, and `clearCombatLog`. Implements `cancelCombat`, `resetCombat`, initiative sorting on first turn, dead-NPC skipping, and NPC initiative as `1d20 + DEX modifier`.
+- `hooks/useEncounterPresetLoader.ts` — Handles adding PC and NPC presets to active encounters. Implements rollback fix: state snapshots are now captured BEFORE optimistic updates (not after), so a failed DB write correctly rolls back to pre-update state and shows a toast.error to the GM.
 - `hooks/useEncounterKeyboard.ts` — Global combat keyboard shortcuts. Escape exits selection mode, clears `expandedIds`, and closes modals.
 
 ### src/components/EncountersTab/
@@ -393,7 +394,7 @@ When adding a new character field, add it to this whitelist and to `dbOperations
 
 ## Testing Structure — 12-Batch System
 
-**Current baseline: 681 tests.**
+**Current baseline: 682 tests.**
 
 All batches must pass with zero failures. No batch should exceed 35 seconds.
 
@@ -405,7 +406,7 @@ Run each batch individually. Never chain with `&&`. Never use glob patterns. Nev
 | 2 | Services | 34 |
 | 3 | Hooks | 39 |
 | 4 | Server | 7 |
-| 5A | AET Hooks | 44 |
+| 5A | AET Hooks | 45 |
 | 5B | AET Components | 26 |
 | 6A | PartyTab | 46 |
 | 6B | Encounters | 20 |
@@ -413,7 +414,7 @@ Run each batch individually. Never chain with `&&`. Never use glob patterns. Nev
 | 7B-1 | Top-Level 1 | 13 |
 | 7B-2 | Top-Level 2 | 4 |
 | 8 | UI | 2 |
-| **Total** | | **681** |
+| **Total** | | **682** |
 
 *Note: `EncounterLogModal.test.tsx` (5 tests) and `useEncounterLogs.test.ts` (4 tests) were added to Batch 6B.*
 
@@ -430,7 +431,7 @@ npx vitest run src/hooks/__tests__
 # BATCH 4 — 7 tests
 npx vitest run src/server/__tests__ src/__tests__
 
-# BATCH 5A — 44 tests
+# BATCH 5A — 45 tests
 npx vitest run src/components/ActiveEncounterTab/__tests__/useBatchActions.test.ts src/components/ActiveEncounterTab/__tests__/useCombatSync.test.ts src/components/ActiveEncounterTab/__tests__/useCombatantCard.test.ts src/components/ActiveEncounterTab/__tests__/useCombatantExpanded.test.ts src/components/ActiveEncounterTab/__tests__/useEncounterPresetLoader.test.ts src/components/ActiveEncounterTab/__tests__/useHealthChange.test.ts src/components/ActiveEncounterTab/__tests__/useSelectionMode.test.ts
 
 # BATCH 5B — 26 tests
@@ -950,6 +951,7 @@ None.
 
 - `dbOperations.ts` exceeds 1,300 lines and could eventually be split into entity-specific files (characters, NPCs, encounters, combatants, logs).
 - `useCombatSync.ts` currently handles initiative, dead-NPC skipping, combat cancellation/end, combat log wiring, condition timers, and sheet persistence. It is a good candidate for future decomposition.
+- `useEncounterPresetLoader.ts` contains TEMPORARY debug logging (console.log/console.error, both marked `// TODO: REMOVE AFTER DEBUGGING`) added while investigating why PCs added via the Add Combatant modal don't persist to Encounter_Combatants. Remove these once the root cause is confirmed and the real fix is in place.
 
 ---
 
