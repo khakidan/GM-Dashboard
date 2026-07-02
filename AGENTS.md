@@ -949,8 +949,29 @@ None.
 
 #### Remaining Technical Debt
 
-- `dbOperations.ts` exceeds 1,300 lines and could eventually be split into entity-specific files (characters, NPCs, encounters, combatants, logs).
 - `useCombatSync.ts` currently handles initiative, dead-NPC skipping, combat cancellation/end, combat log wiring, condition timers, and sheet persistence. It is a good candidate for future decomposition.
+
+#### dbOperations.ts Decomposition Plan (planned, not yet started)
+
+Current state: 1,407 lines, single file, handles all CRUD for every sheet (Characters, NPCs, Encounters, Encounter_Combatants, EncounterLogs).
+
+Confirmed via discovery (verified with real grep output, not estimates):
+- 11 external files import from this file across hooks/ and components/: `useDeathSaves.ts`, `useEncounterLifecycle.ts`, `useParty.ts`, `useNpcLibrary.ts`, `useEncounterLogs.ts`, `useEncounters.ts`, `useBatchActions.ts`, `useCombatantExpanded.ts`, `useCombatSync.ts`, `useEncounterPresetLoader.ts`, `EncountersTab.tsx`.
+- 12 test files mock or import from this file.
+- One shared cross-entity helper, `buildCascadeDeleteRequests` (currently private/unexported), is called by the Characters, Encounters, and NPCs delete paths.
+- 9 foundational helper functions are currently private to the module (`resolveSpreadsheetId`, `getSpellcastingAbilityToSave`, `injectSpellcastingAbility`, `findRowIndexById`, `getSheetIds`, `buildCascadeDeleteRequests`, `fetchSheetDataProxy`, `batchUpdateSheetProxy`, `appendSheetDataProxy`) — confirmed via individual grep checks that none are called outside this file, and the test file only exercises them indirectly through public functions. This means extracting them requires adding `export` but has zero impact on any external call site or test file.
+- `castInt`, `sanitizeString`, and `getNextId` are already exported.
+
+Planned approach (incremental, one step at a time, full 12-batch verification between each step — do NOT attempt this as a single large refactor):
+
+1. **Extract shared.ts first** — move all 9 foundational helpers there, adding `export` to the 8 that need it. Keep a barrel `index.ts` re-exporting everything from `dbOperations.ts` so none of the 11 external files or 12 test files need import changes at this stage. Verify all 12 batches pass before proceeding.
+2. **Extract encounterLogs.ts** (smallest, most isolated — 3 functions, used by only 2 external files). Verify all 12 batches.
+3. **Extract npcs.ts**. Verify all 12 batches.
+4. **Extract characters.ts**. Verify all 12 batches.
+5. **Extract encounters.ts and encounterCombatants.ts last** — these are the riskiest since `useCombatSync.ts` alone imports 9 functions spanning both groups. Verify all 12 batches.
+6. **OPTIONAL, separate future decision**: once all entities are split, consider updating the 11 external files to import directly from their specific new file instead of the barrel `index.ts`. This is cleanup, not required for the refactor's core goal, and should only be done if desired after the split has proven stable in practice.
+
+Each step must be its own prompt/session with full verification — this file is imported by 11 active application files and mocked by 12 test files, so an incremental, fully-verified approach is required rather than a single large rewrite.
 
 ---
 
