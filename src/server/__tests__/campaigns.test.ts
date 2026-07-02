@@ -116,7 +116,7 @@ describe('Campaigns Router', () => {
     vi.mocked(fetch).mockResolvedValueOnce({
       ok: false,
       status: 403,
-      json: async () => ({ error: 'FORBIDDEN' }),
+      json: async () => ({ error: { message: 'The caller does not have permission' } }),
     } as Response);
 
     const response = await request(app)
@@ -127,7 +127,8 @@ describe('Campaigns Router', () => {
     expect(response.status).toBe(403);
     expect(response.body).toEqual({
       error: 'GOOGLE_API_ERROR',
-      details: { error: 'FORBIDDEN' }
+      message: 'The caller does not have permission',
+      details: { error: { message: 'The caller does not have permission' } }
     });
   });
 });

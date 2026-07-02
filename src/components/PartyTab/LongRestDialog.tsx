@@ -16,11 +16,13 @@ export function LongRestDialog({ isOpen, characters, onConfirm, onClose }: LongR
 
   useEffect(() => {
     if (isOpen) {
-      setSelectedIds(characters.map(c => c.id));
+      setSelectedIds(characters.filter(c => c.statusId !== 3).map(c => c.id));
     }
   }, [isOpen, characters]);
 
   const toggleSelect = (id: string) => {
+    const char = characters.find(c => c.id === id);
+    if (char?.statusId === 3) return;
     setSelectedIds(prev => 
       prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
     );
@@ -75,6 +77,7 @@ export function LongRestDialog({ isOpen, characters, onConfirm, onClose }: LongR
                 <p className="text-[#8d8db9] text-center text-sm py-4 italic">No active characters to select.</p>
               ) : (
                 characters.map(char => {
+                  const isDeceased = char.statusId === 3;
                   const isChecked = selectedIds.includes(char.id);
                   const hdStatus = getHitDiceStatus(char.hitDiceConfig || '', char.hitDiceUsed || '{}');
                   const remainingHD = hdStatus.reduce((sum, p) => sum + p.remaining, 0);
@@ -84,11 +87,13 @@ export function LongRestDialog({ isOpen, characters, onConfirm, onClose }: LongR
                   return (
                     <div
                       key={char.id}
-                      onClick={() => toggleSelect(char.id)}
-                      className={`flex flex-col p-3.5 rounded-xl border transition-all cursor-pointer select-none ${
-                        isChecked
-                          ? 'bg-[#f0f7ff] border-[#2563eb] shadow-sm'
-                          : 'bg-white border-[#e2e8f0] hover:border-[#2563eb]'
+                      onClick={() => !isDeceased && toggleSelect(char.id)}
+                      className={`flex flex-col p-3.5 rounded-xl border transition-all select-none ${
+                        isDeceased
+                          ? 'opacity-40 bg-gray-50 border-gray-200 cursor-not-allowed'
+                          : isChecked
+                            ? 'bg-[#f0f7ff] border-[#2563eb] shadow-sm cursor-pointer'
+                            : 'bg-white border-[#e2e8f0] hover:border-[#2563eb] cursor-pointer'
                       }`}
                       id={`char-row-${char.id}`}
                     >
@@ -97,13 +102,19 @@ export function LongRestDialog({ isOpen, characters, onConfirm, onClose }: LongR
                           <input
                             type="checkbox"
                             checked={isChecked}
+                            disabled={isDeceased}
                             onChange={() => {}} // toggled via row click
-                            className="w-4 h-4 rounded text-[#2563eb] border-[#e2e8f0] focus:ring-[#2563eb] cursor-pointer accent-[#2563eb]"
+                            className="w-4 h-4 rounded text-[#2563eb] border-[#e2e8f0] focus:ring-[#2563eb] cursor-pointer accent-[#2563eb] disabled:opacity-50 disabled:cursor-not-allowed"
                             id={`checkbox-${char.id}`}
                           />
                           <div>
                             <span className="font-serif font-bold text-[#0f172a] text-sm block">
                               {char.characterName}
+                              {isDeceased && (
+                                <span className="text-red-500 font-sans text-[10px] ml-2 font-semibold bg-red-50 px-1.5 py-0.5 rounded border border-red-100 uppercase">
+                                  Deceased
+                                </span>
+                              )}
                             </span>
                             <span className="text-xs text-[#8d8db9]/70 italic block">
                               {char.playerName}

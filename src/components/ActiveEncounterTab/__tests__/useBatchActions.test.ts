@@ -25,7 +25,6 @@ vi.mock('../../../services/dbOperations', () => ({
   updateNpcInstanceConditionsDB: vi.fn().mockResolvedValue(true),
 }));
 
-const mockUpdateState = vi.fn();
 const mockAppState = {
   combatState: {
     combatants: [] as any[],
@@ -35,6 +34,23 @@ const mockAppState = {
   characters: [] as any[],
 };
 
+const mockUpdateState = vi.fn((updater) => {
+  if (typeof updater === 'function') {
+    const nextState = updater(mockAppState);
+    if (nextState) {
+      if (nextState.combatState) {
+        mockAppState.combatState = { ...mockAppState.combatState, ...nextState.combatState };
+      }
+      if (nextState.characters) {
+        mockAppState.characters = nextState.characters;
+      }
+      if (nextState.encounterCombatants) {
+        mockAppState.encounterCombatants = nextState.encounterCombatants;
+      }
+    }
+  }
+});
+
 vi.mock('../../../hooks/useAppState', () => ({
   useAppState: () => ({
     updateState: mockUpdateState,
@@ -43,13 +59,21 @@ vi.mock('../../../hooks/useAppState', () => ({
       npcs: [],
     },
   }),
-  getSnapshot: () => mockAppState,
+  getSnapshot: () => ({
+    combatState: {
+      combatants: [...mockAppState.combatState.combatants],
+      activeTurnId: mockAppState.combatState.activeTurnId,
+    },
+    encounterCombatants: [...mockAppState.encounterCombatants],
+    characters: [...mockAppState.characters],
+  }),
 }));
 
+const mockFireUnconscious = vi.fn();
 vi.mock('../../../hooks/useOverlayEvents', () => ({
   useDamageEvent: () => ({ fire: vi.fn() }),
   useHealEvent: () => ({ fire: vi.fn() }),
-  useUnconsciousEvent: () => ({ fire: vi.fn() }),
+  useUnconsciousEvent: () => ({ fire: mockFireUnconscious }),
 }));
 
 vi.mock('../../../hooks/useDeathSaves', () => ({
@@ -274,5 +298,46 @@ describe('useBatchActions', () => {
       window.removeEventListener('unhandledrejection', handleRejection);
       process.off('unhandledRejection', processRejection);
     }
+  });
+
+  it('batch damage triggers fireUnconsciousEvent when a PC is reduced to 0 HP', async () => {
+    const selectedIds = new Set(['c3']);
+    const pcCombatant = { ...c3, currentHp: 10 }; // Fighter has 10 HP
+    const combatants = [c1, c2, pcCombatant];
+    mockAppState.combatState.combatants = combatants;
+    mockAppState.encounterCombatants = [];
+
+    const { result } = renderHook(() => useBatchActions({ selectedIds, combatants }));
+
+    await act(async () => {
+      await result.current.handleApplyMultiDamage(10, 'slashing');
+    });
+
+    expect(mockFireUnconscious).toHaveBeenCalledWith({ characterName: 'Fighter' });
+  });
+
+  it('batch damage fires only first PC unconsciousness overlay and logs a warning when multiple PCs drop to 0 HP', async () => {
+    const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    
+    const pc1 = { ...c3, id: 'pc1', name: 'PC One', currentHp: 10 };
+    const pc2 = { ...c3, id: 'pc2', name: 'PC Two', currentHp: 5 };
+    const selectedIds = new Set(['pc1', 'pc2']);
+    const combatants = [pc1, pc2];
+    mockAppState.combatState.combatants = combatants;
+    mockAppState.encounterCombatants = [];
+
+    const { result } = renderHook(() => useBatchActions({ selectedIds, combatants }));
+
+    await act(async () => {
+      await result.current.handleApplyMultiDamage(10, 'slashing');
+    });
+
+    expect(mockFireUnconscious).toHaveBeenCalledTimes(1);
+    expect(mockFireUnconscious).toHaveBeenCalledWith({ characterName: 'PC One' });
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Multiple PCs fell unconscious simultaneously')
+    );
+
+    consoleWarnSpy.mockRestore();
   });
 });

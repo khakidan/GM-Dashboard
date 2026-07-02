@@ -290,27 +290,31 @@ export async function deleteEncounterFully(
     const requests = await buildCascadeDeleteRequests(resolvedId, 'Encounters', encounterId, 1, ids) || [];
 
     // Add encounter log deletion
-    const logData = await fetchSheetData(resolvedId, 'EncounterLogs!A2:J');
-    const logRows = logData.values || [];
-    
-    const logsToDelete = logRows
-      .map((row, i) => ({ row, i }))
-      .filter(({ row }) => row && String(row[1]).trim() === String(encounterId).trim())
-      .map(({ i }) => i + 1)
-      .sort((a, b) => b - a);
+    try {
+      const logData = await fetchSheetData(resolvedId, 'EncounterLogs!A2:J');
+      const logRows = logData.values || [];
+      
+      const logsToDelete = logRows
+        .map((row, i) => ({ row, i }))
+        .filter(({ row }) => row && String(row[1]).trim() === String(encounterId).trim())
+        .map(({ i }) => i + 1)
+        .sort((a, b) => b - a);
 
-    logsToDelete.forEach(idx => {
-      requests.push({
-        deleteDimension: {
-          range: {
-            sheetId: ids['EncounterLogs'],
-            dimension: 'ROWS' as const,
-            startIndex: idx,
-            endIndex: idx + 1,
+      logsToDelete.forEach(idx => {
+        requests.push({
+          deleteDimension: {
+            range: {
+              sheetId: ids['EncounterLogs'],
+              dimension: 'ROWS' as const,
+              startIndex: idx,
+              endIndex: idx + 1,
+            },
           },
-        },
+        });
       });
-    });
+    } catch (err) {
+      console.warn('[DB] Failed to cleanup EncounterLogs during encounter deletion:', err);
+    }
 
     if (requests.length > 0) {
       await batchUpdateSpreadsheet(resolvedId, requests);

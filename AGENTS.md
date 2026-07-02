@@ -1158,12 +1158,7 @@ The test must check WHAT was passed.
    lib ← services ← hooks ← components.
    A component never imports from services.
 
-3. **Test batches are fixed.** Never chain
-   batches with `&&`, never use glob patterns,
-   never run `npx vitest run` without
-   specifying files/directories, never
-   reorganize which tests are in which batch
-   without updating AGENTS.md.
+3. **Test batches are fixed.** Never chain batches with `&&`, never use glob patterns, never run `npx vitest run` without specifying files/directories, never reorganize which tests are in which batch without updating AGENTS.md.
 
    3.1. **No parallel test execution.** Never run multiple test batches simultaneously or in parallel. Each batch command must be issued as a single terminal call, waited on until it completes and prints its result, and only then may the next batch command be issued. Do not use background tasks, scheduled timers, or task queues to run tests. Run one batch, read the result, run the next.
 
@@ -1250,13 +1245,7 @@ history for details.
 ---
 
 ### 🟡 Features to Add
-Auto-assign saving throw proficiencies
-at character creation — resolved.
-CLASS_SAVING_THROW_MAP added to
-src/lib/spellcasting.ts. useEffect in
-NewPlayerDialog watches formData.class
-and sets savingThrows in proficiencies
-automatically. See session history.
+None.
 
 ---
 
@@ -1264,13 +1253,6 @@ automatically. See session history.
 
 #### Remaining Technical Debt
 
-- `appendEncounterLog` and
-  `readEncounterLogs` in
-  `dbOperations.ts` are missing the
-  dual-signature overload pattern
-  (arg1: any, arg2?: any) used by
-  all other DB functions — low
-  priority cosmetic inconsistency
 - `dbOperations.ts` is over 1,300
   lines; a future session could split
   it into per-entity files

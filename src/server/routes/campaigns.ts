@@ -34,7 +34,11 @@ router.post('/create', async (req, res) => {
     const createData = await createRes.json() as any;
     if (!createRes.ok) {
       console.error('[Server] Failed to create spreadsheet:', createData);
-      return res.status(createRes.status).json({ error: 'GOOGLE_API_ERROR', details: createData });
+      return res.status(createRes.status).json({
+        error: 'GOOGLE_API_ERROR',
+        message: createData?.error?.message || 'Google Sheets API rejected the request.',
+        details: createData
+      });
     }
 
     const { spreadsheetId, spreadsheetUrl } = createData;

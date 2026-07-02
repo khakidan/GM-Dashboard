@@ -98,7 +98,7 @@ export const EncounterCard: React.FC<EncounterCardProps> = ({
     <div className={cn(
       "bg-white rounded-2xl border border-[#e2e8f0] overflow-hidden group transition-all hover:shadow-md",
       (isUpdating || isDeleting) && "opacity-75 pointer-events-none",
-      isCompleted && "bg-slate-50 border-slate-200"
+      isCompleted && "bg-[#f9f8ff] border-[#e2e8f0]"
     )}>
       <div className="p-4 flex flex-col md:flex-row items-stretch md:items-center gap-4 px-6">
         {/* Name Field */}

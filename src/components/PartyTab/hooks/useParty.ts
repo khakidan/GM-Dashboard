@@ -168,11 +168,22 @@ export function useParty() {
     setIsResting(true);
     setGlobalError(null);
     
+    const eligibleCharacterIds = characterIds.filter(id => {
+      const char = state.characters.find(c => c.id === id);
+      return char?.statusId !== 3;
+    });
+
+    if (eligibleCharacterIds.length === 0) {
+      toast.info("No eligible characters to rest — deceased characters cannot rest.");
+      setIsResting(false);
+      return;
+    }
+    
     const previousState = state;
     // 1. Update local state optimistically
     updateState(prev => {
       const updatedCharacters = prev.characters.map(c => {
-        if (!characterIds.includes(c.id)) return c;
+        if (!eligibleCharacterIds.includes(c.id)) return c;
         
         const nextHitDiceUsed = applyLongRestHitDiceRecovery(c.hitDiceConfig || '', c.hitDiceUsed || '{}');
         const currentPools = parseResourcePools(c.resourcePools || '[]');
@@ -208,7 +219,7 @@ export function useParty() {
       // Mirror the changes into any active PC combatants
       const updatedCombatants = (prev.combatState?.combatants || []).map(
         combatant => {
-          if (combatant.type !== 'pc' || !combatant.characterId || !characterIds.includes(combatant.characterId)) {
+          if (combatant.type !== 'pc' || !combatant.characterId || !eligibleCharacterIds.includes(combatant.characterId)) {
             return combatant;
           }
           const updatedChar = updatedCharacters.find(
@@ -241,7 +252,7 @@ export function useParty() {
     });
 
     try {
-      const selectedChars = previousState.characters.filter(c => characterIds.includes(c.id));
+      const selectedChars = previousState.characters.filter(c => eligibleCharacterIds.includes(c.id));
       
       const updatePromises = selectedChars.map(char => {
         const nextHitDiceUsed = applyLongRestHitDiceRecovery(char.hitDiceConfig || '', char.hitDiceUsed || '{}');
@@ -320,12 +331,23 @@ export function useParty() {
     }>
   ) => {
     setGlobalError(null);
+    
+    const eligibleResults = results.filter(res => {
+      const char = state.characters.find(c => c.id === res.characterId);
+      return char?.statusId !== 3;
+    });
+
+    if (eligibleResults.length === 0) {
+      toast.info("No eligible characters to rest — deceased characters cannot rest.");
+      return;
+    }
+
     const previousState = state;
 
     // 1. Update local state optimistically
     updateState(prev => {
       const updatedCharacters = prev.characters.map(c => {
-        const res = results.find(r => r.characterId === c.id);
+        const res = eligibleResults.find(r => r.characterId === c.id);
         if (!res) return c;
 
         const newHp = Math.min(
@@ -379,7 +401,7 @@ export function useParty() {
     });
 
     try {
-      const updatePromises = results.map(res => {
+      const updatePromises = eligibleResults.map(res => {
         const char = previousState.characters.find(c => c.id === res.characterId);
         if (!char) return Promise.resolve();
 
@@ -404,7 +426,7 @@ export function useParty() {
       await Promise.all(updatePromises);
 
       toast.success('Short rest complete', {
-        description: `Short rest applied to ${results.length} character(s).`,
+        description: `Short rest applied to ${eligibleResults.length} character(s).`,
       });
 
     } catch (error) {

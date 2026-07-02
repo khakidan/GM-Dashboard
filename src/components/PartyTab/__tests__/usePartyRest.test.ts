@@ -341,5 +341,72 @@ describe('useParty - REST and Recovery', () => {
       const writtenRow = vi.mocked(queueWrite).mock.calls[0][2][0];
       expect(writtenRow[0]).toBe('pc-1');
     });
+
+    it('handleLongRest excludes a deceased character ID from DB update calls', async () => {
+      const pc1 = { id: 'pc-1', currentHp: 10, maxHp: 60, statusId: 1 };
+      const pcDeceased = { id: 'pc-deceased', currentHp: 0, maxHp: 40, statusId: 3 };
+      const mockState = { characters: [pc1, pcDeceased] };
+      vi.mocked(useAppState).mockReturnValue({ state: mockState as any, updateState: vi.fn(), getSnapshot: vi.fn() } as any);
+      vi.mocked(getSnapshot).mockReturnValue(mockState as any);
+
+      const { result } = renderHook(() => useParty());
+      await act(async () => {
+        await result.current.handleLongRest(['pc-1', 'pc-deceased']);
+      });
+
+      expect(queueWrite).toHaveBeenCalledTimes(1);
+      const writtenRow = vi.mocked(queueWrite).mock.calls[0][2][0];
+      expect(writtenRow[0]).toBe('pc-1');
+    });
+
+    it('handleLongRest returns early and shows toast when all provided IDs are deceased', async () => {
+      const pcDeceased = { id: 'pc-deceased', currentHp: 0, maxHp: 40, statusId: 3 };
+      const mockState = { characters: [pcDeceased] };
+      vi.mocked(useAppState).mockReturnValue({ state: mockState as any, updateState: vi.fn(), getSnapshot: vi.fn() } as any);
+      vi.mocked(getSnapshot).mockReturnValue(mockState as any);
+
+      const { result } = renderHook(() => useParty());
+      await act(async () => {
+        await result.current.handleLongRest(['pc-deceased']);
+      });
+
+      expect(queueWrite).not.toHaveBeenCalled();
+    });
+
+    it('handleShortRest excludes a deceased character ID from DB update calls', async () => {
+      const pc1 = { id: 'pc-1', currentHp: 10, maxHp: 60, statusId: 1, resourcePools: '[]' };
+      const pcDeceased = { id: 'pc-deceased', currentHp: 0, maxHp: 40, statusId: 3, resourcePools: '[]' };
+      const mockState = { characters: [pc1, pcDeceased] };
+      vi.mocked(useAppState).mockReturnValue({ state: mockState as any, updateState: vi.fn(), getSnapshot: vi.fn() } as any);
+      vi.mocked(getSnapshot).mockReturnValue(mockState as any);
+
+      const { result } = renderHook(() => useParty());
+      await act(async () => {
+        await result.current.handleShortRest([
+          { characterId: 'pc-1', hpToAdd: 5, newHitDiceUsed: '{}' },
+          { characterId: 'pc-deceased', hpToAdd: 0, newHitDiceUsed: '{}' }
+        ]);
+      });
+
+      expect(queueWrite).toHaveBeenCalledTimes(1);
+      const writtenRow = vi.mocked(queueWrite).mock.calls[0][2][0];
+      expect(writtenRow[0]).toBe('pc-1');
+    });
+
+    it('handleShortRest returns early and shows toast when all provided IDs are deceased', async () => {
+      const pcDeceased = { id: 'pc-deceased', currentHp: 0, maxHp: 40, statusId: 3, resourcePools: '[]' };
+      const mockState = { characters: [pcDeceased] };
+      vi.mocked(useAppState).mockReturnValue({ state: mockState as any, updateState: vi.fn(), getSnapshot: vi.fn() } as any);
+      vi.mocked(getSnapshot).mockReturnValue(mockState as any);
+
+      const { result } = renderHook(() => useParty());
+      await act(async () => {
+        await result.current.handleShortRest([
+          { characterId: 'pc-deceased', hpToAdd: 0, newHitDiceUsed: '{}' }
+        ]);
+      });
+
+      expect(queueWrite).not.toHaveBeenCalled();
+    });
   });
 });

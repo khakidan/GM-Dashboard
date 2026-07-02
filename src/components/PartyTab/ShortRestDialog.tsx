@@ -37,6 +37,7 @@ export function ShortRestDialog({ isOpen, characters, onConfirm, onClose }: Shor
       const initialExpanded = new Set<string>();
 
       characters.forEach(char => {
+        const isDeceased = char.statusId === 3;
         const hdStatus = getHitDiceStatus(char.hitDiceConfig || '', char.hitDiceUsed || '{}');
         const spendInit: Record<string, number> = {};
         const rollResultsInit: Record<string, number | null> = {};
@@ -47,14 +48,16 @@ export function ShortRestDialog({ isOpen, characters, onConfirm, onClose }: Shor
         });
 
         initialStates[char.id] = {
-          participating: true,
+          participating: !isDeceased,
           hpToAdd: 0,
           spend: spendInit,
           rollResults: rollResultsInit,
         };
         
         // Expand the first checked character by default for better UX, or let them click
-        initialExpanded.add(char.id);
+        if (!isDeceased) {
+          initialExpanded.add(char.id);
+        }
       });
 
       setRestStates(initialStates);
@@ -64,6 +67,8 @@ export function ShortRestDialog({ isOpen, characters, onConfirm, onClose }: Shor
 
   const toggleParticipating = (id: string, e: React.MouseEvent) => {
     e.stopPropagation(); // prevent expanding on checkbox click
+    const char = characters.find(c => c.id === id);
+    if (char?.statusId === 3) return;
     setRestStates(prev => {
       const current = prev[id] || { participating: false, hpToAdd: 0, spend: {}, rollResults: {} };
       return {
@@ -229,9 +234,10 @@ export function ShortRestDialog({ isOpen, characters, onConfirm, onClose }: Shor
                 <p className="text-[#8d8db9] text-center text-sm py-4 italic">No active characters to select.</p>
               ) : (
                 characters.map(char => {
+                  const isDeceased = char.statusId === 3;
                   const charState = restStates[char.id] || { participating: false, hpToAdd: 0, spend: {}, rollResults: {} };
                   const isChecked = charState.participating;
-                  const isExpanded = expandedIds.has(char.id) && isChecked;
+                  const isExpanded = expandedIds.has(char.id) && isChecked && !isDeceased;
 
                   const hdStatus = getHitDiceStatus(char.hitDiceConfig || '', char.hitDiceUsed || '{}');
                   const remainingCountTotal = hdStatus.reduce((sum, p) => sum + p.remaining, 0);
@@ -245,9 +251,13 @@ export function ShortRestDialog({ isOpen, characters, onConfirm, onClose }: Shor
                     >
                       {/* Collapse/Expand Row Header */}
                       <div
-                        onClick={() => isChecked && toggleExpand(char.id)}
-                        className={`flex items-center justify-between p-4 cursor-pointer select-none transition-colors ${
-                          isChecked ? 'bg-[#f0f7ff] hover:bg-[#f0f7ff]/80' : 'bg-gray-50/50 opacity-60'
+                        onClick={() => !isDeceased && isChecked && toggleExpand(char.id)}
+                        className={`flex items-center justify-between p-4 select-none transition-colors ${
+                          isDeceased
+                            ? 'bg-gray-50/50 opacity-40 cursor-not-allowed'
+                            : isChecked
+                              ? 'bg-[#f0f7ff] hover:bg-[#f0f7ff]/80 cursor-pointer'
+                              : 'bg-gray-50/50 opacity-60 cursor-pointer'
                         }`}
                         id={`short-rest-header-${char.id}`}
                       >
@@ -255,14 +265,23 @@ export function ShortRestDialog({ isOpen, characters, onConfirm, onClose }: Shor
                           <input
                             type="checkbox"
                             checked={isChecked}
+                            disabled={isDeceased}
                             onChange={(e) => {}} // custom handled via toggleParticipating
-                            onClick={(e) => toggleParticipating(char.id, e)}
-                            className="w-4 h-4 rounded text-[#2563eb] border-[#e2e8f0] focus:ring-[#2563eb] cursor-pointer accent-[#2563eb]"
+                            onClick={(e) => {
+                              if (isDeceased) return;
+                              toggleParticipating(char.id, e);
+                            }}
+                            className="w-4 h-4 rounded text-[#2563eb] border-[#e2e8f0] focus:ring-[#2563eb] cursor-pointer accent-[#2563eb] disabled:opacity-50 disabled:cursor-not-allowed"
                             id={`short-rest-checkbox-${char.id}`}
                           />
                           <div>
                             <span className="font-serif font-bold text-[#0f172a] text-sm">
                               {char.characterName}
+                              {isDeceased && (
+                                <span className="text-red-500 font-sans text-[10px] ml-2 font-semibold bg-red-50 px-1.5 py-0.5 rounded border border-red-100 uppercase">
+                                  Deceased
+                                </span>
+                              )}
                             </span>
                             <span className="text-[10px] text-[#8d8db9]/70 font-sans ml-2">
                               ({char.playerName})

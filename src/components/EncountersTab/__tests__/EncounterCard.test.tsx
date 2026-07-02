@@ -26,14 +26,36 @@ describe('EncounterCard', () => {
 
   const defaultProps = {
     enc: mockEnc,
+    isCompleted: false,
     isDeleting: false,
     onDelete: vi.fn(),
     onStart: vi.fn(),
     onSyncRequested: vi.fn(),
+    onUpdate: vi.fn(),
   };
 
   it('renders the encounter name and difficulty', () => {
     const { container } = render(<EncounterCard {...defaultProps} />);
     expect(container).toBeInTheDocument();
+  });
+
+  it('disables Run button when isCompleted is true', () => {
+    render(<EncounterCard {...defaultProps} isCompleted={true} />);
+    const runButton = screen.getByTitle('This encounter has already been completed');
+    expect(runButton).toBeDisabled();
+  });
+
+  it('enables Run button when isCompleted is false', () => {
+    render(<EncounterCard {...defaultProps} isCompleted={false} />);
+    const runButton = screen.getByTitle('View / Run Encounter');
+    expect(runButton).not.toBeDisabled();
+  });
+
+  it('enables View Log button regardless of completion status', () => {
+    const { rerender } = render(<EncounterCard {...defaultProps} isCompleted={true} />);
+    expect(screen.getByTitle('View Past Encounter Logs')).not.toBeDisabled();
+
+    rerender(<EncounterCard {...defaultProps} isCompleted={false} />);
+    expect(screen.getByTitle('View Past Encounter Logs')).not.toBeDisabled();
   });
 });

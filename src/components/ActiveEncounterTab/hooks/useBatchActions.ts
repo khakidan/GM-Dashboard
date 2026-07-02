@@ -107,7 +107,7 @@ export function useBatchActions({ selectedIds, combatants, onSuccess }: UseBatch
     }
   };
 
-  const { handleHealthChange, fireDamageEvent, fireHealEvent } = useHealthChange(new Set(), updateCombatant);
+  const { handleHealthChange, fireDamageEvent, fireHealEvent, fireUnconsciousEvent } = useHealthChange(new Set(), updateCombatant);
 
   const handleApplyMultiDamage = async (amount: number, type: DamageType | null) => {
     const selectedList = combatants.filter(c => selectedIds.has(c.id));
@@ -115,18 +115,24 @@ export function useBatchActions({ selectedIds, combatants, onSuccess }: UseBatch
 
     const affectedNames = selectedList.map(c => c.name);
     const previousState = getSnapshot();
+    const newlyUnconsciousPCs: string[] = [];
     try {
       const { addCombatEvent, activeCombatLog, combatState } =
         useDashboardStore.getState()
 
       for (const c of selectedList) {
         const hpBefore = c.currentHp;
+        const isPc = c.type === 'pc';
         handleHealthChange(c.id, c, true, type, amount, false, true); // pass skipOverlay=true
 
         // Find the updated state
         const latestState = getSnapshot();
         const updatedCombatant = latestState.combatState.combatants.find(x => x.id === c.id);
         const hpAfter = updatedCombatant?.currentHp ?? hpBefore;
+
+        if (isPc && hpBefore > 0 && hpAfter === 0) {
+          newlyUnconsciousPCs.push(c.name);
+        }
 
         if (activeCombatLog) {
           const { actionContext } = combatState;
@@ -174,6 +180,17 @@ export function useBatchActions({ selectedIds, combatants, onSuccess }: UseBatch
         damageAmount: amount,
         damageType: type || undefined,
       });
+
+      // Fire unconscious events for newly unconscious PCs
+      if (newlyUnconsciousPCs.length > 0) {
+        fireUnconsciousEvent({ characterName: newlyUnconsciousPCs[0] });
+        if (newlyUnconsciousPCs.length > 1) {
+          console.warn(
+            `Multiple PCs fell unconscious simultaneously (${newlyUnconsciousPCs.join(', ')}). ` +
+            `The overlay event was fired only for ${newlyUnconsciousPCs[0]} due to overlay limits.`
+          );
+        }
+      }
 
       toast.success(`Damage applied to ${selectedList.length} targets`);
     } catch (err) {
