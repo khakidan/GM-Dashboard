@@ -393,7 +393,7 @@ When adding a new character field, add it to this whitelist and to `dbOperations
 
 ## Testing Structure — 12-Batch System
 
-**Current baseline: 677 tests.**
+**Current baseline: 681 tests.**
 
 All batches must pass with zero failures. No batch should exceed 35 seconds.
 
@@ -410,10 +410,10 @@ Run each batch individually. Never chain with `&&`. Never use glob patterns. Nev
 | 6A | PartyTab | 46 |
 | 6B | Encounters | 20 |
 | 6C | NpcLibrary | 13 |
-| 7B-1 | Top-Level 1 | 11 |
+| 7B-1 | Top-Level 1 | 13 |
 | 7B-2 | Top-Level 2 | 4 |
 | 8 | UI | 2 |
-| **Total** | | **677** |
+| **Total** | | **681** |
 
 *Note: `EncounterLogModal.test.tsx` (5 tests) and `useEncounterLogs.test.ts` (4 tests) were added to Batch 6B.*
 
@@ -445,8 +445,8 @@ npx vitest run src/components/EncountersTab/__tests__
 # BATCH 6C — 13 tests
 npx vitest run src/components/NpcLibraryTab/__tests__
 
-# BATCH 7B-1 — 11 tests
-npx vitest run src/components/__tests__/CommandPalette.test.tsx src/components/__tests__/ErrorBoundary.test.tsx src/components/__tests__/GMDashboard.test.tsx src/components/__tests__/GMDashboardSidebar.test.tsx
+# BATCH 7B-1 — 13 tests
+npx vitest run src/components/__tests__/CommandPalette.test.tsx src/components/__tests__/ErrorBoundary.test.tsx src/components/__tests__/GMDashboard.test.tsx src/components/__tests__/GMDashboardSidebar.test.tsx src/components/__tests__/AudioLibrary.test.tsx
 
 # BATCH 7B-2 — 4 tests
 npx vitest run src/components/__tests__/CampaignSelector.test.tsx src/components/__tests__/GMTabContent.test.tsx src/components/__tests__/PlayerView.test.tsx src/components/__tests__/ThemeContext.test.tsx

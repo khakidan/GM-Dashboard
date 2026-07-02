@@ -1,7 +1,7 @@
 // src/components/AudioLibrary.tsx
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Upload, Play, Pause, Trash2, X, Music, Volume2, HelpCircle } from 'lucide-react';
+import { Upload, Play, Pause, Trash2, X, Music, Volume2, HelpCircle, Loader2 } from 'lucide-react';
 import { StoredAudioFile } from '../lib/audioFileStore';
 import { STORAGE_KEYS, TIMERS, MOODS, MoodId, campaignKey } from '../lib/constants';
 import { SoundboardSlot } from './Soundboard';
@@ -61,6 +61,9 @@ export function AudioLibrary({
 
   // Active Picker state
   const [activePickerFileId, setActivePickerFileId] = useState<string | null>(null);
+
+  // Uploading state
+  const [uploadingFiles, setUploadingFiles] = useState<{ id: string, name: string, category: 'ambient' | 'effect' }[]>([]);
 
   // Close picker on click away
   useEffect(() => {
@@ -164,6 +167,24 @@ export function AudioLibrary({
     setDragOverCategory(null);
   };
 
+  const processUpload = async (audioFiles: File[], category: 'ambient' | 'effect') => {
+    if (audioFiles.length === 0) return;
+    
+    const uploadTasks = audioFiles.map(file => ({
+      id: `${file.name}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+      name: file.name,
+      category
+    }));
+    
+    setUploadingFiles(prev => [...prev, ...uploadTasks]);
+    
+    try {
+      await addFiles(audioFiles, category);
+    } finally {
+      setUploadingFiles(prev => prev.filter(t => !uploadTasks.find(u => u.id === t.id)));
+    }
+  };
+
   const handleDrop = async (e: React.DragEvent, category: 'ambient' | 'effect') => {
     e.preventDefault();
     setDragOverCategory(null);
@@ -185,7 +206,7 @@ export function AudioLibrary({
         }
       }
       if (audioFiles.length > 0) {
-        await addFiles(audioFiles, category);
+        await processUpload(audioFiles, category);
       }
     }
   };
@@ -193,7 +214,7 @@ export function AudioLibrary({
   const handleFileInputChange = async (e: React.ChangeEvent<HTMLInputElement>, category: 'ambient' | 'effect') => {
     const files = e.target.files;
     if (files && files.length > 0) {
-      await addFiles(Array.from(files), category);
+      await processUpload(Array.from(files), category);
     }
   };
 
@@ -440,7 +461,7 @@ export function AudioLibrary({
 
         {/* Stored files list */}
         <div className="flex-1 overflow-y-auto pr-1 flex flex-col gap-1.5 pb-8" id={`list-${activeSubTab}`}>
-          {currentFiles.length === 0 ? (
+          {currentFiles.length === 0 && uploadingFiles.filter(f => f.category === activeSubTab).length === 0 ? (
             <span className="text-xs text-stone-400 font-sans text-center py-8 border border-dashed border-stone-200 rounded-xl bg-stone-50/50 flex flex-col items-center gap-2">
               <Upload className="w-6 h-6 text-stone-300" />
               {activeSubTab === 'ambient' 
@@ -449,7 +470,33 @@ export function AudioLibrary({
               }
             </span>
           ) : (
-            currentFiles.map((file) => renderFileRow(file))
+            <>
+              {uploadingFiles.filter(f => f.category === activeSubTab).map(file => (
+                <div
+                  key={file.id}
+                  className="group flex flex-row items-center p-2 bg-[#f9f8ff]/30 border border-stone-200/40 rounded-lg text-xs w-full opacity-70"
+                >
+                  <div className="flex items-center gap-2 shrink-0">
+                    <div className="w-6 h-6 flex items-center justify-center rounded-full border shrink-0 bg-[#2563eb]/10 border-[#2563eb]/30">
+                      <Loader2 className="w-3.5 h-3.5 text-[#2563eb] animate-spin" />
+                    </div>
+                    {activeSubTab === 'ambient' && <div className="w-6 h-6 mr-2" />}
+                  </div>
+                  <div className="flex-grow min-w-0 px-2 overflow-hidden">
+                    <p className="font-sans font-medium text-stone-500 leading-tight break-words truncate">
+                      {file.name}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3 shrink-0 ml-2">
+                    <p className="text-[9.5px] font-mono text-[#2563eb] mt-0.5 whitespace-nowrap text-right min-w-[40px] italic">
+                      Uploading...
+                    </p>
+                    <div className="w-6 h-6" /> {/* Placeholder for delete button to maintain layout */}
+                  </div>
+                </div>
+              ))}
+              {currentFiles.map((file) => renderFileRow(file))}
+            </>
           )}
         </div>
         
