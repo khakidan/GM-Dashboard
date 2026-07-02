@@ -131,4 +131,76 @@ describe('Campaigns Router', () => {
       details: { error: { message: 'The caller does not have permission' } }
     });
   });
+
+  it('POST /api/campaigns/create returns SHEET_STRUCTURE_FAILED if adding sheets fails', async () => {
+    const mockSpreadsheetResponse = {
+      spreadsheetId: 'spread-123',
+      spreadsheetUrl: 'https://docs.google.com/spreadsheets/d/spread-123/edit',
+      sheets: [{ properties: { sheetId: 0, title: 'Sheet1' } }]
+    };
+
+    vi.mocked(fetch).mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => mockSpreadsheetResponse,
+    } as Response);
+
+    vi.mocked(fetch).mockResolvedValueOnce({
+      ok: false,
+      status: 400,
+      text: async () => JSON.stringify({ error: { message: 'Invalid requests' } }),
+    } as Response);
+
+    const response = await request(app)
+      .post('/api/campaigns/create')
+      .set('Authorization', 'Bearer mock-token')
+      .send({ title: 'Tomb of Horrors' });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({
+      error: 'SHEET_STRUCTURE_FAILED',
+      message: 'Spreadsheet was created but sheet tabs could not be provisioned: Invalid requests',
+      spreadsheetId: 'spread-123',
+      spreadsheetUrl: 'https://docs.google.com/spreadsheets/d/spread-123/edit'
+    });
+  });
+
+  it('POST /api/campaigns/create returns HEADERS_FAILED if writing headers fails', async () => {
+    const mockSpreadsheetResponse = {
+      spreadsheetId: 'spread-123',
+      spreadsheetUrl: 'https://docs.google.com/spreadsheets/d/spread-123/edit',
+      sheets: [{ properties: { sheetId: 0, title: 'Sheet1' } }]
+    };
+
+    vi.mocked(fetch).mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => mockSpreadsheetResponse,
+    } as Response);
+
+    vi.mocked(fetch).mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      text: async () => 'Success',
+    } as Response);
+
+    vi.mocked(fetch).mockResolvedValueOnce({
+      ok: false,
+      status: 400,
+      text: async () => JSON.stringify({ error: { message: 'Invalid range' } }),
+    } as Response);
+
+    const response = await request(app)
+      .post('/api/campaigns/create')
+      .set('Authorization', 'Bearer mock-token')
+      .send({ title: 'Tomb of Horrors' });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({
+      error: 'HEADERS_FAILED',
+      message: 'Spreadsheet and sheet tabs were created but column headers could not be written: Invalid range',
+      spreadsheetId: 'spread-123',
+      spreadsheetUrl: 'https://docs.google.com/spreadsheets/d/spread-123/edit'
+    });
+  });
 });

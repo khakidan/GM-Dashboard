@@ -333,8 +333,8 @@ export function CampaignSelector({
                 </div>
 
                 {formError && (
-                  <div id="create-error-msg" className="text-xs font-sans text-red-600 bg-red-50 p-2.5 rounded-lg border border-red-100 leading-tight">
-                    Could not create spreadsheet. {formError}
+                  <div id="create-error-msg" className="text-xs font-sans text-red-600 bg-red-50 p-2.5 rounded-lg border border-red-100 leading-tight whitespace-pre-wrap">
+                    {formError}
                   </div>
                 )}
 

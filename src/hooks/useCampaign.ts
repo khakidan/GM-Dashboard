@@ -105,7 +105,11 @@ export function useCampaign() {
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Failed to create campaign spreadsheet');
+        let errorMessage = errorData.message || 'Failed to create campaign spreadsheet';
+        if (errorData.spreadsheetUrl) {
+          errorMessage += `\nSpreadsheet URL: ${errorData.spreadsheetUrl}`;
+        }
+        throw new Error(errorMessage);
       }
 
       const data = await res.json();

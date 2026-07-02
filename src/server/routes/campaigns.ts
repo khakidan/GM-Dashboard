@@ -152,7 +152,23 @@ router.post('/create', async (req, res) => {
     });
 
     if (!sheetsUpdateRes.ok) {
-       console.error('[Server] Failed sheet structure batch update:', await sheetsUpdateRes.text());
+      const errorText = await sheetsUpdateRes.text();
+      let errorDetail = errorText;
+      try {
+        const errorJson = JSON.parse(errorText);
+        if (errorJson?.error?.message) {
+          errorDetail = errorJson.error.message;
+        }
+      } catch (e) {
+        // fallback to raw text
+      }
+      console.error('[Server] Failed sheet structure batch update:', errorText);
+      return res.status(sheetsUpdateRes.status).json({
+        error: 'SHEET_STRUCTURE_FAILED',
+        message: 'Spreadsheet was created but sheet tabs could not be provisioned: ' + errorDetail,
+        spreadsheetId,
+        spreadsheetUrl
+      });
     }
 
     const valueData = requiredSheets.map(sheet => {
@@ -176,7 +192,23 @@ router.post('/create', async (req, res) => {
     });
 
     if (!headersRes.ok) {
-       console.error('[Server] Failed headers batch update:', await headersRes.text());
+      const errorText = await headersRes.text();
+      let errorDetail = errorText;
+      try {
+        const errorJson = JSON.parse(errorText);
+        if (errorJson?.error?.message) {
+          errorDetail = errorJson.error.message;
+        }
+      } catch (e) {
+        // fallback to raw text
+      }
+      console.error('[Server] Failed headers batch update:', errorText);
+      return res.status(headersRes.status).json({
+        error: 'HEADERS_FAILED',
+        message: 'Spreadsheet and sheet tabs were created but column headers could not be written: ' + errorDetail,
+        spreadsheetId,
+        spreadsheetUrl
+      });
     }
 
     res.json({
