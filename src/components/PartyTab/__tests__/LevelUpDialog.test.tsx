@@ -463,4 +463,155 @@ describe('LevelUpDialog', () => {
       ])
     );
   });
+
+  describe('Jack of All Trades auto-check', () => {
+    it('auto-checks jackOfAllTrades when a Bard levels from 1 to 2', () => {
+      const onConfirmMock = vi.fn();
+      const bardChar: Character = {
+        ...mockCharacter,
+        class: 'Bard',
+        level: 1,
+        proficiencies: JSON.stringify({
+          proficiencyBonus: 2,
+          jackOfAllTrades: false,
+          savingThrows: [],
+          skills: {},
+          passiveBonuses: { perception: 0, insight: 0, investigation: 0 }
+        })
+      };
+
+      const { container } = render(
+        <LevelUpDialog
+          {...defaultProps}
+          character={bardChar}
+          isOpen={true}
+          onConfirm={onConfirmMock}
+        />
+      );
+
+      // Verify checkbox is rendered and checked by the auto-check logic
+      const checkbox = screen.getByRole('checkbox', { name: /Jack of All Trades/i }) as HTMLInputElement;
+      expect(checkbox).toBeChecked();
+
+      const confirmBtn = container.querySelector('#confirm-level-up-btn') as HTMLButtonElement;
+      fireEvent.click(confirmBtn);
+
+      expect(onConfirmMock).toHaveBeenCalledTimes(1);
+      const call = onConfirmMock.mock.calls[0][0];
+      const profs = JSON.parse(call.proficiencies);
+      expect(profs.jackOfAllTrades).toBe(true);
+    });
+
+    it('does NOT auto-set jackOfAllTrades when a non-Bard class levels from 1 to 2', () => {
+      const onConfirmMock = vi.fn();
+      const nonBardChar: Character = {
+        ...mockCharacter,
+        class: 'Fighter',
+        level: 1,
+        proficiencies: JSON.stringify({
+          proficiencyBonus: 2,
+          jackOfAllTrades: false,
+          savingThrows: [],
+          skills: {},
+          passiveBonuses: { perception: 0, insight: 0, investigation: 0 }
+        })
+      };
+
+      const { container } = render(
+        <LevelUpDialog
+          {...defaultProps}
+          character={nonBardChar}
+          isOpen={true}
+          onConfirm={onConfirmMock}
+        />
+      );
+
+      const checkbox = screen.getByRole('checkbox', { name: /Jack of All Trades/i }) as HTMLInputElement;
+      expect(checkbox).not.toBeChecked();
+
+      const confirmBtn = container.querySelector('#confirm-level-up-btn') as HTMLButtonElement;
+      fireEvent.click(confirmBtn);
+
+      expect(onConfirmMock).toHaveBeenCalledTimes(1);
+      const call = onConfirmMock.mock.calls[0][0];
+      const profs = JSON.parse(call.proficiencies);
+      expect(profs.jackOfAllTrades).toBe(false);
+    });
+
+    it('does NOT auto-set jackOfAllTrades when a Bard levels from 2 to 3', () => {
+      const onConfirmMock = vi.fn();
+      const bardChar: Character = {
+        ...mockCharacter,
+        class: 'Bard',
+        level: 2,
+        proficiencies: JSON.stringify({
+          proficiencyBonus: 2,
+          jackOfAllTrades: false,
+          savingThrows: [],
+          skills: {},
+          passiveBonuses: { perception: 0, insight: 0, investigation: 0 }
+        })
+      };
+
+      const { container } = render(
+        <LevelUpDialog
+          {...defaultProps}
+          character={bardChar}
+          isOpen={true}
+          onConfirm={onConfirmMock}
+        />
+      );
+
+      const checkbox = screen.getByRole('checkbox', { name: /Jack of All Trades/i }) as HTMLInputElement;
+      expect(checkbox).not.toBeChecked();
+
+      const confirmBtn = container.querySelector('#confirm-level-up-btn') as HTMLButtonElement;
+      fireEvent.click(confirmBtn);
+
+      expect(onConfirmMock).toHaveBeenCalledTimes(1);
+      const call = onConfirmMock.mock.calls[0][0];
+      const profs = JSON.parse(call.proficiencies);
+      expect(profs.jackOfAllTrades).toBe(false);
+    });
+
+    it('reflects jackOfAllTrades: false if the GM manually unchecks the box after the auto-check fires', () => {
+      const onConfirmMock = vi.fn();
+      const bardChar: Character = {
+        ...mockCharacter,
+        class: 'Bard',
+        level: 1,
+        proficiencies: JSON.stringify({
+          proficiencyBonus: 2,
+          jackOfAllTrades: false,
+          savingThrows: [],
+          skills: {},
+          passiveBonuses: { perception: 0, insight: 0, investigation: 0 }
+        })
+      };
+
+      const { container } = render(
+        <LevelUpDialog
+          {...defaultProps}
+          character={bardChar}
+          isOpen={true}
+          onConfirm={onConfirmMock}
+        />
+      );
+
+      const checkbox = screen.getByRole('checkbox', { name: /Jack of All Trades/i }) as HTMLInputElement;
+      expect(checkbox).toBeChecked();
+
+      // Manually uncheck
+      fireEvent.click(checkbox);
+      expect(checkbox).not.toBeChecked();
+
+      const confirmBtn = container.querySelector('#confirm-level-up-btn') as HTMLButtonElement;
+      fireEvent.click(confirmBtn);
+
+      expect(onConfirmMock).toHaveBeenCalledTimes(1);
+      const call = onConfirmMock.mock.calls[0][0];
+      const profs = JSON.parse(call.proficiencies);
+      expect(profs.jackOfAllTrades).toBe(false);
+    });
+  });
 });

@@ -46,6 +46,10 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
   const [hasToughFeat, setHasToughFeat] = useState<boolean>(() =>
     parseProficiencies(character.proficiencies ?? '{}').toughFeat ?? false
   );
+  const [hasJackOfAllTrades, setHasJackOfAllTrades] = useState<boolean>(() =>
+    parseProficiencies(character.proficiencies ?? '{}').jackOfAllTrades ?? false
+  );
+  const [hasManuallyToggledJack, setHasManuallyToggledJack] = useState<boolean>(false);
   const [newAc, setNewAc] = useState<number>(character.ac);
   const [newNotes, setNewNotes] = useState<string>(character.notes || '');
   const [newResistances, setNewResistances] = useState<string>(character.resistances || '');
@@ -95,6 +99,8 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
       setNewLevel(character.level + 1);
       setHpRoll(1);
       setHasToughFeat(parseProficiencies(character.proficiencies ?? '{}').toughFeat ?? false);
+      setHasJackOfAllTrades(parseProficiencies(character.proficiencies ?? '{}').jackOfAllTrades ?? false);
+      setHasManuallyToggledJack(false);
       setNewAc(character.ac);
       setNewNotes(character.notes || '');
       setNewResistances(character.resistances || '');
@@ -118,6 +124,17 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
       setNewClassHitDie(8);
     }
   }, [character, isOpen]);
+
+  useEffect(() => {
+    if (isOpen && !hasManuallyToggledJack) {
+      const isBard = parseClassString(character.class || '').some(c =>
+        c.toLowerCase().trim() === 'bard'
+      );
+      if (character.level === 1 && newLevel === 2 && isBard) {
+        setHasJackOfAllTrades(true);
+      }
+    }
+  }, [isOpen, newLevel, character.level, character.class, hasManuallyToggledJack]);
 
   if (!isOpen) return null;
 
@@ -158,6 +175,7 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
           );
           existing.proficiencyBonus = newProfBonus;
           existing.toughFeat = hasToughFeat;
+          existing.jackOfAllTrades = hasJackOfAllTrades;
           return serializeProficiencies(existing);
         } catch {
           return character.proficiencies ?? '{}';
@@ -499,6 +517,27 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
                 <span className="text-xs
                   text-[#8d8db9] font-medium">
                   Tough feat (+2 HP per level)
+                </span>
+              </label>
+              <label className="flex items-center
+                gap-2 mt-2 cursor-pointer select-none"
+                id="jack-of-all-trades-label"
+              >
+                <input
+                  id="jack-of-all-trades-checkbox"
+                  type="checkbox"
+                  checked={hasJackOfAllTrades}
+                  onChange={e => {
+                    setHasJackOfAllTrades(e.target.checked);
+                    setHasManuallyToggledJack(true);
+                  }}
+                  className="rounded border-[#e2e8f0]
+                    text-[#2563eb] focus:ring-[#2563eb]
+                    w-4 h-4"
+                />
+                <span className="text-xs
+                  text-[#8d8db9] font-medium">
+                  Jack of All Trades
                 </span>
               </label>
             </div>
