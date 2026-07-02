@@ -92,18 +92,6 @@ export function useEncounterPresetLoader(
         },
       }));
 
-      if (type === 'pc') {
-        const character = state.characters.find(c => c.id === selectedPreset);
-        if (character) {
-          // TODO: REMOVE AFTER DEBUGGING
-          console.log('[AddCombatant][PC] Writing row:', {
-            encounterId: encounter?.id,
-            playerId: character.id,
-            characterName: character.characterName,
-          });
-        }
-      }
-
       const ecResList = await addEncounterCombatantDB(
         encounter?.id || '',
         type === 'pc' ? selectedPreset : null,
@@ -143,8 +131,6 @@ export function useEncounterPresetLoader(
         };
       });
     } catch (error: any) {
-      // TODO: REMOVE AFTER DEBUGGING
-      console.error('[AddCombatant][PC] DB write failed:', error);
       updateState(() => preUpdateSnapshot);
       toast.error(`Failed to add ${targetName} to the encounter. Please try again.`, {
         description: error instanceof Error ? error.message : 'Unknown error',

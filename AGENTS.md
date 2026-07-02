@@ -951,7 +951,6 @@ None.
 
 - `dbOperations.ts` exceeds 1,300 lines and could eventually be split into entity-specific files (characters, NPCs, encounters, combatants, logs).
 - `useCombatSync.ts` currently handles initiative, dead-NPC skipping, combat cancellation/end, combat log wiring, condition timers, and sheet persistence. It is a good candidate for future decomposition.
-- `useEncounterPresetLoader.ts` contains TEMPORARY debug logging (console.log/console.error, both marked `// TODO: REMOVE AFTER DEBUGGING`) added while investigating why PCs added via the Add Combatant modal don't persist to Encounter_Combatants. Remove these once the root cause is confirmed and the real fix is in place.
 
 ---
 
