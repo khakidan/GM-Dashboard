@@ -453,7 +453,7 @@ When adding a new character field, add it to this whitelist and to `dbOperations
 
 ## Testing Structure — 12-Batch System
 
-**Current baseline: 684 tests.**
+**Current baseline: 692 tests.**
 
 All batches must pass with zero failures. No batch should exceed 35 seconds.
 
@@ -461,7 +461,7 @@ Run each batch individually. Never chain with `&&`. Never use glob patterns. Nev
 
 | Batch | Description | Test Count |
 |-------|-------------|-----------:|
-| 1 | Lib | 431 |
+| 1 | Lib | 439 |
 | 2 | Services | 34 |
 | 3 | Hooks | 41 |
 | 4 | Server | 9 |
@@ -473,12 +473,12 @@ Run each batch individually. Never chain with `&&`. Never use glob patterns. Nev
 | 7B-1 | Top-Level 1 | 13 |
 | 7B-2 | Top-Level 2 | 4 |
 | 8 | UI | 2 |
-| **Total** | | **684** |
+| **Total** | | **692** |
 
 *Note: `EncounterLogModal.test.tsx` (5 tests) and `useEncounterLogs.test.ts` (4 tests) were added to Batch 6B.*
 
 ```bash
-# BATCH 1 — 431 tests
+# BATCH 1 — 439 tests
 npx vitest run src/lib/__tests__
 
 # BATCH 2 — 34 tests
@@ -959,7 +959,7 @@ None.
 - `src/services/__tests__/dbOperations.test.ts` (24 tests) still mirrors the old pre-decomposition single-file structure and could optionally be split into per-module test files (`shared.test.ts`, `encounterLogs.test.ts`, `npcs.test.ts`, `characters.test.ts`, `encounterCombatants.test.ts`, `encounters.test.ts`) matching the new `src/services/dbOperations/` layout. This is organizational cleanup only — all 24 tests currently pass and there is no functional issue. Low priority, optional.
 - `useCombatSync.ts` currently handles initiative, dead-NPC skipping, combat cancellation/end, combat log wiring, condition timers, and sheet persistence. It is a good candidate for future decomposition. See the detailed decomposition plan below.
 
-#### useCombatSync.ts Decomposition Plan (planned, not yet started)
+#### useCombatSync.ts Decomposition Plan (in progress)
 
 Current state: 972 lines, single hook, called from exactly one place (`src/components/ActiveEncounterTab/index.tsx`).
 
@@ -967,9 +967,9 @@ Confirmed via discovery: this hook cannot be split into multiple separate hooks 
 
 Planned approach instead: extract pure, React-independent algorithmic logic into `src/lib/combatLogic.ts` (or a new `src/lib/` file if warranted), leaving `useCombatSync.ts` as a thinner orchestrator that still owns all React state and calls these extracted pure functions.
 
-Confirmed extraction candidates:
-- **The turn-advancement/dead-NPC-skipping algorithm inside `nextTurn`** — extract as a pure function, e.g. `getNextActiveTurnIndex(combatants, currentActiveId)`, taking data in and returning the next valid combatant ID out, with no React/store access.
-- **The D&D rules math inside `updateCombatant`** (271 lines — the single largest function in the file, handling HP/tempHP/AC/conditions/condition timers/death saves/exhaustion/rage) — extract the pure calculation pieces (e.g. exhaustion-based max HP halving, condition-derived AC modifiers) into standalone functions, leaving `updateCombatant` itself responsible only for orchestrating state updates and DB writes using those pure calculations.
+Confirmed extraction candidates & progress:
+- **The turn-advancement/dead-NPC-skipping algorithm inside `nextTurn`** [DONE] — Extracted as a pure function `getNextActiveTurnIndex(combatants, currentActiveId)` into `src/lib/combatLogic.ts` and integrated cleanly into the `nextTurn` workflow.
+- **The D&D rules math inside `updateCombatant`** [DONE] — Extracted `calculateConditionAcModifier(conditions)` and `calculateExhaustionHpCap(maxHp, hasHpMaxHalvedCondition, currentTempHpMax)` into `src/lib/combatLogic.ts` and integrated them into `updateCombatant`. A fresh, verbatim re-read of the full `updateCombatant` function (271 lines) confirmed the remaining logic — optimistic state updates, DB write orchestration with PC/NPC branching, condition timer cleanup, rage event firing, and combat log event emission — is inherently stateful and not further extractable as pure functions without deeper architectural changes (e.g., the previously-noted Zustand migration), so no further extraction from `updateCombatant` is planned at this time.
 - **Any other clearly pure, side-effect-free logic** identified during actual extraction (to be confirmed function-by-function as this work begins, not assumed upfront).
 
 Explicitly out of scope for this plan:
