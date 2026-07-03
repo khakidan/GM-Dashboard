@@ -959,25 +959,31 @@ None.
 - `src/services/__tests__/dbOperations.test.ts` (24 tests) still mirrors the old pre-decomposition single-file structure and could optionally be split into per-module test files (`shared.test.ts`, `encounterLogs.test.ts`, `npcs.test.ts`, `characters.test.ts`, `encounterCombatants.test.ts`, `encounters.test.ts`) matching the new `src/services/dbOperations/` layout. This is organizational cleanup only — all 24 tests currently pass and there is no functional issue. Low priority, optional.
 - `useCombatSync.ts` currently handles initiative, dead-NPC skipping, combat cancellation/end, combat log wiring, condition timers, and sheet persistence. It is a good candidate for future decomposition. See the detailed decomposition plan below.
 
-#### useCombatSync.ts Decomposition Plan (in progress)
+#### useCombatSync.ts Decomposition Plan (Finalized)
 
-Current state: 972 lines, single hook, called from exactly one place (`src/components/ActiveEncounterTab/index.tsx`).
+Confirmed architectural facts:
+- `useAppState()` delegates directly to a single global Zustand store (`useDashboardStore`) — safe to call from multiple independent hook files with no desync risk.
+- `concentrationPrompt` will stay as local React state (not moved to Zustand) — this reverses an earlier draft recommendation. Reasoning: it's purely transient UI-modal-visibility state, consumed only by `index.tsx` and its immediate children (`CasterAttributionDialog`), matching the existing local-state pattern already used for `isToolsModalOpen`/`isCheatSheetOpen`/`hpMode` in the same file. Confirmed via full grep of every consumer.
+- Sub-hooks will use dependency injection, not internal cross-hook calls — `useCombatTurn` and `useCombatConcentration` receive `updateCombatant`/`removeCombatant` as parameters from the `useCombatSync` facade, rather than each independently calling `useCombatantMutations()`. This matches the existing precedent in this codebase: `useHealthChange` already receives `updateCombatant` as a parameter from `index.tsx`.
+- `useCombatSync.ts` remains the single public-facing facade — `index.tsx` requires zero changes to its consumption code, since the facade instantiates and composes the four sub-hooks internally and returns the identical flattened API surface it already returns today.
 
-Confirmed via discovery: this hook cannot be split into multiple separate hooks the way `dbOperations.ts` was split into separate modules, because its functions share React state closures (state/updateState from `useAppState()`, local `syncingIds` and `concentrationPrompt` state) and call each other directly (`nextTurn` calls `updateCombatant`; `handleSelectCaster` calls `updateCombatant`; multiple functions share `concentrationPrompt`/`setConcentrationPrompt`). Splitting into multiple hooks would require moving local state into the global Zustand store first — a separate, larger architectural decision, explicitly out of scope for this plan.
+Target file structure (all under `src/components/ActiveEncounterTab/hooks/`):
+- `useCombatantMutations.ts` — `updateCombatant`, `removeCombatant`, `syncingIds`
+- `useCombatLifecycle.ts` — `resetCombat`, `cancelCombat`, `rollInitForNPCs`, `handleCallInitiative`
+- `useCombatTurn.ts` — `nextTurn` (receives `updateCombatant`/`removeCombatant` via injection)
+- `useCombatConcentration.ts` — `concentrationPrompt` state, `handleConcentrationPrompt`, `handleSelectCaster` (receives `updateCombatant` via injection)
+- `useCombatSync.ts` — thin facade only, instantiates and composes the four sub-hooks, returns unified API
 
-Planned approach instead: extract pure, React-independent algorithmic logic into `src/lib/combatLogic.ts` (or a new `src/lib/` file if warranted), leaving `useCombatSync.ts` as a thinner orchestrator that still owns all React state and calls these extracted pure functions.
+Already completed (keep documented as done):
+- `getNextActiveTurnIndex`, `calculateConditionAcModifier`, `calculateExhaustionHpCap` already extracted to `src/lib/combatLogic.ts` and in use.
 
-Confirmed extraction candidates & progress:
-- **The turn-advancement/dead-NPC-skipping algorithm inside `nextTurn`** [DONE] — Extracted as a pure function `getNextActiveTurnIndex(combatants, currentActiveId)` into `src/lib/combatLogic.ts` and integrated cleanly into the `nextTurn` workflow.
-- **The D&D rules math inside `updateCombatant`** [DONE] — Extracted `calculateConditionAcModifier(conditions)` and `calculateExhaustionHpCap(maxHp, hasHpMaxHalvedCondition, currentTempHpMax)` into `src/lib/combatLogic.ts` and integrated them into `updateCombatant`. A fresh, verbatim re-read of the full `updateCombatant` function (271 lines) confirmed the remaining logic — optimistic state updates, DB write orchestration with PC/NPC branching, condition timer cleanup, rage event firing, and combat log event emission — is inherently stateful and not further extractable as pure functions without deeper architectural changes (e.g., the previously-noted Zustand migration), so no further extraction from `updateCombatant` is planned at this time.
-- **Any other clearly pure, side-effect-free logic** identified during actual extraction (to be confirmed function-by-function as this work begins, not assumed upfront).
-
-Explicitly out of scope for this plan:
-- Migrating `syncingIds`/`concentrationPrompt` to Zustand.
-- Splitting this file into multiple separate hooks.
-Both are legitimate future ideas but represent a different, larger architectural change and should be considered separately, only if the lib-extraction approach proves insufficient on its own.
-
-Each extraction should be its own step with full 12-batch verification, following the same incremental, one-step-at-a-time discipline used for the `dbOperations.ts` split — do not attempt this as a single large refactor.
+Sequencing (each step requires `npx tsc --noEmit` + BATCH 5A as a minimum checkpoint, full 12-batch run only at the very end):
+1. Extract `useCombatantMutations.ts`
+2. Extract `useCombatLifecycle.ts`
+3. Extract `useCombatTurn.ts`
+4. Extract `useCombatConcentration.ts`
+5. Test suite alignment check (fix `useCombatSync.test.ts` internals only if needed, no app logic changes)
+6. Full 12-batch global verification
 
 ---
 
