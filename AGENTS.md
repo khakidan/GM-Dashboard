@@ -333,6 +333,7 @@ IDs: 1=Easy, 2=Medium, 3=Hard, 4=Deadly
   - `shared.ts` — Foundational helper functions, row mapping utilities, and sheets API call proxy wrappers.
   - `encounterLogs.ts` — Handles appending, reading, and deleting encounter logs.
   - `npcs.ts` — Handles adding, updating, resetting HP, and deleting NPCs.
+  - `characters.ts` — Handles adding, updating, and deleting characters, and updating death saves.
   - `index.ts` — Main barrel file re-exporting shared helper functions and containing all entity-specific CRUD operations (Characters, NPCs, Encounters, etc.) for Google Sheets. Note: `arg1: any` in overloads is deliberate.
 - `sheetsService.ts` — Raw Google Sheets API calls.
 - `writeQueue.ts` — FIFO queue with localStorage retry. Typed values only: `(string|number|boolean|null)[][]`.
