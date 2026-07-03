@@ -8,7 +8,7 @@ import { getHealthStatus, getEffectiveResistances, effectiveMaxHp, effectiveAc }
 // ────────────────────────────────────────────────────
 
 import { describe, it, expect } from 'vitest';
-import { applyHealthChange, nextTurnIndex, isNewRound, rollD20, checkIrvMatch, computeDamageWithIrv, getExpiredConditions, computeConcentrationDC } from '../combatLogic';
+import { applyHealthChange, nextTurnIndex, isNewRound, rollD20, checkIrvMatch, computeDamageWithIrv, getExpiredConditions, computeConcentrationDC, calculateConditionAcModifier, calculateExhaustionHpCap } from '../combatLogic';
 import type { Combatant } from '../../types';
 
 // ─── applyHealthChange — damage ───────────────────────────────────────────────
@@ -515,6 +515,53 @@ describe('computeConcentrationDC', () => {
     expect(computeConcentrationDC(20)).toBe(10);
   });
 });
+
+describe('calculateConditionAcModifier', () => {
+  it('Returns 0 for an empty conditions array', () => {
+    expect(calculateConditionAcModifier([])).toBe(0);
+  });
+
+  it('Returns the correct sum when a single condition has a tempAcModifier in CONDITION_MECHANICS', () => {
+    expect(calculateConditionAcModifier(['hasted'])).toBe(2);
+  });
+
+  it('Returns the correct sum when multiple conditions each contribute a modifier', () => {
+    // hasted (+2) and slowed (-2)
+    expect(calculateConditionAcModifier(['hasted', 'slowed'])).toBe(0);
+  });
+
+  it('Returns 0 for conditions not present in CONDITION_MECHANICS (or not having a tempAcModifier field)', () => {
+    expect(calculateConditionAcModifier(['poisoned', 'prone', 'made-up-condition'])).toBe(0);
+  });
+});
+
+describe('calculateExhaustionHpCap', () => {
+  it('Returns changed: "gained" with tempHpMax set to half of maxHp (floored) when hasHpMaxHalvedCondition is true and currentTempHpMax is 0', () => {
+    const result = calculateExhaustionHpCap(40, true, 0);
+    expect(result).toEqual({ tempHpMax: 20, changed: 'gained' });
+  });
+
+  it('Returns changed: "lost" with tempHpMax: 0 when hasHpMaxHalvedCondition is false and currentTempHpMax is greater than 0', () => {
+    const result = calculateExhaustionHpCap(40, false, 20);
+    expect(result).toEqual({ tempHpMax: 0, changed: 'lost' });
+  });
+
+  it('Returns changed: "none" with tempHpMax unchanged when the halved state hasn\'t changed (both true-and-already-halved, and both false-and-not-halved cases)', () => {
+    // True and already halved
+    const result1 = calculateExhaustionHpCap(40, true, 20);
+    expect(result1).toEqual({ tempHpMax: 20, changed: 'none' });
+
+    // False and not halved
+    const result2 = calculateExhaustionHpCap(40, false, 0);
+    expect(result2).toEqual({ tempHpMax: 0, changed: 'none' });
+  });
+
+  it('Confirms the floor behavior with an odd maxHp value (e.g. maxHp: 41 should produce tempHpMax: 20)', () => {
+    const result = calculateExhaustionHpCap(41, true, 0);
+    expect(result).toEqual({ tempHpMax: 20, changed: 'gained' });
+  });
+});
+
 
 // ─── effectiveMaxHp ────────────────────────────────────────────────────────────
 
