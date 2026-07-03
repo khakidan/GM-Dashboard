@@ -46,7 +46,7 @@ For all user interface styling, components, colors, and layout guidelines, refer
 
 9. **Report all 12 batch counts individually** after any change. Never report only a combined total.
 
-10. **Never re-report findings from previous prompts in the same session.** Only document changes made in the current prompt. If verifying earlier work, simply state **"confirmed unchanged."**
+10. **Never re-report findings from previous prompts in the same session.** Only document changes made in the current prompt. If verifying earlier work, simply state **"confirmed unchanged."** This includes not re-answering previously-asked meta/discovery questions (such as the markdown/backtick rendering discussion from earlier this session) in later, unrelated responses — even if the current response happens to involve tooling or verification steps. Each response should address only what the current prompt asked.
 
 11. **Delete root-level scripts immediately.** Any `fix*.cjs`, `scan*.ts`, or `replace.js` files found in the project root are diagnostic artifacts and must be removed.
 
@@ -331,6 +331,8 @@ IDs: 1=Easy, 2=Medium, 3=Hard, 4=Deadly
 
 - `dbOperations/` — Folder containing decomposed sheet operation modules.
   - `shared.ts` — Foundational helper functions, row mapping utilities, and sheets API call proxy wrappers.
+  - `encounterLogs.ts` — Handles appending, reading, and deleting encounter logs.
+  - `npcs.ts` — Handles adding, updating, resetting HP, and deleting NPCs.
   - `index.ts` — Main barrel file re-exporting shared helper functions and containing all entity-specific CRUD operations (Characters, NPCs, Encounters, etc.) for Google Sheets. Note: `arg1: any` in overloads is deliberate.
 - `sheetsService.ts` — Raw Google Sheets API calls.
 - `writeQueue.ts` — FIFO queue with localStorage retry. Typed values only: `(string|number|boolean|null)[][]`.
