@@ -12,6 +12,16 @@ export const mockCombatant: Combatant = {
   notes: '',
   passivePerception: 10,
   conditions: '',
+  abilityScores: '{}',
+  proficiencies: '{}',
+  speed: '30 ft.',
+  senses: 'darkvision 60 ft.',
+  languages: 'Common',
+  challengeRating: '1/4',
+  traits: '[]',
+  actions: '[]',
+  reactions: '[]',
+  legendaryActionsList: '[]',
 };
 
 export function makeCombatant(overrides: Partial<Combatant & { playerId?: string; npcId?: string }> = {}): Combatant {

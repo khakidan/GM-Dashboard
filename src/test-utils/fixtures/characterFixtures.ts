@@ -28,6 +28,7 @@ export const mockCharacter: Character = {
   resourcePools: '[]',
   abilityScores: '{}',
   proficiencies: '{}',
+  spellcastingAbility: '',
 };
 
 export function makeCharacter(
