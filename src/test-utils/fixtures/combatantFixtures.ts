@@ -22,6 +22,9 @@ export const mockCombatant: Combatant = {
   actions: '[]',
   reactions: '[]',
   legendaryActionsList: '[]',
+  conditionTimers: {},
+  tempAcModifier: 0,
+  reactionUsed: false,
 };
 
 export function makeCombatant(overrides: Partial<Combatant & { playerId?: string; npcId?: string }> = {}): Combatant {

@@ -16,6 +16,58 @@ For all user interface styling, components, colors, and layout guidelines, refer
 
 ---
 
+## Hard Rules — Never Violate These
+
+1. **Google Sheets is the SSOT.** Never store character, NPC, or encounter data anywhere else.
+
+2. **Dependency direction is one-way:** `lib ← services ← hooks ← components`. A component must never import directly from `services`.
+
+3. **Test batches are fixed.** Never chain batches with `&&`, never use glob patterns, never run `npx vitest run` without specifying files/directories, and never reorganize test batches without updating `AGENTS.md`.
+
+   **3.1. No parallel test execution.** Never run multiple test batches simultaneously or in parallel. Each batch command must complete before the next begins. Do not use background tasks, scheduled timers, or task queues.
+
+   **3.2. No interleaving edits and test runs.** Never edit files while tests are still running. Wait for all test output, then make targeted fixes.
+
+   **3.3. Syntax error recovery.** If a test fails because of a syntax or transform error in a file you just edited:
+   - Stop immediately.
+   - Fix only the syntax error.
+   - Re-run only the affected batch.
+   - Do not attempt unrelated fixes until the syntax error is resolved.
+
+4. **Never delete tests instead of fixing them.** If behavior changes, update the tests rather than removing coverage.
+
+5. **Do not use `.toBeDefined()` or `.toBeTruthy()` on DOM elements.** Use `.toBeInTheDocument()` instead.
+
+6. **Exactly one `useAudioEngine` call.** It belongs only in `GMDashboard.tsx`.
+
+7. **`NpcFormFields` is shared.** Any field added to `NewNpcDialog` must also appear in the Combat Sidebar Create NPC tab because both use `NpcFormFields.tsx`.
+
+8. **Campaign creation must stay synchronized.** Whenever a sheet column is added, update `POST /api/campaigns/create` so newly created campaigns receive the correct schema.
+
+9. **Report all 12 batch counts individually** after any change. Never report only a combined total.
+
+10. **Never re-report findings from previous prompts in the same session.** Only document changes made in the current prompt. If verifying earlier work, simply state **"confirmed unchanged."**
+
+11. **Delete root-level scripts immediately.** Any `fix*.cjs`, `scan*.ts`, or `replace.js` files found in the project root are diagnostic artifacts and must be removed.
+
+12. **Keep `AGENTS.md` current.** After any session that adds files, moves files, changes the test baseline, or affects architecture, update this document.
+
+    Specifically update:
+
+    - New `lib` files → `src/lib/`
+    - New shared UI components → `src/components/ui/`
+    - File moves → both the old and new sections
+    - Test count changes → baseline and per-batch counts
+    - New explicit Batch 5A/5B/7B-1/7B-2 files
+    - New NPC schema columns → schema table and TypeScript interfaces
+    - New architectural patterns → **Patterns and Conventions**
+
+13. **Contrast on solid blue backgrounds.** All `bg-[#2563eb]` elements must use `text-white`. Never use `text-[#0f172a]` on a solid blue background.
+
+14. **Avoid inline styles.** Do not use `style={{}}` when Tailwind can accomplish the same result. Dynamic animation calculations in overlay components are the only exception.
+
+---
+
 ## The Golden Rule — Single Source of Truth
 
 **Google Sheets is the database. The app is the GUI.**
@@ -394,7 +446,7 @@ When adding a new character field, add it to this whitelist and to `dbOperations
 
 ## Testing Structure — 12-Batch System
 
-**Current baseline: 682 tests.**
+**Current baseline: 684 tests.**
 
 All batches must pass with zero failures. No batch should exceed 35 seconds.
 
@@ -404,8 +456,8 @@ Run each batch individually. Never chain with `&&`. Never use glob patterns. Nev
 |-------|-------------|-----------:|
 | 1 | Lib | 431 |
 | 2 | Services | 34 |
-| 3 | Hooks | 39 |
-| 4 | Server | 7 |
+| 3 | Hooks | 41 |
+| 4 | Server | 9 |
 | 5A | AET Hooks | 45 |
 | 5B | AET Components | 26 |
 | 6A | PartyTab | 46 |
@@ -414,7 +466,7 @@ Run each batch individually. Never chain with `&&`. Never use glob patterns. Nev
 | 7B-1 | Top-Level 1 | 13 |
 | 7B-2 | Top-Level 2 | 4 |
 | 8 | UI | 2 |
-| **Total** | | **682** |
+| **Total** | | **684** |
 
 *Note: `EncounterLogModal.test.tsx` (5 tests) and `useEncounterLogs.test.ts` (4 tests) were added to Batch 6B.*
 
@@ -425,10 +477,10 @@ npx vitest run src/lib/__tests__
 # BATCH 2 — 34 tests
 npx vitest run src/services/__tests__
 
-# BATCH 3 — 39 tests
+# BATCH 3 — 41 tests
 npx vitest run src/hooks/__tests__
 
-# BATCH 4 — 7 tests
+# BATCH 4 — 9 tests
 npx vitest run src/server/__tests__ src/__tests__
 
 # BATCH 5A — 45 tests
@@ -437,10 +489,10 @@ npx vitest run src/components/ActiveEncounterTab/__tests__/useBatchActions.test.
 # BATCH 5B — 26 tests
 npx vitest run src/components/ActiveEncounterTab/__tests__/AddNpcCollision.test.tsx src/components/ActiveEncounterTab/__tests__/CasterAttributionDialog.test.tsx src/components/ActiveEncounterTab/__tests__/CombatHeader.test.tsx src/components/ActiveEncounterTab/__tests__/CombatSidebar.test.tsx src/components/ActiveEncounterTab/__tests__/CombatantCard.test.tsx src/components/ActiveEncounterTab/__tests__/KeyboardShortcuts.test.tsx src/components/ActiveEncounterTab/__tests__/MultiTargetActionPanel.test.tsx src/components/ActiveEncounterTab/__tests__/NpcReferencePanel.test.tsx src/components/ActiveEncounterTab/__tests__/ShortcutCheatSheet.test.tsx src/components/ActiveEncounterTab/__tests__/combatStarted.test.tsx src/components/ActiveEncounterTab/__tests__/index.test.tsx
 
-# BATCH 6A — 38 tests
+# BATCH 6A — 46 tests
 npx vitest run src/components/PartyTab/__tests__
 
-# BATCH 6B — 17 tests
+# BATCH 6B — 20 tests
 npx vitest run src/components/EncountersTab/__tests__
 
 # BATCH 6C — 13 tests
@@ -876,58 +928,6 @@ For every form submission or inline edit:
 3. Verify that the **complete** data object reaching the service layer contains the correct values in the correct fields.
 
 A test that merely checks "the function was called" at the seam is **not acceptable**. It must verify **what** was passed.
-
----
-
-## Hard Rules — Never Violate These
-
-1. **Google Sheets is the SSOT.** Never store character, NPC, or encounter data anywhere else.
-
-2. **Dependency direction is one-way:** `lib ← services ← hooks ← components`. A component must never import directly from `services`.
-
-3. **Test batches are fixed.** Never chain batches with `&&`, never use glob patterns, never run `npx vitest run` without specifying files/directories, and never reorganize test batches without updating `AGENTS.md`.
-
-   **3.1. No parallel test execution.** Never run multiple test batches simultaneously or in parallel. Each batch command must complete before the next begins. Do not use background tasks, scheduled timers, or task queues.
-
-   **3.2. No interleaving edits and test runs.** Never edit files while tests are still running. Wait for all test output, then make targeted fixes.
-
-   **3.3. Syntax error recovery.** If a test fails because of a syntax or transform error in a file you just edited:
-   - Stop immediately.
-   - Fix only the syntax error.
-   - Re-run only the affected batch.
-   - Do not attempt unrelated fixes until the syntax error is resolved.
-
-4. **Never delete tests instead of fixing them.** If behavior changes, update the tests rather than removing coverage.
-
-5. **Do not use `.toBeDefined()` or `.toBeTruthy()` on DOM elements.** Use `.toBeInTheDocument()` instead.
-
-6. **Exactly one `useAudioEngine` call.** It belongs only in `GMDashboard.tsx`.
-
-7. **`NpcFormFields` is shared.** Any field added to `NewNpcDialog` must also appear in the Combat Sidebar Create NPC tab because both use `NpcFormFields.tsx`.
-
-8. **Campaign creation must stay synchronized.** Whenever a sheet column is added, update `POST /api/campaigns/create` so newly created campaigns receive the correct schema.
-
-9. **Report all 12 batch counts individually** after any change. Never report only a combined total.
-
-10. **Never re-report findings from previous prompts in the same session.** Only document changes made in the current prompt. If verifying earlier work, simply state **"confirmed unchanged."**
-
-11. **Delete root-level scripts immediately.** Any `fix*.cjs`, `scan*.ts`, or `replace.js` files found in the project root are diagnostic artifacts and must be removed.
-
-12. **Keep `AGENTS.md` current.** After any session that adds files, moves files, changes the test baseline, or affects architecture, update this document.
-
-    Specifically update:
-
-    - New `lib` files → `src/lib/`
-    - New shared UI components → `src/components/ui/`
-    - File moves → both the old and new sections
-    - Test count changes → baseline and per-batch counts
-    - New explicit Batch 5A/5B/7B-1/7B-2 files
-    - New NPC schema columns → schema table and TypeScript interfaces
-    - New architectural patterns → **Patterns and Conventions**
-
-13. **Contrast on solid blue backgrounds.** All `bg-[#2563eb]` elements must use `text-white`. Never use `text-[#0f172a]` on a solid blue background.
-
-14. **Avoid inline styles.** Do not use `style={{}}` when Tailwind can accomplish the same result. Dynamic animation calculations in overlay components are the only exception.
 
 ---
 
