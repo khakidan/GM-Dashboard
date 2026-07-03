@@ -1,4 +1,4 @@
-import { buildConditionSummary, CONDITION_MECHANICS, CONCENTRATION_EFFECTS } from '../../../lib/conditions';
+import { buildConditionSummary, CONCENTRATION_EFFECTS } from '../../../lib/conditions';
 import { OVERLAY_CLEAR_BUFFER_MS } from '../../../lib/constants';
 import { OVERLAY_DURATIONS } from '../../../lib/constants';
 import { useState, useCallback, createElement } from 'react';
@@ -10,7 +10,7 @@ import { Combatant } from '../../../types';
 import { generateTranscript } from '../../../lib/combatLog';
 import { toast } from 'sonner';
 import { useDeathEvent, useDamageEvent, useHealEvent, useUnconsciousEvent, useRageEvent, useInitiativeEvent } from '../../../hooks/useOverlayEvents';
-import { getExpiredConditions } from '../../../lib/combatLogic';
+import { getExpiredConditions, getNextActiveTurnIndex, calculateConditionAcModifier, calculateExhaustionHpCap } from '../../../lib/combatLogic';
 import { useDeathSaves } from '../../../hooks/useDeathSaves';
 import { calculateModifier, parseAbilityScores } from '../../../lib/abilityScores';
 
@@ -145,10 +145,7 @@ export function useCombatSync() {
       }
 
       const condList = Array.from(newConditionSet);
-      const newAcMod = condList.reduce((sum, cond) => {
-        const mod = CONDITION_MECHANICS[cond]?.tempAcModifier ?? 0;
-        return sum + mod;
-      }, 0);
+      const newAcMod = calculateConditionAcModifier(condList);
       
       if (newAcMod !== (currentCombatant.tempAcModifier || 0)) {
         updates = { ...updates, tempAcModifier: newAcMod };
@@ -157,23 +154,25 @@ export function useCombatSync() {
       if (currentCombatant.type === 'pc') {
         const conditionSummary = buildConditionSummary(condList);
         
-        const expectsHpMaxHalved = conditionSummary.hpMaxHalved;
-        const currentHpMaxHalved = currentCombatant.tempHpMax && currentCombatant.tempHpMax > 0;
+        const { tempHpMax, changed } = calculateExhaustionHpCap(
+          currentCombatant.maxHp,
+          conditionSummary.hpMaxHalved,
+          currentCombatant.tempHpMax || 0
+        );
         
-        if (expectsHpMaxHalved && !currentHpMaxHalved) {
-          const newTempHpMax = Math.floor(currentCombatant.maxHp / 2);
-          updates = { ...updates, tempHpMax: newTempHpMax };
+        if (changed === 'gained') {
+          updates = { ...updates, tempHpMax };
           
           const currentHpVal = updates.currentHp !== undefined ? updates.currentHp : currentCombatant.currentHp;
-          if (currentHpVal > newTempHpMax) {
-            updates.currentHp = newTempHpMax;
+          if (currentHpVal > tempHpMax) {
+            updates.currentHp = tempHpMax;
           }
           
           toast.warning(`${currentCombatant.name}'s Max HP is halved from exhaustion!`, {
-            description: `Effective Max HP is now ${newTempHpMax}`,
+            description: `Effective Max HP is now ${tempHpMax}`,
           });
-        } else if (!expectsHpMaxHalved && currentHpMaxHalved) {
-          updates = { ...updates, tempHpMax: 0 };
+        } else if (changed === 'lost') {
+          updates = { ...updates, tempHpMax };
           toast.success(`${currentCombatant.name}'s Max HP restriction is lifted.`);
         }
       }
@@ -692,35 +691,10 @@ export function useCombatSync() {
       c => c.id === currentState.combatState.activeTurnId
     );
 
-    // FIX 2A: Find next valid combatant, skipping dead NPCs
-    let nextIndex = -1;
-    if (currentIndex !== -1) {
-      let candidateIndex = (currentIndex + 1) % combatants.length;
-      let fullLoopCount = 0;
-      
-      while (fullLoopCount < combatants.length) {
-        const candidate = combatants[candidateIndex];
-        const isDeadNpc = candidate.type === 'npc' && candidate.currentHp <= 0;
-        
-        if (!isDeadNpc) {
-          nextIndex = candidateIndex;
-          break;
-        }
-        
-        candidateIndex = (candidateIndex + 1) % combatants.length;
-        fullLoopCount++;
-      }
-    } else if (combatants.length > 0) {
-      // If somehow no active turn, start at 0 if not dead NPC
-      nextIndex = (combatants[0].type === 'npc' && combatants[0].currentHp <= 0) ? -1 : 0;
-      if (nextIndex === -1 && combatants.length > 1) {
-        // Find first non-dead
-        nextIndex = combatants.findIndex(c => !(c.type === 'npc' && c.currentHp <= 0));
-      }
-    }
+    const nextActiveId = getNextActiveTurnIndex(combatants, currentState.combatState.activeTurnId);
 
     // If a full loop finds no valid combatant, set activeTurnId to null
-    if (nextIndex === -1) {
+    if (nextActiveId === null) {
       updateState(prev => ({
         ...prev,
         combatState: {
@@ -733,6 +707,8 @@ export function useCombatSync() {
       });
       return;
     }
+
+    const nextIndex = combatants.findIndex(c => c.id === nextActiveId);
 
     if (currentIndex !== -1 && nextIndex <= currentIndex) {
       nextRound += 1;
@@ -755,8 +731,6 @@ export function useCombatSync() {
         isManualAdjustment: false,
       })
     }
-
-    const nextActiveId = combatants[nextIndex].id;
 
     updateState(prev => {
       if (prev.combatState.combatants.length === 0) return prev;

@@ -1,6 +1,7 @@
 // src/lib/combatLogic.ts
 
 import { Combatant, DamageType } from '../types';
+import { CONDITION_MECHANICS } from './conditions';
 
 export function effectiveMaxHp(
   maxHp: number, 
@@ -280,4 +281,64 @@ export function getExpiredConditions(
 
 export function computeConcentrationDC(damage: number): number {
   return Math.max(10, Math.floor(damage / 2));
+}
+
+export function getNextActiveTurnIndex(
+  combatants: Combatant[],
+  currentActiveId: string | null
+): string | null {
+  if (combatants.length === 0) return null;
+  const currentIndex = combatants.findIndex(c => c.id === currentActiveId);
+
+  let nextIndex = -1;
+  if (currentIndex !== -1) {
+    let candidateIndex = (currentIndex + 1) % combatants.length;
+    let fullLoopCount = 0;
+    
+    while (fullLoopCount < combatants.length) {
+      const candidate = combatants[candidateIndex];
+      const isDeadNpc = candidate.type === 'npc' && candidate.currentHp <= 0;
+      
+      if (!isDeadNpc) {
+        nextIndex = candidateIndex;
+        break;
+      }
+      
+      candidateIndex = (candidateIndex + 1) % combatants.length;
+      fullLoopCount++;
+    }
+  } else {
+    // If somehow no active turn, start at 0 if not dead NPC
+    nextIndex = (combatants[0].type === 'npc' && combatants[0].currentHp <= 0) ? -1 : 0;
+    if (nextIndex === -1 && combatants.length > 1) {
+      // Find first non-dead
+      nextIndex = combatants.findIndex(c => !(c.type === 'npc' && c.currentHp <= 0));
+    }
+  }
+
+  if (nextIndex === -1) return null;
+  return combatants[nextIndex].id;
+}
+
+export function calculateConditionAcModifier(conditions: string[]): number {
+  return conditions.reduce((sum, cond) => {
+    const mod = CONDITION_MECHANICS[cond]?.tempAcModifier ?? 0;
+    return sum + mod;
+  }, 0);
+}
+
+export function calculateExhaustionHpCap(
+  maxHp: number,
+  hasHpMaxHalvedCondition: boolean,
+  currentTempHpMax: number
+): { tempHpMax: number; changed: 'gained' | 'lost' | 'none' } {
+  const currentHpMaxHalved = currentTempHpMax > 0;
+  
+  if (hasHpMaxHalvedCondition && !currentHpMaxHalved) {
+    return { tempHpMax: Math.floor(maxHp / 2), changed: 'gained' };
+  } else if (!hasHpMaxHalvedCondition && currentHpMaxHalved) {
+    return { tempHpMax: 0, changed: 'lost' };
+  }
+  
+  return { tempHpMax: currentTempHpMax, changed: 'none' };
 }
