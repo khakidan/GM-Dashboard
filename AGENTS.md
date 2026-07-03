@@ -956,7 +956,28 @@ None.
 
 #### Remaining Technical Debt
 
-- `useCombatSync.ts` currently handles initiative, dead-NPC skipping, combat cancellation/end, combat log wiring, condition timers, and sheet persistence. It is a good candidate for future decomposition.
+- `src/services/__tests__/dbOperations.test.ts` (24 tests) still mirrors the old pre-decomposition single-file structure and could optionally be split into per-module test files (`shared.test.ts`, `encounterLogs.test.ts`, `npcs.test.ts`, `characters.test.ts`, `encounterCombatants.test.ts`, `encounters.test.ts`) matching the new `src/services/dbOperations/` layout. This is organizational cleanup only — all 24 tests currently pass and there is no functional issue. Low priority, optional.
+- `useCombatSync.ts` currently handles initiative, dead-NPC skipping, combat cancellation/end, combat log wiring, condition timers, and sheet persistence. It is a good candidate for future decomposition. See the detailed decomposition plan below.
+
+#### useCombatSync.ts Decomposition Plan (planned, not yet started)
+
+Current state: 972 lines, single hook, called from exactly one place (`src/components/ActiveEncounterTab/index.tsx`).
+
+Confirmed via discovery: this hook cannot be split into multiple separate hooks the way `dbOperations.ts` was split into separate modules, because its functions share React state closures (state/updateState from `useAppState()`, local `syncingIds` and `concentrationPrompt` state) and call each other directly (`nextTurn` calls `updateCombatant`; `handleSelectCaster` calls `updateCombatant`; multiple functions share `concentrationPrompt`/`setConcentrationPrompt`). Splitting into multiple hooks would require moving local state into the global Zustand store first — a separate, larger architectural decision, explicitly out of scope for this plan.
+
+Planned approach instead: extract pure, React-independent algorithmic logic into `src/lib/combatLogic.ts` (or a new `src/lib/` file if warranted), leaving `useCombatSync.ts` as a thinner orchestrator that still owns all React state and calls these extracted pure functions.
+
+Confirmed extraction candidates:
+- **The turn-advancement/dead-NPC-skipping algorithm inside `nextTurn`** — extract as a pure function, e.g. `getNextActiveTurnIndex(combatants, currentActiveId)`, taking data in and returning the next valid combatant ID out, with no React/store access.
+- **The D&D rules math inside `updateCombatant`** (271 lines — the single largest function in the file, handling HP/tempHP/AC/conditions/condition timers/death saves/exhaustion/rage) — extract the pure calculation pieces (e.g. exhaustion-based max HP halving, condition-derived AC modifiers) into standalone functions, leaving `updateCombatant` itself responsible only for orchestrating state updates and DB writes using those pure calculations.
+- **Any other clearly pure, side-effect-free logic** identified during actual extraction (to be confirmed function-by-function as this work begins, not assumed upfront).
+
+Explicitly out of scope for this plan:
+- Migrating `syncingIds`/`concentrationPrompt` to Zustand.
+- Splitting this file into multiple separate hooks.
+Both are legitimate future ideas but represent a different, larger architectural change and should be considered separately, only if the lib-extraction approach proves insufficient on its own.
+
+Each extraction should be its own step with full 12-batch verification, following the same incremental, one-step-at-a-time discipline used for the `dbOperations.ts` split — do not attempt this as a single large refactor.
 
 ---
 
