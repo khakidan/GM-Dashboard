@@ -329,7 +329,9 @@ IDs: 1=Easy, 2=Medium, 3=Hard, 4=Deadly
 
 ### src/services/
 
-- `dbOperations.ts` — All CRUD for all sheets. Accepts `spreadsheetId` as first parameter with `.env` fallback. Note: `arg1: any` in overloads is deliberate.
+- `dbOperations/` — Folder containing decomposed sheet operation modules.
+  - `shared.ts` — Foundational helper functions, row mapping utilities, and sheets API call proxy wrappers.
+  - `index.ts` — Main barrel file re-exporting shared helper functions and containing all entity-specific CRUD operations (Characters, NPCs, Encounters, etc.) for Google Sheets. Note: `arg1: any` in overloads is deliberate.
 - `sheetsService.ts` — Raw Google Sheets API calls.
 - `writeQueue.ts` — FIFO queue with localStorage retry. Typed values only: `(string|number|boolean|null)[][]`.
 - `googleAuth.ts` — OAuth2 flow with Google Identity Services.
