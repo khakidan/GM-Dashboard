@@ -19,8 +19,8 @@ import {
   serializeProficiencies,
   DEFAULT_ABILITY_SCORES,
   DEFAULT_PROFICIENCIES,
-  proficiencyBonusFromCR
 } from '../../lib/abilityScores';
+import { useNpcCrAutomation } from '../../hooks/useNpcCrAutomation';
 import type { NpcTrait, NpcAction, NpcReaction, NpcLegendaryAction } from '../../types';
 
 export interface NpcFormData {
@@ -203,31 +203,11 @@ export function NpcFormFields({ data, onChange, errors = {}, compact = false }: 
     "focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]"
   );
 
-  useEffect(() => {
-    if (!data.challengeRating) return;
-    try {
-      const profBonus = proficiencyBonusFromCR(
-        data.challengeRating
-      );
-      const parsed = parseProficiencies(
-        data.proficiencies
-      );
-      if (parsed.proficiencyBonus === profBonus)
-        return; // already correct, no update
-      const updated = {
-        ...parsed,
-        proficiencyBonus: profBonus,
-      };
-      onChange({
-        ...data,
-        proficiencies: serializeProficiencies(
-          updated
-        ),
-      });
-    } catch {
-      // silently ignore invalid CR strings
-    }
-  }, [data.challengeRating]);
+  useNpcCrAutomation({
+    challengeRating: data.challengeRating,
+    proficiencies: data.proficiencies,
+    onChange: (updatedProficiencies) => handleChange('proficiencies', updatedProficiencies),
+  });
 
   const [activeTab, setActiveTab] =
     useState<'identity'|'combat'|'abilities'|'statblock'>('identity');
