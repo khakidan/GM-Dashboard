@@ -963,7 +963,7 @@ None.
 - `dbOperations.ts` — ✅ Completed (optional test split remains, see below).
 - `useCombatSync.ts` — ✅ Completed (see decomposition plan below).
 - `NewPlayerDialog.tsx` — ✅ Completed (see decomposition plan below).
-- `NpcFormFields.tsx` — ⚪ Documented, not scheduled (see decomposition plan below).
+- `NpcFormFields.tsx` — 🟡 In Progress (see decomposition plan below).
 - `LevelUpDialog.tsx` — ⚪ Documented, not scheduled (see decomposition plan below).
 - `CombatantCardHeader.tsx` — ⚪ Documented, not scheduled (see decomposition plan below).
 - `EncounterLogModal.tsx` — ⚪ Documented, not scheduled (see decomposition plan below).
@@ -1022,14 +1022,15 @@ Sequencing (each step requires `npx tsc --noEmit` + BATCH 5A as a minimum checkp
 
 - **Test coverage note**: current test file has 5 tests, all behavioral (asserting on final `onConfirm` output), which survived decomposition cleanly and passed unchanged.
 
-#### NpcFormFields.tsx Decomposition Plan (documented, not scheduled)
+#### NpcFormFields.tsx Decomposition Plan (In Progress)
 
-- **Current state**: 719 lines (confirmed via `wc -l`), the second-largest .tsx file in the codebase. Used by exactly 2 call sites: `NewNpcDialog.tsx` (full editor) and `CombatSidebar.tsx` (compact quick-add mode via the `compact` prop).
+- **Current state**: 529 lines (down from 719 originally, a 26% reduction), confirmed via `wc -l`. Used by exactly 2 call sites: `NewNpcDialog.tsx` (full editor) and `CombatSidebar.tsx` (compact quick-add mode via the `compact` prop).
 - **Confirmed duplication**: the `IrvMultiSelect/StatBlock` wrapper pattern is duplicated between `NpcFormFields.tsx` (lines 610-661) and `NewPlayerDialog.tsx` (previously confirmed) — same components, same prop shapes, reinforcing that a shared `IrvGrid/StatBlock` wrapper component would benefit both files.
-- **Proposed decomposition**:
-  - Extract the four stat-block-item render functions (`renderTraitFields`, `renderActionFields`, `renderReactionFields`, `renderLegendaryActionFields`, spanning roughly lines 200-422) into a separate file (e.g. `NpcActionEditors.tsx`) as standalone functional components used by `NpcListEditor`.
-  - Extract the CR-to-proficiency-bonus sync logic (the `useEffect` at lines 424-448) into a small custom hook. Note: this `useEffect` sits directly between the action-renderer functions and the `activeTab` state declaration in the current file — it is not in a cleanly separated block, so extraction will require careful isolation, not a simple contiguous cut.
-  - Split the four tab bodies (identity, combat, abilities, statblock) into separate presentational components (`IdentityTab`, `CombatTab`, `AbilitiesTab`, `StatBlockTab`), each taking `data`/`handleChange`/`compact` as props.
+- **Decomposition Progress**:
+  - `src/components/ui/NpcActionEditors.tsx` — ✅ DONE, verified (NpcFormFields.test.tsx: 2/2, TypeScript clean). Extracted the four stat-block-item render functions (`renderTraitFields`, `renderActionFields`, `renderReactionFields`, `renderLegendaryActionFields`) and converted them from inline closures into standalone exported components (`TraitFieldsEditor`, `ActionFieldsEditor`, `ReactionFieldsEditor`, `LegendaryActionFieldsEditor`). Each is cleanly wired into `NpcListEditor`'s `renderFields` render-prop at the respective call sites in `NpcFormFields.tsx`.
+    - *Process detail*: The `CrInput` local `useEffect` (draft-value sync) at line ~79 was correctly identified as unrelated and left untouched in `NpcFormFields.tsx`.
+  - CR-to-proficiency-bonus sync hook (not yet started) — Extract the CR-to-proficiency-bonus sync logic (the `useEffect` at lines 206-230) into a small custom hook. Note: this `useEffect` now sits directly between the CSS/Tailwind helper class declarations (`inputClass`/`labelClass`) and the `activeTab` state declaration in the current file — it is not in a cleanly separated block, so extraction will require careful isolation, not a simple contiguous cut.
+  - Tab body splits (not yet started) — Split the four tab bodies (identity, combat, abilities, statblock) into separate presentational components (`IdentityTab`, `CombatTab`, `AbilitiesTab`, `StatBlockTab`), each taking `data`/`handleChange`/`compact` as props.
   - **Longer-term cross-cutting opportunity**: a shared `IrvGrid/StatBlock` wrapper component used by both `NpcFormFields.tsx` and `NewPlayerDialog.tsx`, consistent with the same duplication pattern already identified for the `ResourcePoolManager` opportunity between `NewPlayerDialog.tsx` and `LevelUpDialog.tsx`.
 
 - **Risk assessment**: identity/combat tab extraction is low-risk (mostly standard JSX); the CR automation hook extraction is medium-risk (must preserve the exact `onChange`-stability behavior to avoid infinite re-render loops, given it currently depends only on `[data.challengeRating]`).
