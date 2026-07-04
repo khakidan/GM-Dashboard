@@ -962,6 +962,8 @@ None.
 - `NewPlayerDialog.tsx` — ⚪ Documented, not scheduled (see decomposition plan below).
 - `NpcFormFields.tsx` — ⚪ Documented, not scheduled (see decomposition plan below).
 - `LevelUpDialog.tsx` — ⚪ Documented, not scheduled (see decomposition plan below).
+- `CombatantCardHeader.tsx` — ⚪ Documented, not scheduled (see decomposition plan below).
+- `EncounterLogModal.tsx` — ⚪ Documented, not scheduled (see decomposition plan below).
 
 #### dbOperations.test.ts Cleanup (Optional)
 
@@ -1001,7 +1003,7 @@ Sequencing (each step requires `npx tsc --noEmit` + BATCH 5A as a minimum checkp
   - The `getResourcePoolSuggestions` call-and-map pattern is duplicated between `NewPlayerDialog.tsx` and `LevelUpDialog.tsx`.
 
 - **Proposed decomposition**:
-  - `src/components/ui/ResourcePoolManager.tsx` — highest-value extraction. A ~160-line, self-contained, genuinely stateful-but-isolated block (lines 548-714) handling the add/edit/delete UI for resource pools, driven only by `formData.resourcePools` and its own local edit-mode state. Extracting this could benefit both `NewPlayerDialog.tsx` and `LevelUpDialog.tsx` since both implement similar resource pool logic independently. Note: the actual handler functions this UI block depends on (handleUpdateResourceCurrent, handleSaveEditResource, handleAddResource, handleDeleteResource, startEditResource) were referenced in the JSX but not yet located or quoted during discovery. Confirming their exact location and full implementation is a prerequisite before this extraction can begin.
+  - `src/components/ui/ResourcePoolManager.tsx` — highest-value extraction. A ~160-line, self-contained, genuinely stateful-but-isolated block (lines 548-714) handling the add/edit/delete UI for resource pools, driven only by `formData.resourcePools` and its own local edit-mode state. Extracting this could benefit both `NewPlayerDialog.tsx` and `LevelUpDialog.tsx` since both implement similar resource pool logic independently. **Confirmed via direct file verification**: the five handler functions this UI block depends on are defined at `handleAddResource` (line 244), `handleUpdateResourceCurrent` (line 259), `handleDeleteResource` (line 270), `startEditResource` (line 275), and `handleSaveEditResource` (line 282) — all well before the 548-714 JSX block. Any extraction of `ResourcePoolManager.tsx` must move these five function definitions alongside the JSX, not just the render block.
   - `src/hooks/usePlayerFormAutomation.ts` (optional) — could consolidate the 6 `useEffect` hooks handling auto-suggested hit dice, resource pools, Bardic Inspiration pips, proficiency bonus sync, and saving throw proficiencies.
   - `IdentityTab.tsx/CombatTab.tsx` splits — lower priority, more presentational, smaller win.
 
@@ -1036,6 +1038,27 @@ Sequencing (each step requires `npx tsc --noEmit` + BATCH 5A as a minimum checkp
 
 - **Risk assessment**: HP calculation extraction is low-risk (simple math, already covered by multiple tests). Jack of All Trades extraction is medium-risk specifically because of the `hasManuallyToggledJack` state dependency — any extraction must preserve this exact guard behavior, since it's directly protected by 4 dedicated tests (auto-check on Bard 1→2, no auto-check for non-Bard, no auto-check on Bard 2→3, manual uncheck respected).
 - **Test coverage**: 17 tests confirmed via complete grep output — including 4 dedicated Jack of All Trades tests and 4 dedicated HP/Tough Feat tests, all behavioral (asserting on the `onConfirm` payload), which should survive decomposition as long as the external `onConfirm` interface stays unchanged.
+
+#### CombatantCardHeader.tsx Decomposition Plan (documented, not scheduled)
+
+- **Current state**: 531 lines (confirmed via `wc -l`).
+- **Test coverage note**: No dedicated test file exists for this component; coverage is likely indirect via `CombatantCard.test.tsx` or higher-level tests. Any decomposition should be paired with direct tests for this component and its extracted pieces.
+- **Confirmed extraction candidates**:
+  - `AnimatedHpDisplay` (lines 14-61) and `InitiativeInput` (lines 63-113) are already fully self-contained, pure presentational subcomponents defined at the top of this file, each with their own local state and zero coupling to the rest of the component. Confirmed via grep: neither is referenced or imported anywhere else in the codebase. This is the lowest-risk extraction of any file assessed this session — a literal cut-and-paste into their own files (`AnimatedHpDisplay.tsx`, `InitiativeInput.tsx`) with an export, no logic changes required.
+  - The NPC-only compact indicators block (legendary actions, legendary resistances, recharge abilities — roughly lines 269-333) is a clean, self-contained conditional block driven only by `combatant` fields and the `onMarkSpent` prop — a strong second extraction candidate into its own component (e.g. `CombatantCompactIndicators.tsx`).
+  - The damage/heal input controls (roughly lines 357-459) are self-contained aside from a handful of passed-in props and `isSyncing`/`isActiveTurn` from `useCombatantCard` — likely extractable into its own component (e.g. `CombatantHealthControls.tsx`) with those as props.
+  - The compact PC resource pool row (roughly lines 479-528) is the one piece that directly calls `useAppState()` to read `state.characters` — more entangled with the store than the other candidates. Extracting this means either passing the resolved char/pools down as a prop, or letting the new component call `useAppState()` itself.
+
+- **Risk assessment**: `AnimatedHpDisplay`/`InitiativeInput` extraction is very low-risk (already isolated). NPC compact indicators and damage/heal controls are low-to-medium risk (self-contained, but need new tests since none currently exist). The compact resource pool row is medium-risk due to its direct store access.
+
+#### EncounterLogModal.tsx Decomposition Plan (documented, not scheduled)
+
+- **Current state**: 456 lines (confirmed via `wc -l`).
+- **Confirmed architectural facts**: This file already contains three separately-exported functions — `EncounterLogModal` (lines 13-199, the modal shell and log list), `EncounterLogDetails` (lines 205-361, the per-log expanded view with structured/raw toggle and copy transcript), and `CombatEventRow` (lines 363-456, the per-event row renderer). None of the three share local state with each other — props flow one-directionally (`EncounterLogModal` → `EncounterLogDetails` → `CombatEventRow`).
+- **Confirmed isolation**: Neither `EncounterLogDetails` nor `CombatEventRow` is imported or used anywhere else in the codebase outside this file.
+- **Proposed decomposition**: Split into three files (`EncounterLogModal.tsx`, `EncounterLogDetails.tsx`, `CombatEventRow.tsx`) with simple import statements connecting them. This is the lowest-risk decomposition identified this session — the logical separation already exists in the code; splitting into files requires no logic changes at all, only moving code and adding imports.
+- **Style compliance confirmed**: The `bg-slate-100` usage in the Structured/Raw toggle container is the pre-existing, documented `STYLE_GUIDE.md` exception for structural containers, not a violation — no styling changes needed during decomposition.
+- **Risk assessment**: Very low risk across the board, given the clean pre-existing separation and zero external dependencies on the two inner components.
 
 ---
 
