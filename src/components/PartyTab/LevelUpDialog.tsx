@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Character } from '../../types';
-import { X, ArrowRight, CheckSquare, Square } from 'lucide-react';
+import { X, ArrowRight } from 'lucide-react';
 import { IrvMultiSelect } from '../ui/IrvMultiSelect';
 import { parseClassString, getHitDieForClass, addHitDieToConfig } from '../../lib/hitDice';
 import { proficiencyBonusFromLevel, parseProficiencies, serializeProficiencies, calculateModifier, parseAbilityScores } from '../../lib/abilityScores';
 import { getResourcePoolSuggestions } from '../../lib/resourcePoolScaling';
 import { ResourcePool, parseResourcePools, serializeResourcePools } from '../../lib/resourcePools';
+import { LevelUpChecklist } from './LevelUpChecklist';
+import { LevelUpResourcePools } from './LevelUpResourcePools';
 
 
 export interface LevelUpDialogProps {
@@ -275,92 +277,18 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
         {/* Content */}
         <div className="p-6 space-y-6 overflow-y-auto max-h-[70vh]">
           {/* SECTION A: GM Checklist */}
-          <div className="space-y-3" id="checklist-section">
-            <h3 className="text-[#8d8db9] text-xs font-bold uppercase tracking-widest border-b border-[#e2e8f0] pb-1 mb-2">
-              Section A: GM Checklist <span className="text-[9px] font-normal text-[#8d8db9] normal-case tracking-normal">(visual only memory aid)</span>
-            </h3>
-            
-            <div className="space-y-2.5">
-              <button
-                id="chk-hp-btn"
-                onClick={() => setChkHp(!chkHp)}
-                className="flex items-start gap-2.5 w-full text-left text-xs text-[#8d8db9] hover:text-[#0f172a] transition-colors"
-              >
-                {chkHp ? (
-                  <CheckSquare className="w-4 h-4 text-[#2563eb] shrink-0 mt-0.5" />
-                ) : (
-                  <Square className="w-4 h-4 text-[#e2e8f0] hover:border-[#2563eb] shrink-0 mt-0.5" />
-                )}
-                <span>
-                  <strong>Ask player:</strong> what is your new Max HP?
-                  <span className="block text-[10px] text-gray-400 mt-0.5">(Roll hit die + CON modifier, or take the average)</span>
-                </span>
-              </button>
-
-              <button
-                id="chk-ac-btn"
-                onClick={() => setChkAc(!chkAc)}
-                className="flex items-start gap-2.5 w-full text-left text-xs text-[#8d8db9] hover:text-[#0f172a] transition-colors"
-              >
-                {chkAc ? (
-                  <CheckSquare className="w-4 h-4 text-[#2563eb] shrink-0 mt-0.5" />
-                ) : (
-                  <Square className="w-4 h-4 text-[#e2e8f0] shrink-0 mt-0.5" />
-                )}
-                <span>
-                  <strong>Ask player:</strong> did your AC change?
-                  <span className="block text-[10px] text-gray-400 mt-0.5">(New armor, Unarmored Defense change, magical item, etc.)</span>
-                </span>
-              </button>
-
-              <button
-                id="chk-perc-btn"
-                onClick={() => setChkPerception(!chkPerception)}
-                className="flex items-start gap-2.5 w-full text-left text-xs text-[#8d8db9] hover:text-[#0f172a] transition-colors"
-              >
-                {chkPerception ? (
-                  <CheckSquare className="w-4 h-4 text-[#2563eb] shrink-0 mt-0.5" />
-                ) : (
-                  <Square className="w-4 h-4 text-[#e2e8f0] shrink-0 mt-0.5" />
-                )}
-                <span>
-                  <strong>Ask player:</strong> did your Passive Perception change?
-                  <span className="block text-[10px] text-gray-400 mt-0.5">(Wisdom score increase, new Perception proficiency, etc.)</span>
-                </span>
-              </button>
-
-              <button
-                id="chk-res-btn"
-                onClick={() => setChkResistances(!chkResistances)}
-                className="flex items-start gap-2.5 w-full text-left text-xs text-[#8d8db9] hover:text-[#0f172a] transition-colors"
-              >
-                {chkResistances ? (
-                  <CheckSquare className="w-4 h-4 text-[#2563eb] shrink-0 mt-0.5" />
-                ) : (
-                  <Square className="w-4 h-4 text-[#e2e8f0] shrink-0 mt-0.5" />
-                )}
-                <span>
-                  <strong>Ask player:</strong> any new resistances, immunities, or special traits to record in Notes?
-                </span>
-              </button>
-
-              <button
-                id="chk-other-btn"
-                onClick={() => setChkOther(!chkOther)}
-                className="flex items-start gap-2.5 w-full text-left text-xs text-[#8d8db9] hover:text-[#0f172a] transition-colors"
-              >
-                {chkOther ? (
-                  <CheckSquare className="w-4 h-4 text-[#2563eb] shrink-0 mt-0.5" />
-                ) : (
-                  <Square className="w-4 h-4 text-[#e2e8f0] shrink-0 mt-0.5" />
-                )}
-                <span>
-                  <strong>Ask player:</strong> any other stat changes?
-                  <span className="block text-[10px] text-gray-400 mt-0.5">(Speed, saving throws, new features, etc. — notes only)</span>
-                </span>
-              </button>
-            </div>
-          </div>
+          <LevelUpChecklist
+            chkHp={chkHp}
+            setChkHp={setChkHp}
+            chkAc={chkAc}
+            setChkAc={setChkAc}
+            chkPerception={chkPerception}
+            setChkPerception={setChkPerception}
+            chkResistances={chkResistances}
+            setChkResistances={setChkResistances}
+            chkOther={chkOther}
+            setChkOther={setChkOther}
+          />
 
           {/* SECTION B: Updated Values */}
           <div className="space-y-4" id="values-section">
@@ -580,89 +508,7 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
           </div>
 
           {/* SECTION C: Resource Pools */}
-          {poolEdits.length > 0 && (
-            <div className="space-y-3" id="resource-pools-section">
-              <h3 className="text-[#8d8db9] text-xs font-bold uppercase tracking-widest border-b border-[#e2e8f0] pb-1 mb-2">
-                Resource Pools
-              </h3>
-              <div className="border border-[#e2e8f0] rounded-2xl p-4 bg-[#f9f8ff] space-y-3">
-                {poolEdits.map((entry, index) => (
-                  <div
-                    key={entry.name}
-                    className={`flex items-center justify-between gap-4 py-2 border-b border-[#e2e8f0]/50 last:border-0 ${
-                      !entry.include ? 'opacity-50' : ''
-                    }`}
-                    id={`pool-row-${entry.name.toLowerCase().replace(/\s+/g, '-')}`}
-                  >
-                    {/* LEFT: pool name + badge */}
-                    <div className="flex items-center gap-2 flex-1 min-w-0">
-                      <span className="text-[#0f172a] font-medium text-xs truncate">
-                        {entry.name}
-                      </span>
-                      {entry.isNew && (
-                        <span className="bg-[#2563eb]/20 border border-[#2563eb] text-[#567eff] px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider shrink-0">
-                          New
-                        </span>
-                      )}
-                    </div>
-
-                    {/* MIDDLE: input + auto label */}
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="number"
-                        min={0}
-                        value={entry.max}
-                        onFocus={(e) => e.target.select()}
-                        onChange={(e) => {
-                          const val = Math.max(0, parseInt(e.target.value, 10) || 0);
-                          setPoolEdits(prev => prev.map((item, i) => i === index ? { ...item, max: val } : item));
-                        }}
-                        disabled={!entry.include}
-                        className="bg-white border border-[#e2e8f0] rounded-xl text-[#0f172a] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]/50 focus:outline-none w-16 px-2 py-1 text-xs text-center font-bold"
-                        id={`pool-input-${entry.name.toLowerCase().replace(/\s+/g, '-')}`}
-                      />
-                      {entry.isAutoDerived && (
-                        <span className="text-[#8d8db9] text-[9px] font-bold bg-[#8d8db9]/10 px-1.5 py-0.5 rounded uppercase tracking-wider">
-                          Auto
-                        </span>
-                      )}
-                    </div>
-
-                    {/* RIGHT: reset label */}
-                    <div className="w-24 text-right shrink-0">
-                      <span className="text-[#8d8db9] text-[11px] font-medium">
-                        {entry.reset === 'short'
-                          ? 'Short/Long Rest'
-                          : entry.reset === 'long'
-                          ? 'Long Rest'
-                          : 'Manual'}
-                      </span>
-                    </div>
-
-                    {/* FAR RIGHT: include checkbox for new pools only */}
-                    <div className="w-12 flex justify-end shrink-0">
-                      {entry.isNew ? (
-                        <label className="flex items-center gap-1 cursor-pointer select-none">
-                          <input
-                            type="checkbox"
-                            checked={entry.include}
-                            onChange={(e) => {
-                              setPoolEdits(prev => prev.map((item, i) => i === index ? { ...item, include: e.target.checked } : item));
-                            }}
-                            className="w-3.5 h-3.5 accent-[#2563eb] cursor-pointer"
-                            id={`pool-checkbox-${entry.name.toLowerCase().replace(/\s+/g, '-')}`}
-                          />
-                          <span className="text-[9px] font-bold text-[#8d8db9] uppercase">Add</span>
-                        </label>
-                      ) : (
-                        <div className="w-7 h-3.5" />
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          <LevelUpResourcePools poolEdits={poolEdits} setPoolEdits={setPoolEdits} />
         </div>
 
         {/* Footer */}

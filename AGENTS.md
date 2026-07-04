@@ -964,7 +964,7 @@ None.
 - `useCombatSync.ts` — ✅ Completed (see decomposition plan below).
 - `NewPlayerDialog.tsx` — ✅ Completed (see decomposition plan below).
 - `NpcFormFields.tsx` — ✅ Completed (see decomposition plan below).
-- `LevelUpDialog.tsx` — ⚪ Documented, not scheduled (see decomposition plan below).
+- `LevelUpDialog.tsx` — 🟡 In Progress (see decomposition plan below).
 - `CombatantCardHeader.tsx` — ⚪ Documented, not scheduled (see decomposition plan below).
 - `EncounterLogModal.tsx` — ⚪ Documented, not scheduled (see decomposition plan below).
 
@@ -1036,17 +1036,17 @@ Sequencing (each step requires `npx tsc --noEmit` + BATCH 5A as a minimum checkp
 - **Risk assessment**: identity/combat tab extraction is low-risk (mostly standard JSX); the CR automation hook extraction is medium-risk (must preserve the exact `onChange`-stability behavior to avoid infinite re-render loops, given it currently depends only on `[data.challengeRating]`).
 - **Test coverage note**: current test file has only 2 tests (confirmed via direct grep — renders all essential fields, calls `onChange` when input values change), covering neither the CR-automation logic nor the action-list editing behavior. Any decomposition should be paired with new tests for the extracted pieces, especially the CR automation hook and the action editors.
 
-#### LevelUpDialog.tsx Decomposition Plan (documented, not scheduled)
+#### LevelUpDialog.tsx Decomposition Plan (In Progress)
 
-- **Current state**: 689 lines (confirmed via `wc -l`), the third-largest .tsx file in the codebase.
+- **Current state**: 616 lines (down from 689 originally, a 10% reduction, confirmed via `wc -l`), the third-largest .tsx file in the codebase.
 - **Confirmed duplication**: the `getResourcePoolSuggestions` call-and-map pattern is duplicated between `LevelUpDialog.tsx` and `NewPlayerDialog.tsx` (previously confirmed) — reinforcing the already-documented `ResourcePoolManager` shared-component opportunity. Note: `LevelUpDialog.tsx` uses `IrvMultiSelect` directly but does NOT use the `StatBlock` wrapper — so the IRV/StatBlock duplication remains two-way (`NewPlayerDialog.tsx` and `NpcFormFields.tsx` only), not three-way as initially suspected.
 - **Confirmed extraction candidates**:
   - The Jack of All Trades auto-check logic (lines 128-137) is a clean, isolated `useEffect` gated by a `hasManuallyToggledJack` flag that permanently disables the auto-check once the GM manually touches the checkbox — this is the safeguard built earlier this session and is well-isolated, making it a reasonable extraction candidate into a custom hook or pure decision function, as long as `hasManuallyToggledJack`/its setter are threaded through correctly.
   - The HP gain calculation (lines 141-157) is pure math (`conModifier + hpRoll + toughFeatBonus`) with no side effects — safely extractable.
 
 - **Proposed decomposition**:
-  - `src/components/PartyTab/LevelUpChecklist.tsx` — extract the GM checklist section (~85 lines), purely presentational.
-  - `src/components/PartyTab/LevelUpResourcePools.tsx` (or fold into the already-documented `ResourcePoolManager.tsx`) — extract the resource pool editing section, connects directly to the `ResourcePoolManager` opportunity already documented for `NewPlayerDialog.tsx`/`LevelUpDialog.tsx`.
+  - `src/components/PartyTab/LevelUpChecklist.tsx` — ✅ DONE, verified (LevelUpDialog.test.tsx: 17/17, TypeScript clean). Extracted the GM checklist section into its own presentation-only component. It receives the five visual checklist booleans (`chkHp`, `chkAc`, `chkPerception`, `chkResistances`, `chkOther`) and their setters as controlled props from `LevelUpDialog.tsx`, preserving the parent's `isOpen` reset behavior while isolating visual checklist structure.
+  - `src/components/PartyTab/LevelUpResourcePools.tsx` — Extract into its own dedicated component, LevelUpResourcePools.tsx — this is a 'review suggested pool changes' checklist UI, distinct enough from ResourcePoolManager.tsx's free-form editor that sharing one component would require a larger redesign than warranted; keep them separate.
   - `src/hooks/useLevelUpAutomation.ts` — consolidate the resource pool suggestion `useEffect` and the Jack of All Trades auto-check `useEffect`.
   - Pure logic (HP calculation, JoAT decision criteria) could move to `src/lib/combatLogic.ts` or a new `src/lib/characterAutomation.ts`.
 
