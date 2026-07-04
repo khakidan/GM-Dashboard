@@ -110,7 +110,7 @@ export function usePlayerFormAutomation({
     } catch {
       // silently ignore
     }
-  }, [formData.level, handleChange, formData.proficiencies]);
+  }, [formData.level, handleChange]);
 
   // Auto-assign saving throws on class change
   useEffect(() => {
@@ -136,5 +136,5 @@ export function usePlayerFormAutomation({
       ...formData.proficiencies,
       savingThrows: merged,
     });
-  }, [formData.class, handleChange, formData.proficiencies]);
+  }, [formData.class, handleChange]);
 }
