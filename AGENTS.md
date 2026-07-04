@@ -966,7 +966,7 @@ None.
 - `NpcFormFields.tsx` — ✅ Completed (see decomposition plan below).
 - `LevelUpDialog.tsx` — ✅ Completed (see decomposition plan below).
 - `CombatantCardHeader.tsx` — ⚪ Documented, not scheduled (see decomposition plan below).
-- `EncounterLogModal.tsx` — ⚪ Documented, not scheduled (see decomposition plan below).
+- `EncounterLogModal.tsx` — ✅ Completed (see decomposition plan below).
 
 #### dbOperations.test.ts Cleanup (Optional)
 
@@ -1063,12 +1063,13 @@ Sequencing (each step requires `npx tsc --noEmit` + BATCH 5A as a minimum checkp
 
 - **Risk assessment**: `AnimatedHpDisplay`/`InitiativeInput` extraction is very low-risk (already isolated). NPC compact indicators and damage/heal controls are low-to-medium risk (self-contained, but need new tests since none currently exist). The compact resource pool row is medium-risk due to its direct store access.
 
-#### EncounterLogModal.tsx Decomposition Plan (documented, not scheduled)
+#### EncounterLogModal.tsx Decomposition Plan (Completed)
 
-- **Current state**: 456 lines (confirmed via `wc -l`).
+- **Current state**: 456 lines originally, now split into three files.
 - **Confirmed architectural facts**: This file already contains three separately-exported functions — `EncounterLogModal` (lines 13-199, the modal shell and log list), `EncounterLogDetails` (lines 205-361, the per-log expanded view with structured/raw toggle and copy transcript), and `CombatEventRow` (lines 363-456, the per-event row renderer). None of the three share local state with each other — props flow one-directionally (`EncounterLogModal` → `EncounterLogDetails` → `CombatEventRow`).
 - **Confirmed isolation**: Neither `EncounterLogDetails` nor `CombatEventRow` is imported or used anywhere else in the codebase outside this file.
-- **Proposed decomposition**: Split into three files (`EncounterLogModal.tsx`, `EncounterLogDetails.tsx`, `CombatEventRow.tsx`) with simple import statements connecting them. This is the lowest-risk decomposition identified this session — the logical separation already exists in the code; splitting into files requires no logic changes at all, only moving code and adding imports.
+- **Proposed decomposition**: ✅ DONE, verified (EncounterLogModal.test.tsx: 5/5, full 12-batch verification: 692/692, TypeScript clean). Split into three files (`EncounterLogModal.tsx` at 202 lines, `EncounterLogDetails.tsx` at 166 lines, `CombatEventRow.tsx` at 98 lines) with simple import statements connecting them. This was the lowest-risk decomposition identified this session — the logical separation already existed in the code; splitting into files required no logic changes at all, only moving code and adding imports.
+  - *Process note*: Unused `lucide-react` imports (`Flag`, `Copy`, `Check`) left behind in `EncounterLogModal.tsx` after the split were caught and cleaned up before verification.
 - **Style compliance confirmed**: The `bg-slate-100` usage in the Structured/Raw toggle container is the pre-existing, documented `STYLE_GUIDE.md` exception for structural containers, not a violation — no styling changes needed during decomposition.
 - **Risk assessment**: Very low risk across the board, given the clean pre-existing separation and zero external dependencies on the two inner components.
 
