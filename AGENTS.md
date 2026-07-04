@@ -960,7 +960,28 @@ None.
 
 #### Remaining Technical Debt
 
-None.
+#### Codebase Modularity Audit — Status (in progress)
+
+This tracks the broader audit requested to check the codebase for duplication and unwanted coupling, broken into sequential passes by area (components, lib, services, hooks).
+
+**Completed:**
+- `components/` pass — FULLY complete (including follow-up IRV/StatBlock review). Findings: `IrvSection` consolidation (documented below separately — two identical files), modal shell duplication (15 files, documented as its own dedicated project below — not yet scoped), `getResourcePoolSuggestions` investigated and confirmed as a false alarm (one real implementation in `lib/resourcePoolScaling.ts`, two legitimate consumer hooks, not duplicated).
+- All 18 files using `IrvMultiSelect`/`StatBlock` reviewed. Confirmed duplication: `CharacterIRVSection.tsx`/`NpcIRVSection.tsx` (see `IrvSection Consolidation` below). The `StatBlock` family (`StatBlock.tsx` composing `StatBlockScores.tsx`/`StatBlockSaves.tsx`/`StatBlockPassive.tsx`/`StatBlockSkills.tsx`), `NpcStatBlockSection.tsx`, `IrvMultiSelect.tsx`, `CombatantCardExpanded.tsx`, and `NpcReferencePanel.tsx` are all healthy, legitimate shared-component reuse — no action needed. `NpcCard.tsx` and `CharacterCardExpanded.tsx` share a visually similar "stats grid" layout but were confirmed (via complete side-by-side code comparison) to have real semantic divergence — different HP-color-conditional logic, `tempHpMax` handling present only in the PC version, different final-column fields (CR vs. Level) using different input components, and different focus-state styling. Not a consolidation candidate; a shared component would require excessive conditional branching. `NpcCombatTab.tsx` and `CombatTab.tsx` (PartyTab) both use the same three-field IRV pattern and should be included as adoption sites when `IrvSection.tsx` is built, in addition to the originally-identified pair.
+
+**Partially investigated, needs follow-up before concluding:**
+- 12 components confirmed to directly call `useAppState()`/`useDashboardStore()` (verified via two independent grep passes, consistent both times): `GlobalActionContextPanel.tsx`, `CombatantCard.tsx`, `ActiveEncounterTab/index.tsx`, `CombatantCompactResourceRow.tsx`, `CombatantCardExpanded.tsx`, `EncounterCard.tsx`, `PartyTab.tsx`, `EncountersTab.tsx`, `NpcLibraryTab.tsx`, `PlayerView.tsx`, `GMDashboard.tsx`, `CommandPalette.tsx`. None of these 12 have been individually evaluated yet to judge whether direct store access is appropriate or should be replaced with props/a scoped hook.
+
+**Not yet started:**
+- `lib/` audit pass — not started.
+- `services/` audit pass — not started (beyond the already-completed `dbOperations.ts` decomposition).
+- `hooks/` audit pass — not started.
+
+*Note: The original audit was intentionally broken into sequential passes by area (components, lib, services, hooks) to keep each pass easy to verify carefully — this status entry will be updated as each subsequent pass completes.*
+
+#### IrvSection Consolidation (documented, not scheduled)
+
+- **Confirmed duplication**: `src/components/PartyTab/CharacterIRVSection.tsx` and `src/components/NpcLibraryTab/NpcIRVSection.tsx` are structurally and behaviorally identical — same props (`resistances`, `immunities`, `vulnerabilities`, `onUpdate`), same `IrvMultiSelect` usage pattern, same null-safety handling (`value || ''`). They differ only in cosmetic presentation values: grid gap (`gap-4` vs `gap-3`), labels (full names vs. abbreviated), and placeholders (thematic examples vs. generic "None").
+- **Proposed consolidation**: Create `src/components/ui/IrvSection.tsx` accepting `resistances`/`immunities`/`vulnerabilities`/`onUpdate` plus explicit labels: `{ resistances, immunities, vulnerabilities }`, placeholders: `{ resistances, immunities, vulnerabilities }`, and `gap?: string` (defaulting to `gap-4`) as props — no default label/placeholder values baked in, since callers should specify them explicitly given there are only two real call sites. Both `CharacterIRVSection.tsx` and `NpcIRVSection.tsx` would either be deleted and replaced with direct calls to `IrvSection.tsx` at their current usage sites, or reduced to thin one-line wrappers if preserving the named exports is preferred for readability at call sites. `NpcCombatTab.tsx` and `CombatTab.tsx` (PartyTab) both use the same three-field IRV pattern and should be included as adoption sites when `IrvSection.tsx` is built, in addition to the originally-identified pair.
 
 #### dbOperations.test.ts Cleanup (Optional)
 
