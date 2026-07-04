@@ -962,7 +962,7 @@ None.
 
 - `dbOperations.ts` — ✅ Completed (optional test split remains, see below).
 - `useCombatSync.ts` — ✅ Completed (see decomposition plan below).
-- `NewPlayerDialog.tsx` — ⚪ Documented, not scheduled (see decomposition plan below).
+- `NewPlayerDialog.tsx` — ✅ Completed (see decomposition plan below).
 - `NpcFormFields.tsx` — ⚪ Documented, not scheduled (see decomposition plan below).
 - `LevelUpDialog.tsx` — ⚪ Documented, not scheduled (see decomposition plan below).
 - `CombatantCardHeader.tsx` — ⚪ Documented, not scheduled (see decomposition plan below).
@@ -1006,9 +1006,9 @@ Sequencing (each step requires `npx tsc --noEmit` + BATCH 5A as a minimum checkp
 5. Test suite alignment check — ✅ DONE — full 12-batch run confirmed no test modifications were needed; `useCombatSync.test.ts` passed unchanged throughout all four extractions.
 6. Full 12-batch global verification — ✅ DONE — full 12-batch verification: 692/692 passed, 0 failures, TypeScript clean.
 
-#### NewPlayerDialog.tsx Decomposition Plan (In Progress)
+#### NewPlayerDialog.tsx Decomposition Plan (Completed)
 
-- **Current state**: 439 lines (down from 763 originally), no longer the largest .tsx file in the codebase.
+- **Current state**: 287 lines (down from 763 originally, a 62% reduction), across three verified extraction steps: `ResourcePoolManager.tsx`, `usePlayerFormAutomation.ts`, and `IdentityTab.tsx`/`CombatTab.tsx`.
 - **Confirmed duplication**:
   - The `IrvMultiSelect/StatBlock` wrapper pattern is duplicated between `NewPlayerDialog.tsx` and `NpcFormFields.tsx` (same components, same prop shapes).
   - The `getResourcePoolSuggestions` call-and-map pattern was duplicated between `NewPlayerDialog.tsx` and `LevelUpDialog.tsx` (now partially addressed by extracting `ResourcePoolManager.tsx`).
@@ -1018,7 +1018,7 @@ Sequencing (each step requires `npx tsc --noEmit` + BATCH 5A as a minimum checkp
     - *Cross-cutting opportunity note*: This component is ready to also be adopted by `LevelUpDialog.tsx` in place of its own independent resource pool editing logic, as documented in the `LevelUpDialog.tsx` decomposition plan.
   - `src/hooks/usePlayerFormAutomation.ts` — ✅ DONE, verified (NewPlayerDialog.test.tsx: 5/5, TypeScript clean). Consolidates the five character-automation `useEffect` hooks (hit dice suggestion, resource pool suggestion, Bardic Inspiration sync, proficiency bonus sync, and saving throw auto-assignment). It accepts `activeTab`, `formData`, `handleChange`, and the `poolsCustomized` ref object itself as parameters. The dialog-lifecycle reset effect (on `isOpen`) intentionally stayed in `NewPlayerDialog.tsx` as it pertains directly to modal open/close state.
     - *Process detail / Lesson learned*: During extraction, two sync effects (proficiency bonus and saving throws) initially had `formData.proficiencies` added to their dependency arrays (not present in the original code). This was proactively identified as a potential trigger for extra re-runs/render loops on unrelated proficiency edits (due to potentially fresh object references on each render). The dependencies were successfully restored to the original, narrower lists (`[formData.level, handleChange]` and `[formData.class, handleChange]`) before final verification.
-  - `IdentityTab.tsx/CombatTab.tsx` splits (documented, not scheduled) — lowest priority, more presentational, smaller win. Now the only remaining item in this file's plan.
+  - `IdentityTab.tsx` and `CombatTab.tsx` splits — ✅ DONE, verified (NewPlayerDialog.test.tsx: 5/5, TypeScript clean). Extracted presentational/tab subcomponents. Note that `isHitDiceValid` correctly remained in `NewPlayerDialog.tsx` (not moved into `CombatTab.tsx`) since it's also needed by the parent's `isFormValid`/`submit-button-disabled` logic, and is passed down to `CombatTab.tsx` as a prop.
 
 - **Test coverage note**: current test file has 5 tests, all behavioral (asserting on final `onConfirm` output), which survived decomposition cleanly and passed unchanged.
 
