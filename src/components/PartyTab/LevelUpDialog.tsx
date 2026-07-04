@@ -3,11 +3,12 @@ import { Character } from '../../types';
 import { X, ArrowRight } from 'lucide-react';
 import { IrvMultiSelect } from '../ui/IrvMultiSelect';
 import { parseClassString, getHitDieForClass, addHitDieToConfig } from '../../lib/hitDice';
-import { proficiencyBonusFromLevel, parseProficiencies, serializeProficiencies, calculateModifier, parseAbilityScores } from '../../lib/abilityScores';
-import { getResourcePoolSuggestions } from '../../lib/resourcePoolScaling';
+import { proficiencyBonusFromLevel, parseProficiencies, serializeProficiencies, parseAbilityScores, calculateModifier } from '../../lib/abilityScores';
+import { calculateHpGain } from '../../lib/combatLogic';
 import { ResourcePool, parseResourcePools, serializeResourcePools } from '../../lib/resourcePools';
 import { LevelUpChecklist } from './LevelUpChecklist';
-import { LevelUpResourcePools } from './LevelUpResourcePools';
+import { LevelUpResourcePools, PoolEdit } from './LevelUpResourcePools';
+import { useLevelUpAutomation } from '../../hooks/useLevelUpAutomation';
 
 
 export interface LevelUpDialogProps {
@@ -63,37 +64,16 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
   const [newClassName, setNewClassName] = useState('');
   const [newClassHitDie, setNewClassHitDie] = useState<number>(8);
 
-  const [poolEdits, setPoolEdits] = useState<
-    Array<{
-      name: string;
-      max: number;
-      reset: 'short' | 'long' | 'none';
-      isNew: boolean;
-      include: boolean;
-      isAutoDerived: boolean;
-    }>
-  >([]);
+  const [poolEdits, setPoolEdits] = useState<PoolEdit[]>([]);
 
-  useEffect(() => {
-    if (isOpen) {
-      const currentPools = parseResourcePools(character.resourcePools || '[]');
-      const suggestions = getResourcePoolSuggestions(
-        character.class ?? '',
-        newLevel,
-        currentPools
-      );
-      setPoolEdits(suggestions.map(s => ({
-        name: s.name,
-        max: s.suggestedMax,
-        reset: s.reset,
-        isNew: s.isNew,
-        include: s.suggestedMax > 0,
-        isAutoDerived: s.isAutoDerived
-      })));
-    } else {
-      setPoolEdits([]);
-    }
-  }, [isOpen, newLevel, character.class, character.resourcePools]);
+  useLevelUpAutomation(
+    isOpen,
+    newLevel,
+    character,
+    hasManuallyToggledJack,
+    setPoolEdits,
+    setHasJackOfAllTrades
+  );
 
   // Keep states updated if the input character prop changes while open
   useEffect(() => {
@@ -127,34 +107,18 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
     }
   }, [character, isOpen]);
 
-  useEffect(() => {
-    if (isOpen && !hasManuallyToggledJack) {
-      const isBard = parseClassString(character.class || '').some(c =>
-        c.toLowerCase().trim() === 'bard'
-      );
-      if (character.level === 1 && newLevel === 2 && isBard) {
-        setHasJackOfAllTrades(true);
-      }
-    }
-  }, [isOpen, newLevel, character.level, character.class, hasManuallyToggledJack]);
-
   if (!isOpen) return null;
 
   const conScore = parseAbilityScores(
     character.abilityScores ?? '{}'
   ).CON ?? 10;
-  const conModifier = calculateModifier(
-    conScore
-  );
+  const conModifier = calculateModifier(conScore);
 
   const currentToughFeat = parseProficiencies(
     character.proficiencies ?? '{}'
   ).toughFeat ?? false;
 
-  const totalHpGained = hpRoll
-    + conModifier
-    + (hasToughFeat ? 2 : 0);
-
+  const totalHpGained = calculateHpGain(hpRoll, conScore, hasToughFeat);
   const hpIncrease = totalHpGained;
 
   const handleConfirm = () => {

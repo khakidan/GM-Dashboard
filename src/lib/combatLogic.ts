@@ -2,6 +2,7 @@
 
 import { Combatant, DamageType } from '../types';
 import { CONDITION_MECHANICS } from './conditions';
+import { calculateModifier } from './abilityScores';
 
 export function effectiveMaxHp(
   maxHp: number, 
@@ -342,3 +343,9 @@ export function calculateExhaustionHpCap(
   
   return { tempHpMax: currentTempHpMax, changed: 'none' };
 }
+
+export function calculateHpGain(hpRoll: number, conScore: number, hasToughFeat: boolean): number {
+  const conModifier = calculateModifier(conScore);
+  return hpRoll + conModifier + (hasToughFeat ? 2 : 0);
+}
+
