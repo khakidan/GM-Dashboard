@@ -426,9 +426,11 @@ Shared test data factories used across many test files. These are not tests them
 - `hooks/useDeathSaves.ts` — Death saving throw state and stabilization logic.
 - `hooks/useCombatantExpanded.ts` — Encapsulates resource pool updates and condition-triggered resource depletion via `onConditionAdded`. Used by `CombatantCardExpanded`.
 - `hooks/useHealthChange.ts` — Damage/healing with IRV math. Fires `fireConcentrationAlert()` whenever a concentrating combatant takes damage.
-- `hooks/useCombatSync.ts` (371 lines) — Turn, round, and combatant synchronization facade. Calls `initCombatLog`, `addCombatEvent`, `advanceCombatLogRound`, and `clearCombatLog`. Implements initiative sorting on first turn, dead-NPC skipping, and NPC initiative as `1d20 + DEX modifier`. Now delegates core behaviors to `useCombatantMutations` and `useCombatLifecycle` internally and re-exposes their APIs.
+- `hooks/useCombatSync.ts` (66 lines) — Turn, round, and combatant synchronization facade. Calls `initCombatLog`, `addCombatEvent`, `advanceCombatLogRound`, and `clearCombatLog`. Implements initiative sorting on first turn, dead-NPC skipping, and NPC initiative as `1d20 + DEX modifier`. Now delegates core behaviors to `useCombatantMutations`, `useCombatLifecycle`, `useCombatTurn`, and `useCombatConcentration` internally and re-exposes their APIs.
 - `hooks/useCombatantMutations.ts` — Extracted from `useCombatSync`. Contains `updateCombatant`, `removeCombatant`, and `syncingIds`. Handles PC/NPC HP, conditions, and AC-modifier updates with DB writes (using `updateCharacterDB`, `updateNpcInstanceHpDB`, etc.), includes rollback on failure, and emits combat log events for condition changes.
 - `hooks/useCombatLifecycle.ts` — Extracted from `useCombatSync`. Contains `resetCombat`, `cancelCombat`, `rollInitForNPCs`, and `handleCallInitiative`. Handles initiative rolling for NPCs, resetting and canceling active combat encounters with database persistence and rollback, and combat log start/end emissions.
+- `hooks/useCombatTurn.ts` — Extracted from `useCombatSync`. Contains `nextTurn` (turn/round advancement, dead-NPC skipping via `getNextActiveTurnIndex`, first-turn initiative finalization, legendary action resets, death save prompts, expired condition removal), receiving `updateCombatant` via dependency injection rather than calling `useCombatantMutations()` internally.
+- `hooks/useCombatConcentration.ts` — Extracted from `useCombatSync`. Contains local React state `concentrationPrompt` and handlers `handleConcentrationPrompt`/`handleSelectCaster`, receiving `updateCombatant` via dependency injection rather than calling `useCombatantMutations()` internally.
 - `hooks/useEncounterPresetLoader.ts` — Handles adding PC and NPC presets to active encounters. Implements rollback fix: state snapshots are now captured BEFORE optimistic updates (not after), so a failed DB write correctly rolls back to pre-update state and shows a toast.error to the GM.
 - `hooks/useEncounterKeyboard.ts` — Global combat keyboard shortcuts. Escape exits selection mode, clears `expandedIds`, and closes modals.
 
@@ -991,8 +993,8 @@ Already completed (keep documented as done):
 Sequencing (each step requires `npx tsc --noEmit` + BATCH 5A as a minimum checkpoint, full 12-batch run only at the very end):
 1. Extract `useCombatantMutations.ts` — ✅ DONE, verified (BATCH 5A: 45/45)
 2. Extract `useCombatLifecycle.ts` — ✅ DONE, verified (BATCH 5A: 45/45)
-3. Extract `useCombatTurn.ts`
-4. Extract `useCombatConcentration.ts`
+3. Extract `useCombatTurn.ts` — ✅ DONE, verified (BATCH 5A: 45/45)
+4. Extract `useCombatConcentration.ts` — code extracted, NOT YET VERIFIED (awaiting BATCH 5A run).
 5. Test suite alignment check (fix `useCombatSync.test.ts` internals only if needed, no app logic changes)
 6. Full 12-batch global verification
 
