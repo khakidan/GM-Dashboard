@@ -963,7 +963,7 @@ None.
 - `dbOperations.ts` — ✅ Completed (optional test split remains, see below).
 - `useCombatSync.ts` — ✅ Completed (see decomposition plan below).
 - `NewPlayerDialog.tsx` — ✅ Completed (see decomposition plan below).
-- `NpcFormFields.tsx` — 🟡 In Progress (see decomposition plan below).
+- `NpcFormFields.tsx` — ✅ Completed (see decomposition plan below).
 - `LevelUpDialog.tsx` — ⚪ Documented, not scheduled (see decomposition plan below).
 - `CombatantCardHeader.tsx` — ⚪ Documented, not scheduled (see decomposition plan below).
 - `EncounterLogModal.tsx` — ⚪ Documented, not scheduled (see decomposition plan below).
@@ -1022,15 +1022,15 @@ Sequencing (each step requires `npx tsc --noEmit` + BATCH 5A as a minimum checkp
 
 - **Test coverage note**: current test file has 5 tests, all behavioral (asserting on final `onConfirm` output), which survived decomposition cleanly and passed unchanged.
 
-#### NpcFormFields.tsx Decomposition Plan (In Progress)
+#### NpcFormFields.tsx Decomposition Plan (Completed)
 
-- **Current state**: 509 lines (down from 719 originally, a 29% reduction), confirmed via `wc -l`. Used by exactly 2 call sites: `NewNpcDialog.tsx` (full editor) and `CombatSidebar.tsx` (compact quick-add mode via the `compact` prop).
+- **Current state**: 320 lines (down from 719 originally, a 55% reduction, confirmed via `wc -l`). Used by exactly 2 call sites: `NewNpcDialog.tsx` (full editor) and `CombatSidebar.tsx` (compact quick-add mode via the `compact` prop).
 - **Confirmed duplication**: the `IrvMultiSelect/StatBlock` wrapper pattern is duplicated between `NpcFormFields.tsx` and `NewPlayerDialog.tsx` (previously confirmed) — same components, same prop shapes, reinforcing that a shared `IrvGrid/StatBlock` wrapper component would benefit both files.
 - **Decomposition Progress**:
   - `src/components/ui/NpcActionEditors.tsx` — ✅ DONE, verified (NpcFormFields.test.tsx: 2/2, TypeScript clean). Extracted the four stat-block-item render functions (`renderTraitFields`, `renderActionFields`, `renderReactionFields`, `renderLegendaryActionFields`) and converted them from inline closures into standalone exported components (`TraitFieldsEditor`, `ActionFieldsEditor`, `ReactionFieldsEditor`, `LegendaryActionFieldsEditor`). Each is cleanly wired into `NpcListEditor`'s `renderFields` render-prop at the respective call sites in `NpcFormFields.tsx`.
-    - *Process detail*: The `CrInput` local `useEffect` (draft-value sync) at line ~79 was correctly identified as unrelated and left untouched in `NpcFormFields.tsx`.
-  - `src/hooks/useNpcCrAutomation.ts` — ✅ DONE, verified (TypeScript clean). Extracted the CR-to-proficiency-bonus sync logic (`useEffect` at lines 206-230 originally) into a standalone custom React hook. It takes the minimal required parameters (`challengeRating: string`, `proficiencies: string`, `onChange: (proficiencies: string) => void`) to isolate side-effect orchestration from parent component form structure. It sits elegantly between class style constants and `activeTab` state hook initialization inside `NpcFormFields.tsx`.
-  - Tab body splits (not yet started) — Split the four tab bodies (identity, combat, abilities, statblock) into separate presentational components (`IdentityTab`, `CombatTab`, `AbilitiesTab`, `StatBlockTab`), each taking `data`/`handleChange`/`compact` as props.
+  - `src/hooks/useNpcCrAutomation.ts` — ✅ DONE, verified (NpcFormFields.test.tsx: 2/2, TypeScript clean). Extracted the CR-to-proficiency-bonus sync logic (`useEffect` at lines 206-230 originally) into a standalone custom React hook. It takes the minimal required parameters (`challengeRating: string`, `proficiencies: string`, `onChange: (proficiencies: string) => void`) to isolate side-effect orchestration from parent component form structure. It sits elegantly between class style constants and `activeTab` state hook initialization inside `NpcFormFields.tsx`.
+    - *Process detail / Lesson learned*: During extraction, the effect's dependency array initially included `proficiencies` and `onChange` (which were not present in the original `[data.challengeRating]`-only array). Since the `onChange` callback passed at the call site is a new inline function on every render, this would have caused the effect to re-run on every render instead of only on `challengeRating` changes. This was caught and corrected to match the original narrower dependency array `[challengeRating]` before final verification, avoiding unnecessary execution or potential infinite render loops.
+  - Tab body splits — ✅ DONE, verified (NpcFormFields.test.tsx: 2/2, TypeScript clean). Split the two largest tab bodies (identity, combat) into separate presentational components (`NpcIdentityTab.tsx` and `NpcCombatTab.tsx` located in `src/components/ui/`), each taking only the minimum necessary parameters. The other two tabs (`abilities`, `statblock`) were left inline inside `NpcFormFields.tsx` since they were already thin wrappers (15 and 79 lines respectively) after the earlier action-editor extractions; splitting them further was intentionally skipped to avoid excessive file-count overhead. `CrInput` was also co-located directly inside `NpcIdentityTab.tsx` (its only consumer) rather than remaining in `NpcFormFields.tsx`.
   - **Longer-term cross-cutting opportunity**: a shared `IrvGrid/StatBlock` wrapper component used by both `NpcFormFields.tsx` and `NewPlayerDialog.tsx`, consistent with the same duplication pattern already identified for the `ResourcePoolManager` opportunity between `NewPlayerDialog.tsx` and `LevelUpDialog.tsx`.
 
 - **Risk assessment**: identity/combat tab extraction is low-risk (mostly standard JSX); the CR automation hook extraction is medium-risk (must preserve the exact `onChange`-stability behavior to avoid infinite re-render loops, given it currently depends only on `[data.challengeRating]`).

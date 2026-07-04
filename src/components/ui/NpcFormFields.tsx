@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Shield, Heart, Plus, Trash2 } from 'lucide-react';
 import { cn } from '../../lib/utils';
-import { IrvMultiSelect } from '../ui/IrvMultiSelect';
 import { StatBlock } from '../ui/StatBlock';
-import { DebouncedInput } from './DebouncedInput';
 import { NpcListEditor } from './NpcListEditor';
-import { DebouncedTextarea } from './DebouncedTextarea';
+import { NpcIdentityTab } from './NpcIdentityTab';
+import { NpcCombatTab } from './NpcCombatTab';
 import {
   TraitFieldsEditor,
   ActionFieldsEditor,
@@ -67,47 +65,7 @@ export const DEFAULT_NPC_FORM_DATA: NpcFormData = {
   legendaryActionsList: '[]',
 };
 
-function CrInput({
-  value,
-  onChange,
-  className,
-  placeholder,
-  id,
-}: {
-  value: string;
-  onChange: (val: string) => void;
-  className?: string;
-  placeholder?: string;
-  id?: string;
-}) {
-  const [local, setLocal] = React.useState(value);
 
-  React.useEffect(() => {
-    setLocal(value);
-  }, [value]);
-
-  const commit = () => {
-    if (local !== value) onChange(local);
-  };
-
-  return (
-    <input
-      type="text"
-      value={local}
-      onChange={e => setLocal(e.target.value)}
-      onBlur={commit}
-      onKeyDown={e => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          commit();
-        }
-      }}
-      className={className}
-      placeholder={placeholder}
-      id={id}
-    />
-  );
-}
 
 interface NpcFormFieldsProps {
   data: NpcFormData;
@@ -241,170 +199,23 @@ export function NpcFormFields({ data, onChange, errors = {}, compact = false }: 
       </div>
 
       {activeTab === 'identity' && (
-        <div className={cn("space-y-4", compact && "space-y-2")}>
-          <div>
-            <label htmlFor="new-npc-name" className={labelClass}>
-              NPC Name <span className="text-red-500">*</span>
-            </label>
-            <input
-              id="new-npc-name"
-              type="text"
-              required
-              value={data.name}
-              onChange={e => handleChange('name', e.target.value)}
-              placeholder="e.g. Ancient Red Dragon"
-              className={inputClass}
-            />
-          </div>
-          <div>
-            <label htmlFor="new-npc-cr" className={labelClass}>
-              CR
-            </label>
-            <CrInput
-              id="new-npc-cr"
-              value={data.challengeRating}
-              onChange={val => handleChange('challengeRating', val)}
-              className={inputClass}
-              placeholder="e.g. 1/4"
-            />
-          </div>
-          <div>
-            <label htmlFor="new-npc-speed" className={labelClass}>Speed</label>
-            <DebouncedInput
-              id="new-npc-speed"
-              value={data.speed}
-              onChange={v => handleChange('speed', v)}
-              className={inputClass}
-              placeholder="e.g. 30 ft., fly 60 ft."
-            />
-          </div>
-          <div>
-            <label htmlFor="new-npc-senses" className={labelClass}>Senses</label>
-            <DebouncedInput
-              id="new-npc-senses"
-              value={data.senses}
-              onChange={v => handleChange('senses', v)}
-              className={inputClass}
-              placeholder="e.g. darkvision 120 ft., passive Perception 12"
-            />
-          </div>
-          <div>
-            <label htmlFor="new-npc-languages" className={labelClass}>Languages</label>
-            <DebouncedInput
-              id="new-npc-languages"
-              value={data.languages}
-              onChange={v => handleChange('languages', v)}
-              className={inputClass}
-              placeholder="e.g. Common, Draconic"
-            />
-          </div>
-        </div>
+        <NpcIdentityTab
+          data={data}
+          handleChange={handleChange}
+          labelClass={labelClass}
+          inputClass={inputClass}
+          compact={compact}
+        />
       )}
 
       {activeTab === 'combat' && (
-        <div className={cn("space-y-4", compact && "space-y-2")}>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="new-npc-ac" className={labelClass}>
-                AC <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <Shield className={cn("absolute left-3 top-1/2 -translate-y-1/2 text-[#8d8db9] opacity-50", compact ? "w-3 h-3" : "w-4 h-4")} />
-                <input
-                  id="new-npc-ac"
-                  type="number"
-                  min="0"
-                  required
-                  value={data.ac}
-                  onFocus={(e) => e.target.select()}
-                  onChange={e => handleChange('ac', parseInt(e.target.value) || 0)}
-                  className={cn(inputClass, compact ? "pl-8" : "pl-10")}
-                />
-              </div>
-            </div>
-            <div>
-              <label htmlFor="new-npc-maxhp" className={labelClass}>
-                Max HP <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <Heart className={cn("absolute left-3 top-1/2 -translate-y-1/2 text-red-400", compact ? "w-3 h-3" : "w-4 h-4")} />
-                <input
-                  id="new-npc-maxhp"
-                  type="number"
-                  min="1"
-                  required
-                  value={data.maxHp}
-                  onFocus={(e) => e.target.select()}
-                  onChange={e => handleChange('maxHp', parseInt(e.target.value) || 0)}
-                  className={cn(inputClass, compact ? "pl-8" : "pl-10 font-bold")}
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="npc-legendary-actions-field" className={labelClass}>Legendary Actions</label>
-              <input
-                id="npc-legendary-actions-field"
-                type="number"
-                min="0"
-                max="10"
-                value={data.legendaryActions}
-                onChange={e => handleChange('legendaryActions', parseInt(e.target.value) || 0)}
-                className={inputClass}
-              />
-            </div>
-            <div>
-              <label htmlFor="npc-legendary-resistances-field" className={labelClass}>Legendary Resistances</label>
-              <input
-                id="npc-legendary-resistances-field"
-                type="number"
-                min="0"
-                max="10"
-                value={data.legendaryResistances}
-                onChange={e => handleChange('legendaryResistances', parseInt(e.target.value) || 0)}
-                className={inputClass}
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <IrvMultiSelect
-              label="Resistances"
-              value={data.resistances}
-              onChange={v => handleChange('resistances', v)}
-              placeholder="e.g. fire"
-              compact={compact}
-            />
-            <IrvMultiSelect
-              label="Immunities"
-              value={data.immunities}
-              onChange={v => handleChange('immunities', v)}
-              placeholder="e.g. poison"
-              compact={compact}
-            />
-            <IrvMultiSelect
-              label="Vulnerabilities"
-              value={data.vulnerabilities}
-              onChange={v => handleChange('vulnerabilities', v)}
-              placeholder="e.g. cold"
-              compact={compact}
-            />
-          </div>
-
-          <div>
-            <label htmlFor="new-npc-notes" className={labelClass}>Notes</label>
-            <DebouncedTextarea
-              id="new-npc-notes"
-              value={data.notes}
-              onChange={v => handleChange('notes', v)}
-              className={inputClass}
-              placeholder="e.g. Tactics, behavior, etc."
-              rows={3}
-            />
-          </div>
-        </div>
+        <NpcCombatTab
+          data={data}
+          handleChange={handleChange}
+          labelClass={labelClass}
+          inputClass={inputClass}
+          compact={compact}
+        />
       )}
 
       {activeTab === 'abilities' && (
