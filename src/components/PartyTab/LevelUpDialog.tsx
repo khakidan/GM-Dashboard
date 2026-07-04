@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Character } from '../../types';
+import { Character, PoolEdit } from '../../types';
 import { X, ArrowRight } from 'lucide-react';
 import { IrvMultiSelect } from '../ui/IrvMultiSelect';
 import { parseClassString, getHitDieForClass, addHitDieToConfig } from '../../lib/hitDice';
@@ -7,7 +7,7 @@ import { proficiencyBonusFromLevel, parseProficiencies, serializeProficiencies, 
 import { calculateHpGain } from '../../lib/combatLogic';
 import { ResourcePool, parseResourcePools, serializeResourcePools } from '../../lib/resourcePools';
 import { LevelUpChecklist } from './LevelUpChecklist';
-import { LevelUpResourcePools, PoolEdit } from './LevelUpResourcePools';
+import { LevelUpResourcePools } from './LevelUpResourcePools';
 import { useLevelUpAutomation } from '../../hooks/useLevelUpAutomation';
 
 

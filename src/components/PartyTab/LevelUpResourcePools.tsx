@@ -1,13 +1,5 @@
 import React from 'react';
-
-export interface PoolEdit {
-  name: string;
-  max: number;
-  reset: 'short' | 'long' | 'none';
-  isNew: boolean;
-  include: boolean;
-  isAutoDerived: boolean;
-}
+import { PoolEdit } from '../../types';
 
 export interface LevelUpResourcePoolsProps {
   poolEdits: PoolEdit[];

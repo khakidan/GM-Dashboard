@@ -254,3 +254,12 @@ export type DamageType =
   | 'psychic' | 'radiant' | 'slashing' | 'slashing (magical)'
   | 'thunder';
 
+export interface PoolEdit {
+  name: string;
+  max: number;
+  reset: 'short' | 'long' | 'none';
+  isNew: boolean;
+  include: boolean;
+  isAutoDerived: boolean;
+}
+

@@ -1,9 +1,8 @@
 import { useEffect } from 'react';
-import { Character } from '../types';
+import { Character, PoolEdit } from '../types';
 import { getResourcePoolSuggestions } from '../lib/resourcePoolScaling';
 import { parseResourcePools } from '../lib/resourcePools';
 import { parseClassString } from '../lib/hitDice';
-import { PoolEdit } from '../components/PartyTab/LevelUpResourcePools';
 
 export function useLevelUpAutomation(
   isOpen: boolean,
