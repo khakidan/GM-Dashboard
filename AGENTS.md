@@ -426,7 +426,8 @@ Shared test data factories used across many test files. These are not tests them
 - `hooks/useDeathSaves.ts` — Death saving throw state and stabilization logic.
 - `hooks/useCombatantExpanded.ts` — Encapsulates resource pool updates and condition-triggered resource depletion via `onConditionAdded`. Used by `CombatantCardExpanded`.
 - `hooks/useHealthChange.ts` — Damage/healing with IRV math. Fires `fireConcentrationAlert()` whenever a concentrating combatant takes damage.
-- `hooks/useCombatSync.ts` — Turn, round, and combatant synchronization. Calls `initCombatLog`, `addCombatEvent`, `advanceCombatLogRound`, and `clearCombatLog`. Implements `cancelCombat`, `resetCombat`, initiative sorting on first turn, dead-NPC skipping, and NPC initiative as `1d20 + DEX modifier`.
+- `hooks/useCombatSync.ts` — Turn, round, and combatant synchronization. Calls `initCombatLog`, `addCombatEvent`, `advanceCombatLogRound`, and `clearCombatLog`. Implements `cancelCombat`, `resetCombat`, initiative sorting on first turn, dead-NPC skipping, and NPC initiative as `1d20 + DEX modifier`. Now calls `useCombatantMutations` internally and re-exposes `updateCombatant`, `removeCombatant`, and `syncingIds` in its returned API.
+- `hooks/useCombatantMutations.ts` — Extracted from `useCombatSync`. Contains `updateCombatant`, `removeCombatant`, and `syncingIds`. Handles PC/NPC HP, conditions, and AC-modifier updates with DB writes (using `updateCharacterDB`, `updateNpcInstanceHpDB`, etc.), includes rollback on failure, and emits combat log events for condition changes.
 - `hooks/useEncounterPresetLoader.ts` — Handles adding PC and NPC presets to active encounters. Implements rollback fix: state snapshots are now captured BEFORE optimistic updates (not after), so a failed DB write correctly rolls back to pre-update state and shows a toast.error to the GM.
 - `hooks/useEncounterKeyboard.ts` — Global combat keyboard shortcuts. Escape exits selection mode, clears `expandedIds`, and closes modals.
 
@@ -956,9 +957,15 @@ None.
 
 #### Remaining Technical Debt
 
+- `dbOperations.ts` — ✅ Completed (optional test split remains, see below).
+- `useCombatSync.ts` — 🟡 In progress (see decomposition plan below).
+- `NewPlayerDialog.tsx` — ⚪ Documented, not scheduled (see decomposition plan below).
+- `NpcFormFields.tsx` — ⚪ Documented, not scheduled (see decomposition plan below).
+- `LevelUpDialog.tsx` — ⚪ Documented, not scheduled (see decomposition plan below).
+
+#### dbOperations.test.ts Cleanup (Optional)
+
 - `src/services/__tests__/dbOperations.test.ts` (24 tests) still mirrors the old pre-decomposition single-file structure and could optionally be split into per-module test files (`shared.test.ts`, `encounterLogs.test.ts`, `npcs.test.ts`, `characters.test.ts`, `encounterCombatants.test.ts`, `encounters.test.ts`) matching the new `src/services/dbOperations/` layout. This is organizational cleanup only — all 24 tests currently pass and there is no functional issue. Low priority, optional.
-- `useCombatSync.ts` currently handles initiative, dead-NPC skipping, combat cancellation/end, combat log wiring, condition timers, and sheet persistence. It is a good candidate for future decomposition. See the detailed decomposition plan below.
-- `NewPlayerDialog.tsx` (763 lines) is the largest .tsx file in the codebase and contains significant duplication with `NpcFormFields.tsx` and `LevelUpDialog.tsx`. See the decomposition plan below.
 
 #### useCombatSync.ts Decomposition Plan (Finalized)
 
@@ -999,6 +1006,36 @@ Sequencing (each step requires `npx tsc --noEmit` + BATCH 5A as a minimum checkp
   - `IdentityTab.tsx/CombatTab.tsx` splits — lower priority, more presentational, smaller win.
 
 - **Test coverage note**: current test file has only 5 tests, all behavioral (asserting on final `onConfirm` output), which should survive decomposition without rework — but low density means new tests should be added for any extracted subcomponent (especially `ResourcePoolManager`).
+
+#### NpcFormFields.tsx Decomposition Plan (documented, not scheduled)
+
+- **Current state**: 719 lines (confirmed via `wc -l`), the second-largest .tsx file in the codebase. Used by exactly 2 call sites: `NewNpcDialog.tsx` (full editor) and `CombatSidebar.tsx` (compact quick-add mode via the `compact` prop).
+- **Confirmed duplication**: the `IrvMultiSelect/StatBlock` wrapper pattern is duplicated between `NpcFormFields.tsx` (lines 610-661) and `NewPlayerDialog.tsx` (previously confirmed) — same components, same prop shapes, reinforcing that a shared `IrvGrid/StatBlock` wrapper component would benefit both files.
+- **Proposed decomposition**:
+  - Extract the four stat-block-item render functions (`renderTraitFields`, `renderActionFields`, `renderReactionFields`, `renderLegendaryActionFields`, spanning roughly lines 200-422) into a separate file (e.g. `NpcActionEditors.tsx`) as standalone functional components used by `NpcListEditor`.
+  - Extract the CR-to-proficiency-bonus sync logic (the `useEffect` at lines 424-448) into a small custom hook. Note: this `useEffect` sits directly between the action-renderer functions and the `activeTab` state declaration in the current file — it is not in a cleanly separated block, so extraction will require careful isolation, not a simple contiguous cut.
+  - Split the four tab bodies (identity, combat, abilities, statblock) into separate presentational components (`IdentityTab`, `CombatTab`, `AbilitiesTab`, `StatBlockTab`), each taking `data`/`handleChange`/`compact` as props.
+  - **Longer-term cross-cutting opportunity**: a shared `IrvGrid/StatBlock` wrapper component used by both `NpcFormFields.tsx` and `NewPlayerDialog.tsx`, consistent with the same duplication pattern already identified for the `ResourcePoolManager` opportunity between `NewPlayerDialog.tsx` and `LevelUpDialog.tsx`.
+
+- **Risk assessment**: identity/combat tab extraction is low-risk (mostly standard JSX); the CR automation hook extraction is medium-risk (must preserve the exact `onChange`-stability behavior to avoid infinite re-render loops, given it currently depends only on `[data.challengeRating]`).
+- **Test coverage note**: current test file has only 2 tests (confirmed via direct grep — renders all essential fields, calls `onChange` when input values change), covering neither the CR-automation logic nor the action-list editing behavior. Any decomposition should be paired with new tests for the extracted pieces, especially the CR automation hook and the action editors.
+
+#### LevelUpDialog.tsx Decomposition Plan (documented, not scheduled)
+
+- **Current state**: 689 lines (confirmed via `wc -l`), the third-largest .tsx file in the codebase.
+- **Confirmed duplication**: the `getResourcePoolSuggestions` call-and-map pattern is duplicated between `LevelUpDialog.tsx` and `NewPlayerDialog.tsx` (previously confirmed) — reinforcing the already-documented `ResourcePoolManager` shared-component opportunity. Note: `LevelUpDialog.tsx` uses `IrvMultiSelect` directly but does NOT use the `StatBlock` wrapper — so the IRV/StatBlock duplication remains two-way (`NewPlayerDialog.tsx` and `NpcFormFields.tsx` only), not three-way as initially suspected.
+- **Confirmed extraction candidates**:
+  - The Jack of All Trades auto-check logic (lines 128-137) is a clean, isolated `useEffect` gated by a `hasManuallyToggledJack` flag that permanently disables the auto-check once the GM manually touches the checkbox — this is the safeguard built earlier this session and is well-isolated, making it a reasonable extraction candidate into a custom hook or pure decision function, as long as `hasManuallyToggledJack`/its setter are threaded through correctly.
+  - The HP gain calculation (lines 141-157) is pure math (`conModifier + hpRoll + toughFeatBonus`) with no side effects — safely extractable.
+
+- **Proposed decomposition**:
+  - `src/components/PartyTab/LevelUpChecklist.tsx` — extract the GM checklist section (~85 lines), purely presentational.
+  - `src/components/PartyTab/LevelUpResourcePools.tsx` (or fold into the already-documented `ResourcePoolManager.tsx`) — extract the resource pool editing section, connects directly to the `ResourcePoolManager` opportunity already documented for `NewPlayerDialog.tsx`/`LevelUpDialog.tsx`.
+  - `src/hooks/useLevelUpAutomation.ts` — consolidate the resource pool suggestion `useEffect` and the Jack of All Trades auto-check `useEffect`.
+  - Pure logic (HP calculation, JoAT decision criteria) could move to `src/lib/combatLogic.ts` or a new `src/lib/characterAutomation.ts`.
+
+- **Risk assessment**: HP calculation extraction is low-risk (simple math, already covered by multiple tests). Jack of All Trades extraction is medium-risk specifically because of the `hasManuallyToggledJack` state dependency — any extraction must preserve this exact guard behavior, since it's directly protected by 4 dedicated tests (auto-check on Bard 1→2, no auto-check for non-Bard, no auto-check on Bard 2→3, manual uncheck respected).
+- **Test coverage**: 17 tests confirmed via complete grep output — including 4 dedicated Jack of All Trades tests and 4 dedicated HP/Tough Feat tests, all behavioral (asserting on the `onConfirm` payload), which should survive decomposition as long as the external `onConfirm` interface stays unchanged.
 
 ---
 
