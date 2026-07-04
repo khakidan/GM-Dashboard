@@ -965,7 +965,7 @@ None.
 - `NewPlayerDialog.tsx` — ✅ Completed (see decomposition plan below).
 - `NpcFormFields.tsx` — ✅ Completed (see decomposition plan below).
 - `LevelUpDialog.tsx` — ✅ Completed (see decomposition plan below).
-- `CombatantCardHeader.tsx` — ⚪ Documented, not scheduled (see decomposition plan below).
+- `CombatantCardHeader.tsx` — 🟡 In Progress (see decomposition plan below).
 - `EncounterLogModal.tsx` — ✅ Completed (see decomposition plan below).
 
 #### dbOperations.test.ts Cleanup (Optional)
@@ -1051,12 +1051,13 @@ Sequencing (each step requires `npx tsc --noEmit` + BATCH 5A as a minimum checkp
 - **Risk assessment**: HP calculation extraction is low-risk (simple math, already covered by multiple tests). Jack of All Trades extraction is medium-risk specifically because of the `hasManuallyToggledJack` state dependency — any extraction must preserve this exact guard behavior, since it's directly protected by 4 dedicated tests (auto-check on Bard 1→2, no auto-check for non-Bard, no auto-check on Bard 2→3, manual uncheck respected).
 - **Test coverage**: 17 tests confirmed via complete grep output — including 4 dedicated Jack of All Trades tests and 4 dedicated HP/Tough Feat tests, all behavioral (asserting on the `onConfirm` payload), which should survive decomposition as long as the external `onConfirm` interface stays unchanged.
 
-#### CombatantCardHeader.tsx Decomposition Plan (documented, not scheduled)
+#### CombatantCardHeader.tsx Decomposition Plan (In Progress)
 
-- **Current state**: 531 lines (confirmed via `wc -l`).
+- **Current state**: 433 lines (down from 531 originally).
 - **Test coverage note**: No dedicated test file exists for this component; coverage is likely indirect via `CombatantCard.test.tsx` or higher-level tests. Any decomposition should be paired with direct tests for this component and its extracted pieces.
 - **Confirmed extraction candidates**:
-  - `AnimatedHpDisplay` (lines 14-61) and `InitiativeInput` (lines 63-113) are already fully self-contained, pure presentational subcomponents defined at the top of this file, each with their own local state and zero coupling to the rest of the component. Confirmed via grep: neither is referenced or imported anywhere else in the codebase. This is the lowest-risk extraction of any file assessed this session — a literal cut-and-paste into their own files (`AnimatedHpDisplay.tsx`, `InitiativeInput.tsx`) with an export, no logic changes required.
+  - ✅ DONE, verified (BATCH 5B: 26/26, TypeScript clean). `AnimatedHpDisplay` (originally lines 14-61) and `InitiativeInput` (originally lines 63-113) were extracted into their own files (`AnimatedHpDisplay.tsx`, `InitiativeInput.tsx`).
+    - *Process note*: During extraction, the `motion` import was initially removed from `CombatantCardHeader.tsx` on the assumption it was only used inside `AnimatedHpDisplay`, but TypeScript caught that it's also used elsewhere in the file (health control animations) — this was caught immediately via the compiler error and the import was restored before verification.
   - The NPC-only compact indicators block (legendary actions, legendary resistances, recharge abilities — roughly lines 269-333) is a clean, self-contained conditional block driven only by `combatant` fields and the `onMarkSpent` prop — a strong second extraction candidate into its own component (e.g. `CombatantCompactIndicators.tsx`).
   - The damage/heal input controls (roughly lines 357-459) are self-contained aside from a handful of passed-in props and `isSyncing`/`isActiveTurn` from `useCombatantCard` — likely extractable into its own component (e.g. `CombatantHealthControls.tsx`) with those as props.
   - The compact PC resource pool row (roughly lines 479-528) is the one piece that directly calls `useAppState()` to read `state.characters` — more entangled with the store than the other candidates. Extracting this means either passing the resolved char/pools down as a prop, or letting the new component call `useAppState()` itself.

@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
+import React, { useState, useEffect } from 'react';
 import { ChevronDown, Zap, ZapOff, Shield, Skull } from 'lucide-react';
+import { AnimatedHpDisplay } from './AnimatedHpDisplay';
+import { InitiativeInput } from './InitiativeInput';
 import { cn } from '../../lib/utils';
 import { Combatant, DamageType } from '../../types';
 import { getHealthStatus, effectiveAc, effectiveMaxHp } from '../../lib/conditions';
@@ -11,106 +13,6 @@ import { useCombatantCard } from './hooks/useCombatantCard';
 import { useAppState } from '../../hooks/useAppState';
 import { parseResourcePools, spendResourcePip, recoverResourcePip, serializeResourcePools, ResourcePool } from '../../lib/resourcePools';
 
-const AnimatedHpDisplay = ({
-  value,
-  maxHp,
-  isActive,
-  colorClass,
-  className,
-}: {
-  value: number;
-  maxHp: number;
-  isActive: boolean;
-  colorClass: string;
-  className?: string;
-}) => {
-  const [prevHp, setPrevHp] = useState(value);
-  const [animateState, setAnimateState] = useState<'idle' | 'heal' | 'damage'>('idle');
-
-  useEffect(() => {
-    let animationTimeout: NodeJS.Timeout;
-    if (value > prevHp) {
-      setAnimateState('heal');
-    } else if (value < prevHp) {
-      setAnimateState('damage');
-    }
-
-    setPrevHp(value);
-
-    animationTimeout = setTimeout(() => setAnimateState('idle'), 500);
-    return () => clearTimeout(animationTimeout);
-  }, [value, prevHp]);
-
-  return (
-    <motion.div
-      animate={
-        animateState === 'heal'
-          ? { scale: [1, 1.2, 1], backgroundColor: ['transparent', '#86efac', 'transparent'] }
-          : animateState === 'damage'
-          ? { scale: [1, 0.9, 1], backgroundColor: ['transparent', '#fca5a5', 'transparent'], x: [0, -4, 4, -4, 4, 0] }
-          : {}
-      }
-      transition={{ duration: 0.4 }}
-      className={cn('rounded-md relative inline-block p-1', className)}
-    >
-      <div className={cn('min-w-8 text-center font-sans font-bold block', colorClass)}>
-        {value}
-      </div>
-    </motion.div>
-  );
-};
-
-const InitiativeInput = ({
-  value,
-  onSave,
-  disabled,
-}: {
-  value: number;
-  onSave: (val: number) => void;
-  disabled?: boolean;
-}) => {
-  const [localValue, setLocalValue] = useState<string>(value.toString());
-
-  useEffect(() => {
-    setLocalValue(value.toString());
-  }, [value]);
-
-  const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-    setLocalValue('');
-  };
-
-  const handleBlur = () => {
-    const num = parseInt(localValue);
-    if (!isNaN(num)) {
-      onSave(num);
-    } else {
-      setLocalValue(value.toString());
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      const num = parseInt(localValue);
-      if (!isNaN(num)) {
-        onSave(num);
-      }
-      e.currentTarget.blur();
-    }
-  };
-
-  return (
-    <input
-      type="number"
-      value={localValue}
-      onFocus={handleFocus}
-      onChange={(e) => setLocalValue(e.target.value)}
-      onBlur={handleBlur}
-      onKeyDown={handleKeyDown}
-      disabled={disabled}
-      className="w-14 h-8 bg-transparent border border-[#e2e8f0] rounded text-center font-bold text-[#0f172a] outline-none text-sm focus:border-[#2563eb] focus:bg-white disabled:opacity-50"
-    />
-  );
-};
 
 export interface CombatantCardHeaderProps {
   c: Combatant;
