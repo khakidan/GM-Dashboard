@@ -1053,12 +1053,12 @@ Sequencing (each step requires `npx tsc --noEmit` + BATCH 5A as a minimum checkp
 
 #### CombatantCardHeader.tsx Decomposition Plan (In Progress)
 
-- **Current state**: 433 lines (down from 531 originally).
+- **Current state**: 369 lines (down from 531 originally).
 - **Test coverage note**: No dedicated test file exists for this component; coverage is likely indirect via `CombatantCard.test.tsx` or higher-level tests. Any decomposition should be paired with direct tests for this component and its extracted pieces.
 - **Confirmed extraction candidates**:
   - ✅ DONE, verified (BATCH 5B: 26/26, TypeScript clean). `AnimatedHpDisplay` (originally lines 14-61) and `InitiativeInput` (originally lines 63-113) were extracted into their own files (`AnimatedHpDisplay.tsx`, `InitiativeInput.tsx`).
     - *Process note*: During extraction, the `motion` import was initially removed from `CombatantCardHeader.tsx` on the assumption it was only used inside `AnimatedHpDisplay`, but TypeScript caught that it's also used elsewhere in the file (health control animations) — this was caught immediately via the compiler error and the import was restored before verification.
-  - The NPC-only compact indicators block (legendary actions, legendary resistances, recharge abilities — roughly lines 269-333) is a clean, self-contained conditional block driven only by `combatant` fields and the `onMarkSpent` prop — a strong second extraction candidate into its own component (e.g. `CombatantCompactIndicators.tsx`).
+  - ✅ DONE, verified (BATCH 5B: 26/26, TypeScript clean). The NPC-only compact indicators block (originally lines 171-236) was extracted into its own component (`CombatantCompactIndicators.tsx`).
   - The damage/heal input controls (roughly lines 357-459) are self-contained aside from a handful of passed-in props and `isSyncing`/`isActiveTurn` from `useCombatantCard` — likely extractable into its own component (e.g. `CombatantHealthControls.tsx`) with those as props.
   - The compact PC resource pool row (roughly lines 479-528) is the one piece that directly calls `useAppState()` to read `state.characters` — more entangled with the store than the other candidates. Extracting this means either passing the resolved char/pools down as a prop, or letting the new component call `useAppState()` itself.
 
