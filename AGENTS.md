@@ -961,7 +961,7 @@ None.
 #### Remaining Technical Debt
 
 - `dbOperations.ts` — ✅ Completed (optional test split remains, see below).
-- `useCombatSync.ts` — 🟡 In progress (see decomposition plan below).
+- `useCombatSync.ts` — ✅ Completed (see decomposition plan below).
 - `NewPlayerDialog.tsx` — ⚪ Documented, not scheduled (see decomposition plan below).
 - `NpcFormFields.tsx` — ⚪ Documented, not scheduled (see decomposition plan below).
 - `LevelUpDialog.tsx` — ⚪ Documented, not scheduled (see decomposition plan below).
@@ -972,7 +972,15 @@ None.
 
 - `src/services/__tests__/dbOperations.test.ts` (24 tests) still mirrors the old pre-decomposition single-file structure and could optionally be split into per-module test files (`shared.test.ts`, `encounterLogs.test.ts`, `npcs.test.ts`, `characters.test.ts`, `encounterCombatants.test.ts`, `encounters.test.ts`) matching the new `src/services/dbOperations/` layout. This is organizational cleanup only — all 24 tests currently pass and there is no functional issue. Low priority, optional.
 
-#### useCombatSync.ts Decomposition Plan (Finalized)
+#### useCombatSync.ts Decomposition Plan (Completed)
+
+All four extraction steps have been successfully completed:
+- `useCombatantMutations.ts` handles combatant CRUD operations, failure rollback, and condition log events.
+- `useCombatLifecycle.ts` handles rolling initiative for NPCs, and combat setup/teardown with DB synchronization.
+- `useCombatTurn.ts` manages round advancement, dead-NPC skipping, legendary action resets, death save prompts, and expired condition removal.
+- `useCombatConcentration.ts` maintains the local `concentrationPrompt` React state and manages caster attribution when concentration effects are applied.
+
+The main `useCombatSync.ts` entry point is now a genuinely thin facade (reduced from 947 lines originally to exactly 66 lines), instantiating and coordinating these four sub-hooks while preserving the identical, flattened API signature. Zero regressions were introduced across every step, individually verified through real batch runs at each checkpoint (with a process correction during Step 4 to ensure a live Vitest run was completed before marking it verified), culminating in a perfect 12-batch pass (692/692 tests) and clean TypeScript typecheck.
 
 Confirmed architectural facts:
 - `useAppState()` delegates directly to a single global Zustand store (`useDashboardStore`) — safe to call from multiple independent hook files with no desync risk.
@@ -994,9 +1002,9 @@ Sequencing (each step requires `npx tsc --noEmit` + BATCH 5A as a minimum checkp
 1. Extract `useCombatantMutations.ts` — ✅ DONE, verified (BATCH 5A: 45/45)
 2. Extract `useCombatLifecycle.ts` — ✅ DONE, verified (BATCH 5A: 45/45)
 3. Extract `useCombatTurn.ts` — ✅ DONE, verified (BATCH 5A: 45/45)
-4. Extract `useCombatConcentration.ts` — code extracted, NOT YET VERIFIED (awaiting BATCH 5A run).
-5. Test suite alignment check (fix `useCombatSync.test.ts` internals only if needed, no app logic changes)
-6. Full 12-batch global verification
+4. Extract `useCombatConcentration.ts` — ✅ DONE, verified (BATCH 5A: 45/45)
+5. Test suite alignment check — ✅ DONE — full 12-batch run confirmed no test modifications were needed; `useCombatSync.test.ts` passed unchanged throughout all four extractions.
+6. Full 12-batch global verification — ✅ DONE — full 12-batch verification: 692/692 passed, 0 failures, TypeScript clean.
 
 #### NewPlayerDialog.tsx Decomposition Plan (documented, not scheduled)
 
