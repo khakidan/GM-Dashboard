@@ -1006,19 +1006,20 @@ Sequencing (each step requires `npx tsc --noEmit` + BATCH 5A as a minimum checkp
 5. Test suite alignment check — ✅ DONE — full 12-batch run confirmed no test modifications were needed; `useCombatSync.test.ts` passed unchanged throughout all four extractions.
 6. Full 12-batch global verification — ✅ DONE — full 12-batch verification: 692/692 passed, 0 failures, TypeScript clean.
 
-#### NewPlayerDialog.tsx Decomposition Plan (documented, not scheduled)
+#### NewPlayerDialog.tsx Decomposition Plan (In Progress)
 
-- **Current state**: 763 lines (confirmed via `wc -l`), the largest .tsx file in the codebase.
+- **Current state**: 543 lines (down from 763 originally), no longer the largest .tsx file in the codebase.
 - **Confirmed duplication**:
   - The `IrvMultiSelect/StatBlock` wrapper pattern is duplicated between `NewPlayerDialog.tsx` and `NpcFormFields.tsx` (same components, same prop shapes).
-  - The `getResourcePoolSuggestions` call-and-map pattern is duplicated between `NewPlayerDialog.tsx` and `LevelUpDialog.tsx`.
+  - The `getResourcePoolSuggestions` call-and-map pattern was duplicated between `NewPlayerDialog.tsx` and `LevelUpDialog.tsx` (now partially addressed by extracting `ResourcePoolManager.tsx`).
 
-- **Proposed decomposition**:
-  - `src/components/ui/ResourcePoolManager.tsx` — highest-value extraction. A ~160-line, self-contained, genuinely stateful-but-isolated block (lines 548-714) handling the add/edit/delete UI for resource pools, driven only by `formData.resourcePools` and its own local edit-mode state. Extracting this could benefit both `NewPlayerDialog.tsx` and `LevelUpDialog.tsx` since both implement similar resource pool logic independently. **Confirmed via direct file verification**: the five handler functions this UI block depends on are defined at `handleAddResource` (line 244), `handleUpdateResourceCurrent` (line 259), `handleDeleteResource` (line 270), `startEditResource` (line 275), and `handleSaveEditResource` (line 282) — all well before the 548-714 JSX block. Any extraction of `ResourcePoolManager.tsx` must move these five function definitions alongside the JSX, not just the render block.
-  - `src/hooks/usePlayerFormAutomation.ts` (optional) — could consolidate the 6 `useEffect` hooks handling auto-suggested hit dice, resource pools, Bardic Inspiration pips, proficiency bonus sync, and saving throw proficiencies.
-  - `IdentityTab.tsx/CombatTab.tsx` splits — lower priority, more presentational, smaller win.
+- **Decomposition Progress**:
+  - `src/components/ui/ResourcePoolManager.tsx` — ✅ DONE, verified (NewPlayerDialog.test.tsx: 5/5, TypeScript clean). Extracted the resource pool editor as a self-contained component with props: `pools: ResourcePool[]`, `onChange: (pools: ResourcePool[]) => void`, `characterClass: string`, `onCustomized?: () => void`. The `poolsCustomized` ref-based "don't overwrite manual edits" protection in `NewPlayerDialog.tsx` was correctly preserved by passing `() => { poolsCustomized.current = true; }` to the `onCustomized` callback.
+    - *Cross-cutting opportunity note*: This component is ready to also be adopted by `LevelUpDialog.tsx` in place of its own independent resource pool editing logic, as documented in the `LevelUpDialog.tsx` decomposition plan.
+  - `src/hooks/usePlayerFormAutomation.ts` (optional, not scheduled) — could consolidate the 6 `useEffect` hooks handling auto-suggested hit dice, resource pools, Bardic Inspiration pips, proficiency bonus sync, and saving throw proficiencies.
+  - `IdentityTab.tsx/CombatTab.tsx` splits (documented, not scheduled) — lower priority, more presentational, smaller win.
 
-- **Test coverage note**: current test file has only 5 tests, all behavioral (asserting on final `onConfirm` output), which should survive decomposition without rework — but low density means new tests should be added for any extracted subcomponent (especially `ResourcePoolManager`).
+- **Test coverage note**: current test file has 5 tests, all behavioral (asserting on final `onConfirm` output), which survived decomposition cleanly and passed unchanged.
 
 #### NpcFormFields.tsx Decomposition Plan (documented, not scheduled)
 
