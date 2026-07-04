@@ -31,5 +31,5 @@ export function useNpcCrAutomation({
     } catch {
       // silently ignore invalid CR strings
     }
-  }, [challengeRating, proficiencies, onChange]);
+  }, [challengeRating]);
 }
