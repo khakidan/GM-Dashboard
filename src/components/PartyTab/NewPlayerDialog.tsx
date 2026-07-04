@@ -1,11 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { X, UserPlus, AlertCircle } from 'lucide-react';
+import { X, UserPlus } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Character } from '../../types';
 import { cn } from '../../lib/utils';
 import { useFormState } from '../../hooks/useFormState';
-import { IrvMultiSelect } from '../ui/IrvMultiSelect';
 import { StatBlock } from '../ui/StatBlock';
+import { IdentityTab } from './IdentityTab';
+import { CombatTab } from './CombatTab';
 import {
   DEFAULT_ABILITY_SCORES, 
   DEFAULT_PROFICIENCIES, 
@@ -185,180 +186,27 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
             <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto flex flex-col min-h-0">
               <div className="flex-1 px-6 py-5">
                 {activeTab === 'identity' && (
-                  <div className="space-y-4">
-                    <div>
-                      <label htmlFor="player-name" className="block text-xs font-bold uppercase tracking-widest text-[#8d8db9] mb-1.5 px-1">
-                        Player Name
-                      </label>
-                      <input
-                        id="player-name"
-                        type="text"
-                        value={formData.playerName}
-                        onChange={e => handleChange('playerName', e.target.value)}
-                        placeholder="e.g. Sarah"
-                        required
-                        className="w-full bg-white border border-stone-200 rounded-lg px-4 py-2 text-sm text-stone-800 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all placeholder:text-stone-400 shadow-sm"
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="character-name" className="block text-xs font-bold uppercase tracking-widest text-[#8d8db9] mb-1.5 px-1">
-                        Character Name
-                      </label>
-                      <input
-                        id="character-name"
-                        type="text"
-                        value={formData.characterName}
-                        onChange={e => handleChange('characterName', e.target.value)}
-                        placeholder="e.g. Drogar"
-                        required
-                        className="w-full bg-white border border-stone-200 rounded-lg px-4 py-2 text-sm text-stone-800 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all placeholder:text-stone-400 shadow-sm"
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="char-class" className="block text-xs font-bold uppercase tracking-widest text-[#8d8db9] mb-1.5 px-1">
-                        Class
-                      </label>
-                      <input
-                        id="char-class"
-                        type="text"
-                        value={formData.class}
-                        onChange={e => handleChange('class', e.target.value)}
-                        placeholder="e.g. Barbarian, Monk, Vitalist"
-                        className="w-full bg-white border border-stone-200 rounded-lg px-4 py-2 text-sm text-stone-800 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all placeholder:text-stone-400 shadow-sm"
-                      />
-                      <p className="text-xs text-stone-500 mt-1">
-                        Used to suggest starting resources on the Resources tab
-                      </p>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label htmlFor="char-level" className="block text-xs font-bold uppercase tracking-widest text-[#8d8db9] mb-1.5 px-1">
-                          Level
-                        </label>
-                        <input
-                          id="char-level"
-                          type="number"
-                          min="1"
-                          max="20"
-                          value={formData.level}
-                          onChange={e => handleChange('level', parseInt(e.target.value) || 1)}
-                          className="w-full bg-white border border-stone-200 rounded-lg px-4 py-2 text-sm text-stone-800 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all shadow-sm"
-                        />
-                      </div>
-                      <div>
-                        <label htmlFor="char-status" className="block text-xs font-bold uppercase tracking-widest text-[#8d8db9] mb-1.5 px-1">
-                          Status
-                        </label>
-                        <select
-                          id="char-status"
-                          value={formData.statusId}
-                          onChange={e => handleChange('statusId', parseInt(e.target.value))}
-                          className="w-full bg-white border border-stone-200 rounded-lg px-4 py-2 text-sm text-stone-800 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all appearance-none cursor-pointer shadow-sm"
-                        >
-                          <option value={1}>Active</option>
-                          <option value={2}>Inactive</option>
-                          <option value={3}>Deceased</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
+                  <IdentityTab
+                    playerName={formData.playerName}
+                    characterName={formData.characterName}
+                    characterClass={formData.class}
+                    level={formData.level}
+                    statusId={formData.statusId}
+                    onChange={handleChange}
+                  />
                 )}
                 {activeTab === 'combat' && (
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-bold uppercase tracking-widest text-[#8d8db9] mb-1.5 px-1">
-                          Armor Class
-                        </label>
-                        <input
-                          type="number"
-                          min="1"
-                          max="30"
-                          value={formData.ac}
-                          onChange={e => handleChange('ac', parseInt(e.target.value) || 10)}
-                          className="w-full bg-white border border-stone-200 rounded-lg px-4 py-2 text-sm text-stone-800 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all shadow-sm"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold uppercase tracking-widest text-[#8d8db9] mb-1.5 px-1">
-                          Max HP
-                        </label>
-                        <input
-                          type="number"
-                          min="1"
-                          value={formData.maxHp}
-                          onChange={e => handleChange('maxHp', parseInt(e.target.value) || 1)}
-                          className="w-full bg-white border border-stone-200 rounded-lg px-4 py-2 text-sm text-stone-800 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all shadow-sm"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold uppercase tracking-widest text-[#8d8db9] mb-1.5 px-1">
-                        Hit Dice
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.hitDiceConfig}
-                        onChange={e => handleChange('hitDiceConfig', e.target.value)}
-                        placeholder="e.g. 5d10 or 4d8+1d6"
-                        className={cn(
-                          "w-full bg-white border rounded-lg px-4 py-2 text-sm text-stone-800 outline-none transition-all placeholder:text-stone-400 shadow-sm",
-                          isHitDiceValid 
-                            ? "border-stone-200 focus:border-amber-400 focus:ring-1 focus:ring-amber-400" 
-                            : "border-red-500/50 focus:border-red-500 focus:ring-1 focus:ring-red-500"
-                        )}
-                      />
-                      {!isHitDiceValid && (
-                        <div className="flex items-center gap-1 mt-1 text-red-500 text-xs">
-                          <AlertCircle className="w-3 h-3 flex-shrink-0" />
-                          <span>Invalid format. Must be like 2d6 or 1d8+2d6.</span>
-                        </div>
-                      )}
-                      <p className="text-xs text-stone-500 mt-1">
-                        Auto-suggested from class. Format: [count]d[size] (e.g. 5d10)
-                      </p>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold uppercase tracking-widest text-[#8d8db9] mb-1.5 px-1">
-                        RESISTANCES / IMMUNITIES / VULNERABILITIES
-                      </label>
-                      <div className="grid grid-cols-3 gap-3">
-                        <IrvMultiSelect
-                          label="Resists"
-                          value={formData.resistances}
-                          onChange={v => handleChange('resistances', v)}
-                          compact
-                        />
-                        <IrvMultiSelect
-                          label="Immune"
-                          value={formData.immunities}
-                          onChange={v => handleChange('immunities', v)}
-                          compact
-                        />
-                        <IrvMultiSelect
-                          label="Vuln"
-                          value={formData.vulnerabilities}
-                          onChange={v => handleChange('vulnerabilities', v)}
-                          compact
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold uppercase tracking-widest text-[#8d8db9] mb-1.5 px-1">
-                        Notes
-                      </label>
-                      <textarea
-                        value={formData.notes}
-                        onChange={e => handleChange('notes', e.target.value)}
-                        placeholder="Special abilities, backstory notes..."
-                        rows={3}
-                        className="w-full bg-white border border-stone-200 rounded-lg px-4 py-2 text-sm text-stone-800 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all placeholder:text-stone-400 resize-none shadow-sm"
-                      />
-                    </div>
-                  </div>
+                  <CombatTab
+                    ac={formData.ac}
+                    maxHp={formData.maxHp}
+                    hitDiceConfig={formData.hitDiceConfig}
+                    resistances={formData.resistances}
+                    immunities={formData.immunities}
+                    vulnerabilities={formData.vulnerabilities}
+                    notes={formData.notes}
+                    isHitDiceValid={isHitDiceValid}
+                    onChange={handleChange}
+                  />
                 )}
                 {activeTab === 'abilities' && (
                   <div>
