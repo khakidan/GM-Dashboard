@@ -1008,7 +1008,7 @@ Sequencing (each step requires `npx tsc --noEmit` + BATCH 5A as a minimum checkp
 
 #### NewPlayerDialog.tsx Decomposition Plan (In Progress)
 
-- **Current state**: 543 lines (down from 763 originally), no longer the largest .tsx file in the codebase.
+- **Current state**: 439 lines (down from 763 originally), no longer the largest .tsx file in the codebase.
 - **Confirmed duplication**:
   - The `IrvMultiSelect/StatBlock` wrapper pattern is duplicated between `NewPlayerDialog.tsx` and `NpcFormFields.tsx` (same components, same prop shapes).
   - The `getResourcePoolSuggestions` call-and-map pattern was duplicated between `NewPlayerDialog.tsx` and `LevelUpDialog.tsx` (now partially addressed by extracting `ResourcePoolManager.tsx`).
@@ -1016,8 +1016,9 @@ Sequencing (each step requires `npx tsc --noEmit` + BATCH 5A as a minimum checkp
 - **Decomposition Progress**:
   - `src/components/ui/ResourcePoolManager.tsx` — ✅ DONE, verified (NewPlayerDialog.test.tsx: 5/5, TypeScript clean). Extracted the resource pool editor as a self-contained component with props: `pools: ResourcePool[]`, `onChange: (pools: ResourcePool[]) => void`, `characterClass: string`, `onCustomized?: () => void`. The `poolsCustomized` ref-based "don't overwrite manual edits" protection in `NewPlayerDialog.tsx` was correctly preserved by passing `() => { poolsCustomized.current = true; }` to the `onCustomized` callback.
     - *Cross-cutting opportunity note*: This component is ready to also be adopted by `LevelUpDialog.tsx` in place of its own independent resource pool editing logic, as documented in the `LevelUpDialog.tsx` decomposition plan.
-  - `src/hooks/usePlayerFormAutomation.ts` (optional, not scheduled) — could consolidate the 6 `useEffect` hooks handling auto-suggested hit dice, resource pools, Bardic Inspiration pips, proficiency bonus sync, and saving throw proficiencies.
-  - `IdentityTab.tsx/CombatTab.tsx` splits (documented, not scheduled) — lower priority, more presentational, smaller win.
+  - `src/hooks/usePlayerFormAutomation.ts` — ✅ DONE, verified (NewPlayerDialog.test.tsx: 5/5, TypeScript clean). Consolidates the five character-automation `useEffect` hooks (hit dice suggestion, resource pool suggestion, Bardic Inspiration sync, proficiency bonus sync, and saving throw auto-assignment). It accepts `activeTab`, `formData`, `handleChange`, and the `poolsCustomized` ref object itself as parameters. The dialog-lifecycle reset effect (on `isOpen`) intentionally stayed in `NewPlayerDialog.tsx` as it pertains directly to modal open/close state.
+    - *Process detail / Lesson learned*: During extraction, two sync effects (proficiency bonus and saving throws) initially had `formData.proficiencies` added to their dependency arrays (not present in the original code). This was proactively identified as a potential trigger for extra re-runs/render loops on unrelated proficiency edits (due to potentially fresh object references on each render). The dependencies were successfully restored to the original, narrower lists (`[formData.level, handleChange]` and `[formData.class, handleChange]`) before final verification.
+  - `IdentityTab.tsx/CombatTab.tsx` splits (documented, not scheduled) — lowest priority, more presentational, smaller win. Now the only remaining item in this file's plan.
 
 - **Test coverage note**: current test file has 5 tests, all behavioral (asserting on final `onConfirm` output), which survived decomposition cleanly and passed unchanged.
 
