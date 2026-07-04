@@ -958,6 +958,7 @@ None.
 
 - `src/services/__tests__/dbOperations.test.ts` (24 tests) still mirrors the old pre-decomposition single-file structure and could optionally be split into per-module test files (`shared.test.ts`, `encounterLogs.test.ts`, `npcs.test.ts`, `characters.test.ts`, `encounterCombatants.test.ts`, `encounters.test.ts`) matching the new `src/services/dbOperations/` layout. This is organizational cleanup only — all 24 tests currently pass and there is no functional issue. Low priority, optional.
 - `useCombatSync.ts` currently handles initiative, dead-NPC skipping, combat cancellation/end, combat log wiring, condition timers, and sheet persistence. It is a good candidate for future decomposition. See the detailed decomposition plan below.
+- `NewPlayerDialog.tsx` (763 lines) is the largest .tsx file in the codebase and contains significant duplication with `NpcFormFields.tsx` and `LevelUpDialog.tsx`. See the decomposition plan below.
 
 #### useCombatSync.ts Decomposition Plan (Finalized)
 
@@ -984,6 +985,20 @@ Sequencing (each step requires `npx tsc --noEmit` + BATCH 5A as a minimum checkp
 4. Extract `useCombatConcentration.ts`
 5. Test suite alignment check (fix `useCombatSync.test.ts` internals only if needed, no app logic changes)
 6. Full 12-batch global verification
+
+#### NewPlayerDialog.tsx Decomposition Plan (documented, not scheduled)
+
+- **Current state**: 763 lines (confirmed via `wc -l`), the largest .tsx file in the codebase.
+- **Confirmed duplication**:
+  - The `IrvMultiSelect/StatBlock` wrapper pattern is duplicated between `NewPlayerDialog.tsx` and `NpcFormFields.tsx` (same components, same prop shapes).
+  - The `getResourcePoolSuggestions` call-and-map pattern is duplicated between `NewPlayerDialog.tsx` and `LevelUpDialog.tsx`.
+
+- **Proposed decomposition**:
+  - `src/components/ui/ResourcePoolManager.tsx` — highest-value extraction. A ~160-line, self-contained, genuinely stateful-but-isolated block (lines 548-714) handling the add/edit/delete UI for resource pools, driven only by `formData.resourcePools` and its own local edit-mode state. Extracting this could benefit both `NewPlayerDialog.tsx` and `LevelUpDialog.tsx` since both implement similar resource pool logic independently. Note: the actual handler functions this UI block depends on (handleUpdateResourceCurrent, handleSaveEditResource, handleAddResource, handleDeleteResource, startEditResource) were referenced in the JSX but not yet located or quoted during discovery. Confirming their exact location and full implementation is a prerequisite before this extraction can begin.
+  - `src/hooks/usePlayerFormAutomation.ts` (optional) — could consolidate the 6 `useEffect` hooks handling auto-suggested hit dice, resource pools, Bardic Inspiration pips, proficiency bonus sync, and saving throw proficiencies.
+  - `IdentityTab.tsx/CombatTab.tsx` splits — lower priority, more presentational, smaller win.
+
+- **Test coverage note**: current test file has only 5 tests, all behavioral (asserting on final `onConfirm` output), which should survive decomposition without rework — but low density means new tests should be added for any extracted subcomponent (especially `ResourcePoolManager`).
 
 ---
 
