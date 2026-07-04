@@ -66,15 +66,6 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
 
   const [poolEdits, setPoolEdits] = useState<PoolEdit[]>([]);
 
-  useLevelUpAutomation(
-    isOpen,
-    newLevel,
-    character,
-    hasManuallyToggledJack,
-    setPoolEdits,
-    setHasJackOfAllTrades
-  );
-
   // Keep states updated if the input character prop changes while open
   useEffect(() => {
     if (isOpen) {
@@ -106,6 +97,15 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
       setNewClassHitDie(8);
     }
   }, [character, isOpen]);
+
+  useLevelUpAutomation(
+    isOpen,
+    newLevel,
+    character,
+    hasManuallyToggledJack,
+    setPoolEdits,
+    setHasJackOfAllTrades
+  );
 
   if (!isOpen) return null;
 

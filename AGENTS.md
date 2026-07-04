@@ -964,7 +964,7 @@ None.
 - `useCombatSync.ts` — ✅ Completed (see decomposition plan below).
 - `NewPlayerDialog.tsx` — ✅ Completed (see decomposition plan below).
 - `NpcFormFields.tsx` — ✅ Completed (see decomposition plan below).
-- `LevelUpDialog.tsx` — 🟡 In Progress (see decomposition plan below).
+- `LevelUpDialog.tsx` — ✅ Completed (see decomposition plan below).
 - `CombatantCardHeader.tsx` — ⚪ Documented, not scheduled (see decomposition plan below).
 - `EncounterLogModal.tsx` — ⚪ Documented, not scheduled (see decomposition plan below).
 
@@ -1036,20 +1036,18 @@ Sequencing (each step requires `npx tsc --noEmit` + BATCH 5A as a minimum checkp
 - **Risk assessment**: identity/combat tab extraction is low-risk (mostly standard JSX); the CR automation hook extraction is medium-risk (must preserve the exact `onChange`-stability behavior to avoid infinite re-render loops, given it currently depends only on `[data.challengeRating]`).
 - **Test coverage note**: current test file has only 2 tests (confirmed via direct grep — renders all essential fields, calls `onChange` when input values change), covering neither the CR-automation logic nor the action-list editing behavior. Any decomposition should be paired with new tests for the extracted pieces, especially the CR automation hook and the action editors.
 
-#### LevelUpDialog.tsx Decomposition Plan (In Progress)
+#### LevelUpDialog.tsx Decomposition Plan (Completed)
 
-- **Current state**: 535 lines (down from 689 originally across two extraction steps), the third-largest .tsx file in the codebase.
+- **Current state**: 499 lines (down from 689 originally, a 28% reduction, across four verified extraction steps: LevelUpChecklist.tsx, LevelUpResourcePools.tsx, calculateHpGain, useLevelUpAutomation.ts).
 - **Confirmed duplication**: the `getResourcePoolSuggestions` call-and-map pattern is duplicated between `LevelUpDialog.tsx` and `NewPlayerDialog.tsx` (previously confirmed) — reinforcing the already-documented `ResourcePoolManager` shared-component opportunity. Note: `LevelUpDialog.tsx` uses `IrvMultiSelect` directly but does NOT use the `StatBlock` wrapper — so the IRV/StatBlock duplication remains two-way (`NewPlayerDialog.tsx` and `NpcFormFields.tsx` only), not three-way as initially suspected.
 - **Confirmed extraction candidates**:
   - The Jack of All Trades auto-check logic (lines 128-137) is a clean, isolated `useEffect` gated by a `hasManuallyToggledJack` flag that permanently disables the auto-check once the GM manually touches the checkbox — this is the safeguard built earlier this session and is well-isolated, making it a reasonable extraction candidate into a custom hook or pure decision function, as long as `hasManuallyToggledJack`/its setter are threaded through correctly.
   - The HP gain calculation (lines 141-157) is pure math (`conModifier + hpRoll + toughFeatBonus`) with no side effects — safely extractable.
-
 - **Proposed decomposition**:
   - `src/components/PartyTab/LevelUpChecklist.tsx` — ✅ DONE, verified (LevelUpDialog.test.tsx: 17/17, TypeScript clean). Extracted the GM checklist section into its own presentation-only component. It receives the five visual checklist booleans (`chkHp`, `chkAc`, `chkPerception`, `chkResistances`, `chkOther`) and their setters as controlled props from `LevelUpDialog.tsx`, preserving the parent's `isOpen` reset behavior while isolating visual checklist structure.
   - `src/components/PartyTab/LevelUpResourcePools.tsx` — ✅ DONE, verified (LevelUpDialog.test.tsx: 17/17, TypeScript clean). Note it receives `poolEdits`/`setPoolEdits` as controlled props (state remains owned by `LevelUpDialog.tsx` since `handleConfirm` reads `poolEdits` to build the final serialized `resourcePools` payload), and exports a `PoolEdit` interface.
   - Pure HP gain calculation — ✅ DONE, verified (LevelUpDialog.test.tsx: 17/17, TypeScript clean). Added as `calculateHpGain(hpRoll, conScore, hasToughFeat)` in `src/lib/combatLogic.ts`. Note `conModifier` remains a separate local variable in `LevelUpDialog.tsx` since it's also needed for a UI display string ("+X from CON modifier"), alongside the call to the new pure function for the final `totalHpGained` value.
-  - `src/hooks/useLevelUpAutomation.ts` — consolidate the resource pool suggestion `useEffect` and the Jack of All Trades auto-check `useEffect`. (Not yet started — note this is the last remaining item in the plan, along with extracting the JoAT pure decision criteria).
-
+  - `src/hooks/useLevelUpAutomation.ts` — ✅ DONE, verified (LevelUpDialog.test.tsx: 17/17 individually confirmed by name, TypeScript clean). Process note: during extraction, placing the `useLevelUpAutomation(...)` call before the dialog-reset `useEffect` caused a real bug — React fired the automation hook first (correctly auto-checking Jack of All Trades), then the reset effect fired second and immediately reset it back to false, since both effects run on the same `isOpen` change. This was caught by the existing Jack of All Trades test suite (not by TypeScript, since both orderings compile fine) and fixed by moving the `useLevelUpAutomation` call to after the reset effect, preserving the original execution order. This is a good example of why the dedicated JoAT test coverage mattered for this specific extraction.
 - **Risk assessment**: HP calculation extraction is low-risk (simple math, already covered by multiple tests). Jack of All Trades extraction is medium-risk specifically because of the `hasManuallyToggledJack` state dependency — any extraction must preserve this exact guard behavior, since it's directly protected by 4 dedicated tests (auto-check on Bard 1→2, no auto-check for non-Bard, no auto-check on Bard 2→3, manual uncheck respected).
 - **Test coverage**: 17 tests confirmed via complete grep output — including 4 dedicated Jack of All Trades tests and 4 dedicated HP/Tough Feat tests, all behavioral (asserting on the `onConfirm` payload), which should survive decomposition as long as the external `onConfirm` interface stays unchanged.
 
