@@ -102,9 +102,9 @@ export function CombatTab({
             vulnerabilities: 'Vuln',
           }}
           placeholders={{
-            resistances: '',
-            immunities: '',
-            vulnerabilities: '',
+            resistances: 'Search and add...',
+            immunities: 'Search and add...',
+            vulnerabilities: 'Search and add...',
           }}
           gap="gap-3"
           compact
