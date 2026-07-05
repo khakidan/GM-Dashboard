@@ -1,7 +1,7 @@
 import React from 'react';
 import { AlertCircle } from 'lucide-react';
 import { cn } from '../../lib/utils';
-import { IrvMultiSelect } from '../ui/IrvMultiSelect';
+import { IrvSection } from '../ui/IrvSection';
 
 interface CombatTabProps {
   ac: number;
@@ -87,26 +87,28 @@ export function CombatTab({
         <label className="block text-xs font-bold uppercase tracking-widest text-[#8d8db9] mb-1.5 px-1">
           RESISTANCES / IMMUNITIES / VULNERABILITIES
         </label>
-        <div className="grid grid-cols-3 gap-3">
-          <IrvMultiSelect
-            label="Resists"
-            value={resistances}
-            onChange={v => onChange('resistances', v)}
-            compact
-          />
-          <IrvMultiSelect
-            label="Immune"
-            value={immunities}
-            onChange={v => onChange('immunities', v)}
-            compact
-          />
-          <IrvMultiSelect
-            label="Vuln"
-            value={vulnerabilities}
-            onChange={v => onChange('vulnerabilities', v)}
-            compact
-          />
-        </div>
+        <IrvSection
+          resistances={resistances}
+          immunities={immunities}
+          vulnerabilities={vulnerabilities}
+          onUpdate={updates => {
+            Object.entries(updates).forEach(([key, val]) => {
+              onChange(key, val);
+            });
+          }}
+          labels={{
+            resistances: 'Resists',
+            immunities: 'Immune',
+            vulnerabilities: 'Vuln',
+          }}
+          placeholders={{
+            resistances: '',
+            immunities: '',
+            vulnerabilities: '',
+          }}
+          gap="gap-3"
+          compact
+        />
       </div>
 
       <div>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Shield, Heart } from 'lucide-react';
 import { cn } from '../../lib/utils';
-import { IrvMultiSelect } from './IrvMultiSelect';
+import { IrvSection } from './IrvSection';
 import { DebouncedTextarea } from './DebouncedTextarea';
 import type { NpcFormData } from './NpcFormFields';
 
@@ -88,29 +88,28 @@ export function NpcCombatTab({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <IrvMultiSelect
-          label="Resistances"
-          value={data.resistances}
-          onChange={v => handleChange('resistances', v)}
-          placeholder="e.g. fire"
-          compact={compact}
-        />
-        <IrvMultiSelect
-          label="Immunities"
-          value={data.immunities}
-          onChange={v => handleChange('immunities', v)}
-          placeholder="e.g. poison"
-          compact={compact}
-        />
-        <IrvMultiSelect
-          label="Vulnerabilities"
-          value={data.vulnerabilities}
-          onChange={v => handleChange('vulnerabilities', v)}
-          placeholder="e.g. cold"
-          compact={compact}
-        />
-      </div>
+      <IrvSection
+        resistances={data.resistances}
+        immunities={data.immunities}
+        vulnerabilities={data.vulnerabilities}
+        onUpdate={updates => {
+          Object.entries(updates).forEach(([key, val]) => {
+            handleChange(key as keyof NpcFormData, val);
+          });
+        }}
+        labels={{
+          resistances: 'Resistances',
+          immunities: 'Immunities',
+          vulnerabilities: 'Vulnerabilities',
+        }}
+        placeholders={{
+          resistances: 'e.g. fire',
+          immunities: 'e.g. poison',
+          vulnerabilities: 'e.g. cold',
+        }}
+        gap="gap-4"
+        compact={compact}
+      />
 
       <div>
         <label htmlFor="new-npc-notes" className={labelClass}>Notes</label>
