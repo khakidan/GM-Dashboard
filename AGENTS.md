@@ -1043,20 +1043,12 @@ Finalized signatures (confirmed via direct source read):
 - `calculateShortRestUpdates(character: Character, hpToAdd: number, newHitDiceUsed: string): Partial<Character>` — same pattern, using `resetResourcesOnShortRest`.
 - `withDefaultCombatState(prevCombatState, updates)` — small helper for the repeated `activeEncounterId/activeTurnId/round` fallback boilerplate.
 
-#### GlobalActionContextPanel.tsx Store-Access Fix (scoped, ready to implement)
+#### GlobalActionContextPanel.tsx Store-Access Fix (Completed)
 
-Confirmed via full file read (97 lines): currently calls useDashboardStore() directly for combatState (destructuring combatStarted, actionContext, combatants, activeTurnId) and setActionContext (the write action). Rendered by its parent (ActiveEncounterTab/index.tsx) with ZERO props currently.
-
-Finalized prop interface:
-interface GlobalActionContextPanelProps {
-  combatStarted: boolean;
-  actionContext: { sourceOverride: string | null; actionType: ActionType };
-  combatants: Combatant[];
-  activeTurnId: string | null;
-  setActionContext: (sourceOverride: string | null, actionType: ActionType) => void;
-}
-
-Open question before implementation: confirm whether ActiveEncounterTab/index.tsx already imports useDashboardStore() for any other purpose (to get setActionContext), or whether it currently only uses useAppState() — if the latter, index.tsx will need a new useDashboardStore() import solely to obtain setActionContext to pass down. This is a small addition either way, not a blocker.
+- **Completed & Verified**: GlobalActionContextPanel.tsx has been refactored to accept all of its required store state and action handlers as props (specifically `combatStarted`, `actionContext`, `combatants`, `activeTurnId`, and `setActionContext`) instead of importing and calling `useDashboardStore()` internally.
+- **Parent Integration**: `ActiveEncounterTab/index.tsx` was updated to import `useDashboardStore` directly from `../../hooks/dashboardStore` to obtain `combatState` and `setActionContext`, and it threads these down to `<GlobalActionContextPanel />` as props.
+- **Process & Test Safety**: An initial design imported `useDashboardStore` from `../../hooks/useAppState` (via its re-export), which is valid for compilation but caused `index.test.tsx` and `AddNpcCollision.test.tsx` to fail because those test suites mock `useAppState` without providing a mock for `useDashboardStore` on that module. This was corrected by importing directly from `../../hooks/dashboardStore`, keeping imports clean and maintaining complete compatibility with existing test suites.
+- **Verification**: Verified TypeScript clean (exit code 0 on build) and ActiveEncounterTab test suite batch passing cleanly (26/26 tests passed, 0 failed).
 
 - `src/services/__tests__/dbOperations.test.ts` (24 tests) still mirrors the old pre-decomposition single-file structure and could optionally be split into per-module test files (`shared.test.ts`, `encounterLogs.test.ts`, `npcs.test.ts`, `characters.test.ts`, `encounterCombatants.test.ts`, `encounters.test.ts`) matching the new `src/services/dbOperations/` layout. This is organizational cleanup only — all 24 tests currently pass and there is no functional issue. Low priority, optional.
 ---

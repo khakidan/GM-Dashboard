@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Skull, AlertCircle } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { DamageType } from '../../types';
-import { useAppState, getSnapshot, useDashboardStore } from '../../hooks/useAppState';
+import { useAppState, getSnapshot } from '../../hooks/useAppState';
+import { useDashboardStore } from '../../hooks/dashboardStore';
 import { toast } from 'sonner';
 
 import { CombatHeader } from './CombatHeader';
