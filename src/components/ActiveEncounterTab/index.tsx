@@ -204,6 +204,7 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
                     damageInput={damageInputs[c.id] || ''}
                     healInput={healInputs[c.id] || ''}
                     currentRound={state.combatState.round}
+                    combatStarted={combatState.combatStarted}
                     onDamageInputChange={(val) => setDamageInputs(prev => ({ ...prev, [c.id]: val }))}
                     onHealInputChange={(val) => setHealInputs(prev => ({ ...prev, [c.id]: val }))}
                     onHealthSubmit={(isDamage, damageType) => handleHealthChange(c.id, c, isDamage, damageType)}

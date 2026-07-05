@@ -4,13 +4,6 @@ import { render, screen, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { EncounterCard } from '../EncounterCard';
 
-vi.mock('../../../hooks/useAppState', () => ({
-  useAppState: () => ({
-    state: { activeEncounterId: null, difficulties: { 1: 'Easy', 2: 'Medium', 3: 'Hard', 4: 'Deadly' }, encounterCombatants: [], npcs: [] },
-    updateState: vi.fn(),
-  }),
-}));
-
 describe('EncounterCard', () => {
   afterEach(() => cleanup());
 
@@ -28,6 +21,8 @@ describe('EncounterCard', () => {
     enc: mockEnc,
     isCompleted: false,
     isDeleting: false,
+    encounterCombatants: [],
+    difficulties: { 1: 'Easy', 2: 'Medium', 3: 'Hard', 4: 'Deadly' },
     onDelete: vi.fn(),
     onStart: vi.fn(),
     onSyncRequested: vi.fn(),

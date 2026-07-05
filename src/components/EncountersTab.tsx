@@ -106,6 +106,8 @@ export function EncountersTab({
               enc={enc} 
               isCompleted={completedEncounterIds.has(enc.id)}
               isDeleting={isDeletingId === enc.id}
+              encounterCombatants={appState.encounterCombatants}
+              difficulties={state.difficulties}
               onDelete={handleDelete} 
               onStart={(e) => onSelectEncounter(e.id)} 
               onSyncRequested={onSyncRequested} 

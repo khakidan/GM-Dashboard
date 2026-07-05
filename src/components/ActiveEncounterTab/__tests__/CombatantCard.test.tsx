@@ -26,6 +26,7 @@ describe('CombatantCard', () => {
     damageInput: '',
     healInput: '',
     currentRound: 1,
+    combatStarted: false,
     onDamageInputChange: vi.fn(),
     onHealInputChange: vi.fn(),
     onHealthSubmit: vi.fn(),

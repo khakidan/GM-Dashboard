@@ -977,7 +977,7 @@ All four sequential passes (components, lib, services, hooks) are now complete, 
   - CombatantCard.tsx (reads combatState.combatStarted) — LOW risk. Parent (ActiveEncounterTab/index.tsx) already uses state.combatState extensively.
   - CombatantCardExpanded.tsx (reads characters/npcs snapshot via getSnapshot()) — LOW risk. Same parent already has state.characters/state.npcs in scope and already passes them to sibling components.
   - CombatantCompactResourceRow.tsx (reads character resource pools) — LOW risk (data available via same parent's state.characters, not yet independently line-verified in detail).
-  - GlobalActionContextPanel.tsx (reads combatState, writes via setActionContext) — MEDIUM risk, genuinely. Confirmed rendered with ZERO props by its parent (<GlobalActionContextPanel /> with no arguments) — this is the one component that would require real new prop-threading work, not just connecting already-flowing data.
+  - GlobalActionContextPanel.tsx (reads combatState, writes via setActionContext) — RESOLVED. See the GlobalActionContextPanel.tsx Store-Access Fix section below for full details; now receives all required data as props instead of calling useDashboardStore() internally.
 
   Correction note: an earlier audit pass claimed all 5 narrow components' parents lacked the needed data ('Parent Has Data: No' for all 5) — this was not supported by evidence when independently re-checked against actual parent source code. 4 of 5 parents already have the exact data needed in scope. Only GlobalActionContextPanel.tsx's assessment held up under verification.
 
@@ -1050,7 +1050,10 @@ Finalized signatures (confirmed via direct source read):
 - **Process & Test Safety**: An initial design imported `useDashboardStore` from `../../hooks/useAppState` (via its re-export), which is valid for compilation but caused `index.test.tsx` and `AddNpcCollision.test.tsx` to fail because those test suites mock `useAppState` without providing a mock for `useDashboardStore` on that module. This was corrected by importing directly from `../../hooks/dashboardStore`, keeping imports clean and maintaining complete compatibility with existing test suites.
 - **Verification**: Verified TypeScript clean (exit code 0 on build) and ActiveEncounterTab test suite batch passing cleanly (26/26 tests passed, 0 failed).
 
+#### dbOperations.test.ts Cleanup (Optional)
+
 - `src/services/__tests__/dbOperations.test.ts` (24 tests) still mirrors the old pre-decomposition single-file structure and could optionally be split into per-module test files (`shared.test.ts`, `encounterLogs.test.ts`, `npcs.test.ts`, `characters.test.ts`, `encounterCombatants.test.ts`, `encounters.test.ts`) matching the new `src/services/dbOperations/` layout. This is organizational cleanup only — all 24 tests currently pass and there is no functional issue. Low priority, optional.
+
 ---
 
 ## TypeScript Build Check

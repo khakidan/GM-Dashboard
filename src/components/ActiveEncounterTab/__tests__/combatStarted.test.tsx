@@ -28,6 +28,7 @@ describe('CombatantCard — combatStarted behavior', () => {
     damageInput: '',
     healInput: '',
     currentRound: 1,
+    combatStarted: false,
     onDamageInputChange: vi.fn(),
     onHealInputChange: vi.fn(),
     onHealthSubmit: vi.fn(),
@@ -71,7 +72,7 @@ describe('CombatantCard — combatStarted behavior', () => {
       } as any
     }));
 
-    render(<CombatantCard {...defaultProps} />);
+    render(<CombatantCard {...defaultProps} combatStarted={true} />);
     
     // The "Active" badge SHOULD be present
     expect(screen.getByText(/Active/i)).toBeInTheDocument();

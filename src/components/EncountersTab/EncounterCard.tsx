@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAppState } from '../../hooks/useAppState';
-import { Encounter } from '../../types';
+import { Encounter, EncounterCombatant } from '../../types';
 import { Swords, MapPin, Skull, Trash2, Loader2, AlertCircle, ChevronDown, ScrollText } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { toast } from 'sonner';
@@ -12,6 +11,8 @@ export interface EncounterCardProps {
   enc: Encounter;
   isCompleted: boolean;
   isDeleting: boolean;
+  encounterCombatants: EncounterCombatant[];
+  difficulties: Record<string, string>;
   onDelete: (enc: Encounter) => void;
   onStart: (enc: Encounter) => void;
   onSyncRequested: () => Promise<void>;
@@ -27,12 +28,13 @@ export const EncounterCard: React.FC<EncounterCardProps> = ({
   enc, 
   isCompleted,
   isDeleting,
+  encounterCombatants,
+  difficulties,
   onDelete, 
   onStart, 
   onSyncRequested,
   onUpdate
 }) => {
-  const { state, updateState } = useAppState();
   const [name, setName] = useState(enc.name || '');
   const [location, setLocation] = useState(enc.location || '');
   const [difficultyId, setDifficultyId] = useState(enc.difficultyId);
@@ -90,7 +92,7 @@ export const EncounterCard: React.FC<EncounterCardProps> = ({
     }
   };
 
-  const npcCount = state.encounterCombatants
+  const npcCount = encounterCombatants
     .filter(ec => ec.encounterId === enc.id && ec.npcId)
     .reduce((sum, current) => sum + current.quantity, 0);
 
@@ -151,7 +153,7 @@ export const EncounterCard: React.FC<EncounterCardProps> = ({
               "bg-green-50 text-green-700 border-green-200"
             )}
           >
-            {Object.entries(state.difficulties).map(([id, nm]) => (
+            {Object.entries(difficulties).map(([id, nm]) => (
               <option key={id} value={id}>{nm}</option>
             ))}
           </select>
