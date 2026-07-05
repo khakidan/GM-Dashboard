@@ -113,6 +113,16 @@ All four sequential passes (components, lib, services, hooks) are complete, with
 
 ---
 
-## dbOperations.test.ts Cleanup (Optional)
+## dbOperations.test.ts Split (Completed)
 
-`src/services/__tests__/dbOperations.test.ts` (24 tests) still mirrors the old pre-decomposition single-file structure and could optionally be split into per-module test files (`shared.test.ts`, `encounterLogs.test.ts`, `npcs.test.ts`, `characters.test.ts`, `encounterCombatants.test.ts`, `encounters.test.ts`) matching the new `src/services/dbOperations/` layout. Organizational cleanup only — all 24 tests currently pass, no functional issue. Low priority, optional.
+`src/services/__tests__/dbOperations.test.ts` (24 tests) mirrored the old pre-decomposition single-file structure rather than the `src/services/dbOperations/` module layout. Split into 5 module-specific files under `src/services/__tests__/`, matching the actual `dbOperations/` folder structure:
+
+- `shared.test.ts` — 2 tests (`SHEET_RANGES` alignment against `NpcRowSchema`/`CharacterRowSchema`)
+- `npcs.test.ts` — 11 tests (`addNpcDB`, `updateNpcFullDB`, `deleteNpcDB`, `resetNpcHpDB`, spellcastingAbility dual-write)
+- `characters.test.ts` — 6 tests (`updateCharacterDB`, `addCharacterDB`)
+- `encounters.test.ts` — 3 tests (`deleteEncounterFully` cascade delete)
+- `encounterLogs.test.ts` — 2 tests (`deleteEncounterLog`)
+
+Total: 2+11+6+3+2 = 24 tests, all migrated verbatim (same assertions, same mock setups, same test data) — no test logic changed, purely organizational. No `encounterCombatants.test.ts` was created: the original file had zero coverage for `encounterCombatants.ts` specifically (it was only exercised indirectly inside the `deleteEncounterFully` cascade test), so creating an empty file was avoided rather than papering over the gap. This is a pre-existing coverage gap, not something this task introduced or fixed.
+
+Original `dbOperations.test.ts` deleted. Verified: TypeScript clean (exit code 0), Batch 2 34/34 passing (unchanged from baseline — Batch 2 auto-picks up any file under `src/services/__tests__/`, no batch command changes needed).

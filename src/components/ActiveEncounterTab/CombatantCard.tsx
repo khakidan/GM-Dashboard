@@ -30,10 +30,6 @@ export interface CombatantCardProps {
   onUpdateCombatant: (updates: Partial<Combatant>) => void;
   onRemoveCombatant: () => void | Promise<void>;
   onConcentrationPrompt?: (effectName: string, targetName: string) => void;
-  isActive?: boolean;
-  isSyncing?: boolean;
-  isSelectable?: boolean;
-  isSelected?: boolean;
   pcCharacter?: Character;
   npcModel?: NPC;
 }

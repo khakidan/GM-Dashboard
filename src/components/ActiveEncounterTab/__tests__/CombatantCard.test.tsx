@@ -19,9 +19,7 @@ describe('CombatantCard', () => {
 
   const defaultProps = {
     c: makeCombatant({ id: 'pc1', type: 'pc', name: 'PC' }),
-    isActive: false,
     isExpanded: false,
-    isSyncing: false,
     damageInput: '',
     healInput: '',
     currentRound: 1,
@@ -32,8 +30,6 @@ describe('CombatantCard', () => {
     onToggleExpand: vi.fn(),
     onUpdateCombatant: vi.fn(),
     onRemoveCombatant: vi.fn(),
-    isSelectable: false,
-    isSelected: false,
     onToggleSelect: vi.fn(),
   };
 
