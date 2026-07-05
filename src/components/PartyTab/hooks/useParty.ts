@@ -8,7 +8,7 @@ import {
 } from '../../../lib/resourcePools';
 import { useState } from 'react';
 import { useAppState, getSnapshot } from '../../../hooks/useAppState';
-import { Character } from '../../../types';
+import { Character, Combatant, AppState } from '../../../types';
 import { addCharacterDB, updateCharacterDB, deleteCharacterFully } from '../../../services/dbOperations';
 import { toast } from 'sonner';
 import { isConcentrating, fireConcentrationAlert } from '../../../lib/concentrationCheck';
@@ -19,6 +19,95 @@ import {
   proficiencyBonusFromLevel,
   serializeProficiencies,
 } from '../../../lib/abilityScores';
+
+function calculateLongRestUpdates(character: Character): Partial<Character> {
+  const nextHitDiceUsed = applyLongRestHitDiceRecovery(character.hitDiceConfig || '', character.hitDiceUsed || '{}');
+  const currentPools = parseResourcePools(character.resourcePools || '[]');
+  const updatedPools = resetResourcesOnLongRest(currentPools);
+  const serializedPools = serializeResourcePools(updatedPools);
+  const { remaining, newExhaustionLevel } = applyLongRestToConditions(character.conditions || '');
+
+  const updates: Partial<Character> = {
+    currentHp: effectiveMaxHp(character.maxHp, character.tempHpMax),
+    tempHp: 0,
+    hitDiceUsed: nextHitDiceUsed,
+    deathSavesFails: 0,
+    deathSavesSuccesses: 0,
+    resourcePools: serializedPools,
+  };
+
+  if (remaining !== character.conditions) {
+    updates.conditions = remaining;
+  }
+
+  const hadHpHalvingExhaustion = [4, 5, 6].some(
+    n => (character.conditions || '').toLowerCase().includes(`exhaustion ${n}`)
+  );
+  const stillHasHpHalvingExhaustion = newExhaustionLevel !== null && newExhaustionLevel >= 4;
+  if (hadHpHalvingExhaustion && !stillHasHpHalvingExhaustion) {
+    updates.tempHpMax = 0;
+    updates.currentHp = character.maxHp;
+  }
+
+  return updates;
+}
+
+function calculateShortRestUpdates(
+  character: Character, 
+  hpToAdd: number, 
+  newHitDiceUsed: string
+): Partial<Character> {
+  const newHp = Math.min(
+    character.currentHp + hpToAdd,
+    character.maxHp + (character.tempHp ?? 0)
+  );
+
+  const currentPools = parseResourcePools(character.resourcePools || '[]');
+  const updatedPools = resetResourcesOnShortRest(currentPools);
+  const serializedPools = serializeResourcePools(updatedPools);
+
+  return {
+    currentHp: newHp,
+    hitDiceUsed: newHitDiceUsed,
+    resourcePools: serializedPools,
+  };
+}
+
+function withDefaultCombatState(
+  prevCombatState: AppState['combatState'] | undefined, 
+  updatedCombatants: Combatant[]
+) {
+  return {
+    activeEncounterId: prevCombatState?.activeEncounterId ?? null,
+    activeTurnId: prevCombatState?.activeTurnId ?? null,
+    round: prevCombatState?.round ?? 1,
+    ...prevCombatState,
+    combatants: updatedCombatants,
+  };
+}
+
+function mirrorCharacterFieldsToCombatants(
+  combatants: Combatant[],
+  characterId: string,
+  updates: Partial<Character>
+): Combatant[] {
+  return combatants.map(c => {
+    if (c.characterId !== characterId) return c;
+    return {
+      ...c,
+      ...(updates.ac !== undefined ? { ac: updates.ac } : {}),
+      ...(updates.maxHp !== undefined ? { maxHp: updates.maxHp } : {}),
+      ...(updates.tempHpMax !== undefined ? { tempHpMax: updates.tempHpMax } : {}),
+      ...(updates.conditions !== undefined ? { conditions: updates.conditions } : {}),
+      ...(updates.currentHp !== undefined ? { currentHp: updates.currentHp } : {}),
+      ...(updates.tempHp !== undefined ? { tempHp: updates.tempHp } : {}),
+      ...(updates.characterName !== undefined ? { name: updates.characterName } : {}),
+      ...(updates.notes !== undefined ? { notes: updates.notes } : {}),
+      ...(updates.passivePerception !== undefined ? { passivePerception: updates.passivePerception } : {}),
+      ...(updates.tempAc !== undefined ? { tempAcModifier: updates.tempAc } : {}),
+    };
+  });
+}
 
 export function useParty() {
   const { state, updateState } = useAppState();
@@ -42,33 +131,15 @@ export function useParty() {
       const updatedCharacters = prev.characters.map(c => 
         c.id === charId ? { ...c, ...updates } : c
       );
-      const updatedCombatants = (prev.combatState?.combatants || []).map(c => {
-        if (c.characterId === charId) {
-          return {
-            ...c,
-            ...(updates.ac !== undefined ? { ac: updates.ac } : {}),
-            ...(updates.maxHp !== undefined ? { maxHp: updates.maxHp } : {}),
-            ...(updates.tempHpMax !== undefined ? { tempHpMax: updates.tempHpMax } : {}),
-            ...(updates.conditions !== undefined ? { conditions: updates.conditions } : {}),
-            ...(updates.currentHp !== undefined ? { currentHp: updates.currentHp } : {}),
-            ...(updates.tempHp !== undefined ? { tempHp: updates.tempHp } : {}),
-            ...(updates.characterName !== undefined ? { name: updates.characterName } : {}),
-            ...(updates.notes !== undefined ? { notes: updates.notes } : {}),
-            ...(updates.passivePerception !== undefined ? { passivePerception: updates.passivePerception } : {}),
-          };
-        }
-        return c;
-      });
+      const updatedCombatants = mirrorCharacterFieldsToCombatants(
+        prev.combatState?.combatants || [],
+        charId,
+        updates
+      );
       return {
         ...prev,
         characters: updatedCharacters,
-        combatState: {
-          activeEncounterId: prev.combatState?.activeEncounterId ?? null,
-          activeTurnId: prev.combatState?.activeTurnId ?? null,
-          round: prev.combatState?.round ?? 1,
-          ...prev.combatState,
-          combatants: updatedCombatants,
-        }
+        combatState: withDefaultCombatState(prev.combatState, updatedCombatants as Combatant[])
       };
     });
 
@@ -185,33 +256,7 @@ export function useParty() {
       const updatedCharacters = prev.characters.map(c => {
         if (!eligibleCharacterIds.includes(c.id)) return c;
         
-        const nextHitDiceUsed = applyLongRestHitDiceRecovery(c.hitDiceConfig || '', c.hitDiceUsed || '{}');
-        const currentPools = parseResourcePools(c.resourcePools || '[]');
-        const updatedPools = resetResourcesOnLongRest(currentPools);
-        const serializedPools = serializeResourcePools(updatedPools);
-        const { remaining, newExhaustionLevel } = applyLongRestToConditions(c.conditions || '');
-
-        const updates: Partial<Character> = {
-          currentHp: effectiveMaxHp(c.maxHp, c.tempHpMax),
-          tempHp: 0,
-          hitDiceUsed: nextHitDiceUsed,
-          deathSavesFails: 0,
-          deathSavesSuccesses: 0,
-          resourcePools: serializedPools,
-        };
-
-        if (remaining !== c.conditions) {
-          updates.conditions = remaining;
-        }
-
-        const hadHpHalvingExhaustion = [4, 5, 6].some(
-          n => (c.conditions || '').toLowerCase().includes(`exhaustion ${n}`)
-        );
-        const stillHasHpHalvingExhaustion = newExhaustionLevel !== null && newExhaustionLevel >= 4;
-        if (hadHpHalvingExhaustion && !stillHasHpHalvingExhaustion) {
-          updates.tempHpMax = 0;
-          updates.currentHp = c.maxHp;
-        }
+        const updates = calculateLongRestUpdates(c);
 
         return { ...c, ...updates };
       });
@@ -241,13 +286,7 @@ export function useParty() {
       return {
         ...prev,
         characters: updatedCharacters,
-        combatState: {
-          activeEncounterId: prev.combatState?.activeEncounterId ?? null,
-          activeTurnId: prev.combatState?.activeTurnId ?? null,
-          round: prev.combatState?.round ?? 1,
-          ...prev.combatState,
-          combatants: updatedCombatants,
-        },
+        combatState: withDefaultCombatState(prev.combatState, updatedCombatants as Combatant[]),
       };
     });
 
@@ -255,33 +294,7 @@ export function useParty() {
       const selectedChars = previousState.characters.filter(c => eligibleCharacterIds.includes(c.id));
       
       const updatePromises = selectedChars.map(char => {
-        const nextHitDiceUsed = applyLongRestHitDiceRecovery(char.hitDiceConfig || '', char.hitDiceUsed || '{}');
-        const currentPools = parseResourcePools(char.resourcePools || '[]');
-        const updatedPools = resetResourcesOnLongRest(currentPools);
-        const serializedPools = serializeResourcePools(updatedPools);
-        const { remaining, newExhaustionLevel } = applyLongRestToConditions(char.conditions || '');
-
-        const updates: Partial<Character> = {
-          currentHp: effectiveMaxHp(char.maxHp, char.tempHpMax),
-          tempHp: 0,
-          hitDiceUsed: nextHitDiceUsed,
-          deathSavesFails: 0,
-          deathSavesSuccesses: 0,
-          resourcePools: serializedPools,
-        };
-
-        if (remaining !== char.conditions) {
-          updates.conditions = remaining;
-        }
-
-        const hadHpHalvingExhaustion = [4, 5, 6].some(
-          n => (char.conditions || '').toLowerCase().includes(`exhaustion ${n}`)
-        );
-        const stillHasHpHalvingExhaustion = newExhaustionLevel !== null && newExhaustionLevel >= 4;
-        if (hadHpHalvingExhaustion && !stillHasHpHalvingExhaustion) {
-          updates.tempHpMax = 0;
-          updates.currentHp = char.maxHp;
-        }
+        const updates = calculateLongRestUpdates(char);
 
         return updateCharacterDB(updates, char);
       });
@@ -350,20 +363,11 @@ export function useParty() {
         const res = eligibleResults.find(r => r.characterId === c.id);
         if (!res) return c;
 
-        const newHp = Math.min(
-          c.currentHp + res.hpToAdd,
-          c.maxHp + (c.tempHp ?? 0)
-        );
-
-        const currentPools = parseResourcePools(c.resourcePools || '[]');
-        const updatedPools = resetResourcesOnShortRest(currentPools);
-        const serializedPools = serializeResourcePools(updatedPools);
+        const updates = calculateShortRestUpdates(c, res.hpToAdd, res.newHitDiceUsed);
 
         return {
           ...c,
-          currentHp: newHp,
-          hitDiceUsed: res.newHitDiceUsed,
-          resourcePools: serializedPools,
+          ...updates,
         };
       });
 
@@ -390,13 +394,7 @@ export function useParty() {
       return {
         ...prev,
         characters: updatedCharacters,
-        combatState: {
-          activeEncounterId: prev.combatState?.activeEncounterId ?? null,
-          activeTurnId: prev.combatState?.activeTurnId ?? null,
-          round: prev.combatState?.round ?? 1,
-          ...prev.combatState,
-          combatants: updatedCombatants,
-        },
+        combatState: withDefaultCombatState(prev.combatState, updatedCombatants as Combatant[]),
       };
     });
 
@@ -405,20 +403,7 @@ export function useParty() {
         const char = previousState.characters.find(c => c.id === res.characterId);
         if (!char) return Promise.resolve();
 
-        const newHp = Math.min(
-          char.currentHp + res.hpToAdd,
-          char.maxHp + (char.tempHp ?? 0)
-        );
-
-        const currentPools = parseResourcePools(char.resourcePools || '[]');
-        const updatedPools = resetResourcesOnShortRest(currentPools);
-        const serializedPools = serializeResourcePools(updatedPools);
-
-        const updates: Partial<Character> = {
-          currentHp: newHp,
-          hitDiceUsed: res.newHitDiceUsed,
-          resourcePools: serializedPools,
-        };
+        const updates = calculateShortRestUpdates(char, res.hpToAdd, res.newHitDiceUsed);
 
         return updateCharacterDB(updates, char);
       });
@@ -540,34 +525,15 @@ export function useParty() {
       const updatedCharacters = prev.characters.map(c => 
         c.id === id ? { ...c, ...sanitizedUpdates } : c
       );
-      const updatedCombatants = (prev.combatState?.combatants || []).map(c => {
-        if (c.characterId === id) {
-          return {
-            ...c,
-            ...(sanitizedUpdates.ac !== undefined ? { ac: sanitizedUpdates.ac } : {}),
-            ...(sanitizedUpdates.maxHp !== undefined ? { maxHp: sanitizedUpdates.maxHp } : {}),
-            ...(sanitizedUpdates.tempHpMax !== undefined ? { tempHpMax: sanitizedUpdates.tempHpMax } : {}),
-            ...(sanitizedUpdates.conditions !== undefined ? { conditions: sanitizedUpdates.conditions } : {}),
-            ...(sanitizedUpdates.currentHp !== undefined ? { currentHp: sanitizedUpdates.currentHp } : {}),
-            ...(sanitizedUpdates.tempHp !== undefined ? { tempHp: sanitizedUpdates.tempHp } : {}),
-            ...(sanitizedUpdates.characterName !== undefined ? { name: sanitizedUpdates.characterName } : {}),
-            ...(sanitizedUpdates.notes !== undefined ? { notes: sanitizedUpdates.notes } : {}),
-            ...(sanitizedUpdates.passivePerception !== undefined ? { passivePerception: sanitizedUpdates.passivePerception } : {}),
-            ...(sanitizedUpdates.tempAc !== undefined ? { tempAcModifier: sanitizedUpdates.tempAc } : {}),
-          };
-        }
-        return c;
-      });
+      const updatedCombatants = mirrorCharacterFieldsToCombatants(
+        prev.combatState?.combatants || [],
+        id,
+        sanitizedUpdates
+      );
       return {
         ...prev,
         characters: updatedCharacters,
-        combatState: {
-          activeEncounterId: prev.combatState?.activeEncounterId ?? null,
-          activeTurnId: prev.combatState?.activeTurnId ?? null,
-          round: prev.combatState?.round ?? 1,
-          ...prev.combatState,
-          combatants: updatedCombatants,
-        }
+        combatState: withDefaultCombatState(prev.combatState, updatedCombatants as Combatant[])
       };
     });
 

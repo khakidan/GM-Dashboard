@@ -196,26 +196,32 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
                   <p className="text-sm text-[#8d8db9] italic">Add players or NPCs from the tools menu to begin.</p>
                 </div>
               ) : (
-                state.combatState.combatants.map(c => (
-                  <CombatantCard
-                    key={c.id}
-                    c={c}
-                    isExpanded={expandedIdsSet.has(c.id)}
-                    damageInput={damageInputs[c.id] || ''}
-                    healInput={healInputs[c.id] || ''}
-                    currentRound={state.combatState.round}
-                    combatStarted={combatState.combatStarted}
-                    onDamageInputChange={(val) => setDamageInputs(prev => ({ ...prev, [c.id]: val }))}
-                    onHealInputChange={(val) => setHealInputs(prev => ({ ...prev, [c.id]: val }))}
-                    onHealthSubmit={(isDamage, damageType) => handleHealthChange(c.id, c, isDamage, damageType)}
-                    onToggleExpand={() => toggleExpand(c.id)}
-                    onToggleSelect={toggleCombatantSelection}
-                    onUpdateCombatant={(updates) => updateCombatant(c.id, updates)}
-                    onRemoveCombatant={() => removeCombatant(c.id)}
-                    onConcentrationPrompt={handleConcentrationPrompt}
-                    hpMode={hpMode}
-                  />
-                ))
+                state.combatState.combatants.map(c => {
+                  const pcCharacter = c.type === 'pc' && c.characterId ? state.characters.find(char => char.id === c.characterId) : undefined;
+                  const npcModel = c.type === 'npc' ? state.npcs.find(n => c.id.startsWith(`combat-npc-${n.id}-`)) : undefined;
+                  return (
+                    <CombatantCard
+                      key={c.id}
+                      c={c}
+                      isExpanded={expandedIdsSet.has(c.id)}
+                      damageInput={damageInputs[c.id] || ''}
+                      healInput={healInputs[c.id] || ''}
+                      currentRound={state.combatState.round}
+                      combatStarted={combatState.combatStarted}
+                      onDamageInputChange={(val) => setDamageInputs(prev => ({ ...prev, [c.id]: val }))}
+                      onHealInputChange={(val) => setHealInputs(prev => ({ ...prev, [c.id]: val }))}
+                      onHealthSubmit={(isDamage, damageType) => handleHealthChange(c.id, c, isDamage, damageType)}
+                      onToggleExpand={() => toggleExpand(c.id)}
+                      onToggleSelect={toggleCombatantSelection}
+                      onUpdateCombatant={(updates) => updateCombatant(c.id, updates)}
+                      onRemoveCombatant={() => removeCombatant(c.id)}
+                      onConcentrationPrompt={handleConcentrationPrompt}
+                      hpMode={hpMode}
+                      pcCharacter={pcCharacter}
+                      npcModel={npcModel}
+                    />
+                  );
+                })
               )}
             </div>
           </div>

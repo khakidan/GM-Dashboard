@@ -4,7 +4,7 @@ import { Zap } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { toast } from 'sonner';
 import { parseDiceNotation, rollDice } from '../../lib/diceRoller';
-import { Combatant, DamageType } from '../../types';
+import { Combatant, DamageType, Character, NPC } from '../../types';
 import { CombatantCardHeader } from './CombatantCardHeader';
 import { CombatantCardExpanded } from './CombatantCardExpanded';
 import { useCombatantCard } from './hooks/useCombatantCard';
@@ -34,12 +34,15 @@ export interface CombatantCardProps {
   isSyncing?: boolean;
   isSelectable?: boolean;
   isSelected?: boolean;
+  pcCharacter?: Character;
+  npcModel?: NPC;
 }
 
 export function CombatantCard({
   c, isExpanded, damageInput, healInput,
   currentRound, combatStarted, onDamageInputChange, onHealInputChange, onHealthSubmit, onToggleExpand,
   onToggleSelect, onUpdateCombatant, onRemoveCombatant, onConcentrationPrompt, hpMode = 'damage',
+  pcCharacter, npcModel,
 }: CombatantCardProps) {
   const [recentRechargeRolls, setRecentRechargeRolls] = useState<Record<string, number>>({});
   const { isActiveTurn: _isActiveTurn, isSelected, isSelectable, isSyncing } = useCombatantCard(c.id);
@@ -111,6 +114,7 @@ export function CombatantCard({
         onMarkSpent={handleMarkSpent}
         hpMode={hpMode}
         onUpdateResourcePools={handleUpdateResourcePools}
+        pcCharacter={pcCharacter}
       />
 
       {c.type === 'npc' && (
@@ -145,6 +149,7 @@ export function CombatantCard({
               recentRechargeRolls={recentRechargeRolls} onMarkSpent={handleMarkSpent} onRollRecharge={handleRechargeRoll}
               onSpendAction={handleSpendAction} onSpendResistance={handleSpendResistance}
               onRestoreActions={handleRestoreActions} onRestoreResistances={handleRestoreResistances}
+              pcCharacter={pcCharacter} npcModel={npcModel}
             />
           </motion.div>
         )}

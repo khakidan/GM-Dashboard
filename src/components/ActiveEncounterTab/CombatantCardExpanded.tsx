@@ -1,8 +1,7 @@
 import React from 'react';
 import { Trash2 } from 'lucide-react';
 import { buildConditionSummary } from '../../lib/conditions';
-import { useAppState } from '../../hooks/useAppState';
-import { Combatant } from '../../types';
+import { Combatant, Character, NPC } from '../../types';
 import { ConditionChips } from '../ui/ConditionChips';
 import { CombatantRechargeTracker } from './CombatantRechargeTracker';
 import { CombatantLegendaryTracker } from './CombatantLegendaryTracker';
@@ -28,6 +27,8 @@ export interface CombatantCardExpandedProps {
   onSpendResistance: () => void;
   onRestoreActions: () => void;
   onRestoreResistances: () => void;
+  pcCharacter?: Character;
+  npcModel?: NPC;
 }
 
 export function CombatantCardExpanded({
@@ -44,13 +45,11 @@ export function CombatantCardExpanded({
   onSpendResistance,
   onRestoreActions,
   onRestoreResistances,
+  pcCharacter,
+  npcModel,
 }: CombatantCardExpandedProps) {
   const conditionList = (c.conditions || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
   const mechanicalSummary = buildConditionSummary(conditionList);
-  const { getSnapshot } = useAppState();
-  const { characters, npcs } = getSnapshot();
-  const pcCharacter = c.type === 'pc' && c.characterId ? characters.find(char => char.id === c.characterId) : undefined;
-  const npcModel = c.type === 'npc' ? npcs.find(n => c.id.startsWith(`combat-npc-${n.id}-`)) : undefined;
 
   const {
     handleResourcePoolUpdate,

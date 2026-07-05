@@ -1,9 +1,8 @@
 import '@testing-library/jest-dom/vitest';
 import React from 'react';
 import { render, screen, cleanup } from '@testing-library/react';
-import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { CombatantCard } from '../CombatantCard';
-import { useDashboardStore } from '../../../hooks/dashboardStore';
 import { makeCombatant } from '../../../test-utils/fixtures/combatantFixtures';
 
 vi.mock('../../../services/dbOperations', () => ({
@@ -12,6 +11,19 @@ vi.mock('../../../services/dbOperations', () => ({
   updateInitiativeDB: vi.fn(),
   updateDeathSavesDB: vi.fn(),
   updateEncounterStateDB: vi.fn(),
+}));
+
+vi.mock('../hooks/useCombatantCard', () => ({
+  useCombatantCard: (id: string) => ({
+    isActiveTurn: id === 'c1',
+    isSelected: false,
+    isSelectable: false,
+    isSyncing: false,
+    isExpanded: false,
+    concentrationLinks: [],
+    toggleExpand: vi.fn(),
+    toggleSelection: vi.fn(),
+  }),
 }));
 
 describe('CombatantCard — combatStarted behavior', () => {
@@ -36,19 +48,6 @@ describe('CombatantCard — combatStarted behavior', () => {
     onUpdateCombatant: vi.fn(),
     onRemoveCombatant: vi.fn(),
   };
-
-  beforeEach(() => {
-    useDashboardStore.setState({
-      combatState: {
-        activeTurnId: 'c1',
-        combatants: [combatant],
-        selectedIds: [],
-        isSelectionMode: false,
-        syncingIds: [],
-        expandedIds: [],
-      } as any
-    });
-  });
 
   it('TEST 3.1 — Active turn indicator is hidden before combatStarted is true', () => {
     render(<CombatantCard {...defaultProps} />);

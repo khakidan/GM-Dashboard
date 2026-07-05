@@ -1,27 +1,25 @@
 import React from 'react';
-import { Combatant } from '../../types';
-import { useAppState } from '../../hooks/useAppState';
+import { Combatant, Character } from '../../types';
 import { parseResourcePools, spendResourcePip, recoverResourcePip, ResourcePool } from '../../lib/resourcePools';
 
 interface CombatantCompactResourceRowProps {
   c: Combatant;
   isSyncing: boolean;
   onUpdateResourcePools?: (combatant: Combatant, pools: ResourcePool[]) => void;
+  character?: Character;
 }
 
 export const CombatantCompactResourceRow = ({
   c,
   isSyncing,
   onUpdateResourcePools,
+  character,
 }: CombatantCompactResourceRowProps) => {
-  const { state } = useAppState();
-
   if (c.type !== 'pc') return null;
 
-  const char = state.characters.find(charItem => charItem.id === c.characterId);
-  if (!char) return null;
+  if (!character) return null;
 
-  const pools = parseResourcePools(char.resourcePools || '[]');
+  const pools = parseResourcePools(character.resourcePools || '[]');
   if (pools.length === 0) return null;
 
   return (

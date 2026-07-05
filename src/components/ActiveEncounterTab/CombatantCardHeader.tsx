@@ -7,7 +7,7 @@ import { CombatantCompactIndicators } from './CombatantCompactIndicators';
 import { CombatantHealthControls } from './CombatantHealthControls';
 import { CombatantCompactResourceRow } from './CombatantCompactResourceRow';
 import { cn } from '../../lib/utils';
-import { Combatant, DamageType } from '../../types';
+import { Combatant, DamageType, Character } from '../../types';
 import { getHealthStatus, effectiveAc, effectiveMaxHp } from '../../lib/conditions';
 import { CombatantCardBadges } from './CombatantCardBadges';
 import { DeathSaveTrackerDisplay } from './DeathSaveTrackerDisplay';
@@ -30,6 +30,7 @@ export interface CombatantCardHeaderProps {
   hpMode?: 'damage' | 'heal';
   selectionCheckbox?: React.ReactNode;
   onUpdateResourcePools?: (combatant: Combatant, pools: ResourcePool[]) => void;
+  pcCharacter?: Character;
 }
 
 export function CombatantCardHeader({
@@ -47,6 +48,7 @@ export function CombatantCardHeader({
   hpMode,
   selectionCheckbox,
   onUpdateResourcePools,
+  pcCharacter,
 }: CombatantCardHeaderProps) {
   const { isActiveTurn, isSelected, isSelectable, isSyncing } = useCombatantCard(c.id);
   const { name, ac, tempAcModifier, initiative, type } = c;
@@ -223,6 +225,7 @@ export function CombatantCardHeader({
       c={c}
       isSyncing={isSyncing}
       onUpdateResourcePools={onUpdateResourcePools}
+      character={pcCharacter}
     />
   </div>
 );
