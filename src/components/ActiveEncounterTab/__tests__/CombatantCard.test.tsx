@@ -4,7 +4,6 @@ import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import { CombatantCard } from '../CombatantCard';
 import type { Combatant } from '../../../types';
-import { useDashboardStore } from '../../../hooks/useAppState';
 import { makeCombatant } from '../../../test-utils/fixtures/combatantFixtures';
 
 vi.mock('../../../services/dbOperations', () => ({

@@ -41,7 +41,6 @@ describe('CombatantCard — combatStarted behavior', () => {
     useDashboardStore.setState({
       combatState: {
         activeTurnId: 'c1',
-        combatStarted: false,
         combatants: [combatant],
         selectedIds: [],
         isSelectionMode: false,
@@ -64,14 +63,6 @@ describe('CombatantCard — combatStarted behavior', () => {
   });
 
   it('TEST 3.2 — Active turn indicator is visible after combatStarted is true', () => {
-    useDashboardStore.setState(prev => ({
-      ...prev,
-      combatState: {
-        ...prev.combatState,
-        combatStarted: true,
-      } as any
-    }));
-
     render(<CombatantCard {...defaultProps} combatStarted={true} />);
     
     // The "Active" badge SHOULD be present
