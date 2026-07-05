@@ -10,7 +10,7 @@ import { NpcListEditor } from '../ui/NpcListEditor';
 
 // Modular Sub-components
 import { NpcCardHeader } from './NpcCardHeader';
-import { NpcIRVSection } from './NpcIRVSection';
+import { IrvSection } from '../ui/IrvSection';
 import { NpcLegendarySection } from './NpcLegendarySection';
 import { StatBlock } from '../ui/StatBlock';
 import { SpellcastingStatsRow } from '../ui/SpellcastingStatsRow';
@@ -435,7 +435,23 @@ export const NpcCard: React.FC<NpcCardProps> = ({
                 <DebouncedInput type="text" value={npc.conditions || ''} onChange={(v) => onUpdate({ conditions: v as string })} placeholder="None" className="w-full text-xs text-[#0f172a] bg-[#ffffff] p-3 rounded-lg border border-[#e2e8f0] focus:bg-white focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] outline-none transition-all placeholder:text-[#cccbcb] disabled:opacity-50" disabled={isSyncing} />
               </div>
 
-              <NpcIRVSection resistances={npc.resistances || ''} immunities={npc.immunities || ''} vulnerabilities={npc.vulnerabilities || ''} onUpdate={onUpdate} />
+              <IrvSection
+                resistances={npc.resistances || ''}
+                immunities={npc.immunities || ''}
+                vulnerabilities={npc.vulnerabilities || ''}
+                onUpdate={onUpdate}
+                labels={{
+                  resistances: 'Resists',
+                  immunities: 'Immune',
+                  vulnerabilities: 'Vuln',
+                }}
+                placeholders={{
+                  resistances: 'None',
+                  immunities: 'None',
+                  vulnerabilities: 'None',
+                }}
+                gap="gap-3"
+              />
 
               <div>
                 <div className="text-[10px] uppercase text-[#8d8db9] font-bold tracking-widest mb-1.5 px-1">Notes</div>

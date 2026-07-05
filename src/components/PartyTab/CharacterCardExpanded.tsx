@@ -6,7 +6,7 @@ import { DebouncedInput } from '../ui/DebouncedInput';
 import { CardNumberInput } from '../ui/CardNumberInput';
 import { DebouncedTextarea } from '../ui/DebouncedTextarea';
 import { CharacterResourceSection } from './CharacterResourceSection';
-import { CharacterIRVSection } from './CharacterIRVSection';
+import { IrvSection } from '../ui/IrvSection';
 import { ResourcePoolsSection } from '../ui/ResourcePoolsSection';
 import { getHitDiceStatus, getTotalHitDiceCount } from '../../lib/hitDice';
 import { getResourceForEffect, parseResourcePools, spendResourcePip, serializeResourcePools } from '../../lib/resourcePools';
@@ -247,11 +247,22 @@ export const CharacterCardExpanded: React.FC<CharacterCardExpandedProps> = ({
         onUpdateCharacter={(id, updates) => onUpdate(updates)}
       />
 
-      <CharacterIRVSection
+      <IrvSection
         resistances={character.resistances || ''}
         immunities={character.immunities || ''}
         vulnerabilities={character.vulnerabilities || ''}
         onUpdate={onUpdate}
+        labels={{
+          resistances: 'Resistances',
+          immunities: 'Immunities',
+          vulnerabilities: 'Vulnerabilities',
+        }}
+        placeholders={{
+          resistances: 'e.g. fire',
+          immunities: 'e.g. poison',
+          vulnerabilities: 'e.g. cold',
+        }}
+        gap="gap-4"
       />
 
       <div>
