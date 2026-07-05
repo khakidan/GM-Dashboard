@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Skull, AlertCircle } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { DamageType } from '../../types';
-import { useAppState, getSnapshot } from '../../hooks/useAppState';
+import { useAppState, getSnapshot, useDashboardStore } from '../../hooks/useAppState';
 import { toast } from 'sonner';
 
 import { CombatHeader } from './CombatHeader';
@@ -21,6 +21,8 @@ import { GlobalActionContextPanel } from './GlobalActionContextPanel';
 
 export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
   const { state, updateState } = useAppState();
+  const combatState = useDashboardStore(s => s.combatState);
+  const setActionContext = useDashboardStore(s => s.setActionContext);
   const encounter = state.encounters.find(e => e.id === state.combatState.activeEncounterId);
 
   const [isToolsModalOpen, setIsToolsModalOpen] = useState(false);
@@ -176,7 +178,13 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
             onApplyHealing={handleApplyMultiHealing}
             onApplyCondition={handleApplyMultiCondition}
           />
-          <GlobalActionContextPanel />
+          <GlobalActionContextPanel
+            combatStarted={combatState.combatStarted}
+            actionContext={combatState.actionContext}
+            combatants={combatState.combatants}
+            activeTurnId={combatState.activeTurnId}
+            setActionContext={setActionContext}
+          />
 
           <div className="flex-1 bg-white w-full p-6">
             <div className="grid grid-cols-1 gap-4">

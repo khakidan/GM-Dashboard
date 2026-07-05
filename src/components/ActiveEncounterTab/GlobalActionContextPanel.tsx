@@ -1,15 +1,25 @@
 import React from 'react';
-import { useDashboardStore } from '../../hooks/dashboardStore';
 import { ActionType } from '../../lib/combatLog';
 import { cn } from '../../lib/utils';
+import { Combatant } from '../../types';
 
-export function GlobalActionContextPanel() {
-  const { combatState, setActionContext } = useDashboardStore();
-  
-  if (!combatState.combatStarted) return null;
+export interface GlobalActionContextPanelProps {
+  combatStarted: boolean;
+  actionContext: { sourceOverride: string | null; actionType: ActionType };
+  combatants: Combatant[];
+  activeTurnId: string | null;
+  setActionContext: (sourceOverride: string | null, actionType: ActionType) => void;
+}
 
-  const { actionContext, combatants, activeTurnId } = combatState;
-  
+export function GlobalActionContextPanel({
+  combatStarted,
+  actionContext,
+  combatants,
+  activeTurnId,
+  setActionContext,
+}: GlobalActionContextPanelProps) {
+  if (!combatStarted) return null;
+
   const activeTurnCombatant = combatants.find(c => c.id === activeTurnId);
   const activeTurnName = activeTurnCombatant?.name || 'Unknown';
 
