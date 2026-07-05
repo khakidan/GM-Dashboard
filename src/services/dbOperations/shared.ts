@@ -6,7 +6,7 @@ import * as writeQueue from '../writeQueue';
 import { serializeSpellcastingAbility } from '../../lib/spellcasting';
 
 // Local proxy wrappers to protect backward compatibility for test spies
-export function queueWrite(spreadsheetId: string | undefined, range: string, values: any) {
+export function queueWriteResolved(spreadsheetId: string | undefined, range: string, values: any) {
   if (spreadsheetId) {
     writeQueue.queueWrite(spreadsheetId, range, values);
   } else {

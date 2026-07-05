@@ -1,4 +1,3 @@
-import { effectiveMaxHp, applyLongRestToConditions } from '../lib/conditions';
 // src/components/CommandPalette.tsx
 
 import React, { useEffect, useState } from 'react';

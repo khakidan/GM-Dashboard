@@ -2,7 +2,7 @@
 
 import { NPC } from '../../types';
 import {
-  queueWrite,
+  queueWriteResolved,
   updateSheetData,
   appendSheetData,
   batchUpdateSpreadsheet,
@@ -163,7 +163,7 @@ export async function updateNpcFullDB(
       getSpellcastingAbilityToSave(npc, npc),
     ];
 
-    queueWrite(resolvedId, `NPCs!A${a1Row}:Y${a1Row}`, [rowData]);
+    queueWriteResolved(resolvedId, `NPCs!A${a1Row}:Y${a1Row}`, [rowData]);
   } catch (err) {
     console.error('[DB] updateNpcFullDB failed:', err);
     throw err;

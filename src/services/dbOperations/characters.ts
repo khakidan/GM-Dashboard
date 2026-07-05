@@ -2,7 +2,7 @@
 
 import { Character } from '../../types';
 import {
-  queueWrite,
+  queueWriteResolved,
   updateSheetData,
   appendSheetData,
   batchUpdateSpreadsheet,
@@ -182,7 +182,7 @@ export async function updateCharacterDB(
     ];
 
     const a1Row = charRowIdx + 1;
-    queueWrite(resolvedId, `Characters!A${a1Row}:Z${a1Row}`, [rowData]);
+    queueWriteResolved(resolvedId, `Characters!A${a1Row}:Z${a1Row}`, [rowData]);
   } catch (err) {
     console.error('[DB] updateCharacterDB failed:', err);
     throw err;
