@@ -691,6 +691,14 @@ Do **not** replace it with `DebouncedInput` (different contract) or revert to a 
 
 ---
 
+## DialogShell.tsx (built, not yet adopted)
+
+src/components/ui/DialogShell.tsx has been created — the shared modal shell component for the Modal/Dialog Shell Consolidation project. Confirmed correct via direct file verification: uses the correct 'motion/react' import (not 'framer-motion'), correct bg-[#0f172a]/60 backdrop color, single fixed z-50, backdrop+panel as two motion.div elements matching the reference dialogs' actual structure, optional title/icon/footer slots, dismissOnBackdropClick prop defaulting to true. TypeScript verified clean (exit code 0, confirmed independently twice). This file is not yet imported or used anywhere in the codebase — creating it was zero-risk to existing functionality.
+
+Verification note: the final full-12-batch test run requested to confirm this addition caused no side effects returned degraded, repetitive output (the same summary paragraph repeated 4 times, no raw per-file output despite 3 requests) rather than clean, verifiable results. The reported total (692, matching baseline exactly) is plausible and consistent with expectations for an unused file, but was NOT independently verified with real command output the way every other change this session was. RECOMMENDATION: run a clean, individual 12-batch verification at the start of the next session, before beginning any dialog migration work, to get a trustworthy baseline confirmation on a fresh start rather than relying on tonight's degraded final check.
+
+Next steps (not started): migrate the 12 confirmed target dialog files one at a time to use DialogShell.tsx, each with its own tsc + relevant batch verification, following the same incremental discipline used for the dbOperations.ts and useCombatSync.ts decompositions. CommandPalette.tsx is excluded from migration (see Modal/Dialog Shell Consolidation section above).
+
 ## Architectural Decisions
 
 ### `resourcePools` stored as a JSON string (not separate columns)
