@@ -219,7 +219,7 @@ export function ShortRestDialog({ isOpen, characters, onConfirm, onClose }: Shor
         </div>
       }
     >
-      <div className="p-6 overflow-y-auto space-y-4 max-h-[60vh]">
+      <div className="overflow-y-auto space-y-4 max-h-[60vh]">
         {characters.length === 0 ? (
           <p className="text-[#8d8db9] text-center text-sm py-4 italic">No active characters to select.</p>
         ) : (
