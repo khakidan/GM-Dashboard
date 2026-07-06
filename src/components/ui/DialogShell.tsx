@@ -6,8 +6,10 @@ interface DialogShellProps {
   isOpen: boolean;
   onClose: () => void;
   maxWidth: string;
+  zIndex?: string;
   dismissOnBackdropClick?: boolean;
   title?: string;
+  subtitle?: string;
   icon?: React.ReactNode;
   footer?: React.ReactNode;
   children: React.ReactNode;
@@ -17,8 +19,10 @@ export function DialogShell({
   isOpen,
   onClose,
   maxWidth,
+  zIndex = 'z-50',
   dismissOnBackdropClick = true,
   title,
+  subtitle,
   icon,
   footer,
   children,
@@ -26,7 +30,7 @@ export function DialogShell({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className={`fixed inset-0 ${zIndex} flex items-center justify-center p-4`}>
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -44,7 +48,10 @@ export function DialogShell({
               <div className="bg-[#0f172a] flex items-center justify-between p-4">
                 <div className="flex items-center gap-2">
                   {icon}
-                  {title && <h2 className="text-white font-serif tracking-widest text-sm uppercase">{title}</h2>}
+                  <div>
+                    {title && <h2 className="text-white font-serif tracking-widest text-sm uppercase">{title}</h2>}
+                    {subtitle && <p className="text-xs text-[#e2e8f0]/60">{subtitle}</p>}
+                  </div>
                 </div>
                 <button
                   onClick={onClose}
@@ -55,7 +62,7 @@ export function DialogShell({
               </div>
             )}
             <div className="flex-1 p-6">{children}</div>
-            {footer && <div className="border-t border-[#e2e8f0] p-4 bg-[#f9f8ff]">{footer}</div>}
+            {footer && <div className="border-t border-[#e2e8f0] px-6 py-4 bg-[#ffffff]">{footer}</div>}
           </motion.div>
         </div>
       )}

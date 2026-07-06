@@ -20,9 +20,9 @@ None.
 
 ### 🔵 Architecture / Technical Debt
 
-**Remaining Technical Debt:**
+**Remaining Technical Debt:** None.
 
-- **Unused `CombatantCardProps` declarations**: The declarations `isActive`, `isSyncing`, `isSelectable`, and `isSelected` in `CombatantCardProps` (`CombatantCard.tsx`) are confirmed unused/dead — the component derives its own `isActive`/`isSyncing`/`isSelectable`/`isSelected` internally via `useCombatantCard(c.id)`. Minor cleanup, not yet scheduled.
+(Previously tracked here: unused `isActive`/`isSyncing`/`isSelectable`/`isSelected` declarations on `CombatantCardProps` — confirmed dead via codebase-wide search, removed from the interface and from `CombatantCard.test.tsx`'s `defaultProps`. Verified: TypeScript clean, Batch 5B 26/26, zero behavior change.)
 
 ---
 
