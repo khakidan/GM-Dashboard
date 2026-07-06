@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ChevronDown, ChevronRight, Copy, Check } from 'lucide-react';
 import { EncounterLog, CombatEvent } from '../../lib/combatLog';
 import { CombatEventRow } from './CombatEventRow';
+import { Button } from '../ui/Button';
 
 interface EncounterLogDetailsProps {
   log: EncounterLog;
@@ -76,9 +77,11 @@ export function EncounterLogDetails({ log }: EncounterLogDetailsProps) {
         <p className="text-[11px] uppercase font-bold text-[#8d8db9] tracking-widest">Combat Log</p>
         <div className="flex items-center gap-2">
           {/* Copy Transcript Button */}
-          <button
+          <Button
+            intent="secondary"
+            size="small"
             onClick={handleCopy}
-            className="text-[#8d8db9] border border-[#e2e8f0] rounded-xl px-3 py-1.5 text-xs hover:border-[#2563eb] hover:text-[#2563eb] transition-colors font-medium flex items-center gap-1.5 cursor-pointer bg-white"
+            className="flex items-center gap-1.5"
           >
             {copied ? (
               <>
@@ -91,7 +94,7 @@ export function EncounterLogDetails({ log }: EncounterLogDetailsProps) {
                 <span>Copy Transcript</span>
               </>
             )}
-          </button>
+          </Button>
 
           <div className="flex bg-slate-100 p-0.5 rounded-lg border border-[#e2e8f0]">
             <button
