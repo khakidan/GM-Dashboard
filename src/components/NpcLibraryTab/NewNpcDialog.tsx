@@ -8,6 +8,7 @@ import {
   serializeProficiencies,
 } from '../../lib/abilityScores';
 import { DialogShell } from '../ui/DialogShell';
+import { Button } from '../ui/Button';
 
 interface NewNpcDialogProps {
   isOpen: boolean;
@@ -18,6 +19,8 @@ interface NewNpcDialogProps {
 export function NewNpcDialog({ isOpen, onClose, onConfirm }: NewNpcDialogProps) {
   const [formData, setFormData] = useState<NpcFormData>(DEFAULT_NPC_FORM_DATA);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const isFormValid = formData.name.trim() !== '';
 
   useEffect(() => {
     if (!isOpen) {
@@ -89,20 +92,24 @@ export function NewNpcDialog({ isOpen, onClose, onConfirm }: NewNpcDialogProps) 
         <NpcFormFields data={formData} onChange={setFormData} errors={errors} />
 
         <div className="pt-4 flex gap-4">
-          <button
+          <Button
             type="button"
+            intent="secondary"
+            size="large"
             onClick={onClose}
-            className="flex-1 bg-[#e2e8f0] hover:bg-[#d4cfc1] text-[#0f172a] py-3.5 rounded-xl font-bold font-sans uppercase tracking-widest text-xs transition-all active:scale-95"
           >
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             type="submit"
-            className="flex-1 bg-[#2563eb] hover:bg-[#567eff] text-white py-3.5 rounded-xl font-bold font-sans uppercase tracking-widest text-xs transition-all flex items-center justify-center gap-2 shadow-md active:scale-95 disabled:opacity-50"
+            intent="primary"
+            size="large"
+            disabled={!isFormValid}
+            className="flex items-center justify-center gap-2"
           >
             <Save className="w-4 h-4" />
             Add NPC →
-          </button>
+          </Button>
         </div>
       </form>
     </DialogShell>
