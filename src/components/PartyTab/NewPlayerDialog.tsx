@@ -21,6 +21,7 @@ import {
 import { ResourcePoolManager } from '../ui/ResourcePoolManager';
 import { usePlayerFormAutomation } from '../../hooks/usePlayerFormAutomation';
 import { DialogShell } from '../ui/DialogShell';
+import { Button } from '../ui/Button';
 
 interface NewPlayerDialogProps {
   isOpen: boolean;
@@ -187,22 +188,25 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
               </button>
             )}
           </div>
-          <div className="flex items-center">
-            <button
+          <div className="flex items-center gap-3">
+            <Button
               type="button"
+              intent="secondary"
+              size="small"
               onClick={onClose}
-              className="bg-[#e2e8f0] hover:bg-[#d4cfc1] text-[#0f172a] text-sm font-medium px-4 py-2 rounded-xl mr-3 transition-colors"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
               form="new-player-form"
               disabled={!isFormValid}
-              className="bg-[#2563eb] hover:bg-[#567eff] text-white font-medium px-4 py-2 rounded-xl text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-stone-200 disabled:text-stone-400 flex items-center justify-center shadow-lg"
+              intent="primary"
+              size="small"
+              className="flex items-center justify-center"
             >
               Add Character
-            </button>
+            </Button>
           </div>
         </div>
       }
