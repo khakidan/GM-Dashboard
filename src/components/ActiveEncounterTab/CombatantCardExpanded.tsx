@@ -1,5 +1,5 @@
 import React from 'react';
-import { Trash2 } from 'lucide-react';
+import { Trash2, RotateCcw } from 'lucide-react';
 import { buildConditionSummary } from '../../lib/conditions';
 import { Combatant, Character, NPC } from '../../types';
 import { ConditionChips } from '../ui/ConditionChips';
@@ -114,6 +114,16 @@ export function CombatantCardExpanded({
               <span className="font-bold text-base text-[#0f172a]">{c.maxHp}</span>
             )}
           </div>
+          {c.type === 'npc' && (c.currentHp < c.maxHp || (c.tempHp || 0) > 0) && (
+            <button
+              onClick={() => onUpdateCombatant({ currentHp: c.maxHp, tempHp: 0 })}
+              disabled={isSyncing}
+              className="flex items-center justify-center gap-1.5 py-1.5 px-3 bg-[#f9f8ff]/80 hover:bg-white text-[10px] font-bold uppercase tracking-widest text-[#8d8db9] hover:text-[#2563eb] rounded-full border border-[#e2e8f0] hover:border-[#2563eb] transition-all disabled:opacity-50"
+            >
+              <RotateCcw className="w-3 h-3" />
+              Reset HP
+            </button>
+          )}
         </div>
       </div>
 
