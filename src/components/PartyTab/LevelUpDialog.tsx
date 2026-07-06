@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Character, PoolEdit } from '../../types';
-import { X, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { IrvMultiSelect } from '../ui/IrvMultiSelect';
 import { parseClassString, getHitDieForClass, addHitDieToConfig } from '../../lib/hitDice';
 import { proficiencyBonusFromLevel, parseProficiencies, serializeProficiencies, parseAbilityScores, calculateModifier } from '../../lib/abilityScores';
@@ -9,6 +9,7 @@ import { ResourcePool, parseResourcePools, serializeResourcePools } from '../../
 import { LevelUpChecklist } from './LevelUpChecklist';
 import { LevelUpResourcePools } from './LevelUpResourcePools';
 import { useLevelUpAutomation } from '../../hooks/useLevelUpAutomation';
+import { DialogShell } from '../ui/DialogShell';
 
 
 export interface LevelUpDialogProps {
@@ -106,8 +107,6 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
     setPoolEdits,
     setHasJackOfAllTrades
   );
-
-  if (!isOpen) return null;
 
   const conScore = parseAbilityScores(
     character.abilityScores ?? '{}'
@@ -210,273 +209,14 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
   const isConfirmDisabled = levelUpOption === 'newClass' && !!character.class && !newClassName.trim();
 
   return (
-    <div
-      id="level-up-overlay"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0f172a]/60 backdrop-blur-sm overflow-y-auto"
-    >
-      <div
-        id="level-up-dialog"
-        className="bg-[#ffffff] w-full max-w-lg rounded-2xl shadow-xl border border-[#e2e8f0] overflow-hidden flex flex-col my-8"
-      >
-        {/* Header */}
-        <div className="bg-[#0f172a] px-6 py-4 text-[#ffffff] flex items-center justify-between rounded-t-2xl">
-          <div className="flex flex-col">
-            <h2 className="text-lg font-bold font-serif uppercase tracking-wider text-[#2563eb]">
-              Level Up Wizard
-            </h2>
-            <p className="text-[10px] text-[#e2e8f0]/60 font-sans font-bold uppercase tracking-wider mt-0.5">
-              {character.characterName} (Level {character.level})
-            </p>
-          </div>
-          <button
-            id="close-dialog-btn"
-            onClick={onClose}
-            className="p-1.5 hover:bg-white/10 rounded-full transition-colors text-[#e2e8f0] hover:text-white cursor-pointer"
-            title="Close"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className="p-6 space-y-6 overflow-y-auto max-h-[70vh]">
-          {/* SECTION A: GM Checklist */}
-          <LevelUpChecklist
-            chkHp={chkHp}
-            setChkHp={setChkHp}
-            chkAc={chkAc}
-            setChkAc={setChkAc}
-            chkPerception={chkPerception}
-            setChkPerception={setChkPerception}
-            chkResistances={chkResistances}
-            setChkResistances={setChkResistances}
-            chkOther={chkOther}
-            setChkOther={setChkOther}
-          />
-
-          {/* SECTION B: Updated Values */}
-          <div className="space-y-4" id="values-section">
-            <h3 className="text-[#8d8db9] text-xs font-bold uppercase tracking-widest border-b border-[#e2e8f0] pb-1 mb-2">
-              Section B: Updated Values
-            </h3>
-
-            {/* Class Level Up Selection */}
-            <div className="bg-[#f9f8ff] border border-[#e2e8f0] rounded-2xl p-4 space-y-3">
-              <span className="block text-[9px] font-bold uppercase tracking-wider text-[#8d8db9]">
-                Class Level Up / Multiclass
-              </span>
-              
-              <div className="space-y-2">
-                {classLevels.map((cLevel) => (
-                  <label key={cLevel.className} className="flex items-center gap-2.5 text-xs text-[#8d8db9] select-none cursor-pointer hover:text-[#0f172a]">
-                    <input
-                      type="radio"
-                      name="level-up-class"
-                      checked={levelUpOption === cLevel.className}
-                      onChange={() => setLevelUpOption(cLevel.className)}
-                      className="w-4 h-4 accent-[#2563eb]"
-                    />
-                    <span>
-                      {cLevel.className} <span className="text-gray-400">(Level {cLevel.currentLevel} → {cLevel.nextLevel})</span>
-                    </span>
-                  </label>
-                ))}
-
-                <label className="flex items-center gap-2.5 text-xs text-[#8d8db9] select-none cursor-pointer hover:text-[#0f172a]">
-                  <input
-                    id="multiclass-radio-btn"
-                    type="radio"
-                    name="level-up-class"
-                    checked={levelUpOption === 'newClass'}
-                    onChange={() => setLevelUpOption('newClass')}
-                    className="w-4 h-4 accent-[#2563eb]"
-                  />
-                  <span>Multiclassing into a new class</span>
-                </label>
-              </div>
-
-              {levelUpOption === 'newClass' && (
-                <div className="grid grid-cols-2 gap-3 pt-2 pl-6 border-l-2 border-[#2563eb]/30">
-                  <div>
-                    <label htmlFor="new-class-name" className="block text-[9px] font-bold uppercase tracking-wider text-[#8d8db9] mb-1">
-                      New Class Name
-                    </label>
-                    <input
-                      id="new-class-name"
-                      type="text"
-                      placeholder="e.g. Fighter"
-                      value={newClassName}
-                      onChange={e => setNewClassName(e.target.value)}
-                      className="bg-white border border-[#e2e8f0] rounded-xl text-[#0f172a] placeholder:text-[#8d8db9] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]/50 focus:outline-none w-full px-3 py-1.5 text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="new-class-hitdie" className="block text-[9px] font-bold uppercase tracking-wider text-[#8d8db9] mb-1">
-                      Hit Die
-                    </label>
-                    <select
-                      id="new-class-hitdie"
-                      value={newClassHitDie}
-                      onChange={e => setNewClassHitDie(parseInt(e.target.value, 10))}
-                      className="bg-white border border-[#e2e8f0] rounded-xl text-[#0f172a] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]/50 focus:outline-none w-full px-3 py-1.5 text-xs"
-                    >
-                      <option value={6}>d6</option>
-                      <option value={8}>d8</option>
-                      <option value={10}>d10</option>
-                      <option value={12}>d12</option>
-                    </select>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="new-level-input" className="block text-[9px] font-bold uppercase tracking-wider text-[#8d8db9] mb-1">
-                  New Level
-                </label>
-                <input
-                  id="new-level-input"
-                  type="number"
-                  value={newLevel}
-                  onFocus={(e) => e.target.select()}
-                  onChange={e => setNewLevel(Math.max(1, parseInt(e.target.value) || 0))}
-                  className="bg-white border border-[#e2e8f0] rounded-xl text-[#0f172a] placeholder:text-[#8d8db9] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]/50 focus:outline-none w-full px-3 py-2 text-sm transition-all"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="new-ac-input" className="block text-[9px] font-bold uppercase tracking-wider text-[#8d8db9] mb-1">
-                  New AC
-                </label>
-                <input
-                  id="new-ac-input"
-                  type="number"
-                  value={newAc}
-                  onFocus={(e) => e.target.select()}
-                  onChange={e => setNewAc(Math.max(0, parseInt(e.target.value) || 0))}
-                  className="bg-white border border-[#e2e8f0] rounded-xl text-[#0f172a] placeholder:text-[#8d8db9] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]/50 focus:outline-none w-full px-3 py-2 text-sm transition-all"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-[9px]
-                font-bold uppercase tracking-wider
-                text-[#8d8db9] mb-1">
-                HP Roll
-              </label>
-              <input
-                type="number"
-                min="1"
-                value={hpRoll}
-                onChange={e => setHpRoll(
-                  Math.max(1, parseInt(e.target.value)
-                    || 1)
-                )}
-                onFocus={e => e.target.select()}
-                className="bg-white border
-                  border-[#e2e8f0] rounded-xl
-                  text-[#0f172a] focus:border-[#2563eb]
-                  focus:ring-1 focus:ring-[#2563eb]/50
-                  focus:outline-none w-full px-3 py-2
-                  text-sm transition-all"
-              />
-              <p className="text-xs text-[#8d8db9]
-                mt-1">
-                {conModifier >= 0 ? '+' : ''}
-                {conModifier} from CON modifier
-                {hasToughFeat ? ', +2 from Tough feat'
-                  : ''}
-                 — total HP gained:{' '}
-                <span className="font-bold
-                  text-[#0f172a]">
-                  {totalHpGained}
-                </span>
-              </p>
-              <label className="flex items-center
-                gap-2 mt-2 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={hasToughFeat}
-                  onChange={e => setHasToughFeat(
-                    e.target.checked
-                  )}
-                  className="rounded border-[#e2e8f0]
-                    text-[#2563eb] focus:ring-[#2563eb]
-                    w-4 h-4"
-                />
-                <span className="text-xs
-                  text-[#8d8db9] font-medium">
-                  Tough feat (+2 HP per level)
-                </span>
-              </label>
-              <label className="flex items-center
-                gap-2 mt-2 cursor-pointer select-none"
-                id="jack-of-all-trades-label"
-              >
-                <input
-                  id="jack-of-all-trades-checkbox"
-                  type="checkbox"
-                  checked={hasJackOfAllTrades}
-                  onChange={e => {
-                    setHasJackOfAllTrades(e.target.checked);
-                    setHasManuallyToggledJack(true);
-                  }}
-                  className="rounded border-[#e2e8f0]
-                    text-[#2563eb] focus:ring-[#2563eb]
-                    w-4 h-4"
-                />
-                <span className="text-xs
-                  text-[#8d8db9] font-medium">
-                  Jack of All Trades
-                </span>
-              </label>
-            </div>
-
-            <div className="grid grid-cols-1 gap-4">
-              <IrvMultiSelect
-                label="Resistances"
-                value={newResistances}
-                onChange={setNewResistances}
-                placeholder="e.g. fire, poison"
-              />
-
-              <IrvMultiSelect
-                label="Immunities"
-                value={newImmunities}
-                onChange={setNewImmunities}
-                placeholder="e.g. poison, conditions"
-              />
-
-              <IrvMultiSelect
-                label="Vulnerabilities"
-                value={newVulnerabilities}
-                onChange={setNewVulnerabilities}
-                placeholder="e.g. bludgeoning"
-              />
-
-              <div>
-                <label htmlFor="new-notes" className="block text-[9px] font-bold uppercase tracking-wider text-[#8d8db9] mb-1">
-                  Notes
-                </label>
-                <textarea
-                  id="new-notes"
-                  value={newNotes}
-                  onChange={e => setNewNotes(e.target.value)}
-                  placeholder="Record level up traits, feats, spell choices..."
-                  className="bg-white border border-[#e2e8f0] rounded-xl text-[#0f172a] placeholder:text-[#8d8db9] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]/50 focus:outline-none w-full px-3 py-2 text-sm transition-all h-20 resize-none font-sans"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* SECTION C: Resource Pools */}
-          <LevelUpResourcePools poolEdits={poolEdits} setPoolEdits={setPoolEdits} />
-        </div>
-
-        {/* Footer */}
-        <div className="bg-[#ffffff] px-6 py-4 border-t border-[#e2e8f0] flex items-center justify-end gap-3 rounded-b-2xl">
+    <DialogShell
+      isOpen={isOpen}
+      onClose={onClose}
+      maxWidth="max-w-lg"
+      title="Level Up Wizard"
+      subtitle={`${character.characterName} (Level ${character.level})`}
+      footer={
+        <div className="flex items-center justify-end gap-3 border-[#e2e8f0] bg-[#ffffff]">
           <button
             id="cancel-dialog-btn"
             onClick={onClose}
@@ -493,7 +233,243 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
             Confirm Level Up <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
+      }
+    >
+      <div className="space-y-6 overflow-y-auto max-h-[70vh]">
+        {/* SECTION A: GM Checklist */}
+        <LevelUpChecklist
+          chkHp={chkHp}
+          setChkHp={setChkHp}
+          chkAc={chkAc}
+          setChkAc={setChkAc}
+          chkPerception={chkPerception}
+          setChkPerception={setChkPerception}
+          chkResistances={chkResistances}
+          setChkResistances={setChkResistances}
+          chkOther={chkOther}
+          setChkOther={setChkOther}
+        />
+
+        {/* SECTION B: Updated Values */}
+        <div className="space-y-4" id="values-section">
+          <h3 className="text-[#8d8db9] text-xs font-bold uppercase tracking-widest border-b border-[#e2e8f0] pb-1 mb-2">
+            Section B: Updated Values
+          </h3>
+
+          {/* Class Level Up Selection */}
+          <div className="bg-[#f9f8ff] border border-[#e2e8f0] rounded-2xl p-4 space-y-3">
+            <span className="block text-[9px] font-bold uppercase tracking-wider text-[#8d8db9]">
+              Class Level Up / Multiclass
+            </span>
+            
+            <div className="space-y-2">
+              {classLevels.map((cLevel) => (
+                <label key={cLevel.className} className="flex items-center gap-2.5 text-xs text-[#8d8db9] select-none cursor-pointer hover:text-[#0f172a]">
+                  <input
+                    type="radio"
+                    name="level-up-class"
+                    checked={levelUpOption === cLevel.className}
+                    onChange={() => setLevelUpOption(cLevel.className)}
+                    className="w-4 h-4 accent-[#2563eb]"
+                  />
+                  <span>
+                    {cLevel.className} <span className="text-gray-400">(Level {cLevel.currentLevel} → {cLevel.nextLevel})</span>
+                  </span>
+                </label>
+              ))}
+
+              <label className="flex items-center gap-2.5 text-xs text-[#8d8db9] select-none cursor-pointer hover:text-[#0f172a]">
+                <input
+                  id="multiclass-radio-btn"
+                  type="radio"
+                  name="level-up-class"
+                  checked={levelUpOption === 'newClass'}
+                  onChange={() => setLevelUpOption('newClass')}
+                  className="w-4 h-4 accent-[#2563eb]"
+                />
+                <span>Multiclassing into a new class</span>
+              </label>
+            </div>
+
+            {levelUpOption === 'newClass' && (
+              <div className="grid grid-cols-2 gap-3 pt-2 pl-6 border-l-2 border-[#2563eb]/30">
+                <div>
+                  <label htmlFor="new-class-name" className="block text-[9px] font-bold uppercase tracking-wider text-[#8d8db9] mb-1">
+                    New Class Name
+                  </label>
+                  <input
+                    id="new-class-name"
+                    type="text"
+                    placeholder="e.g. Fighter"
+                    value={newClassName}
+                    onChange={e => setNewClassName(e.target.value)}
+                    className="bg-white border border-[#e2e8f0] rounded-xl text-[#0f172a] placeholder:text-[#8d8db9] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]/50 focus:outline-none w-full px-3 py-1.5 text-xs"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="new-class-hitdie" className="block text-[9px] font-bold uppercase tracking-wider text-[#8d8db9] mb-1">
+                    Hit Die
+                  </label>
+                  <select
+                    id="new-class-hitdie"
+                    value={newClassHitDie}
+                    onChange={e => setNewClassHitDie(parseInt(e.target.value, 10))}
+                    className="bg-white border border-[#e2e8f0] rounded-xl text-[#0f172a] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]/50 focus:outline-none w-full px-3 py-1.5 text-xs"
+                  >
+                    <option value={6}>d6</option>
+                    <option value={8}>d8</option>
+                    <option value={10}>d10</option>
+                    <option value={12}>d12</option>
+                  </select>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="new-level-input" className="block text-[9px] font-bold uppercase tracking-wider text-[#8d8db9] mb-1">
+                New Level
+              </label>
+              <input
+                id="new-level-input"
+                type="number"
+                value={newLevel}
+                onFocus={(e) => e.target.select()}
+                onChange={e => setNewLevel(Math.max(1, parseInt(e.target.value) || 0))}
+                className="bg-white border border-[#e2e8f0] rounded-xl text-[#0f172a] placeholder:text-[#8d8db9] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]/50 focus:outline-none w-full px-3 py-2 text-sm transition-all"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="new-ac-input" className="block text-[9px] font-bold uppercase tracking-wider text-[#8d8db9] mb-1">
+                New AC
+              </label>
+              <input
+                id="new-ac-input"
+                type="number"
+                value={newAc}
+                onFocus={(e) => e.target.select()}
+                onChange={e => setNewAc(Math.max(0, parseInt(e.target.value) || 0))}
+                className="bg-white border border-[#e2e8f0] rounded-xl text-[#0f172a] placeholder:text-[#8d8db9] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]/50 focus:outline-none w-full px-3 py-2 text-sm transition-all"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-[9px]
+              font-bold uppercase tracking-wider
+              text-[#8d8db9] mb-1">
+              HP Roll
+            </label>
+            <input
+              type="number"
+              min="1"
+              value={hpRoll}
+              onChange={e => setHpRoll(
+                Math.max(1, parseInt(e.target.value)
+                  || 1)
+              )}
+              onFocus={e => e.target.select()}
+              className="bg-white border
+                border-[#e2e8f0] rounded-xl
+                text-[#0f172a] focus:border-[#2563eb]
+                focus:ring-1 focus:ring-[#2563eb]/50
+                focus:outline-none w-full px-3 py-2
+                text-sm transition-all"
+            />
+            <p className="text-xs text-[#8d8db9]
+              mt-1">
+              {conModifier >= 0 ? '+' : ''}
+              {conModifier} from CON modifier
+              {hasToughFeat ? ', +2 from Tough feat'
+                : ''}
+               — total HP gained:{' '}
+              <span className="font-bold
+                text-[#0f172a]">
+                {totalHpGained}
+              </span>
+            </p>
+            <label className="flex items-center
+              gap-2 mt-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={hasToughFeat}
+                onChange={e => setHasToughFeat(
+                  e.target.checked
+                )}
+                className="rounded border-[#e2e8f0]
+                  text-[#2563eb] focus:ring-[#2563eb]
+                  w-4 h-4"
+              />
+              <span className="text-xs
+                text-[#8d8db9] font-medium">
+                Tough feat (+2 HP per level)
+              </span>
+            </label>
+            <label className="flex items-center
+              gap-2 mt-2 cursor-pointer select-none"
+              id="jack-of-all-trades-label"
+            >
+              <input
+                id="jack-of-all-trades-checkbox"
+                type="checkbox"
+                checked={hasJackOfAllTrades}
+                onChange={e => {
+                  setHasJackOfAllTrades(e.target.checked);
+                  setHasManuallyToggledJack(true);
+                }}
+                className="rounded border-[#e2e8f0]
+                  text-[#2563eb] focus:ring-[#2563eb]
+                  w-4 h-4"
+              />
+              <span className="text-xs
+                text-[#8d8db9] font-medium">
+                Jack of All Trades
+              </span>
+            </label>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4">
+            <IrvMultiSelect
+              label="Resistances"
+              value={newResistances}
+              onChange={setNewResistances}
+              placeholder="e.g. fire, poison"
+            />
+
+            <IrvMultiSelect
+              label="Immunities"
+              value={newImmunities}
+              onChange={setNewImmunities}
+              placeholder="e.g. poison, conditions"
+            />
+
+            <IrvMultiSelect
+              label="Vulnerabilities"
+              value={newVulnerabilities}
+              onChange={setNewVulnerabilities}
+              placeholder="e.g. bludgeoning"
+            />
+
+            <div>
+              <label htmlFor="new-notes" className="block text-[9px] font-bold uppercase tracking-wider text-[#8d8db9] mb-1">
+                Notes
+              </label>
+              <textarea
+                id="new-notes"
+                value={newNotes}
+                onChange={e => setNewNotes(e.target.value)}
+                placeholder="Record level up traits, feats, spell choices..."
+                className="bg-white border border-[#e2e8f0] rounded-xl text-[#0f172a] placeholder:text-[#8d8db9] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]/50 focus:outline-none w-full px-3 py-2 text-sm transition-all h-20 resize-none font-sans"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* SECTION C: Resource Pools */}
+        <LevelUpResourcePools poolEdits={poolEdits} setPoolEdits={setPoolEdits} />
       </div>
-    </div>
+    </DialogShell>
   );
 };

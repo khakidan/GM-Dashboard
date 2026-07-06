@@ -2,9 +2,9 @@ import '@testing-library/jest-dom/vitest';
 import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { CombatSidebar } from '../CombatSidebar';
+import { AddCombatantDialog } from '../AddCombatantDialog';
 
-describe('CombatSidebar', () => {
+describe('AddCombatantDialog', () => {
   afterEach(() => cleanup());
   
   const defaultProps = {
@@ -17,13 +17,13 @@ describe('CombatSidebar', () => {
   };
 
   it('renders without crashing with required props', () => {
-    const { container } = render(<CombatSidebar {...defaultProps} />);
+    const { container } = render(<AddCombatantDialog {...defaultProps} />);
     expect(screen.getByRole('button', { name: /create npc/i })).toBeInTheDocument();
   });
 
   it('submitting the Create NPC form calls onAddNpc with the full NPC data object', () => {
     const onAddNpc = vi.fn();
-    render(<CombatSidebar {...defaultProps} onAddNpc={onAddNpc} />);
+    render(<AddCombatantDialog {...defaultProps} onAddNpc={onAddNpc} />);
     
     // Switch to Create NPC tab
     fireEvent.click(screen.getByText('Create NPC'));
@@ -49,7 +49,7 @@ describe('CombatSidebar', () => {
 
   it('CREATE NPC tab embeds CR-derived proficiency bonus in proficiencies', () => {
     const onAddNpcMock = vi.fn();
-    render(<CombatSidebar {...defaultProps} onAddNpc={onAddNpcMock} />);
+    render(<AddCombatantDialog {...defaultProps} onAddNpc={onAddNpcMock} />);
     
     // Switch to Create NPC tab
     fireEvent.click(screen.getByText('Create NPC'));

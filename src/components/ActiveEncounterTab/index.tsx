@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 
 import { CombatHeader } from './CombatHeader';
 import { CombatantCard } from './CombatantCard';
-import { CombatSidebar } from './CombatSidebar';
+import { AddCombatantDialog } from './AddCombatantDialog';
 import { CasterAttributionDialog } from './CasterAttributionDialog';
 
 import { useCombatSync } from './hooks/useCombatSync';
@@ -228,7 +228,7 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
         </div>
       </div>
 
-      <CombatSidebar
+      <AddCombatantDialog
         isOpen={isToolsModalOpen}
         onClose={() => setIsToolsModalOpen(false)}
         npcs={state.npcs}

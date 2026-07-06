@@ -9,7 +9,7 @@ import { cn } from '../../lib/utils';
 import { NPC as Npc, Character, Combatant } from '../../types';
 import { NpcFormFields, NpcFormData, DEFAULT_NPC_FORM_DATA } from '../ui/NpcFormFields';
 
-interface CombatSidebarProps {
+interface AddCombatantDialogProps {
   isOpen: boolean;
   onClose: () => void;
   npcs: Npc[];
@@ -21,7 +21,7 @@ interface CombatSidebarProps {
   combatants?: Combatant[];
 }
 
-export function CombatSidebar({
+export function AddCombatantDialog({
   isOpen,
   onClose,
   npcs,
@@ -29,7 +29,7 @@ export function CombatSidebar({
   onAddPreset,
   onAddNpc,
   combatants = []
-}: CombatSidebarProps) {
+}: AddCombatantDialogProps) {
   const [activeTab, setActiveTab] = useState<'library' | 'party' | 'create'>('library');
   const [selectedPreset, setSelectedPreset] = useState<string>('');
   const [presetQuantity, setPresetQuantity] = useState<number>(1);
