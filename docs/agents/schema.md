@@ -62,7 +62,9 @@ Referenced from the root [AGENTS.md](../../AGENTS.md). Read this when touching a
 | Y | 24 | proficiencies | JSON string |
 | Z | 25 | spellcastingAbility | Text, e.g. 'INT', 'WIS', 'CHA', '' |
 
-### NPCs (A2:Y — 25 columns)
+### NPCs (A2:V — 22 columns)
+
+**Templates only — no "current" combat state.** NPC templates in this sheet represent a reusable stat block (used when adding an NPC to any encounter); they have no HP/temp-HP/conditions of their own. All per-instance combat state (current HP, temp HP, conditions, legendary actions remaining, recharge state) lives in `Encounter_Combatants`, scoped to that specific combatant instance in that specific encounter. See the "NPC Template vs. Combat-Instance State Isolation" entry in `decomposition-log.md` for the full history of this design.
 
 | Col | Index | Field | Notes |
 |-----|-------|-------|-------|
@@ -70,27 +72,24 @@ Referenced from the root [AGENTS.md](../../AGENTS.md). Read this when touching a
 | B | 1 | name | |
 | C | 2 | ac | Number, default 10 |
 | D | 3 | maxHp | Number, default 10 |
-| E | 4 | tempHp | Number, default 0 |
-| F | 5 | currentHp | Number, default 10 |
-| G | 6 | conditions | Comma-separated |
-| H | 7 | notes | |
-| I | 8 | resistances | Comma-separated damage types |
-| J | 9 | immunities | Comma-separated damage types AND condition immunities |
-| K | 10 | vulnerabilities | Comma-separated |
-| L | 11 | legendaryActions | Number, default 0 |
-| M | 12 | legendaryResistances | Number, default 0 |
-| N | 13 | rechargeAbilities | JSON string |
-| O | 14 | abilityScores | JSON string |
-| P | 15 | proficiencies | JSON string |
-| Q | 16 | speed | Text, e.g. "30 ft., fly 60 ft." |
-| R | 17 | senses | Text, e.g. "darkvision 60 ft." |
-| S | 18 | languages | Text |
-| T | 19 | challengeRating | Text, e.g. "1/4", "16" |
-| U | 20 | traits | JSON: NpcTrait[] |
-| V | 21 | actions | JSON: NpcAction[] |
-| W | 22 | reactions | JSON: NpcReaction[] |
-| X | 23 | legendaryActionsList | JSON: NpcLegendaryAction[] |
-| Y | 24 | spellcastingAbility | String |
+| E | 4 | notes | |
+| F | 5 | resistances | Comma-separated damage types |
+| G | 6 | immunities | Comma-separated damage types AND condition immunities |
+| H | 7 | vulnerabilities | Comma-separated |
+| I | 8 | legendaryActions | Number, default 0 — **max value only**, not remaining/current |
+| J | 9 | legendaryResistances | Number, default 0 — **max value only**, not remaining/current |
+| K | 10 | rechargeAbilities | JSON string — ability *definitions* only (name + rechargeOn threshold), not charge state |
+| L | 11 | abilityScores | JSON string |
+| M | 12 | proficiencies | JSON string |
+| N | 13 | speed | Text, e.g. "30 ft., fly 60 ft." |
+| O | 14 | senses | Text, e.g. "darkvision 60 ft." |
+| P | 15 | languages | Text |
+| Q | 16 | challengeRating | Text, e.g. "1/4", "16" |
+| R | 17 | traits | JSON: NpcTrait[] |
+| S | 18 | actions | JSON: NpcAction[] |
+| T | 19 | reactions | JSON: NpcReaction[] |
+| U | 20 | legendaryActionsList | JSON: NpcLegendaryAction[] |
+| V | 21 | spellcastingAbility | String |
 
 **NPC TypeScript interfaces** (in src/types.ts):
 
@@ -124,7 +123,7 @@ NpcLegendaryAction: {
 }
 ```
 
-Note: `immunities` (col J) stores BOTH damage immunities and condition immunities as a comma-separated string. There is no separate `conditionImmunities` column.
+Note: `immunities` (col G) stores BOTH damage immunities and condition immunities as a comma-separated string. There is no separate `conditionImmunities` column.
 
 ### Encounters (A2:G — 7 columns)
 
@@ -138,7 +137,9 @@ Note: `immunities` (col J) stores BOTH damage immunities and condition immunitie
 | F | 5 | currentRound | Number, default 0 |
 | G | 6 | activeTurnId | Combatant ID string |
 
-### Encounter_Combatants (A2:K — 11 columns)
+### Encounter_Combatants (A2:N — 14 columns)
+
+Holds per-instance combat state for every combatant in every encounter — this is the single source of truth for "what state is this specific PC or NPC instance in, in this specific encounter," separate from the reusable `Characters`/`NPCs` templates. One row per combatant instance; for NPCs, `quantity` is always `1` per row (adding "3 Goblins" creates 3 separate rows, not one row with `quantity: 3`) — `quantity` is retained as a column for now but is not meaningfully read or written.
 
 | Col | Index | Field | Notes |
 |-----|-------|-------|-------|
@@ -146,13 +147,16 @@ Note: `immunities` (col J) stores BOTH damage immunities and condition immunitie
 | B | 1 | encounterId | FK → Encounters |
 | C | 2 | playerId | FK → Characters (null if NPC) |
 | D | 3 | npcId | FK → NPCs (null if PC) |
-| E | 4 | quantity | Number, default 1 |
+| E | 4 | quantity | Number, always 1 per row |
 | F | 5 | initiative | Number, default 0 |
 | G | 6 | conditionTimers | JSON string |
-| H | 7 | npcCurrentHp | Number, default -1 |
+| H | 7 | npcCurrentHp | Number, default -1 (sentinel: "not yet set for this instance," falls back to `npcTemplate.maxHp` when building a fresh combatant) |
 | I | 8 | npcTempHp | Number, default 0 |
 | J | 9 | npcCurrentConditions | Comma-separated |
 | K | 10 | npcTempAcMod | Number, default 0 |
+| L | 11 | npcLegendaryActionsRemaining | Number, default matches the NPC template's `legendaryActions` max at creation time |
+| M | 12 | npcLegendaryResistancesRemaining | Number, default matches the NPC template's `legendaryResistances` max at creation time |
+| N | 13 | npcRechargeState | JSON string: `{ [abilityName]: isCharged }` |
 
 ### Conditions (A2:C — 3 columns)
 
