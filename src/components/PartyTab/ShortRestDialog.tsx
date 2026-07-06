@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { X, Heart, ChevronDown, ChevronUp, RefreshCw, AlertCircle } from 'lucide-react';
+import { Heart, ChevronDown, ChevronUp, RefreshCw, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Character } from '../../types';
-import { getHitDiceStatus, parseHitDiceUsed, serializeHitDiceUsed, spendHitDice } from '../../lib/hitDice';
+import { getHitDiceStatus, spendHitDice } from '../../lib/hitDice';
 import { parseDiceNotation, rollDice } from '../../lib/diceRoller';
 import { toast } from 'sonner';
+import { DialogShell } from '../ui/DialogShell';
 
 interface ShortRestDialogProps {
   isOpen: boolean;
@@ -191,257 +192,224 @@ export function ShortRestDialog({ isOpen, characters, onConfirm, onClose }: Shor
   const parsedCharactersCount = characters.filter(char => restStates[char.id]?.participating).length;
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-[#0f172a]/60 backdrop-blur-sm"
+    <DialogShell
+      isOpen={isOpen}
+      onClose={onClose}
+      maxWidth="max-w-2xl"
+      title="Short Rest"
+      subtitle="Characters may spend Hit Dice to recover HP."
+      icon={<Heart className="w-5 h-5 text-[#2563eb]" />}
+      footer={
+        <div className="flex items-center justify-end gap-3">
+          <button
             onClick={onClose}
-            id="short-rest-overlay"
-          />
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="bg-[#ffffff] w-full max-w-2xl rounded-2xl shadow-xl border border-[#e2e8f0] overflow-hidden flex flex-col relative z-10"
-            id="short-rest-dialog"
+            className="text-[#8d8db9] border border-[#e2e8f0] rounded-xl px-3 py-1.5 text-xs hover:border-[#2563eb] hover:text-[#0f172a] transition-colors"
+            id="short-rest-cancel-btn"
           >
-            {/* Header */}
-            <div className="bg-[#0f172a] px-6 py-4 text-[#ffffff] flex items-center justify-between rounded-t-2xl">
-              <div className="flex items-center gap-3">
-                <Heart className="w-5 h-5 text-[#2563eb]" />
-                <div>
-                  <h2 className="text-lg font-bold font-serif uppercase tracking-wider">Short Rest</h2>
-                  <p className="text-xs text-[#e2e8f0]/60">Characters may spend Hit Dice to recover HP.</p>
-                </div>
-              </div>
-              <button
-                onClick={onClose}
-                className="p-1.5 hover:bg-white/10 rounded-full transition-colors text-[#e2e8f0] hover:text-white"
-                title="Close"
-                id="short-rest-close-btn"
+            Cancel
+          </button>
+          <button
+            onClick={handleApply}
+            disabled={parsedCharactersCount === 0}
+            className="bg-[#2563eb] text-white font-bold uppercase tracking-widest text-xs rounded-xl px-4 py-2 hover:bg-[#567eff] transition-colors disabled:bg-[#e2e8f0] disabled:text-[#8d8db9] disabled:cursor-not-allowed disabled:opacity-60 shadow-sm"
+            id="short-rest-apply-btn"
+          >
+            Apply Short Rest
+          </button>
+        </div>
+      }
+    >
+      <div className="p-6 overflow-y-auto space-y-4 max-h-[60vh]">
+        {characters.length === 0 ? (
+          <p className="text-[#8d8db9] text-center text-sm py-4 italic">No active characters to select.</p>
+        ) : (
+          characters.map(char => {
+            const isDeceased = char.statusId === 3;
+            const charState = restStates[char.id] || { participating: false, hpToAdd: 0, spend: {}, rollResults: {} };
+            const isChecked = charState.participating;
+            const isExpanded = expandedIds.has(char.id) && isChecked && !isDeceased;
+
+            const hdStatus = getHitDiceStatus(char.hitDiceConfig || '', char.hitDiceUsed || '{}');
+            const remainingCountTotal = hdStatus.reduce((sum, p) => sum + p.remaining, 0);
+            const maxAllowedHP = Math.max(0, char.maxHp - char.currentHp);
+
+            return (
+              <div
+                key={char.id}
+                className="border border-[#e2e8f0] rounded-xl overflow-hidden bg-white shadow-sm"
+                id={`short-rest-char-card-${char.id}`}
               >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
+                {/* Collapse/Expand Row Header */}
+                <div
+                  onClick={() => !isDeceased && isChecked && toggleExpand(char.id)}
+                  className={`flex items-center justify-between p-4 select-none transition-colors ${
+                    isDeceased
+                      ? 'bg-gray-50/50 opacity-40 cursor-not-allowed'
+                      : isChecked
+                        ? 'bg-[#f0f7ff] hover:bg-[#f0f7ff]/80 cursor-pointer'
+                        : 'bg-gray-50/50 opacity-60 cursor-pointer'
+                  }`}
+                  id={`short-rest-header-${char.id}`}
+                >
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      checked={isChecked}
+                      disabled={isDeceased}
+                      onChange={(e) => {}} // custom handled via toggleParticipating
+                      onClick={(e) => {
+                        if (isDeceased) return;
+                        toggleParticipating(char.id, e);
+                      }}
+                      className="w-4 h-4 rounded text-[#2563eb] border-[#e2e8f0] focus:ring-[#2563eb] cursor-pointer accent-[#2563eb] disabled:opacity-50 disabled:cursor-not-allowed"
+                      id={`short-rest-checkbox-${char.id}`}
+                    />
+                    <div>
+                      <span className="font-serif font-bold text-[#0f172a] text-sm">
+                        {char.characterName}
+                        {isDeceased && (
+                          <span className="text-red-500 font-sans text-[10px] ml-2 font-semibold bg-red-50 px-1.5 py-0.5 rounded border border-red-100 uppercase">
+                            Deceased
+                          </span>
+                        )}
+                      </span>
+                      <span className="text-[10px] text-[#8d8db9]/70 font-sans ml-2">
+                        ({char.playerName})
+                      </span>
+                    </div>
+                  </div>
 
-            {/* List */}
-            <div className="p-6 overflow-y-auto space-y-4 max-h-[60vh]">
-              {characters.length === 0 ? (
-                <p className="text-[#8d8db9] text-center text-sm py-4 italic">No active characters to select.</p>
-              ) : (
-                characters.map(char => {
-                  const isDeceased = char.statusId === 3;
-                  const charState = restStates[char.id] || { participating: false, hpToAdd: 0, spend: {}, rollResults: {} };
-                  const isChecked = charState.participating;
-                  const isExpanded = expandedIds.has(char.id) && isChecked && !isDeceased;
+                  <div className="flex items-center gap-4 text-xs">
+                    <span className="bg-[#8d8db9]/5 px-2.5 py-1 rounded text-[#8d8db9] font-mono">
+                      HP: {char.currentHp}/{char.maxHp}
+                    </span>
+                    <span className="bg-[#2563eb]/10 text-[#567eff] px-2.5 py-1 rounded font-mono">
+                      HD Available: {remainingCountTotal}
+                    </span>
+                    {isChecked && (
+                      <span className="text-[#8d8db9]">
+                        {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                      </span>
+                    )}
+                  </div>
+                </div>
 
-                  const hdStatus = getHitDiceStatus(char.hitDiceConfig || '', char.hitDiceUsed || '{}');
-                  const remainingCountTotal = hdStatus.reduce((sum, p) => sum + p.remaining, 0);
-                  const maxAllowedHP = Math.max(0, char.maxHp - char.currentHp);
-
-                  return (
-                    <div
-                      key={char.id}
-                      className="border border-[#e2e8f0] rounded-xl overflow-hidden bg-white shadow-sm"
-                      id={`short-rest-char-card-${char.id}`}
+                {/* Expandable Body */}
+                <AnimatePresence initial={false}>
+                  {isExpanded && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="border-t border-[#e2e8f0] bg-[#ffffff] p-5 space-y-4"
+                      id={`short-rest-expanded-${char.id}`}
                     >
-                      {/* Collapse/Expand Row Header */}
-                      <div
-                        onClick={() => !isDeceased && isChecked && toggleExpand(char.id)}
-                        className={`flex items-center justify-between p-4 select-none transition-colors ${
-                          isDeceased
-                            ? 'bg-gray-50/50 opacity-40 cursor-not-allowed'
-                            : isChecked
-                              ? 'bg-[#f0f7ff] hover:bg-[#f0f7ff]/80 cursor-pointer'
-                              : 'bg-gray-50/50 opacity-60 cursor-pointer'
-                        }`}
-                        id={`short-rest-header-${char.id}`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <input
-                            type="checkbox"
-                            checked={isChecked}
-                            disabled={isDeceased}
-                            onChange={(e) => {}} // custom handled via toggleParticipating
-                            onClick={(e) => {
-                              if (isDeceased) return;
-                              toggleParticipating(char.id, e);
-                            }}
-                            className="w-4 h-4 rounded text-[#2563eb] border-[#e2e8f0] focus:ring-[#2563eb] cursor-pointer accent-[#2563eb] disabled:opacity-50 disabled:cursor-not-allowed"
-                            id={`short-rest-checkbox-${char.id}`}
-                          />
-                          <div>
-                            <span className="font-serif font-bold text-[#0f172a] text-sm">
-                              {char.characterName}
-                              {isDeceased && (
-                                <span className="text-red-500 font-sans text-[10px] ml-2 font-semibold bg-red-50 px-1.5 py-0.5 rounded border border-red-100 uppercase">
-                                  Deceased
-                                </span>
-                              )}
-                            </span>
-                            <span className="text-[10px] text-[#8d8db9]/70 font-sans ml-2">
-                              ({char.playerName})
-                            </span>
-                          </div>
+                      {/* Hit Dice Config Empty Check */}
+                      {!char.hitDiceConfig || hdStatus.length === 0 ? (
+                        <div className="flex items-start gap-2.5 p-3.5 bg-[#f9f8ff] text-amber-800 border border-amber-200/50 rounded-xl text-xs">
+                          <AlertCircle className="w-4.5 h-4.5 text-[#2563eb] shrink-0 mt-0.5" />
+                          <p id={`no-hd-config-${char.id}`}>
+                            No hit dice configured. Add a Hit Dice Config to this character's sheet row (e.g. '7d8').
+                          </p>
                         </div>
+                      ) : (
+                        <div className="space-y-3.5">
+                          <h3 className="text-[#8d8db9] text-xs font-bold uppercase tracking-widest border-b border-[#e2e8f0] pb-1 mb-2">
+                            Dice Spending & Rolling
+                          </h3>
+                          {hdStatus.map(pool => {
+                            const poolKey = `d${pool.die}`;
+                            const spendCount = charState.spend[poolKey] ?? 0;
+                            const lastRollResult = charState.rollResults[poolKey];
 
-                        <div className="flex items-center gap-4 text-xs">
-                          <span className="bg-[#8d8db9]/5 px-2.5 py-1 rounded text-[#8d8db9] font-mono">
-                            HP: {char.currentHp}/{char.maxHp}
-                          </span>
-                          <span className="bg-[#2563eb]/10 text-[#567eff] px-2.5 py-1 rounded font-mono">
-                            HD Available: {remainingCountTotal}
-                          </span>
-                          {isChecked && (
-                            <span className="text-[#8d8db9]">
-                              {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                            </span>
-                          )}
-                        </div>
-                      </div>
+                            return (
+                              <div
+                                key={pool.die}
+                                className="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-white border border-[#e2e8f0] p-3 rounded-xl gap-3"
+                                id={`pool-row-d${pool.die}`}
+                              >
+                                {/* Die Name and Remaining */}
+                                <div className="flex items-center gap-2 text-sm">
+                                  <span className="inline-block bg-[#0f172a] text-[#e2e8f0] px-2 py-0.5 rounded text-xs font-serif font-bold">
+                                    d{pool.die}
+                                  </span>
+                                  <span className="text-[#8d8db9] text-xs">
+                                    {pool.remaining} remaining
+                                  </span>
+                                </div>
 
-                      {/* Expandable Body */}
-                      <AnimatePresence initial={false}>
-                        {isExpanded && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: 'auto', opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.2 }}
-                            className="border-t border-[#e2e8f0] bg-[#ffffff] p-5 space-y-4"
-                            id={`short-rest-expanded-${char.id}`}
-                          >
-                            {/* Hit Dice Config Empty Check */}
-                            {!char.hitDiceConfig || hdStatus.length === 0 ? (
-                              <div className="flex items-start gap-2.5 p-3.5 bg-[#f9f8ff] text-amber-800 border border-amber-200/50 rounded-xl text-xs">
-                                <AlertCircle className="w-4.5 h-4.5 text-[#2563eb] shrink-0 mt-0.5" />
-                                <p id={`no-hd-config-${char.id}`}>
-                                  No hit dice configured. Add a Hit Dice Config to this character's sheet row (e.g. '7d8').
-                                </p>
-                              </div>
-                            ) : (
-                              <div className="space-y-3.5">
-                                <h3 className="text-[#8d8db9] text-xs font-bold uppercase tracking-widest border-b border-[#e2e8f0] pb-1 mb-2">
-                                  Dice Spending & Rolling
-                                </h3>
-                                {hdStatus.map(pool => {
-                                  const poolKey = `d${pool.die}`;
-                                  const spendCount = charState.spend[poolKey] ?? 0;
-                                  const lastRollResult = charState.rollResults[poolKey];
-
-                                  return (
-                                    <div
-                                      key={pool.die}
-                                      className="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-white border border-[#e2e8f0] p-3 rounded-xl gap-3"
-                                      id={`pool-row-d${pool.die}`}
+                                {/* Counter inputs & trigger roll */}
+                                <div className="flex items-center gap-4">
+                                  <div className="flex items-center gap-1 bg-gray-50 border border-gray-200 rounded-lg p-0.5">
+                                    <button
+                                      type="button"
+                                      onClick={() => updateSpend(char.id, poolKey, -1, pool.remaining)}
+                                      className="w-7 h-7 text-gray-500 hover:text-black hover:bg-gray-200 rounded flex items-center justify-center font-bold text-sm"
+                                      id={`btn-minus-d${pool.die}-${char.id}`}
                                     >
-                                      {/* Die Name and Remaining */}
-                                      <div className="flex items-center gap-2 text-sm">
-                                        <span className="inline-block bg-[#0f172a] text-[#e2e8f0] px-2 py-0.5 rounded text-xs font-serif font-bold">
-                                          d{pool.die}
-                                        </span>
-                                        <span className="text-[#8d8db9] text-xs">
-                                          {pool.remaining} remaining
-                                        </span>
-                                      </div>
+                                      -
+                                    </button>
+                                    <span className="w-8 text-center text-xs font-mono font-bold text-gray-800" id={`spend-count-d${pool.die}-${char.id}`}>
+                                      {spendCount}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      onClick={() => updateSpend(char.id, poolKey, 1, pool.remaining)}
+                                      className="w-7 h-7 text-gray-500 hover:text-black hover:bg-gray-200 rounded flex items-center justify-center font-bold text-sm"
+                                      id={`btn-plus-d${pool.die}-${char.id}`}
+                                    >
+                                      +
+                                    </button>
+                                  </div>
 
-                                      {/* Counter inputs & trigger roll */}
-                                      <div className="flex items-center gap-4">
-                                        <div className="flex items-center gap-1 bg-gray-50 border border-gray-200 rounded-lg p-0.5">
-                                          <button
-                                            type="button"
-                                            onClick={() => updateSpend(char.id, poolKey, -1, pool.remaining)}
-                                            className="w-7 h-7 text-gray-500 hover:text-black hover:bg-gray-200 rounded flex items-center justify-center font-bold text-sm"
-                                            id={`btn-minus-d${pool.die}-${char.id}`}
-                                          >
-                                            -
-                                          </button>
-                                          <span className="w-8 text-center text-xs font-mono font-bold text-gray-800" id={`spend-count-d${pool.die}-${char.id}`}>
-                                            {spendCount}
-                                          </span>
-                                          <button
-                                            type="button"
-                                            onClick={() => updateSpend(char.id, poolKey, 1, pool.remaining)}
-                                            className="w-7 h-7 text-gray-500 hover:text-black hover:bg-gray-200 rounded flex items-center justify-center font-bold text-sm"
-                                            id={`btn-plus-d${pool.die}-${char.id}`}
-                                          >
-                                            +
-                                          </button>
-                                        </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRollDice(char.id, char.characterName, pool.die)}
+                                    className="text-xs flex items-center gap-1 py-1.5 px-3 border border-[#bdbaa3] text-[#8d8db9] hover:text-[#0f172a] hover:bg-gray-100 rounded-lg transition-all"
+                                    id={`btn-roll-d${pool.die}-${char.id}`}
+                                  >
+                                    <RefreshCw className="w-3.5 h-3.5" />
+                                    Roll 1d{pool.die}
+                                  </button>
 
-                                        <button
-                                          type="button"
-                                          onClick={() => handleRollDice(char.id, char.characterName, pool.die)}
-                                          className="text-xs flex items-center gap-1 py-1.5 px-3 border border-[#bdbaa3] text-[#8d8db9] hover:text-[#0f172a] hover:bg-gray-100 rounded-lg transition-all"
-                                          id={`btn-roll-d${pool.die}-${char.id}`}
-                                        >
-                                          <RefreshCw className="w-3.5 h-3.5" />
-                                          Roll 1d{pool.die}
-                                        </button>
-
-                                        {/* Inline Roll Result Indicator */}
-                                        {lastRollResult !== null && (
-                                          <span className="text-xs bg-[#f9f8ff] text-[#567eff] font-mono font-bold px-2 py-0.5 rounded border border-amber-200/50">
-                                            Rolled {lastRollResult}
-                                          </span>
-                                        )}
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-
-                                {/* HP Input */}
-                                <div className="pt-2">
-                                  <label className="block text-xs font-bold uppercase tracking-widest text-[#8d8db9] mb-2 px-1">
-                                    HP to recover <span className="text-[10px] lowercase text-[#8d8db9]/60">(max {maxAllowedHP} missing)</span>
-                                  </label>
-                                  <input
-                                    type="number"
-                                    min="0"
-                                    max={maxAllowedHP}
-                                    value={charState.hpToAdd}
-                                    onChange={e => updateHpToAdd(char.id, parseInt(e.target.value) || 0, maxAllowedHP)}
-                                    className="bg-white border border-[#e2e8f0] rounded-xl text-[#0f172a] placeholder:text-[#8d8db9] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]/50 focus:outline-none w-full px-3 py-2 text-sm transition-all font-mono"
-                                    placeholder="Enter total HP recovered..."
-                                    id={`hp-recover-input-${char.id}`}
-                                  />
+                                  {/* Inline Roll Result Indicator */}
+                                  {lastRollResult !== null && (
+                                    <span className="text-xs bg-[#f9f8ff] text-[#567eff] font-mono font-bold px-2 py-0.5 rounded border border-amber-200/50">
+                                      Rolled {lastRollResult}
+                                    </span>
+                                  )}
                                 </div>
                               </div>
-                            )}
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  );
-                })
-              )}
-            </div>
+                            );
+                          })}
 
-            {/* Footer */}
-            <div className="bg-[#ffffff] px-6 py-4 border-t border-[#e2e8f0] flex items-center justify-end gap-3">
-              <button
-                onClick={onClose}
-                className="text-[#8d8db9] border border-[#e2e8f0] rounded-xl px-3 py-1.5 text-xs hover:border-[#2563eb] hover:text-[#0f172a] transition-colors"
-                id="short-rest-cancel-btn"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleApply}
-                disabled={parsedCharactersCount === 0}
-                className="bg-[#2563eb] text-white font-bold uppercase tracking-widest text-xs rounded-xl px-4 py-2 hover:bg-[#567eff] transition-colors disabled:bg-[#e2e8f0] disabled:text-[#8d8db9] disabled:cursor-not-allowed disabled:opacity-60 shadow-sm"
-                id="short-rest-apply-btn"
-              >
-                Apply Short Rest
-              </button>
-            </div>
-          </motion.div>
-        </div>
-      )}
-    </AnimatePresence>
+                          {/* HP Input */}
+                          <div className="pt-2">
+                            <label className="block text-xs font-bold uppercase tracking-widest text-[#8d8db9] mb-2 px-1">
+                              HP to recover <span className="text-[10px] lowercase text-[#8d8db9]/60">(max {maxAllowedHP} missing)</span>
+                            </label>
+                            <input
+                              type="number"
+                              min="0"
+                              max={maxAllowedHP}
+                              value={charState.hpToAdd}
+                              onChange={e => updateHpToAdd(char.id, parseInt(e.target.value) || 0, maxAllowedHP)}
+                              className="bg-white border border-[#e2e8f0] rounded-xl text-[#0f172a] placeholder:text-[#8d8db9] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]/50 focus:outline-none w-full px-3 py-2 text-sm transition-all font-mono"
+                              placeholder="Enter total HP recovered..."
+                              id={`hp-recover-input-${char.id}`}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            );
+          })
+        )}
+      </div>
+    </DialogShell>
   );
 }
