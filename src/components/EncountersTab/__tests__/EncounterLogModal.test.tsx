@@ -84,11 +84,10 @@ describe('EncounterLogModal', () => {
   it('calls onClose when the backdrop is clicked', () => {
     render(<EncounterLogModal {...defaultProps} />);
     
-    // The backdrop div has the onClick={onClose}
-    // We find it by its fixed class or just finding the parent of the dialog
+    // In DialogShell, the backdrop is a sibling of the dialog container inside a fixed wrapper
     const titleElement = screen.getByText(/Encounter Logs: Goblin Ambush/i);
     const dialogContainer = titleElement.closest('.bg-white');
-    const backdropDiv = dialogContainer?.parentElement;
+    const backdropDiv = dialogContainer?.parentElement?.querySelector('.absolute.inset-0');
     
     if (backdropDiv) {
       fireEvent.click(backdropDiv);

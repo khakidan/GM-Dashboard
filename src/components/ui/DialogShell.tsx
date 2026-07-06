@@ -11,6 +11,7 @@ interface DialogShellProps {
   title?: string;
   subtitle?: string;
   icon?: React.ReactNode;
+  subheader?: React.ReactNode;
   footer?: React.ReactNode;
   children: React.ReactNode;
 }
@@ -24,6 +25,7 @@ export function DialogShell({
   title,
   subtitle,
   icon,
+  subheader,
   footer,
   children,
 }: DialogShellProps) {
@@ -56,11 +58,13 @@ export function DialogShell({
                 <button
                   onClick={onClose}
                   className="p-2 hover:bg-white/10 rounded-full transition-colors text-white/50 hover:text-white"
+                  aria-label="Close"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
             )}
+            {subheader}
             <div className="flex-1 p-6">{children}</div>
             {footer && <div className="border-t border-[#e2e8f0] px-6 py-4 bg-[#ffffff]">{footer}</div>}
           </motion.div>
