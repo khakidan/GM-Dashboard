@@ -9,16 +9,23 @@ import { cn } from '../../lib/utils';
  */
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   intent?: 'primary' | 'secondary';
+  size?: 'large' | 'small';
 }
 
 export function Button({
   children,
   intent = 'primary',
+  size = 'small',
   className,
   type = 'button',
   ...props
 }: ButtonProps) {
-  const baseStyle = "font-bold uppercase tracking-widest text-xs rounded-xl px-4 py-2 transition-colors disabled:cursor-not-allowed";
+  const baseStyle = "font-bold uppercase tracking-widest text-xs rounded-xl transition-colors disabled:cursor-not-allowed";
+
+  const sizeStyles = {
+    small: "px-4 py-2",
+    large: "px-6 py-3 flex-1 justify-center",
+  };
 
   const intentStyles = {
     primary: "bg-[#2563eb] text-white hover:bg-[#567eff] disabled:bg-[#e2e8f0] disabled:text-[#8d8db9] disabled:opacity-60 shadow-sm",
@@ -28,7 +35,7 @@ export function Button({
   return (
     <button
       type={type}
-      className={cn(baseStyle, intentStyles[intent], className)}
+      className={cn(baseStyle, sizeStyles[size], intentStyles[intent], className)}
       {...props}
     >
       {children}

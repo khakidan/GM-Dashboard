@@ -6,6 +6,7 @@ import { getHitDiceStatus, spendHitDice } from '../../lib/hitDice';
 import { parseDiceNotation, rollDice } from '../../lib/diceRoller';
 import { toast } from 'sonner';
 import { DialogShell } from '../ui/DialogShell';
+import { Button } from '../ui/Button';
 
 interface ShortRestDialogProps {
   isOpen: boolean;
@@ -201,21 +202,21 @@ export function ShortRestDialog({ isOpen, characters, onConfirm, onClose }: Shor
       icon={<Heart className="w-5 h-5 text-[#2563eb]" />}
       footer={
         <div className="flex items-center justify-end gap-3">
-          <button
+          <Button
+            intent="secondary"
             onClick={onClose}
-            className="text-[#8d8db9] border border-[#e2e8f0] rounded-xl px-3 py-1.5 text-xs hover:border-[#2563eb] hover:text-[#0f172a] transition-colors"
             id="short-rest-cancel-btn"
           >
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
+            intent="primary"
             onClick={handleApply}
             disabled={parsedCharactersCount === 0}
-            className="bg-[#2563eb] text-white font-bold uppercase tracking-widest text-xs rounded-xl px-4 py-2 hover:bg-[#567eff] transition-colors disabled:bg-[#e2e8f0] disabled:text-[#8d8db9] disabled:cursor-not-allowed disabled:opacity-60 shadow-sm"
             id="short-rest-apply-btn"
           >
             Apply Short Rest
-          </button>
+          </Button>
         </div>
       }
     >
