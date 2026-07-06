@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react';
 import { Sword, MapPin, Trophy, Save } from 'lucide-react';
 import { DifficultyLevel } from '../../types';
-import { cn } from '../../lib/utils';
 import { useFormState } from '../../hooks/useFormState';
 import { DialogShell } from '../ui/DialogShell';
+import { Button } from '../ui/Button';
 
 interface NewEncounterDialogProps {
   isOpen: boolean;
@@ -97,25 +97,26 @@ export function NewEncounterDialog({ isOpen, onClose, onConfirm, difficulties }:
         </div>
 
         <div className="pt-4 flex gap-4">
-          <button
+          <Button
             id="cancel-new-encounter-btn"
+            intent="secondary"
+            size="large"
             type="button"
             onClick={onClose}
-            className="flex-1 bg-[#e2e8f0] hover:bg-[#d4cfc1] text-[#0f172a] py-3.5 rounded-xl font-bold font-sans uppercase tracking-widest text-xs transition-all active:scale-95"
           >
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             id="confirm-add-encounter-btn"
+            intent="primary"
+            size="large"
             type="submit"
             disabled={!isFormValid}
-            className={cn(
-              "flex-1 bg-[#2563eb] hover:bg-[#567eff] text-white py-3.5 rounded-xl font-bold font-sans uppercase tracking-widest text-xs transition-all flex items-center justify-center gap-2 shadow-md active:scale-95 disabled:opacity-50 disabled:active:scale-100 disabled:cursor-not-allowed",
-            )}
+            className="flex items-center justify-center gap-2"
           >
             <Save className="w-4 h-4" />
             Add Encounter →
-          </button>
+          </Button>
         </div>
       </form>
     </DialogShell>

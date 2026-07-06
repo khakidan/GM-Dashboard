@@ -20,7 +20,7 @@ export function Button({
   type = 'button',
   ...props
 }: ButtonProps) {
-  const baseStyle = "font-bold uppercase tracking-widest text-xs rounded-xl transition-colors disabled:cursor-not-allowed";
+  const baseStyle = "font-bold uppercase tracking-widest text-xs rounded-xl transition-all disabled:cursor-not-allowed motion-safe:active:scale-95 disabled:active:scale-100";
 
   const sizeStyles = {
     small: "px-4 py-2",
