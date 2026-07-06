@@ -66,32 +66,29 @@ export const CharacterRowSchema = z.preprocess(padRow(26), z.tuple([
   stringDefault(''),                   // [25] spellcastingAbility
 ]));
 
-export const NpcRowSchema = z.preprocess(padRow(25), z.tuple([
+export const NpcRowSchema = z.preprocess(padRow(22), z.tuple([
   idSchema,                            // [0] id
   stringDefault('Unknown NPC'),        // [1] name
   coerceNumber(10),                    // [2] ac
   coerceNumber(10),                    // [3] maxHp
-  coerceNumber(0),                     // [4] tempHp
-  coerceNumber(10),                    // [5] currentHp
-  stringDefault(''),                   // [6] conditions
-  stringDefault(''),                   // [7] notes
-  stringDefault(''),                   // [8] resistances
-  stringDefault(''),                   // [9] immunities
-  stringDefault(''),                   // [10] vulnerabilities
-  coerceNumber(0),                     // [11] legendaryActions
-  coerceNumber(0),                     // [12] legendaryResistances
-  stringDefault(''),                   // [13] rechargeAbilities
-  stringDefault(JSON.stringify(DEFAULT_ABILITY_SCORES)), // [14] abilityScores
-  stringDefault(JSON.stringify(DEFAULT_PROFICIENCIES)),  // [15] proficiencies
-  stringDefault(''),                   // [16] speed
-  stringDefault(''),                   // [17] senses
-  stringDefault(''),                   // [18] languages
-  stringDefault(''),                   // [19] challengeRating
-  stringDefault('[]'),                 // [20] traits
-  stringDefault('[]'),                 // [21] actions
-  stringDefault('[]'),                 // [22] reactions
-  stringDefault('[]'),                 // [23] legendaryActionsList
-  stringDefault(''),                   // [24] spellcastingAbility
+  stringDefault(''),                   // [4] notes
+  stringDefault(''),                   // [5] resistances
+  stringDefault(''),                   // [6] immunities
+  stringDefault(''),                   // [7] vulnerabilities
+  coerceNumber(0),                     // [8] legendaryActions
+  coerceNumber(0),                     // [9] legendaryResistances
+  stringDefault(''),                   // [10] rechargeAbilities
+  stringDefault(JSON.stringify(DEFAULT_ABILITY_SCORES)), // [11] abilityScores
+  stringDefault(JSON.stringify(DEFAULT_PROFICIENCIES)),  // [12] proficiencies
+  stringDefault(''),                   // [13] speed
+  stringDefault(''),                   // [14] senses
+  stringDefault(''),                   // [15] languages
+  stringDefault(''),                   // [16] challengeRating
+  stringDefault('[]'),                 // [17] traits
+  stringDefault('[]'),                 // [18] actions
+  stringDefault('[]'),                 // [19] reactions
+  stringDefault('[]'),                 // [20] legendaryActionsList
+  stringDefault(''),                   // [21] spellcastingAbility
 ]));
 
 export const EncounterRowSchema = z.preprocess(padRow(7), z.tuple([
@@ -104,7 +101,7 @@ export const EncounterRowSchema = z.preprocess(padRow(7), z.tuple([
   stringDefault(''),                   // [6] activeTurnId
 ]));
 
-export const EncounterCombatantRowSchema = z.preprocess(padRow(11), z.tuple([
+export const EncounterCombatantRowSchema = z.preprocess(padRow(14), z.tuple([
   idSchema,                            // [0] id
   idSchema,                            // [1] encounterId
   nullDefault(),                       // [2] playerId
@@ -116,6 +113,9 @@ export const EncounterCombatantRowSchema = z.preprocess(padRow(11), z.tuple([
   coerceNumber(0),                     // [8] npcTempHp
   stringDefault(''),                   // [9] npcCurrentConditions
   coerceNumber(0),                     // [10] npcTempAcMod
+  coerceNumber(0),                     // [11] npcLegendaryActionsRemaining
+  coerceNumber(0),                     // [12] npcLegendaryResistancesRemaining
+  stringDefault('{}'),                 // [13] npcRechargeState
 ]));
 
 export const StatusRowSchema = z.preprocess(padRow(2), z.tuple([

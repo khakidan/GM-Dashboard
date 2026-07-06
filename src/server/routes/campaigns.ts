@@ -62,8 +62,7 @@ router.post('/create', async (req, res) => {
       {
         title: 'NPCs',
         headers: [
-          'NPC_ID', 'NPC_Name', 'AC', 'Max_HP', 'Temp_HP',
-          'Current_HP', 'Current_Condition', 'Notes',
+          'NPC_ID', 'NPC_Name', 'AC', 'Max_HP', 'Notes',
           'Resistances', 'Immunities', 'Vulnerabilities',
           'Legendary_Actions', 'Legendary_Resistances',
           'Recharge_Abilities', 'Ability_Scores', 'Proficiencies',
@@ -89,7 +88,8 @@ router.post('/create', async (req, res) => {
           'Player_ID', 'NPC_ID', 'Quantity', 'Initiative',
           'Condition_Timers', 'NPC_Current_HP',
           'NPC_Temp_HP', 'NPC_Temp_Conditions',
-          'NPC_Temp_AC_Mod'
+          'NPC_Temp_AC_Mod', 'NPC_Legendary_Actions_Remaining',
+          'NPC_Legendary_Resistances_Remaining', 'NPC_Recharge_State'
         ],
         rows: []
       },

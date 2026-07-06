@@ -68,9 +68,6 @@ export interface NPC {
   name: string; // NPC_Name
   ac: number;
   maxHp: number;
-  tempHp: number;
-  currentHp: number;
-  conditions: string;
   notes: string;
   resistances?: string;
   immunities?: string;
@@ -202,6 +199,9 @@ export interface EncounterCombatant {
   npcTempHp?: number;
   npcCurrentConditions?: string;
   npcTempAcMod?: number;
+  npcLegendaryActionsRemaining?: number;
+  npcLegendaryResistancesRemaining?: number;
+  npcRechargeState?: string;
 }
 
 export interface Condition {
