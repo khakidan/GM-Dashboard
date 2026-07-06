@@ -28,17 +28,15 @@ describe('sheetSyncParser', () => {
   describe('parseNPCs', () => {
     it('returns correctly shaped NPC array with all fields mapped coercion', () => {
       const data = [
-        ['N1', 'Goblin', '12', '15', '0', '7', 'Blinded', 'Fast', 'Fire', 'None', 'None']
+        ['N1', 'Goblin', '12', '15', 'Fast', 'Fire', 'None', 'None']
       ];
-      // 0: id, 1: Name, 2: AC, 3: maxHp, 4: TempHP, 5: C HP, 6: Conditions, 7: Notes, 8: Res, 9: Imm, 10: Vuln
+      // 0: id, 1: Name, 2: AC, 3: maxHp, 4: Notes, 5: Res, 6: Imm, 7: Vuln
       const result = parseNPCs(data);
       expect(result[0]).toEqual(expect.objectContaining({
         id: 'N1',
         name: 'Goblin',
         ac: 12,
         maxHp: 15,
-        currentHp: 7,
-        conditions: 'Blinded',
         notes: 'Fast',
         resistances: 'Fire',
         immunities: 'None',
@@ -47,20 +45,15 @@ describe('sheetSyncParser', () => {
     });
 
     it('numeric coercion from strings to numbers', () => {
-      const data = [['N1', 'Orc', '10', '20', '5', '10']];
+      const data = [['N1', 'Orc', '10', '20']];
       const result = parseNPCs(data);
       expect(result[0].maxHp).toBe(20);
       expect(result[0].ac).toBe(10);
-      expect(result[0].tempHp).toBe(5);
-      expect(result[0].currentHp).toBe(10);
     });
 
     it('optional fields missing default to correct values', () => {
       const data = [['N1', 'Blank NPC', '10', '10']];
       const result = parseNPCs(data);
-      expect(result[0].tempHp).toBe(0);
-      expect(result[0].currentHp).toBe(10);
-      expect(result[0].conditions).toBe('');
       expect(result[0].notes).toBe('');
       expect(result[0].resistances).toBe('');
       expect(result[0].immunities).toBe('');
@@ -82,20 +75,20 @@ describe('sheetSyncParser', () => {
 
     it('rechargeAbilities column containing valid JSON parses to array with correct name', () => {
       const validJson = JSON.stringify([{ name: 'Breath', rechargeOn: '5-6' }]);
-      const data = [['N1', 'Dragon', '18', '100', '0', '100', '', '', '', '', '', '3', '3', validJson]];
+      const data = [['N1', 'Dragon', '18', '100', '', '', '', '', '0', '0', validJson]];
       const result = parseNPCs(data);
       expect(result[0].rechargeAbilities).toEqual([{ name: 'Breath', rechargeOn: '5-6' }]);
     });
 
     it('rechargeAbilities column containing malformed JSON returns empty array, does not throw', () => {
       const malformedJson = '[{ name: Breath }]';
-      const data = [['N1', 'Dragon', '18', '100', '0', '100', '', '', '', '', '', '3', '3', malformedJson]];
+      const data = [['N1', 'Dragon', '18', '100', '', '', '', '', '0', '0', malformedJson]];
       const result = parseNPCs(data);
       expect(result[0].rechargeAbilities).toEqual([]);
     });
 
     it('rechargeAbilities column that is empty string returns empty array', () => {
-      const data = [['N1', 'Dragon', '18', '100', '0', '100', '', '', '', '', '', '3', '3', '']];
+      const data = [['N1', 'Dragon', '18', '100', '', '', '', '', '0', '0', '']];
       const result = parseNPCs(data);
       expect(result[0].rechargeAbilities).toEqual([]);
     });

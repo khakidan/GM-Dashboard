@@ -1,6 +1,6 @@
 import React from 'react';
 import { NPC, NpcTrait, NpcAction, NpcReaction, NpcLegendaryAction } from '../../types';
-import { Loader2, Trash2, RotateCcw } from 'lucide-react';
+import { Loader2, Trash2 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 import { DebouncedInput } from '../ui/DebouncedInput';
@@ -24,13 +24,11 @@ export interface NpcCardProps {
   onToggleExpand: () => void;
   onUpdate: (updates: Partial<NPC>) => void;
   onDelete: () => void;
-  onResetHp: () => void;
 }
 
 export const NpcCard: React.FC<NpcCardProps> = ({
-  npc, isSyncing, isExpanded, onToggleExpand, onUpdate, onDelete, onResetHp
+  npc, isSyncing, isExpanded, onToggleExpand, onUpdate, onDelete
 }) => {
-  const needsReset = npc.currentHp < npc.maxHp;
   const parsedProfs = parseProficiencies(npc.proficiencies || '');
   const parsedScores = parseAbilityScores(npc.abilityScores || '');
 
@@ -305,7 +303,7 @@ export const NpcCard: React.FC<NpcCardProps> = ({
       )}
 
       <NpcCardHeader
-        name={npc.name} ac={npc.ac} maxHp={npc.maxHp} currentHp={npc.currentHp} conditions={npc.conditions}
+        name={npc.name} ac={npc.ac} maxHp={npc.maxHp}
         isExpanded={isExpanded} onToggleExpand={onToggleExpand} isSyncing={isSyncing}
         onUpdateName={(val) => onUpdate({ name: val })}
       />
@@ -331,7 +329,7 @@ export const NpcCard: React.FC<NpcCardProps> = ({
           >
             <div className="p-6 flex flex-col gap-6">
               {/* Stats Grid */}
-              <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 <div className="text-center p-3 bg-[#ffffff] border border-[#e2e8f0] rounded-xl shadow-sm">
                   <div className="text-[10px] font-bold uppercase tracking-widest text-[#8d8db9] mb-1">AC</div>
                   <CardNumberInput
@@ -350,30 +348,6 @@ export const NpcCard: React.FC<NpcCardProps> = ({
                     onChange={v => onUpdate({ maxHp: v })}
                     fallback={1}
                     min={1}
-                    className="text-lg font-bold text-[#0f172a] w-full text-center bg-transparent border-none focus:ring-0 p-0 disabled:opacity-50"
-                    disabled={isSyncing}
-                  />
-                </div>
-                <div className="text-center p-3 bg-[#ffffff] border border-[#e2e8f0] rounded-xl shadow-sm">
-                  <div className="text-[10px] font-bold uppercase tracking-widest text-[#8d8db9] mb-1">HP</div>
-                  <CardNumberInput
-                    value={npc.currentHp}
-                    onChange={v => onUpdate({ currentHp: v })}
-                    fallback={0}
-                    className={cn(
-                      "text-lg font-bold w-full text-center bg-transparent border-none focus:ring-0 p-0 disabled:opacity-50",
-                      npc.currentHp <= 0 ? "text-red-600" : "text-[#0f172a]"
-                    )}
-                    disabled={isSyncing}
-                  />
-                </div>
-                <div className="text-center p-3 bg-[#ffffff] border border-[#e2e8f0] rounded-xl shadow-sm">
-                  <div className="text-[10px] font-bold uppercase tracking-widest text-[#8d8db9] mb-1">Temp</div>
-                  <CardNumberInput
-                    value={npc.tempHp}
-                    onChange={v => onUpdate({ tempHp: v })}
-                    fallback={0}
-                    min={0}
                     className="text-lg font-bold text-[#0f172a] w-full text-center bg-transparent border-none focus:ring-0 p-0 disabled:opacity-50"
                     disabled={isSyncing}
                   />
@@ -428,11 +402,6 @@ export const NpcCard: React.FC<NpcCardProps> = ({
               <div>
                 <div className="text-[10px] uppercase text-[#8d8db9] font-bold tracking-widest mb-1.5 px-1">Languages</div>
                 <DebouncedInput type="text" value={npc.languages || ''} onChange={(v) => onUpdate({ languages: v as string })} placeholder="e.g. Common" className="w-full text-xs text-[#0f172a] bg-[#ffffff] p-3 rounded-lg border border-[#e2e8f0] focus:bg-white focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] outline-none transition-all placeholder:text-[#cccbcb] disabled:opacity-50" disabled={isSyncing} />
-              </div>
-
-              <div>
-                <div className="text-[10px] uppercase text-[#8d8db9] font-bold tracking-widest mb-1.5 px-1">Conditions</div>
-                <DebouncedInput type="text" value={npc.conditions || ''} onChange={(v) => onUpdate({ conditions: v as string })} placeholder="None" className="w-full text-xs text-[#0f172a] bg-[#ffffff] p-3 rounded-lg border border-[#e2e8f0] focus:bg-white focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] outline-none transition-all placeholder:text-[#cccbcb] disabled:opacity-50" disabled={isSyncing} />
               </div>
 
               <IrvSection
@@ -527,11 +496,6 @@ export const NpcCard: React.FC<NpcCardProps> = ({
               </div>
 
               <div className="flex gap-4 pt-4 border-t border-[#e2e8f0]/40">
-                {needsReset && (
-                  <button onClick={onResetHp} disabled={isSyncing} className="flex-1 py-3 bg-[#2563eb]/10 text-[#0f172a] hover:bg-[#2563eb]/20 border border-[#2563eb]/20 rounded-xl text-xs font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2 disabled:opacity-50">
-                    <RotateCcw className="w-4 h-4" /> Reset HP
-                  </button>
-                )}
                 <button onClick={onDelete} disabled={isSyncing} className="flex-1 py-3 bg-red-50 text-red-600 hover:bg-red-100 rounded-xl text-xs font-bold uppercase tracking-widest border border-red-100 transition-all flex items-center justify-center gap-2 disabled:opacity-50">
                   <Trash2 className="w-4 h-4" /> Delete NPC
                 </button>

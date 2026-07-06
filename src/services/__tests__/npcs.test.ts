@@ -7,7 +7,6 @@ import {
   addNpcDB,
   updateNpcFullDB,
   deleteNpcDB,
-  resetNpcHpDB,
 } from '../dbOperations';
 
 vi.mock('../sheetsService', () => ({
@@ -62,36 +61,36 @@ describe('addNpcDB — row array integrity', () => {
     expect(writeQueue.queueWrite).not.toHaveBeenCalled();
     expect(sheetsService.appendSheetData).toHaveBeenCalledWith(
       'mock-spreadsheet-id',
-      'NPCs!A:Y',
+      'NPCs!A:V',
       expect.any(Array)
     );
     const appendCall = vi.mocked(sheetsService.appendSheetData).mock.calls[0];
     const row = appendCall[2][0];
-    expect(row).toHaveLength(25);
+    expect(row).toHaveLength(22);
   });
 
-  it('writes new stat block fields at correct indices (16–24)', async () => {
+  it('writes new stat block fields at correct indices (13–21)', async () => {
     vi.mocked(sheetsService.fetchSheetData).mockResolvedValue({ values: [] });
     await addNpcDB(npcData as any);
     const appendCall = vi.mocked(sheetsService.appendSheetData).mock.calls[0];
     const row = appendCall[2][0];
-    expect(row[16]).toBe('40 ft., fly 80 ft.');
-    expect(row[17]).toBe('blindsight 60 ft., darkvision 120 ft.');
-    expect(row[18]).toBe('Common, Draconic');
-    expect(row[19]).toBe('24');
-    expect(row[20]).toContain('Legendary Resistance');
-    expect(row[21]).toContain('Multiattack');
-    expect(row[22]).toContain('Wing Attack');
-    expect(row[23]).toContain('Detect');
-    expect(row[24]).toBe('INT');
+    expect(row[13]).toBe('40 ft., fly 80 ft.');
+    expect(row[14]).toBe('blindsight 60 ft., darkvision 120 ft.');
+    expect(row[15]).toBe('Common, Draconic');
+    expect(row[16]).toBe('24');
+    expect(row[17]).toContain('Legendary Resistance');
+    expect(row[18]).toContain('Multiattack');
+    expect(row[19]).toContain('Wing Attack');
+    expect(row[20]).toContain('Detect');
+    expect(row[21]).toBe('INT');
   });
 
-  it('writes rechargeAbilities as JSON at index 13', async () => {
+  it('writes rechargeAbilities as JSON at index 10', async () => {
     vi.mocked(sheetsService.fetchSheetData).mockResolvedValue({ values: [] });
     await addNpcDB(npcData as any);
     const appendCall = vi.mocked(sheetsService.appendSheetData).mock.calls[0];
     const row = appendCall[2][0];
-    expect(row[13]).toBe(JSON.stringify([{ name: 'Fire Breath', rechargeOn: 5 }]));
+    expect(row[10]).toBe(JSON.stringify([{ name: 'Fire Breath', rechargeOn: 5 }]));
   });
 
   it('sets currentHp equal to maxHp at creation', async () => {
@@ -100,7 +99,6 @@ describe('addNpcDB — row array integrity', () => {
     const appendCall = vi.mocked(sheetsService.appendSheetData).mock.calls[0];
     const row = appendCall[2][0];
     expect(row[3]).toBe(200);
-    expect(row[5]).toBe(200);
   });
 });
 
@@ -137,32 +135,32 @@ describe('updateNpcFullDB — row array integrity', () => {
     vi.clearAllMocks();
   });
 
-  it('writes spellcastingAbility to index 24 (col Y)', async () => {
+  it('writes spellcastingAbility to index 21 (col V)', async () => {
     vi.mocked(sheetsService.fetchSheetData).mockResolvedValue({ values: [['101']] });
     await updateNpcFullDB(npc as any);
     expect(writeQueue.queueWrite).toHaveBeenCalled();
     const writeCall = vi.mocked(writeQueue.queueWrite).mock.calls[0];
     const row = writeCall[2][0];
-    expect(row[24]).toBe('INT');
+    expect(row[21]).toBe('INT');
   });
 
-  it('writes actions JSON to index 21 (col V)', async () => {
+  it('writes actions JSON to index 18 (col S)', async () => {
     vi.mocked(sheetsService.fetchSheetData).mockResolvedValue({ values: [['101']] });
     const updatedNpc = { ...npc, actions: '[{"name":"Bite","recharge":"Recharge 5-6"}]' };
     await updateNpcFullDB(updatedNpc as any);
     const writeCall = vi.mocked(writeQueue.queueWrite).mock.calls[0];
     const row = writeCall[2][0];
-    expect(row[21]).toBe('[{"name":"Bite","recharge":"Recharge 5-6"}]');
+    expect(row[18]).toBe('[{"name":"Bite","recharge":"Recharge 5-6"}]');
   });
 
-  it('writes to NPCs!A{row}:Y{row}', async () => {
+  it('writes to NPCs!A{row}:V{row}', async () => {
     vi.mocked(sheetsService.fetchSheetData).mockResolvedValue({
       values: [['other'], ['other'], ['101']],
     });
     await updateNpcFullDB(npc as any);
     expect(writeQueue.queueWrite).toHaveBeenCalledWith(
       'mock-spreadsheet-id',
-      'NPCs!A4:Y4',
+      'NPCs!A4:V4',
       expect.any(Array)
     );
   });
@@ -173,20 +171,10 @@ describe('updateNpcFullDB — row array integrity', () => {
   });
 });
 
-describe('deleteNpcDB and resetNpcHpDB', () => {
+describe('deleteNpcDB', () => {
   it('deleteNpcDB throws when NPC not found', async () => {
     vi.mocked(sheetsService.fetchSheetData).mockResolvedValue({ values: [] });
     await expect(deleteNpcDB('nonexistent')).rejects.toThrow();
-  });
-
-  it('resetNpcHpDB updates only HP columns', async () => {
-    vi.mocked(sheetsService.fetchSheetData).mockResolvedValue({ values: [['npc-1']] });
-    await resetNpcHpDB('npc-1', 100);
-    expect(sheetsService.updateSheetData).toHaveBeenCalledWith(
-      'mock-spreadsheet-id',
-      'NPCs!F2',
-      [['100']]
-    );
   });
 });
 
@@ -199,9 +187,9 @@ describe('NPC spellcastingAbility dual-write', () => {
     await updateNpcFullDB(npc as any);
     expect(writeQueue.queueWrite).toHaveBeenCalled();
     const updateRow = vi.mocked(writeQueue.queueWrite).mock.calls[0][2][0];
-    expect(updateRow[24]).toBe('WIS');
+    expect(updateRow[21]).toBe('WIS');
     expect(
-      JSON.parse(updateRow[15]).spellcastingAbility
+      JSON.parse(updateRow[12]).spellcastingAbility
     ).toBe('WIS');
     
     // Test add
@@ -209,6 +197,6 @@ describe('NPC spellcastingAbility dual-write', () => {
     vi.mocked(sheetsService.fetchSheetData).mockResolvedValue({ values: [] });
     await addNpcDB(npc as any);
     const appendRow = vi.mocked(sheetsService.appendSheetData).mock.calls[0][2][0];
-    expect(appendRow[24]).toBe('WIS');
+    expect(appendRow[21]).toBe('WIS');
   });
 });

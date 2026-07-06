@@ -177,19 +177,33 @@ describe('buildCombatantsFromState', () => {
     expect(combatant.rechargeAbilities.some(ra => ra.name === 'OldLegacyAbility')).toBe(false);
   });
 
-  it('Handles quantity > 1 by creating multiple independent combatant objects', () => {
+  it('Handles multiple NPC combatant rows of the same type by creating independent combatant objects with numbered names', () => {
     const encounter: Partial<Encounter> = { id: 'enc-1' };
     const npcs: Partial<NPC>[] = [{
       id: 'npc-1',
       name: 'Goblin',
       maxHp: 7
     }];
-    const ec: Partial<EncounterCombatant>[] = [{
-      id: 'ec-1',
-      encounterId: 'enc-1',
-      npcId: 'npc-1',
-      quantity: 3
-    }];
+    const ec: Partial<EncounterCombatant>[] = [
+      {
+        id: 'ec-1',
+        encounterId: 'enc-1',
+        npcId: 'npc-1',
+        quantity: 1
+      },
+      {
+        id: 'ec-2',
+        encounterId: 'enc-1',
+        npcId: 'npc-1',
+        quantity: 1
+      },
+      {
+        id: 'ec-3',
+        encounterId: 'enc-1',
+        npcId: 'npc-1',
+        quantity: 1
+      }
+    ];
 
     const res = buildCombatantsFromState(
       encounter as Encounter,

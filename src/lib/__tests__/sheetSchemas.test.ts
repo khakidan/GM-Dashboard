@@ -232,12 +232,12 @@ describe('sheetSchemas', () => {
 
     describe('NpcRowSchema', () => {
       it('parses a fully valid row correctly', () => {
-        const row = ['npc-1', 'Goblin', 15, 7, 0, 7, '', 'Watch out', 'Fire', 'Poison', 'Cold'];
+        const row = ['npc-1', 'Goblin', 15, 7, 'Watch out', 'Fire', 'Poison', 'Cold'];
         const result = NpcRowSchema.safeParse(row);
         expect(result.success).toBe(true);
         if (result.success) {
           expect(result.data).toEqual([
-            'npc-1', 'Goblin', 15, 7, 0, 7, '', 'Watch out', 'Fire', 'Poison', 'Cold', 0, 0, '',
+            'npc-1', 'Goblin', 15, 7, 'Watch out', 'Fire', 'Poison', 'Cold', 0, 0, '',
             '{"STR":10,"DEX":10,"CON":10,"INT":10,"WIS":10,"CHA":10}',
             '{"proficiencyBonus":2,"jackOfAllTrades":false,"savingThrows":[],"skills":{},"passiveBonuses":{"perception":0,"insight":0,"investigation":0},"toughFeat":false}',
             '', '', '', '', '[]', '[]', '[]', '[]', ''
@@ -246,13 +246,13 @@ describe('sheetSchemas', () => {
       });
 
     it('correctly parses resistances, immunities, and vulnerabilities and defaults them to empty strings when absent', () => {
-      const row = ['npc-1', 'Goblin', 15, 7, 0, 7, '', 'Watch out'];
+      const row = ['npc-1', 'Goblin', 15, 7, 'Watch out'];
       const result = NpcRowSchema.safeParse(row);
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data[8]).toBe(''); // resistances
-        expect(result.data[9]).toBe(''); // immunities
-        expect(result.data[10]).toBe(''); // vulnerabilities
+        expect(result.data[5]).toBe(''); // resistances
+        expect(result.data[6]).toBe(''); // immunities
+        expect(result.data[7]).toBe(''); // vulnerabilities
       }
     });
   });
@@ -310,7 +310,7 @@ describe('sheetSchemas', () => {
       const result = EncounterCombatantRowSchema.safeParse(row);
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data).toEqual(['ec-1', 'enc-1', 'char-1', null, 1, 15, '', -1, 0, '', 0]);
+        expect(result.data).toEqual(['ec-1', 'enc-1', 'char-1', null, 1, 15, '', -1, 0, '', 0, 0, 0, '{}']);
       }
     });
 
@@ -428,9 +428,9 @@ describe('sheetSchemas', () => {
     expect(result).toHaveLength(26);
   });
 
-  it('NpcRowSchema pads results to 25 columns', () => {
+  it('NpcRowSchema pads results to 22 columns', () => {
     const row = ['npc-1', 'Goblin'];
     const result = NpcRowSchema.parse(row);
-    expect(result).toHaveLength(25);
+    expect(result).toHaveLength(22);
   });
 });

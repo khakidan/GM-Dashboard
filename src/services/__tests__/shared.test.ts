@@ -19,11 +19,10 @@ vi.mock('../writeQueue', () => ({
 }));
 
 describe('SHEET_RANGES alignment', () => {
-  it("SHEET_RANGES.npcs covers 25 columns (A:Y) matching NpcRowSchema", () => {
-    expect(SHEET_RANGES.npcs).toMatch(/:Y$/);
+  it("SHEET_RANGES.npcs covers 22 columns (A:V) matching NpcRowSchema", () => {
+    expect(SHEET_RANGES.npcs).toMatch(/:V$/);
     const row = [
-      '1', 'A', '10', '10', '0', '10', '', '', '', '', '',
-      '0', '0', '[]', '{}', '{}', '', '', '', '', '[]', '[]', '[]', '[]', '',
+      '1', 'A', '10', '10', '', '', '', '', '0', '0', '[]', '{}', '{}', '', '', '', '', '[]', '[]', '[]', '[]', ''
     ];
     expect(NpcRowSchema.parse(row)).toBeDefined();
   });

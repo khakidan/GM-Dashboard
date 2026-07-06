@@ -7,8 +7,6 @@ export interface NpcCardHeaderProps {
   name: string;
   ac: number;
   maxHp: number;
-  currentHp: number;
-  conditions?: string;
   isExpanded: boolean;
   onToggleExpand: () => void;
   isSyncing: boolean;
@@ -19,8 +17,6 @@ export const NpcCardHeader: React.FC<NpcCardHeaderProps> = ({
   name,
   ac,
   maxHp,
-  currentHp,
-  conditions,
   isExpanded,
   onToggleExpand,
   isSyncing,
@@ -41,14 +37,9 @@ export const NpcCardHeader: React.FC<NpcCardHeaderProps> = ({
 
         {!isExpanded && (
           <div className="flex items-center gap-4 pl-4 border-l border-[#e2e8f0] whitespace-nowrap">
-            {conditions && (
-              <div className="hidden lg:flex items-center gap-1.5 px-3 py-1 bg-red-50 text-red-700 border border-red-100 rounded-full text-[14px] font-bold italic max-w-[220px] truncate">
-                {conditions}
-              </div>
-            )}
             <div className="flex items-center gap-1.5 text-[15px] font-bold text-[#2563eb]">
               <Heart className="w-4 h-4" />
-              {currentHp}/{maxHp}
+              {maxHp}
             </div>
             <div className="flex items-center gap-1.5 text-[15px] font-bold text-[#8d8db9]">
               <Shield className="w-4 h-4 opacity-50" />

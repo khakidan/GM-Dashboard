@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { useAppState, getSnapshot } from '../../../hooks/useAppState';
-import { resetNpcHpDB, addNpcDB, updateNpcFullDB, deleteNpcDB } from '../../../services/dbOperations';
+import { useAppState } from '../../../hooks/useAppState';
+import { addNpcDB, updateNpcFullDB, deleteNpcDB } from '../../../services/dbOperations';
 import { toast } from 'sonner';
 import { NPC } from '../../../types';
 import { parseRechargeOn } from '../../../lib/combatantBuilder';
@@ -14,41 +14,6 @@ export function useNpcLibrary() {
   const { state, updateState } = useAppState();
   const [syncingId, setSyncingId] = useState<string | null>(null);
   const [globalError, setGlobalError] = useState<string | null>(null);
-
-  const handleResetNpcHp = async (npcId: string, maxHp: number) => {
-    setGlobalError(null);
-    const previousState = state;
-    
-    // 1. Update the NPC in local state optimistically
-    updateState(prev => ({
-      ...prev,
-      npcs: prev.npcs.map(n => n.id === npcId ? { ...n, currentHp: maxHp } : n)
-    }));
-
-    setSyncingId(npcId);
-
-    try {
-      await resetNpcHpDB(npcId, maxHp);
-      toast.success('NPC HP reset successfully!');
-    } catch (error) {
-      // 4a. Roll back to snapshot on failure
-      updateState(previousState);
-      
-      // 4b. Show error toast
-      toast.error('Failed to save changes. Please try again.', {
-        description: error instanceof Error ? error.message : 'Unknown error',
-        duration: 5000,
-      });
-      
-      // 4c. Log for debugging
-      console.error('[DB Error]', error);
-      
-      // 4d. Re-throw so callers can handle if needed
-      throw error;
-    } finally {
-      setSyncingId(null);
-    }
-  };
 
   const handleAddNpc = async (newNpcData: Omit<NPC, 'id'>) => {
     setGlobalError(null);
@@ -67,9 +32,6 @@ export function useNpcLibrary() {
         name: newNpcData.name,
         ac: newNpcData.ac,
         maxHp: newNpcData.maxHp,
-        tempHp: 0,
-        currentHp: newNpcData.maxHp,
-        conditions: '',
         notes: newNpcData.notes,
         resistances: newNpcData.resistances ?? '',
         immunities: newNpcData.immunities ?? '',
@@ -152,7 +114,7 @@ export function useNpcLibrary() {
       // Update matching EncounterCombatants' npcCurrentHp only if template maxHp changes so limits stay correct
       const nextEncounterCombatants = prev.encounterCombatants.map(ec => {
         if (ec.npcId === npcId && updates.maxHp !== undefined) {
-          return { ...ec, npcCurrentHp: updates.maxHp };
+          return { ...ec, npcCurrentHp: Math.min(ec.npcCurrentHp, updates.maxHp) };
         }
         return ec;
       });
@@ -163,7 +125,7 @@ export function useNpcLibrary() {
           return {
             ...c,
             ...(updates.ac !== undefined ? { ac: updates.ac } : {}),
-            ...(updates.maxHp !== undefined ? { maxHp: updates.maxHp, currentHp: updates.maxHp } : {}),
+            ...(updates.maxHp !== undefined ? { maxHp: updates.maxHp, currentHp: Math.min(c.currentHp, updates.maxHp) } : {}),
             ...(updates.notes !== undefined ? { notes: updates.notes } : {}),
             ...(updates.resistances !== undefined ? { resistances: updates.resistances } : {}),
             ...(updates.immunities !== undefined ? { immunities: updates.immunities } : {}),
@@ -285,7 +247,6 @@ export function useNpcLibrary() {
     state,
     syncingId,
     globalError,
-    handleResetNpcHp,
     handleAddNpc,
     handleUpdateNpc,
     handleDeleteNpc,

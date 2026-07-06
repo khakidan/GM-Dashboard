@@ -68,7 +68,7 @@ describe('constants', () => {
     expect(SHEET_RANGES.characters).toMatch(/:Z$/);
   });
 
-  it('SHEET_RANGES.npcs ends in Y', () => {
-    expect(SHEET_RANGES.npcs).toMatch(/:Y$/);
+  it('SHEET_RANGES.npcs ends in V', () => {
+    expect(SHEET_RANGES.npcs).toMatch(/:V$/);
   });
 });

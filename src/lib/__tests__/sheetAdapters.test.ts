@@ -211,13 +211,10 @@ describe('sheetAdapters', () => {
         'Goblin',                 // [1] name
         12,                       // [2] ac
         7,                        // [3] maxHp
-        0,                        // [4] tempHp
-        7,                        // [5] currentHp
-        'None',                   // [6] conditions
-        'Likes dark tunnels',     // [7] notes
-        'slashing',               // [8] resistances
-        'acid',                   // [9] immunities
-        'fire',                   // [10] vulnerabilities
+        'Likes dark tunnels',     // [4] notes
+        'slashing',               // [5] resistances
+        'acid',                   // [6] immunities
+        'fire',                   // [7] vulnerabilities
       ];
 
       const npc = mapNpcRowToNpc(data, 5);
@@ -227,9 +224,6 @@ describe('sheetAdapters', () => {
         name: 'Goblin',
         ac: 12,
         maxHp: 7,
-        tempHp: 0,
-        currentHp: 7,
-        conditions: 'None',
         notes: 'Likes dark tunnels',
         resistances: 'slashing',
         immunities: 'acid',

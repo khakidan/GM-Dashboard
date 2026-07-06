@@ -15,7 +15,6 @@ export function NpcLibraryTab() {
     state,
     syncingId,
     globalError,
-    handleResetNpcHp,
     handleAddNpc,
     handleUpdateNpc,
     handleDeleteNpc,
@@ -36,7 +35,6 @@ export function NpcLibraryTab() {
   const [filterResistances, setFilterResistances] = useState('');
   const [filterImmunities, setFilterImmunities] = useState('');
   const [filterVulnerabilities, setFilterVulnerabilities] = useState('');
-  const [filterConditions, setFilterConditions] = useState('');
 
   const toggleExpand = (id: string) => {
     setExpandedIds(prev => {
@@ -52,7 +50,6 @@ export function NpcLibraryTab() {
     setFilterResistances('');
     setFilterImmunities('');
     setFilterVulnerabilities('');
-    setFilterConditions('');
   };
 
   const filteredNpcs = useMemo(() => {
@@ -61,13 +58,12 @@ export function NpcLibraryTab() {
       const matchesRes = !filterResistances || checkIrvMatch(filterResistances, npc.resistances);
       const matchesImm = !filterImmunities || checkIrvMatch(filterImmunities, npc.immunities);
       const matchesVul = !filterVulnerabilities || checkIrvMatch(filterVulnerabilities, npc.vulnerabilities);
-      const matchesCond = !filterConditions || (npc.conditions?.toLowerCase() || '').includes(filterConditions.toLowerCase());
-      return matchesSearch && matchesRes && matchesImm && matchesVul && matchesCond;
+      return matchesSearch && matchesRes && matchesImm && matchesVul;
     });
-  }, [state.npcs, searchQuery, filterResistances, filterImmunities, filterVulnerabilities, filterConditions]);
+  }, [state.npcs, searchQuery, filterResistances, filterImmunities, filterVulnerabilities]);
 
   const hasActiveFilters = Boolean(
-    searchQuery || filterResistances || filterImmunities || filterVulnerabilities || filterConditions
+    searchQuery || filterResistances || filterImmunities || filterVulnerabilities
   );
 
   const renderFilterSelect = (icon: React.ReactNode, placeholder: string, value: string, setter: (v: string) => void) => (
@@ -131,7 +127,6 @@ export function NpcLibraryTab() {
               {renderFilterSelect(<Shield className="w-4 h-4 text-blue-500/60" />, "Resist", filterResistances, setFilterResistances)}
               {renderFilterSelect(<Shield className="w-4 h-4 text-green-600/60" />, "Immune", filterImmunities, setFilterImmunities)}
               {renderFilterSelect(<Shield className="w-4 h-4 text-red-500/60" />, "Vulnerable", filterVulnerabilities, setFilterVulnerabilities)}
-              {renderFilterSelect(<Activity className="w-4 h-4 text-purple-600/60" />, "Trait", filterConditions, setFilterConditions)}
             </div>
 
             {hasActiveFilters && (
@@ -184,7 +179,6 @@ export function NpcLibraryTab() {
                 onToggleExpand={() => toggleExpand(npc.id)}
                 onUpdate={(updates) => handleUpdateNpc(npc.id, updates)}
                 onDelete={() => handleDeleteNpc(npc.id)}
-                onResetHp={() => handleResetNpcHp(npc.id, npc.maxHp)}
               />
             ))}
           </div>
