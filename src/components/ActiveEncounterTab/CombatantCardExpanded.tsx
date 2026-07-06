@@ -12,6 +12,7 @@ import { getEffectiveResistances } from '../../lib/combatLogic';
 import { useCombatantExpanded } from './hooks/useCombatantExpanded';
 import { CombatMechanicsSummary } from './CombatMechanicsSummary';
 import { CombatantIrvDisplay } from './CombatantIrvDisplay';
+import { Button } from '../ui/Button';
 
 export interface CombatantCardExpandedProps {
   c: Combatant;
@@ -210,12 +211,9 @@ export function CombatantCardExpanded({
 
       <div className="flex justify-between items-center pt-4 border-t border-[#e2e8f0]">
         <span className="text-xs text-[#8d8db9] opacity-40 font-mono tracking-tighter">{c.id.split('-').pop()}</span>
-        <button
-          onClick={onRemoveCombatant}
-          className="flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-widest text-red-600 hover:bg-red-50 rounded-full transition-all border border-transparent hover:border-red-100"
-        >
+        <Button intent="destructive" size="small" onClick={onRemoveCombatant} disabled={isSyncing} className="flex items-center gap-2">
           <Trash2 className="w-4 h-4" /> Remove Combatant
-        </button>
+        </Button>
       </div>
     </div>
   );

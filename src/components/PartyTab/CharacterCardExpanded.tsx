@@ -15,6 +15,7 @@ import { StatBlock } from '../ui/StatBlock';
 import { parseAbilityScores, parseProficiencies, serializeAbilityScores, serializeProficiencies, proficiencyBonusFromLevel } from '../../lib/abilityScores';
 import { SpellcastingStatsRow } from '../ui/SpellcastingStatsRow';
 import { serializeSpellcastingAbility } from '../../lib/spellcasting';
+import { Button } from '../ui/Button';
 
 export interface CharacterCardExpandedProps {
   character: Character;
@@ -277,14 +278,10 @@ export const CharacterCardExpanded: React.FC<CharacterCardExpandedProps> = ({
       </div>
 
       <div className="pt-4">
-        <button 
-          onClick={onDelete}
-          disabled={isSyncing}
-          className="w-full py-3 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-xs font-bold uppercase tracking-widest border border-red-100 transition-all flex items-center justify-center gap-2 cursor-pointer"
-        >
+        <Button intent="destructive" size="large" onClick={onDelete} disabled={isSyncing} className="w-full flex items-center justify-center gap-2">
           <X className="w-4 h-4" />
           Delete Player
-        </button>
+        </Button>
       </div>
     </div>
   );

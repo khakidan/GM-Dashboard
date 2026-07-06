@@ -7,6 +7,7 @@ import { DebouncedInput } from '../ui/DebouncedInput';
 import { CardNumberInput } from '../ui/CardNumberInput';
 import { DebouncedTextarea } from '../ui/DebouncedTextarea';
 import { NpcListEditor } from '../ui/NpcListEditor';
+import { Button } from '../ui/Button';
 
 // Modular Sub-components
 import { NpcCardHeader } from './NpcCardHeader';
@@ -496,9 +497,9 @@ export const NpcCard: React.FC<NpcCardProps> = ({
               </div>
 
               <div className="flex gap-4 pt-4 border-t border-[#e2e8f0]/40">
-                <button onClick={onDelete} disabled={isSyncing} className="flex-1 py-3 bg-red-50 text-red-600 hover:bg-red-100 rounded-xl text-xs font-bold uppercase tracking-widest border border-red-100 transition-all flex items-center justify-center gap-2 disabled:opacity-50">
+                <Button intent="destructive" size="large" onClick={onDelete} disabled={isSyncing} className="flex items-center justify-center gap-2">
                   <Trash2 className="w-4 h-4" /> Delete NPC
-                </button>
+                </Button>
               </div>
             </div>
           </motion.div>
