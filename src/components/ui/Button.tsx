@@ -3,12 +3,13 @@ import { cn } from '../../lib/utils';
 
 /**
  * Future extensions planned:
- * - 'destructive' as a third value for the `intent` prop.
+ * - 'destructive' as a fourth value for the `intent` prop.
+ * - 'tertiary' added as a third value for the `intent` prop (plain text-link-style buttons).
  * - Icon-only buttons will live in a separate IconButton.tsx component, not here,
  *   as they have a completely different prop shape (no text children, mandatory aria-label, etc.).
  */
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  intent?: 'primary' | 'secondary';
+  intent?: 'primary' | 'secondary' | 'tertiary';
   size?: 'large' | 'small';
 }
 
@@ -20,7 +21,11 @@ export function Button({
   type = 'button',
   ...props
 }: ButtonProps) {
-  const baseStyle = "font-bold uppercase tracking-widest text-xs rounded-xl transition-all disabled:cursor-not-allowed motion-safe:active:scale-95 disabled:active:scale-100";
+  const isTertiary = intent === 'tertiary';
+  const baseStyle = cn(
+    "transition-all disabled:cursor-not-allowed motion-safe:active:scale-95 disabled:active:scale-100",
+    !isTertiary && "font-bold uppercase tracking-widest text-xs rounded-xl"
+  );
 
   const sizeStyles = {
     small: "px-4 py-2",
@@ -30,12 +35,13 @@ export function Button({
   const intentStyles = {
     primary: "bg-[#2563eb] text-white hover:bg-[#567eff] disabled:bg-[#e2e8f0] disabled:text-[#8d8db9] disabled:opacity-60 shadow-sm",
     secondary: "bg-[#e2e8f0] hover:bg-[#cbd5e1] text-[#0f172a] disabled:opacity-60",
+    tertiary: "text-sm text-stone-500 hover:text-stone-700 px-2 py-1 transition-colors",
   };
 
   return (
     <button
       type={type}
-      className={cn(baseStyle, sizeStyles[size], intentStyles[intent], className)}
+      className={cn(baseStyle, !isTertiary && sizeStyles[size], intentStyles[intent], className)}
       {...props}
     >
       {children}

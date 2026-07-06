@@ -170,22 +170,22 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
         <div className="flex items-center justify-between border-[#e2e8f0] bg-[#ffffff]">
           <div className="flex items-center gap-2">
             {activeTab !== 'identity' && (
-              <button
+              <Button
                 type="button"
+                intent="tertiary"
                 onClick={handlePrev}
-                className="text-sm text-stone-500 hover:text-stone-700 px-2 py-1 transition-colors"
               >
                 ← Previous
-              </button>
+              </Button>
             )}
             {activeTab !== 'resources' && (
-              <button
+              <Button
                 type="button"
+                intent="tertiary"
                 onClick={handleNext}
-                className="text-sm text-stone-500 hover:text-stone-700 px-2 py-1 transition-colors"
               >
                 Next →
-              </button>
+              </Button>
             )}
           </div>
           <div className="flex items-center gap-3">
