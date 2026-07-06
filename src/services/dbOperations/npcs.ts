@@ -49,9 +49,6 @@ export async function addNpcDB(
       sanitizeString(npcData.name),
       castInt(npcData.ac, 10),
       castInt(npcData.maxHp, 1),
-      0,                  // Temp HP
-      castInt(npcData.maxHp, 1),  // Current HP
-      '',                 // Condition
       sanitizeString(npcData.notes),
       sanitizeString(npcData.resistances ?? ''),
       sanitizeString(npcData.immunities ?? ''),
@@ -75,15 +72,12 @@ export async function addNpcDB(
       getSpellcastingAbilityToSave(npcData, npcData),
     ];
 
-    await appendSheetData(resolvedId, 'NPCs!A:Y', [rowData]);
+    await appendSheetData(resolvedId, 'NPCs!A:V', [rowData]);
     return {
       id: finalId,
       name: npcData.name,
       ac: npcData.ac,
       maxHp: npcData.maxHp,
-      tempHp: 0,
-      currentHp: npcData.maxHp,
-      conditions: '',
       notes: npcData.notes,
       resistances: npcData.resistances ?? '',
       immunities: npcData.immunities ?? '',
@@ -137,9 +131,6 @@ export async function updateNpcFullDB(
       sanitizeString(npc.name),
       castInt(npc.ac, 10),
       castInt(npc.maxHp, 1),
-      castInt(npc.tempHp, 0),
-      castInt(npc.currentHp, 1),
-      sanitizeString(npc.conditions),
       sanitizeString(npc.notes),
       sanitizeString(npc.resistances || ''),
       sanitizeString(npc.immunities || ''),
@@ -163,7 +154,7 @@ export async function updateNpcFullDB(
       getSpellcastingAbilityToSave(npc, npc),
     ];
 
-    queueWriteResolved(resolvedId, `NPCs!A${a1Row}:Y${a1Row}`, [rowData]);
+    queueWriteResolved(resolvedId, `NPCs!A${a1Row}:V${a1Row}`, [rowData]);
   } catch (err) {
     console.error('[DB] updateNpcFullDB failed:', err);
     throw err;
@@ -200,40 +191,6 @@ export async function deleteNpcDB(
     }
   } catch (err) {
     console.error('[DB] deleteNpcDB failed:', err);
-    throw err;
-  }
-}
-
-export async function resetNpcHpDB(npcId: string, maxHp: number): Promise<void>;
-export async function resetNpcHpDB(spreadsheetId: string | undefined, npcId: string, maxHp: number): Promise<void>;
-export async function resetNpcHpDB(
-  arg1: any,
-  arg2: any,
-  arg3?: any
-) {
-  let spreadsheetId: string | undefined;
-  let npcId: string;
-  let maxHp: number;
-  if (arg3 === undefined) {
-    spreadsheetId = undefined;
-    npcId = arg1;
-    maxHp = arg2;
-  } else {
-    spreadsheetId = arg1;
-    npcId = arg2;
-    maxHp = arg3;
-  }
-
-  try {
-    const resolvedId = resolveSpreadsheetId(spreadsheetId);
-    const rowIdx = await findRowIndexById(resolvedId, 'NPCs', npcId);
-    if (rowIdx === null) {
-      throw new Error(`NPC ${npcId} not found`);
-    }
-    const a1Row = rowIdx + 1;
-    await updateSheetData(resolvedId, `NPCs!F${a1Row}`, [[maxHp.toString()]]);
-  } catch (err) {
-    console.error('[DB] resetNpcHpDB failed:', err);
     throw err;
   }
 }

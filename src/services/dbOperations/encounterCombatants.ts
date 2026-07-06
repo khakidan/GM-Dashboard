@@ -15,40 +15,52 @@ export async function addEncounterCombatantDB(
   encounterId: string,
   playerId: string | null,
   npcId: string | null,
-  quantity: number
+  quantity: number,
+  legendaryActionsMax?: number,
+  legendaryResistancesMax?: number
 ): Promise<EncounterCombatant[]>;
 export async function addEncounterCombatantDB(
   spreadsheetId: string | undefined,
   encounterId: string,
   playerId: string | null,
   npcId: string | null,
-  quantity: number
+  quantity: number,
+  legendaryActionsMax?: number,
+  legendaryResistancesMax?: number
 ): Promise<EncounterCombatant[]>;
 export async function addEncounterCombatantDB(
   arg1: any,
   arg2: any,
   arg3?: any,
   arg4?: any,
-  arg5?: any
+  arg5?: any,
+  arg6?: any,
+  arg7?: any
 ) {
   let spreadsheetId: string | undefined;
   let encounterId: string;
   let playerId: string | null;
   let npcId: string | null;
   let quantity: number;
+  let legendaryActionsMax = 0;
+  let legendaryResistancesMax = 0;
 
-  if (arg5 === undefined) {
+  if (typeof arg4 === 'number') {
     spreadsheetId = undefined;
     encounterId = arg1;
     playerId = arg2;
     npcId = arg3;
     quantity = arg4;
+    legendaryActionsMax = arg5 ?? 0;
+    legendaryResistancesMax = arg6 ?? 0;
   } else {
     spreadsheetId = arg1;
     encounterId = arg2;
     playerId = arg3;
     npcId = arg4;
     quantity = arg5;
+    legendaryActionsMax = arg6 ?? 0;
+    legendaryResistancesMax = arg7 ?? 0;
   }
 
   try {
@@ -72,9 +84,12 @@ export async function addEncounterCombatantDB(
         0,
         '',
         0,
+        legendaryActionsMax,
+        legendaryResistancesMax,
+        '{}',
       ];
 
-      await appendSheetData(resolvedId, 'Encounter_Combatants!A:K', [rowData]);
+      await appendSheetData(resolvedId, 'Encounter_Combatants!A:N', [rowData]);
       created.push({
         id: finalId,
         encounterId,
@@ -87,6 +102,9 @@ export async function addEncounterCombatantDB(
         npcTempHp: 0,
         npcCurrentConditions: '',
         npcTempAcMod: 0,
+        npcLegendaryActionsRemaining: legendaryActionsMax,
+        npcLegendaryResistancesRemaining: legendaryResistancesMax,
+        npcRechargeState: '{}',
       });
     }
     return created;
@@ -348,6 +366,85 @@ export async function deleteEncounterCombatantDB(
     ]);
   } catch (err) {
     console.error('[DB] deleteEncounterCombatantDB failed:', err);
+    throw err;
+  }
+}
+
+export async function updateNpcInstanceLegendaryDB(ecId: string, legendaryActionsRemaining: number, legendaryResistancesRemaining: number): Promise<void>;
+export async function updateNpcInstanceLegendaryDB(spreadsheetId: string | undefined, ecId: string, legendaryActionsRemaining: number, legendaryResistancesRemaining: number): Promise<void>;
+export async function updateNpcInstanceLegendaryDB(
+  arg1: any,
+  arg2: any,
+  arg3: any,
+  arg4?: any
+) {
+  let spreadsheetId: string | undefined;
+  let ecId: string;
+  let legendaryActionsRemaining: number;
+  let legendaryResistancesRemaining: number;
+
+  if (arg4 === undefined) {
+    spreadsheetId = undefined;
+    ecId = arg1;
+    legendaryActionsRemaining = arg2;
+    legendaryResistancesRemaining = arg3;
+  } else {
+    spreadsheetId = arg1;
+    ecId = arg2;
+    legendaryActionsRemaining = arg3;
+    legendaryResistancesRemaining = arg4;
+  }
+
+  try {
+    const resolvedId = resolveSpreadsheetId(spreadsheetId);
+    const rowIdx = await findRowIndexById(resolvedId, 'Encounter_Combatants', ecId);
+    if (rowIdx === null) {
+      throw new Error(`Encounter Combatant ${ecId} not found`);
+    }
+    const a1Row = rowIdx + 1;
+    await updateSheetData(resolvedId, `Encounter_Combatants!L${a1Row}:M${a1Row}`, [
+      [legendaryActionsRemaining.toString(), legendaryResistancesRemaining.toString()],
+    ]);
+  } catch (err) {
+    console.error('[DB] updateNpcInstanceLegendaryDB failed:', err);
+    throw err;
+  }
+}
+
+export async function updateNpcInstanceRechargeDB(ecId: string, rechargeState: Record<string, boolean>): Promise<void>;
+export async function updateNpcInstanceRechargeDB(spreadsheetId: string | undefined, ecId: string, rechargeState: Record<string, boolean>): Promise<void>;
+export async function updateNpcInstanceRechargeDB(
+  arg1: any,
+  arg2: any,
+  arg3?: any
+) {
+  let spreadsheetId: string | undefined;
+  let ecId: string;
+  let rechargeState: Record<string, boolean>;
+
+  if (arg3 === undefined) {
+    spreadsheetId = undefined;
+    ecId = arg1;
+    rechargeState = arg2;
+  } else {
+    spreadsheetId = arg1;
+    ecId = arg2;
+    rechargeState = arg3;
+  }
+
+  try {
+    const resolvedId = resolveSpreadsheetId(spreadsheetId);
+    const rowIdx = await findRowIndexById(resolvedId, 'Encounter_Combatants', ecId);
+    if (rowIdx === null) {
+      throw new Error(`Encounter Combatant ${ecId} not found`);
+    }
+    const a1Row = rowIdx + 1;
+    const jsonStr = JSON.stringify(rechargeState);
+    await updateSheetData(resolvedId, `Encounter_Combatants!N${a1Row}`, [
+      [jsonStr],
+    ]);
+  } catch (err) {
+    console.error('[DB] updateNpcInstanceRechargeDB failed:', err);
     throw err;
   }
 }
