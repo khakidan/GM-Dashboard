@@ -4,12 +4,13 @@ import { toast } from 'sonner';
 import {
   updateCharacterDB,
   deleteEncounterCombatantDB,
-  updateEncounterCombatantQuantityDB,
   updateInitiativeDB,
   updateConditionTimersDB,
   updateNpcInstanceHpDB,
   updateNpcInstanceConditionsDB,
-  updateNpcInstanceAcModDB
+  updateNpcInstanceAcModDB,
+  updateNpcInstanceLegendaryDB,
+  updateNpcInstanceRechargeDB
 } from '../../../services/dbOperations';
 import { Combatant } from '../../../types';
 import { buildConditionSummary } from '../../../lib/conditions';
@@ -53,27 +54,13 @@ export function useCombatantMutations() {
 
     if (targetCombatant.encounterCombatantId) {
       try {
-        const ec = state.encounterCombatants.find(e => e.id === targetCombatant.encounterCombatantId);
-        if (ec) {
-          if (ec.quantity > 1) {
-            const newQty = ec.quantity - 1;
-            await updateEncounterCombatantQuantityDB(ec.id, newQty);
-            updateState(prev => ({
-              ...prev,
-              encounterCombatants: prev.encounterCombatants.map(item =>
-                item.id === ec.id ? { ...item, quantity: newQty } : item
-              ),
-            }));
-          } else {
-            await deleteEncounterCombatantDB(ec.id);
-            updateState(prev => ({
-              ...prev,
-              encounterCombatants: prev.encounterCombatants.filter(
-                ecItem => ecItem.id !== targetCombatant.encounterCombatantId
-              ),
-            }));
-          }
-        }
+        await deleteEncounterCombatantDB(targetCombatant.encounterCombatantId);
+        updateState(prev => ({
+          ...prev,
+          encounterCombatants: prev.encounterCombatants.filter(
+            ecItem => ecItem.id !== targetCombatant.encounterCombatantId
+          ),
+        }));
       } catch (error) {
         updateState(() => previousState);
         toast.error('Failed to save changes. Please try again.', {
@@ -197,6 +184,9 @@ export function useCombatantMutations() {
               ...(updates.tempHp !== undefined && targetCombatant.type === 'npc' ? { npcTempHp: updates.tempHp } : {}),
               ...(updates.conditions !== undefined && targetCombatant.type === 'npc' ? { npcCurrentConditions: updates.conditions } : {}),
               ...(updates.tempAcModifier !== undefined && targetCombatant.type === 'npc' ? { npcTempAcMod: updates.tempAcModifier } : {}),
+              ...(updates.legendaryActions !== undefined && targetCombatant.type === 'npc' ? { npcLegendaryActionsRemaining: updates.legendaryActions?.remaining ?? 0 } : {}),
+              ...(updates.legendaryResistances !== undefined && targetCombatant.type === 'npc' ? { npcLegendaryResistancesRemaining: updates.legendaryResistances?.remaining ?? 0 } : {}),
+              ...(updates.rechargeAbilities !== undefined && targetCombatant.type === 'npc' ? { npcRechargeState: JSON.stringify(Object.fromEntries((updates.rechargeAbilities || []).map(a => [a.name, a.isCharged]))) } : {}),
             };
           }
           return item;
@@ -256,6 +246,19 @@ export function useCombatantMutations() {
             targetCombatant.encounterCombatantId,
             updates.tempAcModifier
           );
+        }
+        if (targetCombatant.encounterCombatantId && (updates.legendaryActions !== undefined || updates.legendaryResistances !== undefined)) {
+          await updateNpcInstanceLegendaryDB(
+            targetCombatant.encounterCombatantId,
+            targetCombatant.legendaryActions?.remaining ?? 0,
+            targetCombatant.legendaryResistances?.remaining ?? 0
+          );
+        }
+        if (targetCombatant.encounterCombatantId && updates.rechargeAbilities !== undefined) {
+          const rechargeStateRecord = Object.fromEntries(
+            (targetCombatant.rechargeAbilities || []).map(a => [a.name, a.isCharged])
+          );
+          await updateNpcInstanceRechargeDB(targetCombatant.encounterCombatantId, rechargeStateRecord);
         }
       }
 

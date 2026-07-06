@@ -327,7 +327,7 @@ describe('useCombatSync', () => {
     ).toHaveBeenCalledWith('ec-1');
   });
 
-  it('removeCombatant calls updateEncounterCombatantQuantityDB when quantity > 1', async () => {
+  it('removeCombatant calls deleteEncounterCombatantDB even when quantity > 1', async () => {
     act(() => {
       useDashboardStore.setState(prev => ({
         ...prev,
@@ -370,8 +370,8 @@ describe('useCombatSync', () => {
     });
 
     expect(
-      vi.mocked(updateEncounterCombatantQuantityDB)
-    ).toHaveBeenCalledWith('ec-1', 2);
+      vi.mocked(deleteEncounterCombatantDB)
+    ).toHaveBeenCalledWith('ec-1');
   });
 
   it('updateCombatant for PC calls updateCharacterDB with updated HP', async () => {

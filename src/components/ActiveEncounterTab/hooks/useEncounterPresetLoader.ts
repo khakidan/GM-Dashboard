@@ -92,11 +92,14 @@ export function useEncounterPresetLoader(
         },
       }));
 
+      const npcTemplate = type === 'npc' ? state.npcs.find(n => n.id === selectedPreset) : undefined;
       const ecResList = await addEncounterCombatantDB(
         encounter?.id || '',
         type === 'pc' ? selectedPreset : null,
         type === 'npc' ? selectedPreset : null,
-        presetQuantity
+        presetQuantity,
+        type === 'npc' ? (npcTemplate?.legendaryActions ?? 0) : undefined,
+        type === 'npc' ? (npcTemplate?.legendaryResistances ?? 0) : undefined
       );
 
       updateState(prev => {
@@ -194,7 +197,14 @@ export function useEncounterPresetLoader(
       }));
 
       const newNpc = await addNpcDB(npcData);
-      const newEcArray = await addEncounterCombatantDB(encounter?.id || '', null, newNpc.id, 1);
+      const newEcArray = await addEncounterCombatantDB(
+        encounter?.id || '',
+        null,
+        newNpc.id,
+        1,
+        newNpc.legendaryActions ?? 0,
+        newNpc.legendaryResistances ?? 0
+      );
       const newEc = newEcArray[0];
 
       updateState(prev => ({
