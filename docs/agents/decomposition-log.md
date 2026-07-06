@@ -74,6 +74,22 @@ Notable patterns established during migration:
 
 ---
 
+## Shared UI Component Consolidation — Buttons & StatTile (scoped, audit not yet run)
+
+**Motivation**: same rationale as the completed `DialogShell` consolidation above — several UI patterns are duplicated across many files with slightly-drifting styling (colors, padding, borders). Extracting them into shared components means a single future style change propagates site-wide instead of requiring a per-file hunt. This was prompted by a screenshot of an "AC / 18" stat tile, which strongly resembles the already-known `Temp HP`/`Max HP` tile markup in `CombatantCardExpanded.tsx` (`bg-[#f9f8ff]/80 p-3 rounded-xl border border-[#e2e8f0] text-center`, small uppercase label above a bold value) — suggesting this pattern already recurs at least 3 times before any audit has even been run.
+
+**Two components planned**:
+
+1. **`Button`** — at least two size variants (large, small). Four intents confirmed in scope from the outset: primary (blue solid), secondary/cancel (bordered gray), destructive (red), and icon-only (the X close buttons, trash icons, etc. seen throughout the `DialogShell` migration work). Exact prop API (e.g. `size`/`intent` props vs. separate components per intent) not yet decided — to be settled once the audit shows how much real variation exists across current usages.
+
+2. **`StatTile`** (working name — chosen to avoid confusion with the existing `StatBlock.tsx` ability-scores/saves/skills orchestrator; alternatives considered: `StatCard`, `MetricTile`, `ValueTile`) — a label-over-value display tile. First observed instance: the "AC / 18" screenshot. Suspected existing instances to confirm during audit: `Temp HP`/`Max HP` tiles in `CombatantCardExpanded.tsx`, and likely others in `StatBlockScores.tsx` (ability score tiles) or NPC/Character card stat displays not yet inspected.
+
+**Process, per explicit decision**: audit-first, not build-as-we-go. A dedicated recon pass (raw grep across the codebase, four parts: button inventory, stat tile inventory, input field inventory, and open-ended pattern-spotting for anything else recurring 3+ times) is being run before any component is designed or built, so the component APIs are shaped by real, complete usage data rather than the first few examples encountered.
+
+**Status**: audit prompt drafted, not yet sent. No components built yet. No files touched yet. Additional shared-component candidates beyond `Button`/`StatTile` may be added to scope based on what the audit's open-ended part turns up (e.g. badges/pills, card containers, section headers) — this section will be updated once real audit results are in.
+
+---
+
 ## useParty.ts Pure-Function Extraction (Completed)
 
 **Starting state**: 625 lines, the largest hook in the codebase. Handles character CRUD (create, update, delete), long/short rest, and level-up confirmation for the Party tab.
