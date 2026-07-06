@@ -4,10 +4,11 @@ import {
   serializeProficiencies,
 } from '../../lib/abilityScores';
 import React, { useState, useEffect } from 'react';
-import { X, Library, Plus, Users, UserPlus } from 'lucide-react';
+import { Library, Plus, Users, UserPlus } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { NPC as Npc, Character, Combatant } from '../../types';
 import { NpcFormFields, NpcFormData, DEFAULT_NPC_FORM_DATA } from '../ui/NpcFormFields';
+import { DialogShell } from '../ui/DialogShell';
 
 interface AddCombatantDialogProps {
   isOpen: boolean;
@@ -94,8 +95,6 @@ export function AddCombatantDialog({
     };
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
-
   const handleCreateAndAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (createNpcData.name.trim() === '') return;
@@ -144,21 +143,14 @@ export function AddCombatantDialog({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
-      <div 
-        className="bg-[#ffffff] w-full max-w-2xl rounded-2xl shadow-2xl border border-[#e2e8f0] overflow-hidden flex flex-col max-h-[85vh]"
-        onClick={e => e.stopPropagation()}
-      >
-        <div className="bg-[#0f172a] p-6 text-[#e2e8f0] flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-3">
-            <UserPlus className="w-6 h-6 text-[#2563eb]" />
-            <h2 className="text-xl font-bold font-serif uppercase tracking-wider">Add Combatant</h2>
-          </div>
-          <button onClick={handleClose} className="p-2 hover:bg-white/10 rounded-full transition-colors" title="Close">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
+    <DialogShell
+      isOpen={isOpen}
+      onClose={handleClose}
+      maxWidth="max-w-2xl"
+      zIndex="z-[110]"
+      title="Add Combatant"
+      icon={<UserPlus className="w-6 h-6 text-[#2563eb]" />}
+      subheader={
         <div className="flex border-b border-[#e2e8f0] shrink-0">
           {(['library', 'party', 'create'] as const).map(tab => (
             <button
@@ -170,9 +162,10 @@ export function AddCombatantDialog({
             </button>
           ))}
         </div>
-
-        <div className="p-8 overflow-y-auto scrollbar-thin scrollbar-thumb-[#e2e8f0] flex-1">
-          {activeTab === 'library' && (
+      }
+    >
+      <div className="overflow-y-auto scrollbar-thin scrollbar-thumb-[#e2e8f0] flex-1">
+        {activeTab === 'library' && (
             <div className="space-y-4">
               <input
                 type="text"
@@ -273,7 +266,6 @@ export function AddCombatantDialog({
             </form>
           )}
         </div>
-      </div>
-    </div>
+    </DialogShell>
   );
 }
