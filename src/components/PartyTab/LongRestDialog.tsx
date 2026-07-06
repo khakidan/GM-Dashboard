@@ -3,6 +3,7 @@ import { Moon, Heart } from 'lucide-react';
 import { Character } from '../../types';
 import { getHitDiceStatus, getTotalHitDiceCount } from '../../lib/hitDice';
 import { DialogShell } from '../ui/DialogShell';
+import { Button } from '../ui/Button';
 
 interface LongRestDialogProps {
   isOpen: boolean;
@@ -43,21 +44,22 @@ export function LongRestDialog({ isOpen, characters, onConfirm, onClose }: LongR
       icon={<Moon className="w-5 h-5 text-[#2563eb]" />}
       footer={
         <div className="flex items-center justify-end gap-3">
-          <button
+          <Button
+            intent="secondary"
             onClick={onClose}
-            className="text-[#8d8db9] border border-[#e2e8f0] rounded-xl px-3 py-1.5 text-xs hover:border-[#2563eb] hover:text-[#0f172a] transition-colors"
           >
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
+            intent="primary"
             onClick={handleApply}
             disabled={selectedIds.length === 0}
             title={selectedIds.length === 0 ? "Select at least one character" : "Apply Long Rest to selected characters"}
-            className="bg-[#2563eb] text-white font-bold uppercase tracking-widest text-xs rounded-xl px-4 py-2 hover:bg-[#567eff] transition-colors disabled:bg-[#e2e8f0] disabled:text-[#8d8db9] disabled:cursor-not-allowed disabled:opacity-60 shadow-sm flex items-center gap-1.5"
+            className="flex items-center gap-1.5"
           >
             <Heart className="w-4 h-4 fill-current text-white/20" />
             Apply Long Rest
-          </button>
+          </Button>
         </div>
       }
     >
