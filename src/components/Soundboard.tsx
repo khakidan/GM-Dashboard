@@ -1,9 +1,10 @@
 // src/components/Soundboard.tsx
 
 import React, { useState, useEffect, useRef } from 'react';
-import { VolumeX, Plus, Edit2, Play, Trash2, X, Music, AlertCircle } from 'lucide-react';
+import { VolumeX, Plus, Edit2, Play, Trash2, Music, AlertCircle } from 'lucide-react';
 import { StoredAudioFile } from '../lib/audioFileStore';
 import { STORAGE_KEYS, campaignKey } from '../lib/constants';
+import { DialogShell } from './ui/DialogShell';
 
 export interface SoundboardSlot {
   slotIndex: number;    // 0-11
@@ -243,29 +244,14 @@ export function Soundboard({ storedFiles, playEffect, onSwitchTab, campaignId }:
 
       {/* Assignment Dialog Modal */}
       {assigningSlot !== null && (
-        <div
-          id="soundboard-assign-modal"
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[180] flex items-center justify-center p-4"
-          onClick={() => setAssigningSlot(null)}
+        <DialogShell
+          isOpen={assigningSlot !== null}
+          onClose={() => setAssigningSlot(null)}
+          maxWidth="max-w-sm"
+          zIndex="z-[180]"
+          title={`Configure Slot #${assigningSlot + 1}`}
         >
-          <form
-            onSubmit={handleSaveAssignment}
-            className="bg-[#ffffff] w-full max-w-sm rounded-2xl shadow-2xl border border-[#e2e8f0] p-5 text-stone-900 flex flex-col gap-4 animate-fade-in"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between border-b border-[#e2e8f0] pb-3">
-              <h4 className="font-serif font-bold text-sm text-[#0f172a] uppercase tracking-wider">
-                Configure Slot #{assigningSlot + 1}
-              </h4>
-              <button
-                type="button"
-                onClick={() => setAssigningSlot(null)}
-                className="text-stone-400 hover:text-stone-600"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
+          <form onSubmit={handleSaveAssignment} className="flex flex-col gap-4">
             {effectFiles.length === 0 ? (
               <div className="text-center py-6 flex flex-col items-center gap-3">
                 <Music className="w-8 h-8 text-stone-300" />
@@ -346,7 +332,7 @@ export function Soundboard({ storedFiles, playEffect, onSwitchTab, campaignId }:
               </div>
             )}
           </form>
-        </div>
+        </DialogShell>
       )}
     </div>
   );

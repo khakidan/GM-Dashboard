@@ -120,7 +120,7 @@ Shared test data factories used across many test files. These are not tests them
 - `SpellcastingStatsRow.tsx` — Displays Spell Save DC and Spell Attack Bonus inline on character and NPC cards. When `onOverrideChange` is supplied (Party tab, NPC Library), renders a spellcasting ability override dropdown. When omitted (Active Encounter), renders read-only. Non-casters with no override return `null`.
 - `DebouncedInput.tsx` — Standard debounced input (light parchment theme).
 - `DebouncedTextarea.tsx` — Standard debounced textarea (light parchment theme).
-- `DialogShell.tsx` — Shared modal shell component (backdrop + panel, optional title/icon/footer slots, `dismissOnBackdropClick` prop). Built but not yet adopted — see decomposition-log.md.
+- `DialogShell.tsx` — Shared modal shell component (backdrop + panel, `title`/`icon`/`subtitle`/`subheader`/`footer` slots, `zIndex` and `dismissOnBackdropClick` props). Adopted by all 12 target dialogs — see decomposition-log.md for the full migration history and patterns established.
 
 ### src/components/PartyTab/
 
