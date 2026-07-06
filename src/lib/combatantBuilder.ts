@@ -48,6 +48,9 @@ export function buildSingleNpcCombatant(
     conditions?: string;
     tempAcModifier?: number;
     conditionTimers?: Record<string, number>;
+    legendaryActionsRemaining?: number;
+    legendaryResistancesRemaining?: number;
+    rechargeState?: Record<string, boolean>;
   }
 ): Combatant {
   return {
@@ -58,9 +61,9 @@ export function buildSingleNpcCombatant(
     initiative: options.initiative ?? 0,
     ac: npcTemplate.ac,
     maxHp: npcTemplate.maxHp,
-    currentHp: options.currentHp !== undefined ? options.currentHp : npcTemplate.currentHp,
-    tempHp: options.tempHp !== undefined ? options.tempHp : (npcTemplate.tempHp ?? 0),
-    conditions: options.conditions !== undefined ? options.conditions : (npcTemplate.conditions || ''),
+    currentHp: options.currentHp !== undefined ? options.currentHp : npcTemplate.maxHp,
+    tempHp: options.tempHp !== undefined ? options.tempHp : 0,
+    conditions: options.conditions !== undefined ? options.conditions : '',
     notes: npcTemplate.notes,
     passivePerception: 10,
     resistances: npcTemplate.resistances,
@@ -74,14 +77,14 @@ export function buildSingleNpcCombatant(
       npcTemplate.legendaryActions && npcTemplate.legendaryActions > 0
       ? { 
           max: npcTemplate.legendaryActions, 
-          remaining: npcTemplate.legendaryActions 
+          remaining: options.legendaryActionsRemaining !== undefined ? options.legendaryActionsRemaining : npcTemplate.legendaryActions
         }
       : undefined,
     legendaryResistances: 
       npcTemplate.legendaryResistances && npcTemplate.legendaryResistances > 0
       ? { 
           max: npcTemplate.legendaryResistances, 
-          remaining: npcTemplate.legendaryResistances 
+          remaining: options.legendaryResistancesRemaining !== undefined ? options.legendaryResistancesRemaining : npcTemplate.legendaryResistances
         }
       : undefined,
     rechargeAbilities: (() => {
@@ -97,10 +100,13 @@ export function buildSingleNpcCombatant(
         for (const action of parsedActions) {
           const rechargeOn = parseRechargeOn(action.recharge);
           if (rechargeOn !== null) {
+            const isCharged = (options.rechargeState && options.rechargeState[action.name] !== undefined)
+              ? options.rechargeState[action.name]
+              : true;
             derived.push({
               name: action.name,
               rechargeOn,
-              isCharged: true,
+              isCharged,
             });
           }
         }
@@ -137,7 +143,7 @@ export function buildCombatantsFromState(
     const npcCounts: Record<string, number> = {};
     linkedCombatants.forEach(ec => {
       if (ec.npcId) {
-        npcCounts[ec.npcId] = (npcCounts[ec.npcId] || 0) + ec.quantity;
+        npcCounts[ec.npcId] = (npcCounts[ec.npcId] || 0) + 1;
       }
     });
 
@@ -182,30 +188,41 @@ export function buildCombatantsFromState(
         const npcTemplate = npcs.find(n => n.id === ec.npcId);
         if (npcTemplate) {
           const totalQty = npcCounts[ec.npcId] || 0;
-          for (let i = 0; i < ec.quantity; i++) {
-            npcIndices[ec.npcId] = (npcIndices[ec.npcId] || 0) + 1;
-            const instanceNum = npcIndices[ec.npcId];
+          npcIndices[ec.npcId] = (npcIndices[ec.npcId] || 0) + 1;
+          const instanceNum = npcIndices[ec.npcId];
 
-            const combatantId = `combat-npc-${ec.id}-${i}`;
-            const combatant = buildSingleNpcCombatant(
-              npcTemplate,
-              {
-                id: combatantId,
-                encounterCombatantId: ec.id,
-                name: `${npcTemplate.name}${totalQty > 1 ? ` ${instanceNum}` : ''}`,
-                npcId: npcTemplate.id,
-                initiative: ec.initiative || 0,
-                currentHp: ec.npcCurrentHp !== undefined && ec.npcCurrentHp >= 0 
-                  ? ec.npcCurrentHp 
-                  : npcTemplate.maxHp,
-                tempHp: ec.npcTempHp ?? 0,
-                conditions: ec.npcCurrentConditions?.trim() ? ec.npcCurrentConditions : (npcTemplate.conditions || ''),
-                conditionTimers: parsedTimers,
-                tempAcModifier: ec.npcTempAcMod || 0,
-              }
-            );
-            combatants.push(combatant);
+          const combatantId = `combat-npc-${ec.id}`;
+
+          let parsedRechargeState: Record<string, boolean> = {};
+          if (ec.npcRechargeState) {
+            try {
+              parsedRechargeState = JSON.parse(ec.npcRechargeState);
+            } catch (err) {
+              console.error('[Builder] Failed to parse npcRechargeState JSON:', err);
+            }
           }
+
+          const combatant = buildSingleNpcCombatant(
+            npcTemplate,
+            {
+              id: combatantId,
+              encounterCombatantId: ec.id,
+              name: `${npcTemplate.name}${totalQty > 1 ? ` ${instanceNum}` : ''}`,
+              npcId: npcTemplate.id,
+              initiative: ec.initiative || 0,
+              currentHp: ec.npcCurrentHp !== undefined && ec.npcCurrentHp >= 0 
+                ? ec.npcCurrentHp 
+                : npcTemplate.maxHp,
+              tempHp: ec.npcTempHp ?? 0,
+              conditions: ec.npcCurrentConditions?.trim() ? ec.npcCurrentConditions : '',
+              conditionTimers: parsedTimers,
+              tempAcModifier: ec.npcTempAcMod || 0,
+              legendaryActionsRemaining: ec.npcLegendaryActionsRemaining,
+              legendaryResistancesRemaining: ec.npcLegendaryResistancesRemaining,
+              rechargeState: parsedRechargeState,
+            }
+          );
+          combatants.push(combatant);
         }
       }
     });

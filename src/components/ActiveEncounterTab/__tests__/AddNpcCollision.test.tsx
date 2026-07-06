@@ -182,8 +182,8 @@ describe('ActiveEncounterTab ID Uniqueness', () => {
     const result = buildCombatantsFromState(mockEncounter, mockEncounterCombatants, [], mockNpcs);
 
     expect(result).toHaveLength(2);
-    expect(result[0].id).toBe('combat-npc-ec1-0');
-    expect(result[1].id).toBe('combat-npc-ec2-0');
+    expect(result[0].id).toBe('combat-npc-ec1');
+    expect(result[1].id).toBe('combat-npc-ec2');
     expect(result[0].name).toBe('Goblin 1');
     expect(result[1].name).toBe('Goblin 2');
   });
