@@ -2,7 +2,8 @@ import { DAMAGE_TYPE_OPTIONS, CONDITION_OPTIONS } from '../lib/conditions';
 import React, { useState, useMemo, useEffect } from 'react';
 import { useAppState } from '../hooks/useAppState';
 import { useNpcLibrary } from './NpcLibraryTab/hooks/useNpcLibrary';
-import { BookOpen, AlertCircle, Plus, Search, Filter, X, Shield, Activity } from 'lucide-react';
+import { BookOpen, Plus, Search, Filter, X, Shield, Activity } from 'lucide-react';
+import { Callout } from './ui/Callout';
 import { cn } from '../lib/utils';
 import { NewNpcDialog } from './NpcLibraryTab/NewNpcDialog';
 import { NpcCard } from './NpcLibraryTab/NpcCard';
@@ -145,10 +146,9 @@ export function NpcLibraryTab() {
 
       <div className="flex-1 bg-white w-full p-6 overflow-y-auto">
         {globalError && (
-          <div className="bg-red-50 border border-red-100 p-4 rounded-xl flex items-center gap-3 text-red-800 text-sm mb-6 shadow-sm">
-            <AlertCircle className="w-5 h-5 shrink-0" />
+          <Callout severity="error" className="mb-6">
             <p>{globalError}</p>
-          </div>
+          </Callout>
         )}
 
         <div className="space-y-4">

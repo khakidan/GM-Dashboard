@@ -1,10 +1,11 @@
 // src/components/Soundboard.tsx
 
 import React, { useState, useEffect, useRef } from 'react';
-import { VolumeX, Plus, Edit2, Play, Trash2, Music, AlertCircle } from 'lucide-react';
+import { VolumeX, Plus, Edit2, Play, Trash2, Music } from 'lucide-react';
 import { StoredAudioFile } from '../lib/audioFileStore';
 import { STORAGE_KEYS, campaignKey } from '../lib/constants';
 import { DialogShell } from './ui/DialogShell';
+import { Callout } from './ui/Callout';
 
 export interface SoundboardSlot {
   slotIndex: number;    // 0-11
@@ -163,13 +164,12 @@ export function Soundboard({ storedFiles, playEffect, onSwitchTab, campaignId }:
       </div>
 
       {effectFiles.length === 0 && (
-        <div id="soundboard-no-effects-note" className="mb-4 p-2.5 bg-[#f9f8ff]/50 border border-amber-200/50 text-amber-800 text-xs rounded-xl flex items-start gap-2 font-sans">
-          <AlertCircle className="w-4 h-4 text-[#2563eb] shrink-0 mt-0.5" />
+        <Callout severity="warning" id="soundboard-no-effects-note" className="mb-4">
           <div>
             <p className="font-bold">Add sound effects in the Library tab</p>
             <p className="opacity-90">You will be able to customize these 12 trigger buttons once effect files are loaded.</p>
           </div>
-        </div>
+        </Callout>
       )}
 
       {/* Grid of 12 Buttons */}

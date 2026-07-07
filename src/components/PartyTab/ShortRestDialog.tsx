@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Heart, RefreshCw, AlertCircle } from 'lucide-react';
+import { Heart, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Character } from '../../types';
 import { getHitDiceStatus, spendHitDice } from '../../lib/hitDice';
@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { DialogShell } from '../ui/DialogShell';
 import { Button } from '../ui/Button';
 import { Accordion } from '../ui/Accordion';
+import { Callout } from '../ui/Callout';
 
 interface ShortRestDialogProps {
   isOpen: boolean;
@@ -312,12 +313,11 @@ export function ShortRestDialog({ isOpen, characters, onConfirm, onClose }: Shor
                     >
                       {/* Hit Dice Config Empty Check */}
                       {!char.hitDiceConfig || hdStatus.length === 0 ? (
-                        <div className="flex items-start gap-2.5 p-3.5 bg-[#f9f8ff] text-amber-800 border border-amber-200/50 rounded-xl text-xs">
-                          <AlertCircle className="w-4.5 h-4.5 text-[#2563eb] shrink-0 mt-0.5" />
+                        <Callout severity="warning">
                           <p id={`no-hd-config-${char.id}`}>
                             No hit dice configured. Add a Hit Dice Config to this character's sheet row (e.g. '7d8').
                           </p>
-                        </div>
+                        </Callout>
                       ) : (
                         <div className="space-y-3.5">
                           <h3 className="text-[#8d8db9] text-xs font-bold uppercase tracking-widest border-b border-[#e2e8f0] pb-1 mb-2">

@@ -1,5 +1,6 @@
 import React from 'react';
-import { Coffee, Loader2, AlertCircle, Users, Plus, Moon, Heart } from 'lucide-react';
+import { Coffee, Loader2, Users, Plus, Moon, Heart } from 'lucide-react';
+import { Callout } from './ui/Callout';
 import { useAppState } from '../hooks/useAppState';
 import { useParty } from './PartyTab/hooks/useParty';
 import { CharacterCard } from './PartyTab/CharacterCard';
@@ -88,10 +89,9 @@ export function PartyTab() {
 
       <div className="flex-1 bg-white w-full p-6 overflow-y-auto">
         {globalError && (
-          <div className="bg-red-50 border border-red-100 p-4 rounded-xl flex items-center gap-3 text-red-800 text-sm mb-4">
-            <AlertCircle className="w-5 h-5 shrink-0" />
+          <Callout severity="error" className="mb-4">
             <p>{globalError}</p>
-          </div>
+          </Callout>
         )}
 
         {state.characters.length === 0 ? (

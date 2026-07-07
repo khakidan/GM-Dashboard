@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAppState } from '../hooks/useAppState';
-import { Swords, Loader2, AlertCircle, Plus } from 'lucide-react';
+import { Swords, Loader2, Plus } from 'lucide-react';
+import { Callout } from './ui/Callout';
 import { useEncounters } from './EncountersTab/hooks/useEncounters';
 import { EncounterCard } from './EncountersTab/EncounterCard';
 import { NewEncounterDialog } from './EncountersTab/NewEncounterDialog';
@@ -77,10 +78,9 @@ export function EncountersTab({
 
       <div className="flex-1 bg-white w-full p-6 overflow-y-auto">
         {globalError && (
-          <div className="bg-red-50 border border-red-100 p-4 rounded-xl flex items-center gap-3 text-red-800 text-sm shadow-sm mb-6">
-            <AlertCircle className="w-5 h-5 shrink-0" />
+          <Callout severity="error" className="mb-6">
             <p>{globalError}</p>
-          </div>
+          </Callout>
         )}
 
         {state.encounters.length === 0 ? (
