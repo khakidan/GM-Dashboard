@@ -335,9 +335,11 @@ For sub-sections or detailed context inside modals (e.g. **"At Higher Levels"**)
 ---
 ## Adding New UI Elements
 
+**Guiding principle: prefer building or extending a shared component over one-off styling, whenever a pattern is genuinely reused.** A shared component enforces style-guide compliance automatically — every consumer gets a fix "for free" when the component changes, rather than relying on every future author remembering to copy the current convention correctly by hand. This is why `Button.tsx`/`IconButton.tsx`/`DialogShell.tsx`/`StatTile.tsx` exist: not just to save typing, but so the app can't silently drift into inconsistent buttons/dialogs/tiles the way it did before they were built (see `CHANGELOG.md` for the specific drift each one was built to fix — mismatched disabled-state colors, a stray tan hover color left over from an old theme, inconsistent header colors, etc.). When you notice a new pattern recurring 3+ times, that's a signal to consider componentizing it, not just to keep copying it.
+
 Before styling any new component:
 1. **Check whether a shared component already exists first** — `DialogShell.tsx` (modals), `Button.tsx`/`IconButton.tsx` (buttons), `StatTile.tsx` (label/value/modifier boxes), `DebouncedInput.tsx`/`DebouncedTextarea.tsx`/`CardNumberInput.tsx` (inputs). Use the existing component rather than hand-rolling matching markup, even if it looks like a one-off.
 2. If no shared component fits, check this file for the closest matching pattern
 3. Use only the approved palette above
 4. Verify contrast ratio if placing text on a non-white background
-4. Run `npx tsc -p tsconfig.build.json --noEmit` after any changes
+5. Run `npx tsc -p tsconfig.build.json --noEmit` after any changes

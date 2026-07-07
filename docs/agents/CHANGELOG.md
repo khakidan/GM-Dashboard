@@ -1,28 +1,8 @@
-# Decomposition Log & Technical Debt
+# Changelog
 
-Referenced from the root [AGENTS.md](../../AGENTS.md). This file tracks completed refactor/decomposition write-ups (kept as documentation of what was built and why), in-progress or scoped-but-not-started plans, and remaining technical debt.
+Referenced from the root [AGENTS.md](../../AGENTS.md). This file is a **pure historical record** of completed refactor/decomposition work — kept as documentation of what was built and why, for anyone who needs the rationale behind a specific past decision. It does not track current or in-progress work — see [ROADMAP.md](ROADMAP.md) for that.
 
-Per root AGENTS.md rule 12: completed decomposition/refactor **plans** get removed entirely once done, not archived — but the write-up documenting what was actually built stays. If the technical debt list is empty, it should say "None."
-
----
-
-## Pending Features
-
-Features and bugs that have been discussed and approved but not yet implemented. Each entry contains enough context to implement without further discussion.
-
-### 🔴 Bugs to Fix
-
-None currently open. (Five `NewPlayerDialog` resource pool bugs were resolved in an earlier session.)
-
-### 🟡 Features to Add
-
-None.
-
-### 🔵 Architecture / Technical Debt
-
-**Remaining Technical Debt:** None.
-
-(Previously tracked here: unused `isActive`/`isSyncing`/`isSelectable`/`isSelected` declarations on `CombatantCardProps` — confirmed dead via codebase-wide search, removed from the interface and from `CombatantCard.test.tsx`'s `defaultProps`. Verified: TypeScript clean, Batch 5B 26/26, zero behavior change.)
+Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed from there entirely and a write-up documenting what was actually built is added here instead. Every section below is closed out — there should be nothing "in progress" in this file.
 
 ---
 
@@ -227,6 +207,7 @@ This closes the full original request, not just the underlying architecture bug.
 - **CombatantCardExpanded.tsx & CombatantCompactResourceRow.tsx**: Removed direct `useAppState()`/`getSnapshot()` calls, converted to pure prop-driven subtrees.
 - **Consolidated Derivation**: The `pcCharacter`/`npcModel` derivation (previously duplicated inside `CombatantCardExpanded.tsx`) was moved to a single point of resolution in `ActiveEncounterTab/index.tsx`'s `.map()` loop, then threaded down: to `CombatantCardExpanded.tsx` directly via `CombatantCard.tsx`, and to `CombatantCompactResourceRow.tsx` via `CombatantCard.tsx` → `CombatantCardHeader.tsx` (which passes through a single resolved `pcCharacter` as its `character` prop — `CombatantCardHeader.tsx` has no other use for it).
 - **Verification**: TypeScript clean, Batch 5B 26/26, Batch 6B 20/20. All 5 originally-identified narrow store-access components resolved; this audit/finding is fully complete.
+- **Also cleaned up in this area**: unused `isActive`/`isSyncing`/`isSelectable`/`isSelected` declarations on `CombatantCardProps` — confirmed dead via codebase-wide search, removed from the interface and from `CombatantCard.test.tsx`'s `defaultProps`. Verified: TypeScript clean, Batch 5B 26/26, zero behavior change.
 
 ---
 

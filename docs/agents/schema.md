@@ -64,7 +64,7 @@ Referenced from the root [AGENTS.md](../../AGENTS.md). Read this when touching a
 
 ### NPCs (A2:V — 22 columns)
 
-**Templates only — no "current" combat state.** NPC templates in this sheet represent a reusable stat block (used when adding an NPC to any encounter); they have no HP/temp-HP/conditions of their own. All per-instance combat state (current HP, temp HP, conditions, legendary actions remaining, recharge state) lives in `Encounter_Combatants`, scoped to that specific combatant instance in that specific encounter. See the "NPC Template vs. Combat-Instance State Isolation" entry in `decomposition-log.md` for the full history of this design.
+**Templates only — no "current" combat state.** NPC templates in this sheet represent a reusable stat block (used when adding an NPC to any encounter); they have no HP/temp-HP/conditions of their own. All per-instance combat state (current HP, temp HP, conditions, legendary actions remaining, recharge state) lives in `Encounter_Combatants`, scoped to that specific combatant instance in that specific encounter. See the "NPC Template vs. Combat-Instance State Isolation" entry in `CHANGELOG.md` for the full history of this design.
 
 | Col | Index | Field | Notes |
 |-----|-------|-------|-------|

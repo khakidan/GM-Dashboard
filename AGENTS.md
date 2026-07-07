@@ -62,11 +62,12 @@ A full-stack web application for Dungeons & Dragons 5e Game Masters. The GM uses
     - New NPC schema columns → [docs/agents/schema.md](docs/agents/schema.md) and TypeScript interfaces
     - New architectural patterns → [docs/agents/patterns.md](docs/agents/patterns.md)
     - New color tokens, component styles, or layout conventions → [docs/agents/STYLE_GUIDE.md](docs/agents/STYLE_GUIDE.md)
-    - Completed or newly-scoped refactor/decomposition work → [docs/agents/decomposition-log.md](docs/agents/decomposition-log.md)
+    - Newly-scoped or still-in-progress refactor/decomposition work, and current pending features → [docs/agents/ROADMAP.md](docs/agents/ROADMAP.md)
+    - Completed refactor/decomposition work → [docs/agents/CHANGELOG.md](docs/agents/CHANGELOG.md)
 
     **Only update the specific file relevant to the change.** Do not open or re-read the other docs/agents/ files unless the work actually touches that area — this keeps each update focused and avoids accidentally carrying stale context between unrelated topics.
 
-    Completed decomposition/refactor plans get removed entirely from decomposition-log.md once done, not archived — but the write-up documenting what was actually built stays, matching the pattern already established there. If the technical debt list in that file is empty, it should say "None."
+    **When work in ROADMAP.md completes**: remove it entirely from ROADMAP.md (do not leave a "done" marker there — ROADMAP.md should only ever contain what's still open) and add a write-up documenting what was actually built to CHANGELOG.md instead. This keeps ROADMAP.md permanently small and current, so it can be read in full without wading through historical detail, while CHANGELOG.md accumulates the durable record. If ROADMAP.md's technical debt list is empty, it should say "None."
 
 13. **Contrast on solid blue backgrounds.** All `bg-[#2563eb]` elements must use `text-white`. Never use `text-[#0f172a]` on a solid blue background.
 
@@ -211,4 +212,5 @@ This project follows the testing principles established by Kent C. Dodds and the
 - [docs/agents/file-reference.md](docs/agents/file-reference.md) — File-by-file inventory of `lib/`, `services/`, `hooks/`, `server/routes/`, `test-utils/`, and `components/`
 - [docs/agents/patterns.md](docs/agents/patterns.md) — Patterns and Conventions, Architectural Decisions, Workflows
 - [docs/agents/testing-philosophy.md](docs/agents/testing-philosophy.md) — Kent C. Dodds testing standards, anti-patterns, seam test standard
-- [docs/agents/decomposition-log.md](docs/agents/decomposition-log.md) — Completed refactor write-ups, in-progress/scoped decomposition plans, remaining technical debt
+- [docs/agents/ROADMAP.md](docs/agents/ROADMAP.md) — **Read this for current status.** Pending features, in-progress/scoped work not yet built. Kept small and current — everything here is still open.
+- [docs/agents/CHANGELOG.md](docs/agents/CHANGELOG.md) — Historical record of completed refactor/decomposition write-ups. Read for rationale/history on a specific past decision; not needed to know what's currently being worked on.
