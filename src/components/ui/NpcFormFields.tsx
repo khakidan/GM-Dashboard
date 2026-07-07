@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { cn } from '../../lib/utils';
 import { StatBlock } from '../ui/StatBlock';
+import { Tabs } from './Tabs';
 import { NpcListEditor } from './NpcListEditor';
 import { NpcIdentityTab } from './NpcIdentityTab';
 import { NpcCombatTab } from './NpcCombatTab';
@@ -172,31 +173,17 @@ export function NpcFormFields({ data, onChange, errors = {}, compact = false }: 
 
   return (
     <div className="space-y-0">
-      <div className="flex border-b border-[#e2e8f0] mb-4">
-        {(['identity', 'combat', 'abilities', 'statblock'] as const).map(tab => (
-          <button
-            key={tab}
-            type="button"
-            onClick={() => setActiveTab(tab)}
-            className={cn(
-              "flex-1 py-2 text-[10px] font-bold",
-              "uppercase tracking-wider",
-              "transition-colors",
-              activeTab === tab
-                ? "border-b-2 border-[#2563eb] text-[#2563eb]"
-                : "text-[#8d8db9] hover:text-[#0f172a]"
-            )}
-          >
-            {tab === 'statblock'
-              ? 'Stat Block'
-              : tab === 'identity'
-              ? 'Identity'
-              : tab === 'combat'
-              ? 'Combat'
-              : 'Abilities'}
-          </button>
-        ))}
-      </div>
+      <Tabs
+        tabs={[
+          { id: 'identity', label: 'Identity' },
+          { id: 'combat', label: 'Combat' },
+          { id: 'abilities', label: 'Abilities' },
+          { id: 'statblock', label: 'Stat Block' },
+        ]}
+        activeTab={activeTab}
+        onTabChange={(id) => setActiveTab(id as 'identity' | 'combat' | 'abilities' | 'statblock')}
+        className="mb-4"
+      />
 
       {activeTab === 'identity' && (
         <NpcIdentityTab

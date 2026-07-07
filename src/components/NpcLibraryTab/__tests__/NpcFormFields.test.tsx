@@ -13,7 +13,7 @@ describe('NpcFormFields', () => {
     expect(getByLabelText(/^NPC Name/i)).toBeInTheDocument();
     expect(getByLabelText(/^CR/i)).toBeInTheDocument();
 
-    fireEvent.click(getByRole('button', { name: 'Combat' }));
+    fireEvent.click(getByRole('tab', { name: 'Combat' }));
     expect(getByLabelText(/^AC\b/i)).toBeInTheDocument();
     expect(getByLabelText(/^Max HP/i)).toBeInTheDocument();
   });

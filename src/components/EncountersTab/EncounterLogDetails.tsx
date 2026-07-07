@@ -4,6 +4,7 @@ import { EncounterLog, CombatEvent } from '../../lib/combatLog';
 import { CombatEventRow } from './CombatEventRow';
 import { Button } from '../ui/Button';
 import { Accordion } from '../ui/Accordion';
+import { Tabs } from '../ui/Tabs';
 
 interface EncounterLogDetailsProps {
   log: EncounterLog;
@@ -97,28 +98,14 @@ export function EncounterLogDetails({ log }: EncounterLogDetailsProps) {
             )}
           </Button>
 
-          <div className="flex bg-slate-100 p-0.5 rounded-lg border border-[#e2e8f0]">
-            <button
-              onClick={() => setActiveTab('structured')}
-              className={`px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-md transition-all cursor-pointer ${
-                activeTab === 'structured'
-                  ? 'bg-white text-[#2563eb] shadow-sm'
-                  : 'text-[#8d8db9] hover:text-[#0f172a]'
-              }`}
-            >
-              Structured View
-            </button>
-            <button
-              onClick={() => setActiveTab('raw')}
-              className={`px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-md transition-all cursor-pointer ${
-                activeTab === 'raw'
-                  ? 'bg-white text-[#2563eb] shadow-sm'
-                  : 'text-[#8d8db9] hover:text-[#0f172a]'
-              }`}
-            >
-              Raw Transcript
-            </button>
-          </div>
+          <Tabs
+            tabs={[
+              { id: 'structured', label: 'Structured View' },
+              { id: 'raw', label: 'Raw Transcript' },
+            ]}
+            activeTab={activeTab}
+            onTabChange={(id) => setActiveTab(id as 'structured' | 'raw')}
+          />
         </div>
       </div>
 

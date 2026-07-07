@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ChevronDown, ChevronUp, Music, Volume2, HardDrive, Play, HelpCircle, X } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { IconButton } from './ui/IconButton';
+import { Tabs } from './ui/Tabs';
 import { StoredAudioFile } from '../lib/audioFileStore';
 import { AmbientPlayer } from './AmbientPlayer';
 import { Soundboard } from './Soundboard';
@@ -138,44 +139,16 @@ export function AudioPanel({
             </div>
 
               {/* Inner Tab switching bar */}
-              <div className="flex border-b border-stone-200 bg-[#f9f8ff]/40 px-5 pt-1.5 shrink-0 select-none gap-2" id="audio-panel-tabs">
-                <button
-                  id="tab-ambient"
-                  onClick={() => setActiveTab('ambient')}
-                  className={cn(
-                    "px-3 py-2 text-xs font-bold uppercase tracking-wider border-b-2 transition-all cursor-pointer font-sans rounded-t-md",
-                    activeTab === 'ambient'
-                      ? "border-[#2563eb] text-[#0f172a] bg-white border-t border-x border-stone-200/50"
-                      : "border-transparent text-stone-400 hover:text-stone-700"
-                  )}
-                >
-                  Ambient
-                </button>
-                <button
-                  id="tab-soundboard"
-                  onClick={() => setActiveTab('soundboard')}
-                  className={cn(
-                    "px-3 py-2 text-xs font-bold uppercase tracking-wider border-b-2 transition-all cursor-pointer font-sans rounded-t-md",
-                    activeTab === 'soundboard'
-                      ? "border-[#2563eb] text-[#0f172a] bg-white border-t border-x border-stone-200/50"
-                      : "border-transparent text-stone-400 hover:text-stone-700"
-                  )}
-                >
-                  Soundboard
-                </button>
-                <button
-                  id="tab-library"
-                  onClick={() => setActiveTab('library')}
-                  className={cn(
-                    "px-3 py-2 text-xs font-bold uppercase tracking-wider border-b-2 transition-all cursor-pointer font-sans rounded-t-md",
-                    activeTab === 'library'
-                      ? "border-[#2563eb] text-[#0f172a] bg-white border-t border-x border-stone-200/50"
-                      : "border-transparent text-stone-400 hover:text-stone-700"
-                  )}
-                >
-                  Library
-                </button>
-              </div>
+              <Tabs
+                tabs={[
+                  { id: 'ambient', label: 'Ambient' },
+                  { id: 'soundboard', label: 'Soundboard' },
+                  { id: 'library', label: 'Library' },
+                ]}
+                activeTab={activeTab}
+                onTabChange={(id) => setActiveTab(id as 'ambient' | 'soundboard' | 'library')}
+                className="px-5 border-b border-stone-200 bg-[#f9f8ff]/40"
+              />
 
               {/* Active component render viewport */}
               <div className="p-5 flex-1 overflow-y-auto" id="audio-tab-content-container">

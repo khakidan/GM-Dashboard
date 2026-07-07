@@ -22,6 +22,7 @@ import { ResourcePoolManager } from '../ui/ResourcePoolManager';
 import { usePlayerFormAutomation } from '../../hooks/usePlayerFormAutomation';
 import { DialogShell } from '../ui/DialogShell';
 import { Button } from '../ui/Button';
+import { Tabs } from '../ui/Tabs';
 
 interface NewPlayerDialogProps {
   isOpen: boolean;
@@ -144,27 +145,22 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
       icon={<UserPlus className="w-5 h-5 text-[#2563eb]" />}
       dismissOnBackdropClick={false}
       subheader={
-        <div className="border-b border-[#e2e8f0] bg-[#ffffff] px-6 flex items-center overflow-x-auto no-scrollbar">
-          {TABS.map((tab) => {
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveTab(tab.id)}
-                className={cn(
-                  "px-4 py-3 text-sm transition-colors relative whitespace-nowrap",
-                  isActive ? "text-[#2563eb] border-b-2 border-[#2563eb] font-medium" : "text-stone-500 hover:text-stone-700"
-                )}
-              >
-                {tab.label}
-                {!tab.optional && (
+        <Tabs
+          tabs={TABS.map(t => ({
+            id: t.id,
+            label: (
+              <>
+                {t.label}
+                {!t.optional && (
                   <span className="text-[10px] text-[#2563eb] ml-1.5">(required)</span>
                 )}
-              </button>
-            );
-          })}
-        </div>
+              </>
+            )
+          }))}
+          activeTab={activeTab}
+          onTabChange={(id) => setActiveTab(id as TabId)}
+          className="border-b border-[#e2e8f0] bg-[#ffffff] px-6 overflow-x-auto no-scrollbar"
+        />
       }
       footer={
         <div className="flex items-center justify-between border-[#e2e8f0] bg-[#ffffff]">

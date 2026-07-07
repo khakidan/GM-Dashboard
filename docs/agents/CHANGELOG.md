@@ -366,4 +366,46 @@ Two real things found and fixed along the way, not just a mechanical swap: **nei
 
 Verified: TypeScript clean, `IconButton.tsx` confirmed to need zero changes (its `icon` prop already accepts arbitrary `React.ReactNode`, including a `motion.div`-wrapped icon), both files' `import`/usage/`aria-label`/hover-removal/opacity-preservation checked directly against real files. Batch 6A and Batch 6C both reported passing, though only as summary counts this time, not raw output — accepted given the small, low-risk, individually-verified nature of the change.
 
-**This also closes out both patterns found during the `Accordion` verification pass.** Pattern B (`NpcReferencePanel.tsx`'s "▼/▶ Stat Block" button, `StatBlockSkills.tsx`'s icon-only chevron) remains open — see `ROADMAP.md`.
+**This also closes out both patterns found during the `Accordion` verification pass.** Pattern B was resolved separately — see below.
+
+---
+
+## Accordion "Pattern B" (Resolved)
+
+The other pattern found during the `Accordion` verification pass, alongside Pattern C above. Two instances that turned out not to match each other at all: `NpcReferencePanel.tsx`'s "▼/▶ Stat Block" button (self-contained, text-only, background+border) and `StatBlockSkills.tsx`'s icon-only chevron toggle (transparent, its label a separate sibling span).
+
+**`StatBlockSkills.tsx`** adopted the already-existing `IconButton` (no changes needed to `IconButton.tsx` itself) — same accessibility fix as Pattern C (no `aria-label` existed before), normalized to `IconButton`'s default neutral styling rather than preserving the old custom padding/color, since there was no equivalent "deliberate opacity fade" justification here the way there was for Pattern C's two instances.
+
+**`NpcReferencePanel.tsx` was deliberately left alone** — confirmed it doesn't structurally match any existing or reasonable new shared component. Its disclosure arrow is embedded directly inside the label text itself (`'▼ Stat Block'`), not a separate chevron element, which is fundamentally incompatible with `Accordion`'s icon-and-chevron-as-separate-elements model or `IconButton`'s icon-only model. Forcing a component here for a single instance would manufacture consolidation where there isn't real duplication to solve.
+
+Confirmed `StatBlockSkills.tsx` has no dedicated test file — only indirectly exercised via `NewNpcDialog.test.tsx` (Batch 6C) and `CharacterCardExpanded.test.tsx` (Batch 6A), neither of which asserts on the skills-toggle behavior specifically. Same category of gap as `DiceRoller.tsx`/`Soundboard.tsx` before it.
+
+Verified: TypeScript clean, Batch 6A (9 files/46 tests) and Batch 6C (5 files/13 tests) both matching established baselines with real raw output and explicit reasoning about test coverage (after an initial response ran the same batches without that reasoning shown, corrected on request), diff checked directly against the real file.
+
+---
+
+## ResourcePoolsSection.tsx Reset Chip — Badge Adoption (Completed)
+
+The last open item involving `Badge` from this consolidation round. **Reverses an earlier assessment**: this chip was originally flagged as a "structurally weak match" for `Badge` (no border, `rounded` not `rounded-full`, never color-coded), which was true of its *styling* but missed what it actually represents. Tracing `getResetLabel` directly revealed `pool.reset` is a real, multi-value category (`'short' | 'long' | 'none'`, plus an implicit fallback) — the same shape as the encounter outcome badge or the difficulty selector, both already using `Badge`. It just hadn't been color-coded, which was an omission, not evidence it wasn't a genuine category.
+
+**Color mapping**: `'short'` (resets on either a short or long rest — the most frequent/flexible) → `blue`; `'long'` (resets only on a long rest — more restrictive) → `purple`; `'none'` and the implicit fallback (manual/no automatic reset — least automatic) → `gray`. `size="compact"`, chosen over `default` since this sits inside an already-dense resource-pool row. The "Reset: " label prefix and `getResetLabel`'s exact return strings both preserved unchanged.
+
+Confirmed `ResourcePoolsSection.tsx` has no dedicated test file of its own — only indirectly exercised via `CharacterCardExpanded.test.tsx` (Batch 6A, PartyTab) and `CombatantCard.test.tsx` (Batch 5B, ActiveEncounterTab), since it's a shared component rendered in both places. Same category of gap as `DiceRoller.tsx`/`Soundboard.tsx`/`StatBlockSkills.tsx` before it.
+
+Verified: TypeScript clean, Batch 6A (9 files/46 tests) and Batch 5B (11 files/26 tests) both matching established baselines with real raw output, diff and color-mapping logic checked directly against the real file.
+
+---
+
+## Tab Navigation — Tabs Component (Completed, with one honest gap)
+
+The last real build item in the second consolidation round. Design discussion first: confirmed all 4 known instances were already freely clickable (no gating anywhere, verified directly, including `NewPlayerDialog.tsx`'s apparent-wizard-but-actually-not tab bar), so unifying to a single interaction model was safe. Chose to normalize to one canonical visual style (underline, matching `NewPlayerDialog.tsx`'s reference implementation) rather than a multi-variant component like `Button`, since — unlike `Button`'s intents — none of the four styles had a genuine semantic reason to differ; they were all just switching between views within a dialog/panel.
+
+**A universal accessibility gap, same category as `Accordion`**: none of the four originals used real ARIA tab semantics — no `role="tablist"`/`role="tab"`/`aria-selected`, no keyboard navigation. `Tabs.tsx` builds all of this in by construction: `role="tablist"` wrapper, `role="tab"`/`aria-selected`/`tabIndex` per button, and working `ArrowLeft`/`ArrowRight` keyboard navigation with proper focus management (via refs) between tabs — not just decoration, a real fix across all four adoptions at once.
+
+**`Tabs.tsx`** (`src/components/ui/`): `tabs: { id: string; label: React.ReactNode }[]` (deliberately `ReactNode`, not `string` — lets `NewPlayerDialog.tsx` compose its own `"(required)"` annotation directly into a tab's label without `Tabs` needing bespoke support for that one-off feature), `activeTab`, `onTabChange`, `className?`. Works as a fully self-contained unit — confirmed only 2 of the 4 original instances even used `DialogShell`'s `subheader` slot, so `Tabs` can't assume it's always there.
+
+**Adopted in 4 locations**: `NewPlayerDialog.tsx` (the reference, near-1:1), `EncounterLogDetails.tsx` (deliberate normalization away from its segmented/pill look), `AddCombatantDialog.tsx` (deliberate normalization away from its filled-background look — this also fixes the broken `#f5f0d5` tan color, a known parchment-theme leftover flagged during the original `Button` project, as a side effect; also a deliberate layout decision to drop the old `flex-1` full-width stretch in favor of natural content-width, matching the canonical style rather than preserving an inconsistent one-off), and `AudioPanel.tsx` (deliberate normalization away from its raised-folder-tab look; confirmed no dedicated test file exists for this component, same category as `DiceRoller.tsx`/`Soundboard.tsx`/`StatBlockSkills.tsx`/`ResourcePoolsSection.tsx` before it).
+
+**Honest gap, not silently closed out**: the original audit named a 5th instance — `NpcFormFields.tsx`, also flagged as underline-style — that was never actually re-verified or brought into this build. It was carried through the design discussion and build prompt only as 4 files, an oversight caught only after the fact. Since it was already using the underline visual style, it may not need any visual change, but it almost certainly still lacks `Tabs.tsx`'s real ARIA/keyboard-navigation fix, the same as the other four did before this round. Flagged as a small follow-up in `ROADMAP.md`, not assumed to be fine.
+
+Verified: TypeScript clean, Batch 6A (9 files/46 tests) and full Batch 5B (11 files/26 tests) both matching established baselines with real raw output (after an initial response only ran 1 of 11 files and had to be sent back for the complete batch), all diffs checked directly against real files. One process note: a later response cited a nonexistent "agent rule 10" to justify not re-pasting raw output for batches already verified in a prior turn — same category as the earlier fabricated `STYLE_GUIDE.md` citation during `ToggleBadge`; the underlying claim (those batches were fine) held up, but the invented justification did not.

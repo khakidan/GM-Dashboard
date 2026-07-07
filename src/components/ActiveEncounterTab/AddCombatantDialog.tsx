@@ -10,6 +10,7 @@ import { NPC as Npc, Character, Combatant } from '../../types';
 import { NpcFormFields, NpcFormData, DEFAULT_NPC_FORM_DATA } from '../ui/NpcFormFields';
 import { DialogShell } from '../ui/DialogShell';
 import { SearchInput } from '../ui/SearchInput';
+import { Tabs } from '../ui/Tabs';
 
 interface AddCombatantDialogProps {
   isOpen: boolean;
@@ -149,17 +150,16 @@ export function AddCombatantDialog({
       title="Add Combatant"
       icon={<UserPlus className="w-6 h-6 text-[#2563eb]" />}
       subheader={
-        <div className="flex border-b border-[#e2e8f0] shrink-0">
-          {(['library', 'party', 'create'] as const).map(tab => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={cn("flex-1 py-4 text-xs font-bold uppercase tracking-widest transition-all", activeTab === tab ? "bg-white text-[#0f172a]" : "bg-[#f5f0d5] text-[#8d8db9]")}
-            >
-              {tab === 'library' ? 'NPC Library' : tab === 'party' ? 'Party Members' : 'Create NPC'}
-            </button>
-          ))}
-        </div>
+        <Tabs
+          tabs={[
+            { id: 'library', label: 'NPC Library' },
+            { id: 'party', label: 'Party Members' },
+            { id: 'create', label: 'Create NPC' },
+          ]}
+          activeTab={activeTab}
+          onTabChange={(id) => setActiveTab(id as 'library' | 'party' | 'create')}
+          className="border-b border-[#e2e8f0]"
+        />
       }
     >
       <div className="overflow-y-auto scrollbar-thin scrollbar-thumb-[#e2e8f0] flex-1">

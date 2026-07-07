@@ -18,7 +18,7 @@ describe('AddCombatantDialog', () => {
 
   it('renders without crashing with required props', () => {
     const { container } = render(<AddCombatantDialog {...defaultProps} />);
-    expect(screen.getByRole('button', { name: /create npc/i })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /create npc/i })).toBeInTheDocument();
   });
 
   it('submitting the Create NPC form calls onAddNpc with the full NPC data object', () => {

@@ -14,7 +14,7 @@ describe('NewNpcDialog', () => {
     );
 
     fireEvent.change(getByLabelText(/^NPC Name/i), { target: { value: 'Dragon' } });
-    fireEvent.click(getByRole('button', { name: 'Combat' }));
+    fireEvent.click(getByRole('tab', { name: 'Combat' }));
     fireEvent.change(getByLabelText(/^Max HP/i), { target: { value: '100' } });
 
     fireEvent.click(getByRole('button', { name: /Add NPC/i }));
@@ -95,7 +95,7 @@ describe('NewNpcDialog', () => {
 
     // Navigate to Stat Block tab
     fireEvent.click(
-      getByRole('button',
+      getByRole('tab',
         { name: /stat block/i }
       )
     );

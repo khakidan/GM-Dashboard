@@ -3,6 +3,7 @@ import { Plus, Minus, Trash2, Edit2, Save, X, RotateCcw } from 'lucide-react';
 import { Character } from '../../types';
 import { cn } from '../../lib/utils';
 import { PipTracker } from './PipTracker';
+import { Badge } from './Badge';
 import {
   parseResourcePools,
   serializeResourcePools,
@@ -280,9 +281,12 @@ export const ResourcePoolsSection: React.FC<ResourcePoolsSectionProps> = ({
                         <span className="font-bold text-[#20201a] text-sm font-serif block">
                           {pool.name}
                         </span>
-                        <span className="text-[10px] text-[#8d8db9]/70 inline-block bg-[#8d8db9]/5 px-1.5 py-0.5 rounded leading-none">
+                        <Badge
+                          color={pool.reset === 'short' ? 'blue' : pool.reset === 'long' ? 'purple' : 'gray'}
+                          size="compact"
+                        >
                           Reset: {getResetLabel(pool.reset)}
-                        </span>
+                        </Badge>
                       </div>
 
                       {/* Tool Actions */}
