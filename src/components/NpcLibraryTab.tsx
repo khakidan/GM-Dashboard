@@ -2,8 +2,9 @@ import { DAMAGE_TYPE_OPTIONS, CONDITION_OPTIONS } from '../lib/conditions';
 import React, { useState, useMemo, useEffect } from 'react';
 import { useAppState } from '../hooks/useAppState';
 import { useNpcLibrary } from './NpcLibraryTab/hooks/useNpcLibrary';
-import { BookOpen, Plus, Search, Filter, X, Shield, Activity } from 'lucide-react';
+import { BookOpen, Plus, Filter, X, Shield, Activity } from 'lucide-react';
 import { Callout } from './ui/Callout';
+import { SearchInput } from './ui/SearchInput';
 import { cn } from '../lib/utils';
 import { NewNpcDialog } from './NpcLibraryTab/NewNpcDialog';
 import { NpcCard } from './NpcLibraryTab/NpcCard';
@@ -112,17 +113,13 @@ export function NpcLibraryTab() {
         {/* Filter Controls Area */}
         <div className="mt-6 flex flex-col gap-4">
           <div className="flex flex-col md:flex-row gap-3">
-            <div className="relative flex-1">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#8d8db9]/60" />
-              <input
-                type="text"
-                placeholder="Search by name..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-white border border-[#e2e8f0] rounded-xl pl-9 pr-4 py-2.5 text-sm focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]/50 outline-none transition-all placeholder:text-[#8d8db9]/30"
-                id="npc-search-input"
-              />
-            </div>
+            <SearchInput
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="Search by name..."
+              id="npc-search-input"
+              className="flex-1"
+            />
             
             <div className="grid grid-cols-2 md:flex gap-3 flex-wrap">
               {renderFilterSelect(<Shield className="w-4 h-4 text-blue-500/60" />, "Resist", filterResistances, setFilterResistances)}

@@ -9,6 +9,7 @@ import { cn } from '../../lib/utils';
 import { NPC as Npc, Character, Combatant } from '../../types';
 import { NpcFormFields, NpcFormData, DEFAULT_NPC_FORM_DATA } from '../ui/NpcFormFields';
 import { DialogShell } from '../ui/DialogShell';
+import { SearchInput } from '../ui/SearchInput';
 
 interface AddCombatantDialogProps {
   isOpen: boolean;
@@ -164,12 +165,10 @@ export function AddCombatantDialog({
       <div className="overflow-y-auto scrollbar-thin scrollbar-thumb-[#e2e8f0] flex-1">
         {activeTab === 'library' && (
             <div className="space-y-4">
-              <input
-                type="text"
-                placeholder="Search NPCs..."
+              <SearchInput
                 value={npcSearch}
-                onChange={e => setNpcSearch(e.target.value)}
-                className="w-full bg-white border border-[#e2e8f0] rounded-xl px-4 py-3 text-sm"
+                onChange={setNpcSearch}
+                placeholder="Search NPCs..."
               />
               <div className="border border-[#e2e8f0] rounded-xl h-64 overflow-y-auto">
                 {filteredNpcs.length === 0 ? (

@@ -327,3 +327,31 @@ Second consolidation round's fourth built component (see `ROADMAP.md` for the re
 **`DiceRoller.tsx` has no dedicated test file at all** — confirmed via direct filename and content search, not assumed — so no test batch covers it; this is a genuine absence of coverage, not a gap in verification.
 
 Verified: TypeScript clean, Batch 6A (9 files/46 tests) and Batch 6B (5 files/20 tests) both matching established baselines with real raw output, all diffs and behavior preservation (including the checkbox/IconButton sibling-not-nested structure in two files) checked directly against real files. One process note: an initial response edited `file-reference.md`/`ROADMAP.md`/`CHANGELOG.md` despite explicit instructions not to, and omitted any mention of `DiceRoller.tsx`'s test coverage entirely rather than reporting its absence — both corrected on request.
+
+---
+
+## Callout Component (Completed)
+
+Second consolidation round's fifth built component (see `ROADMAP.md` for the remaining candidates — Tab navigation, Search input, the `ResourcePoolsSection.tsx` reset-chip decision, and Patterns B/C from the `Accordion` pass — still open). This directly closes a documentation gap `STYLE_GUIDE.md` had already flagged — its existing "Nested Panels and Callouts" entry never defined a warning or error variant.
+
+**`Callout.tsx`** (`src/components/ui/`): `severity: 'info' | 'warning' | 'error'`, `children`, plus full `HTMLAttributes<HTMLDivElement>` passthrough (needed since `Soundboard.tsx`'s instance has its own `id` attribute). Three confirmed findings, all preserved rather than normalized away, since they turned out to be real severity-driven distinctions: `error` uses a bigger icon (`w-5 h-5` vs. `w-4.5 h-4.5`) and roomier padding (`p-4` vs. `p-3.5`) than `warning` across all 3 of its instances — not drift, a genuine severity-scale difference. The `AlertCircle` icon's color also genuinely differs by mechanism, not just value: `warning`'s icon uses a fixed `text-[#2563eb]` independent of its `amber-800` text color (confirmed identically in both real warning instances), while `error`'s icon has no color class at all and inherits `currentColor` from its `text-red-800` container. `info` has no real instance yet — implemented as an explicitly-flagged unvalidated placeholder (matching `IconButton`'s precedent for its own unvalidated dark-destructive combination), directly per `STYLE_GUIDE.md`'s existing three-severity gap-note.
+
+**One real normalization applied, not preserved**: `Soundboard.tsx`'s warning box previously used a `/50`-opacity background, tighter `p-2.5` padding, and a smaller `w-4` icon than `ShortRestDialog.tsx`'s otherwise-identical warning box — this was drift, not a deliberate second style, and both now match `ShortRestDialog.tsx`'s version exactly.
+
+**Adopted in 5 locations**: `ShortRestDialog.tsx` and `Soundboard.tsx` (`severity="warning"`), `EncountersTab.tsx`, `NpcLibraryTab.tsx`, and `PartyTab.tsx` (`severity="error"` — these three were already nearly identical to each other, closest to a 1:1 swap of any adoption in this whole round). `Soundboard.tsx` confirmed to have no dedicated test file at all, same as `DiceRoller.tsx` before it — a genuine absence of coverage, not a gap in verification.
+
+Verified: TypeScript clean, Batch 6A (9 files/46 tests), Batch 6B (5 files/20 tests), and Batch 6C (5 files/13 tests) all matching established baselines with real raw output, all diffs and icon-color/size claims checked directly against real files (including independently re-confirming the fixed-vs-inherited icon color distinction from an earlier direct read of the original files, before this build touched them).
+
+---
+
+## SearchInput Component (Completed)
+
+Second consolidation round's sixth built component (see `ROADMAP.md` for the remaining candidates — Tab navigation, the `ResourcePoolsSection.tsx` reset-chip decision, and Patterns B/C from the `Accordion` pass — still open).
+
+**Not a reimplementation — a shell around the already-existing `DebouncedInput.tsx`**, per `STYLE_GUIDE.md`'s own "check for a shared component first" principle. `DebouncedInput`'s `size`/`immediate` props were built during the very first consolidation round but never adopted anywhere until now.
+
+**`SearchInput.tsx`** (`src/components/ui/`): a `relative` wrapper `<div>` containing a leading `Search` icon (absolutely positioned, matching `NpcLibraryTab.tsx`'s original treatment exactly) plus a `<DebouncedInput size="compact" immediate={true} className="pl-9" />`. `immediate={true}` is a deliberate default — search-while-browsing needs on-every-keystroke filtering, not the blur/Enter-commit behavior `DebouncedInput` uses by default elsewhere. Confirmed a real, subtle Tailwind-merge detail: `DebouncedInput`'s `compact` base includes `px-3`, and `pl-9` correctly overrides only the left-padding component via `cn()`/`tailwind-merge`'s partial-property resolution, leaving `pr-3` from the original `px-3` intact — verified directly against `DebouncedInput.tsx`'s real source, not just asserted.
+
+**Adopted in 2 locations**: `NpcLibraryTab.tsx` (a close-to-1:1 swap — this file's existing search box was the reference `SearchInput`'s design was based on) and `AddCombatantDialog.tsx` (a real improvement, not just a swap — this instance previously had **no focus styling and no icon at all**, unlike every other input in the app; it now correctly gains both via `DebouncedInput`'s own `compact` base styling). Both preserve their exact original state variables (`searchQuery`/`setSearchQuery`, `npcSearch`/`setNpcSearch`) unchanged.
+
+Verified: TypeScript clean, Batch 6C (5 files/13 tests) and Batch 5B (11 files/26 tests) both matching established baselines with real raw output, all diffs, prop wiring, and the specific Tailwind-merge padding claim checked directly against real files.
