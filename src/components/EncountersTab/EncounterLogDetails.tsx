@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronRight, Copy, Check } from 'lucide-react';
+import { Copy, Check } from 'lucide-react';
 import { EncounterLog, CombatEvent } from '../../lib/combatLog';
 import { CombatEventRow } from './CombatEventRow';
 import { Button } from '../ui/Button';
+import { Accordion } from '../ui/Accordion';
 
 interface EncounterLogDetailsProps {
   log: EncounterLog;
@@ -133,16 +134,18 @@ export function EncounterLogDetails({ log }: EncounterLogDetailsProps) {
               return (
                 <div key={round} className="border border-[#e2e8f0] rounded-xl overflow-hidden shadow-sm">
                   {/* Round Header */}
-                  <button
-                    onClick={() => toggleRound(round)}
-                    className="w-full flex items-center justify-between px-4 py-2.5 bg-[#f9f8ff]/70 hover:bg-[#f9f8ff] transition-colors text-left cursor-pointer"
+                  <Accordion
+                    isExpanded={isRoundExpanded}
+                    onToggle={() => toggleRound(round)}
+                    size="compact"
+                    rightContent={
+                      <span className="text-[11px] text-[#8d8db9] font-medium">
+                        {roundEvents.length} {roundEvents.length === 1 ? 'event' : 'events'}
+                      </span>
+                    }
                   >
                     <span className="font-bold text-xs text-[#2563eb]">Round {round}</span>
-                    <span className="flex items-center gap-1.5 text-[11px] text-[#8d8db9] font-medium">
-                      {roundEvents.length} {roundEvents.length === 1 ? 'event' : 'events'}
-                      {isRoundExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-                    </span>
-                  </button>
+                  </Accordion>
 
                   {/* Round Events List */}
                   {isRoundExpanded && (

@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { X, Scroll, ChevronDown, ChevronRight, Calendar, Trash2 } from 'lucide-react';
+import { X, Scroll, Calendar, Trash2 } from 'lucide-react';
 import { useEncounterLogs } from './hooks/useEncounterLogs';
 import { EncounterLog } from '../../lib/combatLog';
 import { EncounterLogDetails } from './EncounterLogDetails';
 import { DialogShell } from '../ui/DialogShell';
 import { IconButton } from '../ui/IconButton';
 import { Badge } from '../ui/Badge';
+import { Accordion } from '../ui/Accordion';
 
 
 interface EncounterLogModalProps {
@@ -95,24 +96,26 @@ export function EncounterLogModal({ encounterId, encounterName, isOpen, onClose 
                   className="border border-[#e2e8f0] rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow"
                 >
                   {/* Log Accordion Trigger */}
-                  <div
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => toggleExpand(log.id)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        toggleExpand(log.id);
+                  <div className="w-full flex items-center bg-[#f9f8ff]/50 hover:bg-[#f9f8ff] transition-colors pr-4">
+                    <Accordion
+                      isExpanded={isExpanded}
+                      onToggle={() => toggleExpand(log.id)}
+                      size="default"
+                      className="flex-1 bg-transparent hover:bg-transparent"
+                      rightContent={
+                        <>
+                          <span className="text-xs text-[#8d8db9]">
+                            {log.durationRounds} {log.durationRounds === 1 ? 'Round' : 'Rounds'}
+                          </span>
+                          <Badge
+                            color={log.outcome === 'Victory' ? 'green' : log.outcome === 'Defeat' ? 'red' : 'gray'}
+                            size="default"
+                          >
+                            {log.outcome}
+                          </Badge>
+                        </>
                       }
-                    }}
-                    className="w-full flex items-center justify-between p-4 bg-[#f9f8ff]/50 hover:bg-[#f9f8ff] transition-colors text-left cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[#2563eb] focus-visible:ring-inset no-blue-hover"
-                  >
-                    <div className="flex items-center gap-4">
-                      {isExpanded ? (
-                        <ChevronDown className="w-5 h-5 text-[#8d8db9]" />
-                      ) : (
-                        <ChevronRight className="w-5 h-5 text-[#8d8db9]" />
-                      )}
+                    >
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
                           <Calendar className="w-4 h-4 text-[#8d8db9]" />
@@ -132,17 +135,8 @@ export function EncounterLogModal({ encounterId, encounterName, isOpen, onClose 
                           </p>
                         )}
                       </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs text-[#8d8db9]">
-                        {log.durationRounds} {log.durationRounds === 1 ? 'Round' : 'Rounds'}
-                      </span>
-                      <Badge
-                        color={log.outcome === 'Victory' ? 'green' : log.outcome === 'Defeat' ? 'red' : 'gray'}
-                        size="default"
-                      >
-                        {log.outcome}
-                      </Badge>
+                    </Accordion>
+                    <div className="shrink-0 z-10">
                       <IconButton
                         icon={<Trash2 className="w-4 h-4" />}
                         intent="destructive"

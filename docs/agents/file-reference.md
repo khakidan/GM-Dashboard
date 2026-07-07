@@ -122,6 +122,7 @@ Shared test data factories used across many test files. These are not tests them
 - `DebouncedInput.tsx` — Standard debounced input. Local-state buffering, commits to the parent's `onChange` on blur or Enter (not time-based debounce). Extended with `size?: 'compact' | 'prominent'` (padding/focus-ring variant; default `'compact'` preserves original behavior) and `immediate?: boolean` (default `false`; when `true`, fires `onChange` on every keystroke instead of on blur/Enter, for filter-as-you-type fields). Neither prop has been adopted anywhere yet — built and available for a genuine future "prominent" or immediate-mode instance; see `CHANGELOG.md` for the investigation that found the originally-suspected adoption sites didn't actually need it.
 - `DebouncedTextarea.tsx` — Standard debounced textarea (light parchment theme).
 - `DialogShell.tsx` — Shared modal shell component (backdrop + panel, `title`/`icon`/`subtitle`/`subheader`/`footer` slots, `zIndex` and `dismissOnBackdropClick` props). Adopted by all 12 target dialogs — see CHANGELOG.md for the full migration history and patterns established.
+- `Accordion.tsx` — Standardized collapsible wrapper button. Replaces custom accordion toggle logic across the dashboard (such as past logs, round expansions, short rest participant details, and dice roller drawers). Provides keyboard navigation accessibility.
 
 ### src/components/PartyTab/
 

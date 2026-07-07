@@ -2,8 +2,6 @@ import { STORAGE_KEYS, TIMERS } from '../lib/constants';
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
-  ChevronDown, 
-  ChevronUp, 
   Dices, 
   RotateCcw, 
   History, 
@@ -11,6 +9,7 @@ import {
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { parseDiceNotation, rollDice, RollResult } from '../lib/diceRoller';
+import { Accordion } from './ui/Accordion';
 
 export function DiceRoller() {
   const [isExpanded, setIsExpanded] = useState<boolean>(() => {
@@ -113,18 +112,15 @@ export function DiceRoller() {
       )}
     >
       {/* Mini Collapsed / Expanded Header */}
-      <div 
-        onClick={handleToggleExpand}
-        className="h-11 w-full bg-[#f9f8ff] rounded-xl border-b border-[#e2e8f0] flex items-center justify-between px-3.5 cursor-pointer hover:bg-[#e2e8f0] transition-colors select-none"
+      <Accordion
+        isExpanded={isExpanded}
+        onToggle={handleToggleExpand}
+        size="compact"
+        className="h-11 rounded-xl rounded-t-xl border-b border-[#e2e8f0] bg-[#f9f8ff] hover:bg-[#e2e8f0]"
       >
-        <div className="flex items-center gap-2 text-[#0f172a]">
-          <Dices className="w-5 h-5 text-[#2563eb]" />
-          <span className="text-xs font-bold uppercase tracking-wider font-sans">Dice Roller</span>
-        </div>
-        <div className="text-stone-500">
-          {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
-        </div>
-      </div>
+        <Dices className="w-5 h-5 text-[#2563eb]" />
+        <span className="text-xs font-bold uppercase tracking-wider font-sans text-[#0f172a]">Dice Roller</span>
+      </Accordion>
 
       {/* Main Panel Content Area */}
       {isExpanded && (

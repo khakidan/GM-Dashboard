@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Heart, ChevronDown, ChevronUp, RefreshCw, AlertCircle } from 'lucide-react';
+import { Heart, RefreshCw, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Character } from '../../types';
 import { getHitDiceStatus, spendHitDice } from '../../lib/hitDice';
@@ -7,6 +7,7 @@ import { parseDiceNotation, rollDice } from '../../lib/diceRoller';
 import { toast } from 'sonner';
 import { DialogShell } from '../ui/DialogShell';
 import { Button } from '../ui/Button';
+import { Accordion } from '../ui/Accordion';
 
 interface ShortRestDialogProps {
   isOpen: boolean;
@@ -242,29 +243,46 @@ export function ShortRestDialog({ isOpen, characters, onConfirm, onClose }: Shor
               >
                 {/* Collapse/Expand Row Header */}
                 <div
-                  onClick={() => !isDeceased && isChecked && toggleExpand(char.id)}
-                  className={`flex items-center justify-between p-4 select-none transition-colors ${
+                  className={`flex items-center pl-4 select-none transition-colors ${
                     isDeceased
                       ? 'bg-gray-50/50 opacity-40 cursor-not-allowed'
                       : isChecked
-                        ? 'bg-[#f0f7ff] hover:bg-[#f0f7ff]/80 cursor-pointer'
-                        : 'bg-gray-50/50 opacity-60 cursor-pointer'
+                        ? 'bg-[#f0f7ff] hover:bg-[#f0f7ff]/80'
+                        : 'bg-gray-50/50 opacity-60'
                   }`}
                   id={`short-rest-header-${char.id}`}
                 >
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="checkbox"
-                      checked={isChecked}
-                      disabled={isDeceased}
-                      onChange={(e) => {}} // custom handled via toggleParticipating
-                      onClick={(e) => {
-                        if (isDeceased) return;
-                        toggleParticipating(char.id, e);
-                      }}
-                      className="w-4 h-4 rounded text-[#2563eb] border-[#e2e8f0] focus:ring-[#2563eb] cursor-pointer accent-[#2563eb] disabled:opacity-50 disabled:cursor-not-allowed"
-                      id={`short-rest-checkbox-${char.id}`}
-                    />
+                  <input
+                    type="checkbox"
+                    checked={isChecked}
+                    disabled={isDeceased}
+                    onChange={(e) => {}} // custom handled via toggleParticipating
+                    onClick={(e) => {
+                      if (isDeceased) return;
+                      toggleParticipating(char.id, e);
+                    }}
+                    className="w-4 h-4 rounded text-[#2563eb] border-[#e2e8f0] focus:ring-[#2563eb] cursor-pointer accent-[#2563eb] disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                    id={`short-rest-checkbox-${char.id}`}
+                  />
+                  
+                  <Accordion
+                    isExpanded={isExpanded}
+                    onToggle={() => !isDeceased && isChecked && toggleExpand(char.id)}
+                    disabled={isDeceased || !isChecked}
+                    hideChevron={!isChecked}
+                    size="default"
+                    className="flex-1 bg-transparent hover:bg-transparent"
+                    rightContent={
+                      <div className="flex items-center gap-4 text-xs">
+                        <span className="bg-[#8d8db9]/5 px-2.5 py-1 rounded text-[#8d8db9] font-mono">
+                          HP: {char.currentHp}/{char.maxHp}
+                        </span>
+                        <span className="bg-[#2563eb]/10 text-[#567eff] px-2.5 py-1 rounded font-mono">
+                          HD Available: {remainingCountTotal}
+                        </span>
+                      </div>
+                    }
+                  >
                     <div>
                       <span className="font-serif font-bold text-[#0f172a] text-sm">
                         {char.characterName}
@@ -278,21 +296,7 @@ export function ShortRestDialog({ isOpen, characters, onConfirm, onClose }: Shor
                         ({char.playerName})
                       </span>
                     </div>
-                  </div>
-
-                  <div className="flex items-center gap-4 text-xs">
-                    <span className="bg-[#8d8db9]/5 px-2.5 py-1 rounded text-[#8d8db9] font-mono">
-                      HP: {char.currentHp}/{char.maxHp}
-                    </span>
-                    <span className="bg-[#2563eb]/10 text-[#567eff] px-2.5 py-1 rounded font-mono">
-                      HD Available: {remainingCountTotal}
-                    </span>
-                    {isChecked && (
-                      <span className="text-[#8d8db9]">
-                        {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                      </span>
-                    )}
-                  </div>
+                  </Accordion>
                 </div>
 
                 {/* Expandable Body */}
