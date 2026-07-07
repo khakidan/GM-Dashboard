@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X } from 'lucide-react';
+import { IconButton } from './IconButton';
 
 interface DialogShellProps {
   isOpen: boolean;
@@ -55,13 +56,7 @@ export function DialogShell({
                     {subtitle && <p className="text-xs text-[#e2e8f0]/60">{subtitle}</p>}
                   </div>
                 </div>
-                <button
-                  onClick={onClose}
-                  className="p-2 hover:bg-white/10 rounded-full transition-colors text-white/50 hover:text-white"
-                  aria-label="Close"
-                >
-                  <X className="w-5 h-5" />
-                </button>
+                <IconButton icon={<X className="w-5 h-5" />} onClick={onClose} onDark aria-label="Close" />
               </div>
             )}
             {subheader}
