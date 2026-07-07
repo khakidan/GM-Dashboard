@@ -1,5 +1,6 @@
 import React from 'react';
 import { AbilityName, AbilityScores, calculateModifier } from '../../lib/abilityScores';
+import { StatTile } from './StatTile';
 
 // Formatting helper for modifier and bonus values
 export const formatBonus = (val: number): string => {
@@ -83,18 +84,15 @@ export const StatBlockScores: React.FC<StatBlockScoresProps> = ({
           const modifier = calculateModifier(score);
 
           return (
-            <div
+            <StatTile
               key={ability}
-              className="bg-white border border-[#e2e8f0] rounded-lg p-2 text-center min-w-[52px] flex-1 flex flex-col justify-between"
+              label={ability}
+              modifier={modifier}
+              size="compact"
               id={`ability-box-${ability.toLowerCase()}`}
+              className="min-w-[52px] flex-1"
             >
-              {/* Row 1 — Label */}
-              <div className="text-[10px] font-medium uppercase tracking-wider text-[#8d8db9]">
-                {ability}
-              </div>
-
-              {/* Row 2 — Score */}
-              <div className="my-1.5 flex justify-center items-center h-8">
+              <div className="my-1.5 flex justify-center items-center h-8 w-full">
                 {readOnly ? (
                   <span className="text-2xl font-bold text-[#0f172a]">
                     {score}
@@ -107,21 +105,7 @@ export const StatBlockScores: React.FC<StatBlockScoresProps> = ({
                   />
                 )}
               </div>
-
-              {/* Row 3 — Modifier */}
-              <div
-                className={`text-sm font-medium ${
-                  modifier > 0
-                    ? 'text-[#2563eb]'
-                    : modifier === 0
-                    ? 'text-[#8d8db9]'
-                    : 'text-red-600'
-                }`}
-                id={`ability-modifier-${ability.toLowerCase()}`}
-              >
-                {formatBonus(modifier)}
-              </div>
-            </div>
+            </StatTile>
           );
         })}
       </div>

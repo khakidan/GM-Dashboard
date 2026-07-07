@@ -1,5 +1,6 @@
 import React from 'react';
 import { Plus, Trash2 } from 'lucide-react';
+import { IconButton } from './IconButton';
 
 interface NpcListEditorProps<T extends { name: string }> {
   title: string;           // section header e.g. "Traits"
@@ -59,14 +60,13 @@ export function NpcListEditor<T extends { name: string }>({
               key={index}
               className="bg-[#ffffff] rounded border border-[#e2e8f0] p-3 relative"
             >
-              <button
-                type="button"
-                aria-label={`Remove ${singularTitle}`}
+              <IconButton
+                icon={<Trash2 className="w-4 h-4" />}
+                intent="destructive"
                 onClick={() => handleRemoveItem(index)}
-                className="absolute top-2 right-2 text-red-400 hover:text-red-600 p-2"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
+                aria-label={`Remove ${singularTitle}`}
+                className="absolute top-2 right-2"
+              />
               <div className="pr-6">
                 {renderFields(item, index, (updated) =>
                   handleItemChange(index, updated)

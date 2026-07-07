@@ -8,6 +8,7 @@ import { CardNumberInput } from '../ui/CardNumberInput';
 import { DebouncedTextarea } from '../ui/DebouncedTextarea';
 import { NpcListEditor } from '../ui/NpcListEditor';
 import { Button } from '../ui/Button';
+import { StatTile } from '../ui/StatTile';
 
 // Modular Sub-components
 import { NpcCardHeader } from './NpcCardHeader';
@@ -331,8 +332,7 @@ export const NpcCard: React.FC<NpcCardProps> = ({
             <div className="p-6 flex flex-col gap-6">
               {/* Stats Grid */}
               <div className="grid grid-cols-3 gap-3">
-                <div className="text-center p-3 bg-[#ffffff] border border-[#e2e8f0] rounded-xl shadow-sm">
-                  <div className="text-[10px] font-bold uppercase tracking-widest text-[#8d8db9] mb-1">AC</div>
+                <StatTile label="AC">
                   <CardNumberInput
                     value={npc.ac}
                     onChange={v => onUpdate({ ac: v })}
@@ -341,9 +341,8 @@ export const NpcCard: React.FC<NpcCardProps> = ({
                     className="text-lg font-bold text-[#0f172a] w-full text-center bg-transparent border-none focus:ring-0 p-0 disabled:opacity-50"
                     disabled={isSyncing}
                   />
-                </div>
-                <div className="text-center p-3 bg-[#ffffff] border border-[#e2e8f0] rounded-xl shadow-sm">
-                  <div className="text-[10px] font-bold uppercase tracking-widest text-[#8d8db9] mb-1">Max HP</div>
+                </StatTile>
+                <StatTile label="Max HP">
                   <CardNumberInput
                     value={npc.maxHp}
                     onChange={v => onUpdate({ maxHp: v })}
@@ -352,11 +351,18 @@ export const NpcCard: React.FC<NpcCardProps> = ({
                     className="text-lg font-bold text-[#0f172a] w-full text-center bg-transparent border-none focus:ring-0 p-0 disabled:opacity-50"
                     disabled={isSyncing}
                   />
-                </div>
-                <div className="text-center p-3 bg-[#ffffff] border border-[#e2e8f0] rounded-xl shadow-sm col-span-2 sm:col-span-1">
-                  <div className="text-[10px] font-bold uppercase tracking-widest text-[#8d8db9] mb-1">CR</div>
-                  <DebouncedInput type="text" value={npc.challengeRating || ''} onFocus={(e) => (e.target as HTMLInputElement).select()} onChange={(v) => onUpdate({ challengeRating: v as string })} className="text-lg font-bold text-[#0f172a] w-full text-center bg-transparent border-none focus:ring-0 p-0 disabled:opacity-50" placeholder="—" disabled={isSyncing} />
-                </div>
+                </StatTile>
+                <StatTile label="CR" className="col-span-2 sm:col-span-1">
+                  <DebouncedInput
+                    type="text"
+                    value={npc.challengeRating || ''}
+                    onFocus={(e) => (e.target as HTMLInputElement).select()}
+                    onChange={(v) => onUpdate({ challengeRating: v as string })}
+                    className="text-lg font-bold text-[#0f172a] w-full text-center bg-transparent border-none focus:ring-0 p-0 disabled:opacity-50"
+                    placeholder="—"
+                    disabled={isSyncing}
+                  />
+                </StatTile>
               </div>
 
               <StatBlock

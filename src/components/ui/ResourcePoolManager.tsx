@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, Trash2, Edit2 } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { IconButton } from './IconButton';
 import {
   ResourcePool,
   addResourcePool,
@@ -179,12 +180,20 @@ export function ResourcePoolManager({
                       </button>
                     </div>
                     <div className="flex items-center gap-1">
-                      <button type="button" onClick={() => startEditResource(pool)} className="p-1.5 text-stone-400 hover:text-[#2563eb] rounded transition-colors" title="Edit">
-                        <Edit2 className="w-3.5 h-3.5" />
-                      </button>
-                      <button type="button" onClick={() => handleDeleteResource(pool.name)} className="text-red-400 hover:text-red-600 p-2" title="Delete">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <IconButton
+                        icon={<Edit2 className="w-3.5 h-3.5" />}
+                        onClick={() => startEditResource(pool)}
+                        aria-label="Edit"
+                        title="Edit"
+                        className="hover:text-[#2563eb] hover:bg-[#2563eb]/10"
+                      />
+                      <IconButton
+                        icon={<Trash2 className="w-4 h-4" />}
+                        intent="destructive"
+                        onClick={() => handleDeleteResource(pool.name)}
+                        aria-label="Delete"
+                        title="Delete"
+                      />
                     </div>
                   </div>
                 </div>

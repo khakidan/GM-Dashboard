@@ -4,6 +4,7 @@ import { useEncounterLogs } from './hooks/useEncounterLogs';
 import { EncounterLog } from '../../lib/combatLog';
 import { EncounterLogDetails } from './EncounterLogDetails';
 import { DialogShell } from '../ui/DialogShell';
+import { IconButton } from '../ui/IconButton';
 
 
 interface EncounterLogModalProps {
@@ -156,13 +157,13 @@ export function EncounterLogModal({ encounterId, encounterName, isOpen, onClose 
                       >
                         {log.outcome}
                       </span>
-                      <button
+                      <IconButton
+                        icon={<Trash2 className="w-4 h-4" />}
+                        intent="destructive"
                         onClick={(e) => handleDelete(e, log.id)}
-                        className="text-[#8d8db9] hover:text-red-600 hover:bg-red-50 rounded-lg p-1.5 transition-colors cursor-pointer"
+                        aria-label="Delete Log"
                         title="Delete Log"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      />
                     </div>
                   </div>
 

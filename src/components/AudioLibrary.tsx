@@ -6,6 +6,7 @@ import { StoredAudioFile } from '../lib/audioFileStore';
 import { STORAGE_KEYS, TIMERS, MOODS, MoodId, campaignKey } from '../lib/constants';
 import { SoundboardSlot } from './Soundboard';
 import { cn } from '../lib/utils';
+import { IconButton } from './ui/IconButton';
 
 interface AudioLibraryProps {
   storedFiles: StoredAudioFile[];
@@ -331,13 +332,13 @@ export function AudioLibrary({
           <p className="text-[9.5px] font-mono text-stone-400 mt-0.5 whitespace-nowrap text-right min-w-[40px]">
             {(file.blob.size / 1024).toFixed(1)} KB
           </p>
-          <button
+          <IconButton
+            icon={<Trash2 className="w-3.5 h-3.5" />}
+            intent="destructive"
             onClick={() => handleRemoveFile(file.id)}
-            className="p-1 px-1.5 hover:bg-red-50 text-stone-400 hover:text-red-655 rounded-md transition-colors"
+            aria-label="Delete File"
             title="Delete File"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-          </button>
+          />
         </div>
       </div>
     );
@@ -350,14 +351,14 @@ export function AudioLibrary({
       {/* Import Instructions Box */}
       {!instructionsDismissed && (
         <div id="library-import-instructions" className="relative p-3 bg-[#f9f8ff] border border-[#e2e8f0] rounded-xl mb-4 font-sans text-xs text-stone-700/90 leading-normal pr-8">
-          <button
-            id="dismiss-instructions-btn"
+          <IconButton
+            icon={<X className="w-4 h-4" />}
             onClick={handleDismissInstructions}
-            className="absolute top-2.5 right-2 text-stone-400 hover:text-stone-700 transition-colors p-1"
+            aria-label="Dismiss Instructions"
             title="Dismiss Instructions"
-          >
-            <X className="w-4 h-4" />
-          </button>
+            id="dismiss-instructions-btn"
+            className="absolute top-2.5 right-2"
+          />
           <p className="font-semibold text-[#0f172a] mb-1 flex items-center gap-1">
             <HelpCircle className="w-3.5 h-3.5 text-[#2563eb]" />
             Audio Import Guidelines
@@ -505,7 +506,7 @@ export function AudioLibrary({
           {!showResetMoodsConfirm ? (
             <button
               onClick={() => setShowResetMoodsConfirm(true)}
-              className="text-[10px] uppercase tracking-wider font-bold text-stone-400 hover:text-red-550 transition-colors font-sans"
+              className="text-[10px] uppercase tracking-wider font-bold text-stone-400 hover:text-red-600 transition-colors font-sans"
             >
               Reset mood assignments
             </button>

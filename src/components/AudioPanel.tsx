@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ChevronDown, ChevronUp, Music, Volume2, HardDrive, Play, HelpCircle, X } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { IconButton } from './ui/IconButton';
 import { StoredAudioFile } from '../lib/audioFileStore';
 import { AmbientPlayer } from './AmbientPlayer';
 import { Soundboard } from './Soundboard';
@@ -128,14 +129,13 @@ export function AudioPanel({
               <h2 className="text-xl font-bold font-serif text-[#0f172a] flex items-center gap-2">
                 <span role="img" aria-label="music">🎵</span> Audio
               </h2>
-              <button
+              <IconButton
+                icon={<X className="w-5 h-5" />}
                 onClick={onClose}
-                  className="p-1.5 rounded-full text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors"
-                  title="Close (Esc)"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
+                aria-label="Close"
+                title="Close (Esc)"
+              />
+            </div>
 
               {/* Inner Tab switching bar */}
               <div className="flex border-b border-stone-200 bg-[#f9f8ff]/40 px-5 pt-1.5 shrink-0 select-none gap-2" id="audio-panel-tabs">

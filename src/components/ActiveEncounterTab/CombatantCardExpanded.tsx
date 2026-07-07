@@ -7,6 +7,7 @@ import { CombatantRechargeTracker } from './CombatantRechargeTracker';
 import { CombatantLegendaryTracker } from './CombatantLegendaryTracker';
 import { ResourcePoolsSection } from '../ui/ResourcePoolsSection';
 import { StatBlock } from '../ui/StatBlock';
+import { StatTile } from '../ui/StatTile';
 import { parseAbilityScores, parseProficiencies } from '../../lib/abilityScores';
 import { getEffectiveResistances } from '../../lib/combatLogic';
 import { useCombatantExpanded } from './hooks/useCombatantExpanded';
@@ -91,8 +92,7 @@ export function CombatantCardExpanded({
 
         {/* Right column: HP stats */}
         <div className="w-[40%] flex flex-col gap-3">
-          <div className="bg-[#f9f8ff]/80 p-3 rounded-xl border border-[#e2e8f0] text-center flex-1 flex flex-col justify-center">
-            <span className="text-xs font-bold uppercase tracking-widest text-[#8d8db9] block mb-1">Temp HP</span>
+          <StatTile label="Temp HP">
             <input
               type="number"
               value={c.tempHp || ''}
@@ -101,9 +101,8 @@ export function CombatantCardExpanded({
               disabled={isSyncing}
               className="w-full bg-transparent text-center font-bold text-blue-600 outline-none text-base disabled:opacity-50"
             />
-          </div>
-          <div className="bg-[#f9f8ff]/80 p-3 rounded-xl border border-[#e2e8f0] text-center flex-1 flex flex-col justify-center">
-            <span className="text-xs font-bold uppercase tracking-widest text-[#8d8db9] block mb-1">Max HP</span>
+          </StatTile>
+          <StatTile label="Max HP">
             {c.tempHpMax && c.tempHpMax > 0 ? (
               <span 
                 className="font-bold text-base text-[#2563eb] cursor-help" 
@@ -114,7 +113,7 @@ export function CombatantCardExpanded({
             ) : (
               <span className="font-bold text-base text-[#0f172a]">{c.maxHp}</span>
             )}
-          </div>
+          </StatTile>
           {c.type === 'npc' && (c.currentHp < c.maxHp || (c.tempHp || 0) > 0) && (
             <button
               onClick={() => onUpdateCombatant({ currentHp: c.maxHp, tempHp: 0 })}
