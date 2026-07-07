@@ -10,6 +10,7 @@ import {
   getSkillBonus,
 } from '../../lib/abilityScores';
 import { formatBonus, abilitiesInOrder } from './StatBlockScores';
+import { IconButton } from './IconButton';
 
 export interface StatBlockSkillsProps {
   abilityScores: AbilityScores;
@@ -53,14 +54,12 @@ export const StatBlockSkills: React.FC<StatBlockSkillsProps> = ({
         <span className="text-xs font-semibold uppercase tracking-wide text-stone-600">
           Skills
         </span>
-        <button
-          type="button"
+        <IconButton
+          icon={skillsExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           onClick={() => setSkillsExpanded(!skillsExpanded)}
-          className="text-stone-500 hover:text-stone-700 p-0.5 transition-colors outline-none cursor-pointer"
           id="skills-expand-btn"
-        >
-          {skillsExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-        </button>
+          aria-label={skillsExpanded ? "Collapse skills" : "Expand skills"}
+        />
       </div>
 
       {/* COLLAPSED View */}
