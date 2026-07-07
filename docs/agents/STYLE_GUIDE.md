@@ -21,28 +21,40 @@ All content cards (character cards, NPC cards, combatant cards) share this patte
 ---
 ## Modal Dialogs
 
+All modal dialogs should use the shared `DialogShell.tsx` component (`src/components/ui/DialogShell.tsx`) rather than hand-rolling backdrop/panel markup — it's the single source of truth for this pattern, adopted across all 12 dialogs in the app. What follows documents `DialogShell`'s actual current styling; treat the component itself as authoritative if this ever drifts.
+
 ### Backdrop
 
-`bg-[#0f172a]/60 backdrop-blur-sm`
+`bg-[#0f172a]/60 backdrop-blur-sm`. Dismissible on click by default; pass `dismissOnBackdropClick={false}` for dialogs where accidental dismissal risks data loss (e.g. `NewPlayerDialog.tsx`).
 
 ### Panel
 
 - **Background:** `bg-white`
 - **Border:** `border border-[#e2e8f0]`
 - **Radius:** `rounded-2xl`
-- **Max width:** `max-w-2xl` (standard), `max-w-lg` (simple confirmation)
+- **Shadow:** `shadow-2xl`
+- **Max width:** passed per-dialog via the required `maxWidth` prop (`max-w-lg` for simple confirmations, up to `max-w-2xl` for larger forms)
+- **z-index:** defaults to `z-50`; override via the `zIndex` prop (a full Tailwind class string, e.g. `"z-[110]"`) for dialogs that need to stack above other combat UI
 
 ### Header Bar
 
-- **Background:** `bg-[#2563eb]`
-- **Text:** `text-white font-bold`
-- **Radius:** `rounded-t-2xl` (top only)
-- **Close (×):** `text-[#c0d4ff] hover:text-white`
+- **Background:** `bg-[#0f172a]` (dark navy) — **this is the standard for every dialog**, not `bg-[#2563eb]` (blue). Two dialogs (`EncounterLogModal.tsx`, `ReferenceDetailDialog.tsx`) originally used a blue header as a distinct "informational modal" style; this was deliberately normalized away during consolidation. Do not reintroduce a blue header for a new dialog.
+- **Title:** `text-white font-serif tracking-widest text-sm uppercase`, via the `title` prop
+- **Subtitle (optional):** `text-xs text-[#e2e8f0]/60`, via the `subtitle` prop — a second line under the title (e.g. character name + level)
+- **Icon (optional):** passed via the `icon` prop, rendered to the left of the title
+- **Subheader (optional):** passed via the `subheader` prop — a full-bleed slot rendered directly below the header, unwrapped and unpadded, for content like a tab navigation bar (`NewPlayerDialog.tsx`, `AddCombatantDialog.tsx`)
+- **Close button:** use `IconButton` with `onDark` (see Buttons section below) — not a hand-rolled `<button>`. `DialogShell` already renders this internally when `title`/`icon` is present.
 
-### Footer
+### Body
 
-- **Background:** `bg-white`
-- **Border top:** `border-t border-[#f9f8ff]`
+`flex-1 p-6` — the `children` prop renders here. Content needing its own scroll should cap itself at something like `max-h-[70vh] overflow-y-auto` rather than relying on the panel itself to scroll.
+
+### Footer (optional)
+
+- **Background:** `bg-[#ffffff]`
+- **Border top:** `border-t border-[#e2e8f0]` (not `border-[#f9f8ff]`)
+- **Padding:** `px-6 py-4`
+- Passed via the `footer` prop. **Important:** if the dialog's primary action is a native form submit (`type="submit"` inside a `<form>`), do not put the submit button in `footer` — it renders as a DOM sibling of `children`, which breaks native form submission (including Enter-to-submit). Either keep the whole `<form>` (fields + buttons) inside `children`, or use the button's `form="id"` HTML attribute to associate it with a form living in `children` while the button itself stays in `footer` (see `NewPlayerDialog.tsx` for a working example of the latter).
 
 ---
 ## Command Palette
@@ -149,28 +161,43 @@ so the existing value is selected on focus, allowing the user to type immediatel
 ---
 ## Buttons
 
-### Primary (submit / confirm)
+Use the shared `Button.tsx` component (`src/components/ui/Button.tsx`) for all text/icon+text buttons, and `IconButton.tsx` (`src/components/ui/IconButton.tsx`) for all icon-only buttons — do not hand-roll `<button>` markup for either case. These are two separate components, not one: icon-only buttons have a materially different prop shape (no text `children`, a mandatory `aria-label`, square-aspect sizing), not just a different color.
 
-**Enabled**
+### `Button.tsx`
 
-`bg-[#2563eb] text-white font-bold uppercase tracking-widest text-xs rounded-xl px-4 py-2 hover:bg-[#567eff] transition-colors`
+**Props:** `intent?: 'primary' | 'secondary' | 'tertiary' | 'destructive'` (default `'primary'`), `size?: 'large' | 'small'` (default `'small'`), plus standard button attributes. Leading icons are composed via `children` (e.g. `<Button intent="primary"><Heart className="w-4 h-4" />Apply</Button>`), not a dedicated icon prop.
 
-**Disabled**
+**Shared base (all intents):** `font-bold uppercase tracking-widest text-xs rounded-xl transition-all disabled:cursor-not-allowed` plus a universal press animation — `motion-safe:active:scale-95 disabled:active:scale-100` (this requires `transition-all`, not `transition-colors`, or the scale change won't animate).
 
-`bg-[#c0d4ff] text-white cursor-not-allowed rounded-xl px-4 py-2 opacity-60`
+**Size:**
+- `small`: `px-4 py-2`
+- `large`: `px-6 py-3 flex-1 justify-center` (note: `flex-1` only does anything inside a flex parent — if the button sits alone in a non-flex wrapper, also pass `className="w-full"` to preserve full-width appearance)
 
-### Secondary (cancel / back)
+**Intent — primary** (submit / confirm):
+`bg-[#2563eb] text-white hover:bg-[#567eff] disabled:bg-[#e2e8f0] disabled:text-[#8d8db9] disabled:opacity-60 shadow-sm`
 
-`text-[#8d8db9] border border-[#e2e8f0] rounded-xl px-3 py-1.5 text-xs hover:border-[#2563eb] hover:text-[#2563eb] transition-colors`
+**Intent — secondary** (cancel / back):
+`bg-[#e2e8f0] hover:bg-[#cbd5e1] text-[#0f172a] disabled:opacity-60`
+This is a solid gray fill, not a bordered/transparent style — an earlier bordered-transparent variant and a separate tan-hover (`#d4cfc1`, a parchment-theme leftover) variant were both normalized into this single style.
 
-### Destructive (delete / remove)
+**Intent — tertiary** (plain text-link style, e.g. wizard Previous/Next):
+`text-sm text-stone-500 hover:text-stone-700 px-2 py-1 transition-colors` — deliberately opts out of the shared bold/uppercase/tracking-widest typography and the `size` prop's padding (neither `large` nor `small` padding fits this style; it has its own fixed `px-2 py-1`).
 
-`bg-red-50 text-red-600 border border-red-100 rounded-xl uppercase text-xs font-bold px-3 py-2 hover:bg-red-100 transition-colors`
+**Intent — destructive** (delete / remove):
+`bg-red-50 hover:bg-red-100 text-red-600 border border-red-100 disabled:opacity-60` — uses the same shared typography/sizing as `primary`/`secondary` (no opt-out, unlike `tertiary`).
 
-### Icon-only
+### `IconButton.tsx`
 
-`text-[#8d8db9] hover:text-[#2563eb] hover:bg-[#f9f8ff] rounded-lg p-1.5 transition-colors`
+**Props:** `icon: React.ReactNode` (required), `intent?: 'neutral' | 'destructive'` (default `'neutral'`), `onDark?: boolean` (default `false`), `aria-label` (**required**, not optional — there's no visible text for screen readers to fall back on).
 
+**Shared base:** `p-2 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed`. Always `rounded-full`, never `rounded-lg`. Every combination uses a hover-*fill* (background-color change), not a color-only ghost hover — ghost-style hover is what `Button`'s `tertiary` intent is for; icon buttons should always show a background on hover.
+
+- **neutral, light background** (default — used on white/light card backgrounds): `text-stone-400 hover:text-stone-700 hover:bg-stone-100`
+- **neutral, `onDark`** (used inside `DialogShell`'s navy header, e.g. the close button): `text-white/50 hover:text-white hover:bg-white/10`
+- **destructive, light background**: `text-stone-400 hover:text-red-600 hover:bg-red-50`
+- **destructive, `onDark`**: `text-red-300 hover:text-red-100 hover:bg-red-500/20` — no real instance of this combination exists in the app yet; treat this specific one as an unvalidated placeholder if you're the first to use it.
+
+---
 ## Tabs
 
 - **Tab bar:** `border-b border-[#e2e8f0]`
@@ -203,31 +230,32 @@ Used in `EncounterLogModal` to switch between views.
 - **Divider:** `border-t border-[#567eff]`
 
 ---
-## Stat Block (Ability Score Boxes)
+## Stat Block (Ability Scores, AC/HP/CR, etc.)
+
+Use the shared `StatTile.tsx` component (`src/components/ui/StatTile.tsx`) for this pattern — a pure shell that doesn't own input behavior. It renders the box/label/optional-modifier chrome; the value itself (static text, or an editable `CardNumberInput`/`DebouncedInput`/`AbilityScoreInput`) is passed in as `children`.
+
+**Props:** `label: string`, `children: React.ReactNode` (the value), `modifier?: number` (optional third row, only rendered when provided), `size?: 'default' | 'compact'` (default `'default'`), `className?: string`.
 
 ### Box
 
-`bg-[#f9f8ff] border border-[#e2e8f0] rounded-lg p-2 text-center`
+`bg-white border border-[#e2e8f0] rounded-xl text-center`, plus size-driven padding: `p-3` for `size="default"` (AC, Max HP, HP, CR), `p-2` for `size="compact"` (ability scores, where 6 need to fit one row).
 
 ### Label
 
-`text-[#8d8db9] text-[10px] uppercase tracking-wider font-medium`
+`text-[10px] font-bold uppercase tracking-widest text-[#8d8db9] mb-1`
 
 ### Score
 
-`text-[#0f172a] text-2xl font-bold`
+Whatever's passed as `children` — typically `text-lg font-bold text-[#0f172a]` for a static value, or the same styling applied to an editable input's own `className`.
 
-### Modifier (+)
+### Modifier (only rendered when the `modifier` prop is provided)
 
-`text-[#2563eb] text-sm font-medium`
+Base: `text-xs font-medium mt-1`, plus color:
+- **Positive:** `text-[#2563eb]`
+- **Zero:** `text-[#8d8db9]`
+- **Negative:** `text-red-600`
 
-### Modifier (0)
-
-`text-[#8d8db9] text-sm font-medium`
-
-### Modifier (-)
-
-`text-red-600 text-sm font-medium`
+Formatting (the `+N` / `N` / `−N` string) is handled by `formatBonus`, exported from `StatBlockScores.tsx` — reuse it rather than reimplementing the sign/formatting logic.
 
 ---
 ## Badges and Pills
@@ -308,7 +336,8 @@ For sub-sections or detailed context inside modals (e.g. **"At Higher Levels"**)
 ## Adding New UI Elements
 
 Before styling any new component:
-1. Check this file for the closest matching pattern
-2. Use only the approved palette above
-3. Verify contrast ratio if placing text on a non-white background
+1. **Check whether a shared component already exists first** — `DialogShell.tsx` (modals), `Button.tsx`/`IconButton.tsx` (buttons), `StatTile.tsx` (label/value/modifier boxes), `DebouncedInput.tsx`/`DebouncedTextarea.tsx`/`CardNumberInput.tsx` (inputs). Use the existing component rather than hand-rolling matching markup, even if it looks like a one-off.
+2. If no shared component fits, check this file for the closest matching pattern
+3. Use only the approved palette above
+4. Verify contrast ratio if placing text on a non-white background
 4. Run `npx tsc -p tsconfig.build.json --noEmit` after any changes
