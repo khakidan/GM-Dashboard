@@ -4,6 +4,7 @@ import { Eye, RefreshCcw, Zap, Swords, HelpCircle } from 'lucide-react';
 import { Encounter, DamageType } from '../../types';
 import { cn } from '../../lib/utils';
 import { MultiTargetActionPanel } from './MultiTargetActionPanel';
+import { ToggleBadge } from '../ui/ToggleBadge';
 
 interface CombatHeaderProps {
   encounter?: Encounter;
@@ -82,14 +83,12 @@ export function CombatHeader({
         {/* Row 2: Buttons row */}
         <div className="flex flex-row items-center flex-wrap gap-2 justify-center w-full">
           {/* SELECT BUTTON */}
-          <button
+          <ToggleBadge
+            active={isMultiTargetMode}
+            activeColor="amber"
+            inactiveColor="gray"
             onClick={onToggleMultiTargetMode}
-            className={cn(
-              "flex items-center gap-2 px-4 py-1.5 text-xs font-sans font-bold uppercase rounded-full transition-all cursor-pointer",
-              isMultiTargetMode 
-                ? "bg-amber-400 text-amber-950 border border-[#2563eb] shadow-sm" 
-                : "bg-white border border-[#e2e8f0] hover:bg-[#e2e8f0] text-[#8d8db9]"
-            )}
+            className="gap-2 px-4 py-1.5 text-xs font-sans h-8"
           >
             <Zap className={cn("w-3 h-3", isMultiTargetMode ? "fill-current" : "")} />
             <span>Select</span>
@@ -99,7 +98,7 @@ export function CombatHeader({
                 ? "bg-[#2563eb]/20 border-[#2563eb]/30" 
                 : "bg-stone-100 border-stone-200"
             )}>S</span>
-          </button>
+          </ToggleBadge>
 
           {/* TOOLS BUTTON */}
           <button

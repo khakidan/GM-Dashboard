@@ -14,6 +14,7 @@ import { DeathSaveTrackerDisplay } from './DeathSaveTrackerDisplay';
 import { useCombatantCard } from './hooks/useCombatantCard';
 import { ResourcePool } from '../../lib/resourcePools';
 import { Badge } from '../ui/Badge';
+import { ToggleBadge } from '../ui/ToggleBadge';
 
 const healthStatusMap: Record<string, 'emerald' | 'green' | 'yellow' | 'red' | 'gray'> = {
   Full: 'emerald',
@@ -194,15 +195,16 @@ export function CombatantCardHeader({
           <div className="flex flex-wrap items-center gap-3">
             {/* Reaction toggle pill */}
             <div className="shrink-0 flex items-center" onClick={(e) => e.stopPropagation()}>
-              <button
+              <ToggleBadge
                 id={`reaction-toggle-${c.id}`}
+                active={!c.reactionUsed}
+                activeColor="emerald"
+                inactiveColor="gray"
                 onClick={() => onUpdateCombatant({ reactionUsed: !c.reactionUsed })}
                 disabled={isSyncing}
                 className={cn(
-                  "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border font-sans cursor-pointer transition-all select-none whitespace-nowrap h-6",
-                  c.reactionUsed
-                    ? "bg-gray-100 border-gray-300 text-gray-400 line-through opacity-70"
-                    : "bg-emerald-50 border-emerald-300 text-emerald-700"
+                  "text-[10px] whitespace-nowrap h-6 gap-1",
+                  c.reactionUsed && "line-through opacity-70"
                 )}
               >
                 {c.reactionUsed ? (
@@ -216,7 +218,7 @@ export function CombatantCardHeader({
                     <span>REACTION</span>
                   </>
                 )}
-              </button>
+              </ToggleBadge>
             </div>
 
             {/* CombatantCompactIndicators */}

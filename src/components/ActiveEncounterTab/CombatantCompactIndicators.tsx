@@ -2,6 +2,7 @@ import React from 'react';
 import { Zap, Shield } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { Combatant } from '../../types';
+import { ToggleBadge } from '../ui/ToggleBadge';
 
 interface CombatantCompactIndicatorsProps {
   type: 'pc' | 'npc';
@@ -115,25 +116,25 @@ export const CombatantCompactIndicators = ({
       {c.rechargeAbilities && c.rechargeAbilities.map((ability) => {
         const truncated = ability.name.length <= 12 ? ability.name : ability.name.slice(0, 12) + '...';
         return (
-          <button
+          <ToggleBadge
             key={ability.name}
             data-testid={`recharge-indicator-${ability.name.toLowerCase().replace(/\s+/g, '-')}`}
+            active={ability.isCharged}
+            activeColor="emerald"
+            inactiveColor="red"
+            size="compact"
             onClick={(e) => {
               e.stopPropagation();
               if (ability.isCharged && onMarkSpent) {
                 onMarkSpent(ability.name);
               }
             }}
-            className={cn(
-              "inline-flex items-center gap-1 px-1.5 py-[2px] rounded-full border select-none shrink-0 font-sans font-bold text-[9px] uppercase tracking-wide transition-all outline-none focus:outline-none",
-              ability.isCharged
-                ? "bg-emerald-50 border-emerald-200 text-emerald-700 cursor-pointer hover:bg-emerald-100"
-                : "bg-red-50 border-red-200 text-red-700 cursor-default"
-            )}
+            disabled={!ability.isCharged}
+            className="gap-1 font-sans text-[9px] tracking-wide"
           >
             <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", ability.isCharged ? "bg-emerald-500" : "bg-red-400")} />
             <span>{truncated}</span>
-          </button>
+          </ToggleBadge>
         );
       })}
     </div>
