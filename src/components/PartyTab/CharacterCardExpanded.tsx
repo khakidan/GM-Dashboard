@@ -1,5 +1,5 @@
 import React from 'react';
-import { X } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { Character } from '../../types';
 import { cn } from '../../lib/utils';
 import { DebouncedInput } from '../ui/DebouncedInput';
@@ -279,7 +279,7 @@ export const CharacterCardExpanded: React.FC<CharacterCardExpandedProps> = ({
 
       <div className="pt-4">
         <Button intent="destructive" size="large" onClick={onDelete} disabled={isSyncing} className="w-full flex items-center justify-center gap-2">
-          <X className="w-4 h-4" />
+          <Trash2 className="w-4 h-4" />
           Delete Player
         </Button>
       </div>

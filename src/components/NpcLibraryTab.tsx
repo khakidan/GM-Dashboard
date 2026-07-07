@@ -169,7 +169,7 @@ export function NpcLibraryTab() {
               </button>
             </div>
           ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="flex flex-col gap-4">
             {filteredNpcs.map(npc => (
               <NpcCard
                 key={npc.id}
