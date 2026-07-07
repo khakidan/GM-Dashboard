@@ -3,6 +3,15 @@ import { ChevronDown, Loader2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { cn } from '../../lib/utils';
 import { DebouncedInput } from '../ui/DebouncedInput';
+import { Badge } from '../ui/Badge';
+
+const healthStatusMap: Record<string, 'emerald' | 'green' | 'yellow' | 'red' | 'gray'> = {
+  Full: 'emerald',
+  Defeated: 'red',
+  Healthy: 'green',
+  Injured: 'yellow',
+  Bloodied: 'red',
+};
 
 export interface CharacterCardHeaderProps {
   characterName: string;
@@ -68,28 +77,29 @@ export const CharacterCardHeader: React.FC<CharacterCardHeaderProps> = ({
 
         <div className="flex items-center gap-4">
           <div className="relative shrink-0 flex items-center">
-            <select
-              value={statusId}
-              onChange={(e) => {
-                const id = parseInt(e.target.value, 10);
-                let statusName = "Unknown";
-                if (id === 1) statusName = "Active";
-                if (id === 2) statusName = "Absent";
-                if (id === 3) statusName = "Dead";
-                onStatusChange(id, statusName);
-              }}
-              disabled={isSyncing}
-              className={cn(
-                "text-xs uppercase tracking-widest font-bold pl-3 pr-8 py-1.5 rounded-full border transition-colors outline-none cursor-pointer appearance-none disabled:opacity-50",
-                statusId === 1 ? "bg-green-50 text-green-700 border-green-100" : 
-                statusId === 3 ? "bg-red-50 text-red-700 border-red-100" :
-                "bg-gray-50 text-gray-500 border-gray-100"
-              )}
+            <Badge
+              color={statusId === 1 ? 'green' : statusId === 3 ? 'red' : 'gray'}
+              size="default"
+              className="p-0 flex items-center"
             >
-              <option value={1}>Active</option>
-              <option value={2}>Absent</option>
-              <option value={3}>Dead</option>
-            </select>
+              <select
+                value={statusId}
+                onChange={(e) => {
+                  const id = parseInt(e.target.value, 10);
+                  let statusName = "Unknown";
+                  if (id === 1) statusName = "Active";
+                  if (id === 2) statusName = "Absent";
+                  if (id === 3) statusName = "Dead";
+                  onStatusChange(id, statusName);
+                }}
+                disabled={isSyncing}
+                className="text-xs uppercase tracking-widest font-bold pl-3 pr-8 py-1.5 bg-transparent border-none outline-none cursor-pointer appearance-none disabled:opacity-50 text-inherit"
+              >
+                <option value={1}>Active</option>
+                <option value={2}>Absent</option>
+                <option value={3}>Dead</option>
+              </select>
+            </Badge>
             <div className="absolute right-2.5 pointer-events-none text-xs font-bold opacity-40">
               <ChevronDown className="w-3 h-3" />
             </div>
@@ -102,17 +112,13 @@ export const CharacterCardHeader: React.FC<CharacterCardHeaderProps> = ({
                   {conditions}
                 </div>
               )}
-              <div className={cn(
-                "hidden sm:flex items-center px-2 py-0.5 rounded-full font-sans text-xs font-bold uppercase tracking-wider border",
-                healthStatus.color,
-                healthStatus.label === 'Full' ? 'bg-emerald-50 border-emerald-200' :
-                healthStatus.label === 'Healthy' ? 'bg-green-50 border-green-200' :
-                healthStatus.label === 'Injured' ? 'bg-yellow-50 border-yellow-200' :
-                healthStatus.label === 'Bloodied' ? 'bg-red-50 border-red-200' :
-                'bg-gray-100 border-gray-200'
-              )}>
+              <Badge
+                color={healthStatusMap[healthStatus.label] || 'gray'}
+                size="default"
+                className="hidden sm:flex items-center"
+              >
                 {healthStatus.label}
-              </div>
+              </Badge>
               {statGrid}
             </div>
           )}

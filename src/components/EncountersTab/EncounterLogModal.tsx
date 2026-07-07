@@ -5,6 +5,7 @@ import { EncounterLog } from '../../lib/combatLog';
 import { EncounterLogDetails } from './EncounterLogDetails';
 import { DialogShell } from '../ui/DialogShell';
 import { IconButton } from '../ui/IconButton';
+import { Badge } from '../ui/Badge';
 
 
 interface EncounterLogModalProps {
@@ -47,20 +48,6 @@ export function EncounterLogModal({ encounterId, encounterName, isOpen, onClose 
       if (expandedLogId === logId) {
         setExpandedLogId(null);
       }
-    }
-  };
-
-  const getOutcomeBadgeClass = (outcome: string) => {
-    switch (outcome) {
-      case 'Victory':
-        return 'bg-green-50 text-green-700 border border-green-200';
-      case 'Defeat':
-        return 'bg-red-50 text-red-600 border border-red-100';
-      case 'Abandoned':
-      case 'Incomplete':
-        return 'bg-[#f9f8ff] text-[#8d8db9] border border-[#e2e8f0]';
-      default:
-        return 'bg-[#f9f8ff] text-[#8d8db9] border border-[#e2e8f0]';
     }
   };
 
@@ -150,13 +137,12 @@ export function EncounterLogModal({ encounterId, encounterName, isOpen, onClose 
                       <span className="text-xs text-[#8d8db9]">
                         {log.durationRounds} {log.durationRounds === 1 ? 'Round' : 'Rounds'}
                       </span>
-                      <span
-                        className={`text-xs font-bold uppercase tracking-wider rounded-full px-2.5 py-1 border ${getOutcomeBadgeClass(
-                          log.outcome
-                        )}`}
+                      <Badge
+                        color={log.outcome === 'Victory' ? 'green' : log.outcome === 'Defeat' ? 'red' : 'gray'}
+                        size="default"
                       >
                         {log.outcome}
-                      </span>
+                      </Badge>
                       <IconButton
                         icon={<Trash2 className="w-4 h-4" />}
                         intent="destructive"

@@ -13,6 +13,15 @@ import { CombatantCardBadges } from './CombatantCardBadges';
 import { DeathSaveTrackerDisplay } from './DeathSaveTrackerDisplay';
 import { useCombatantCard } from './hooks/useCombatantCard';
 import { ResourcePool } from '../../lib/resourcePools';
+import { Badge } from '../ui/Badge';
+
+const healthStatusMap: Record<string, 'emerald' | 'green' | 'yellow' | 'red' | 'gray'> = {
+  Full: 'emerald',
+  Defeated: 'red',
+  Healthy: 'green',
+  Injured: 'yellow',
+  Bloodied: 'red',
+};
 
 export interface CombatantCardHeaderProps {
   c: Combatant;
@@ -108,9 +117,9 @@ export function CombatantCardHeader({
                 )}
               </h3>
               {c.conditions?.toLowerCase().includes('concentrating') && (
-                <span className="ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded border bg-purple-100 text-purple-700 border-purple-200 shrink-0">
+                <Badge color="purple" size="compact" className="ml-2 shrink-0">
                   CON
-                </span>
+                </Badge>
               )}
               <DeathSaveTrackerDisplay
                 deathSavesFails={c.deathSavesFails || 0}
@@ -225,14 +234,18 @@ export function CombatantCardHeader({
             <CombatantCardBadges conditions={c.conditions || ''} combatant={c} />
 
             {/* Health-status label */}
-            {c.currentHp < maxHpCeiling && c.currentHp > 0 && (
-              <span className={cn(
-                "text-xs font-bold px-2 py-0.5 rounded-full border border-current bg-white/50 shrink-0",
-                getHealthStatus(c.currentHp, maxHpCeiling).color
-              )}>
-                {getHealthStatus(c.currentHp, maxHpCeiling).label}
-              </span>
-            )}
+            {c.currentHp < maxHpCeiling && c.currentHp > 0 && (() => {
+              const hs = getHealthStatus(c.currentHp, maxHpCeiling);
+              return (
+                <Badge
+                  color={healthStatusMap[hs.label] || 'gray'}
+                  size="default"
+                  className="bg-white/50 shrink-0 border-current"
+                >
+                  {hs.label}
+                </Badge>
+              );
+            })()}
           </div>
         </div>
       </div>

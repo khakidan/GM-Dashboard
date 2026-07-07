@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'motion/react';
 import { DebouncedInput } from '../ui/DebouncedInput';
 import { EncounterLogModal } from './EncounterLogModal';
+import { Badge } from '../ui/Badge';
 
 export interface EncounterCardProps {
   enc: Encounter;
@@ -137,26 +138,31 @@ export const EncounterCard: React.FC<EncounterCardProps> = ({
         {/* Difficulty Select */}
         <div className="w-full md:w-36 border-t border-[#e2e8f0] pt-4 md:pt-0 md:border-t-0 md:border-l md:pl-4">
           <div className="text-[10px] uppercase text-[#8d8db9] font-bold tracking-widest mb-1 md:hidden">Difficulty</div>
-          <select 
-            value={difficultyId}
-            onChange={e => {
-              const val = parseInt(e.target.value);
-              setDifficultyId(val);
-              handleUpdate(val);
-            }}
-            disabled={isUpdating || isDeleting}
-            className={cn(
-              "w-full text-[10px] uppercase tracking-widest font-bold px-3 py-1.5 rounded-full border transition-all outline-none cursor-pointer appearance-none text-center",
-              difficultyId === 4 ? "bg-purple-50 text-purple-700 border-purple-200" :
-              difficultyId === 3 ? "bg-red-50 text-red-700 border-red-200" :
-              difficultyId === 2 ? "bg-orange-50 text-orange-700 border-orange-200" :
-              "bg-green-50 text-green-700 border-green-200"
-            )}
+          <Badge
+            color={
+              difficultyId === 4 ? 'purple' :
+              difficultyId === 3 ? 'red' :
+              difficultyId === 2 ? 'orange' :
+              'green'
+            }
+            size="default"
+            className="p-0 flex items-center w-full"
           >
-            {Object.entries(difficulties).map(([id, nm]) => (
-              <option key={id} value={id}>{nm}</option>
-            ))}
-          </select>
+            <select 
+              value={difficultyId}
+              onChange={e => {
+                const val = parseInt(e.target.value);
+                setDifficultyId(val);
+                handleUpdate(val);
+              }}
+              disabled={isUpdating || isDeleting}
+              className="w-full text-[10px] uppercase tracking-widest font-bold px-3 py-1.5 bg-transparent border-none outline-none cursor-pointer appearance-none text-center text-inherit disabled:opacity-50"
+            >
+              {Object.entries(difficulties).map(([id, nm]) => (
+                <option key={id} value={id}>{nm}</option>
+              ))}
+            </select>
+          </Badge>
         </div>
 
         {/* NPC Count */}
