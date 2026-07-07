@@ -355,3 +355,15 @@ Second consolidation round's sixth built component (see `ROADMAP.md` for the rem
 **Adopted in 2 locations**: `NpcLibraryTab.tsx` (a close-to-1:1 swap — this file's existing search box was the reference `SearchInput`'s design was based on) and `AddCombatantDialog.tsx` (a real improvement, not just a swap — this instance previously had **no focus styling and no icon at all**, unlike every other input in the app; it now correctly gains both via `DebouncedInput`'s own `compact` base styling). Both preserve their exact original state variables (`searchQuery`/`setSearchQuery`, `npcSearch`/`setNpcSearch`) unchanged.
 
 Verified: TypeScript clean, Batch 6C (5 files/13 tests) and Batch 5B (11 files/26 tests) both matching established baselines with real raw output, all diffs, prop wiring, and the specific Tailwind-merge padding claim checked directly against real files.
+
+---
+
+## Accordion "Pattern C" — IconButton Adoption (Completed)
+
+A small follow-up from the `Accordion` verification pass, not a new component — `CharacterCardHeader.tsx`'s and `NpcCardHeader.tsx`'s icon-only rotating-chevron card-expand buttons were confirmed to just need the already-existing `IconButton`, unmodified.
+
+Two real things found and fixed along the way, not just a mechanical swap: **neither original button had any `aria-label` at all** (both now have one, a genuine accessibility fix), and the two instances used two different, mismatched hover backgrounds (`#f9f8ff` vs. `#e2e8f0`) — normalized to `IconButton`'s own default (`stone-100`), by explicit decision. The distinctive `opacity-30 hover:opacity-100` fade treatment (shared identically by both instances, unlike the hover-bg mismatch) was deliberately preserved via `className`, not treated as drift — it reads as an intentional "stay quiet until hovered" choice for icons living inside a busier card header.
+
+Verified: TypeScript clean, `IconButton.tsx` confirmed to need zero changes (its `icon` prop already accepts arbitrary `React.ReactNode`, including a `motion.div`-wrapped icon), both files' `import`/usage/`aria-label`/hover-removal/opacity-preservation checked directly against real files. Batch 6A and Batch 6C both reported passing, though only as summary counts this time, not raw output — accepted given the small, low-risk, individually-verified nature of the change.
+
+**This also closes out both patterns found during the `Accordion` verification pass.** Pattern B (`NpcReferencePanel.tsx`'s "▼/▶ Stat Block" button, `StatBlockSkills.tsx`'s icon-only chevron) remains open — see `ROADMAP.md`.
