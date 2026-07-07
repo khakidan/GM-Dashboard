@@ -40,6 +40,9 @@ export function PartyTab() {
     } else if (appState.openDialog === 'shortRest') {
       setIsShortRestOpen(true);
       updateState(prev => ({ ...prev, openDialog: null }));
+    } else if (appState.openDialog === 'longRest') {
+      setIsLongRestOpen(true);
+      updateState(prev => ({ ...prev, openDialog: null }));
     }
   }, [appState.openDialog, updateState]);
 

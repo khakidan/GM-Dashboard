@@ -85,21 +85,21 @@
 }
 
 /* General button hovers: Active elements get modern high-depth blue hover backgrounds with clean white typography */
-[data-theme='sleek-modern'] button:not(#condition-chips-dropdown button):not(.text-stone-400):not(.opacity-70):not(#sidebar-menu button):not(#user-profile-btn):hover,
-[data-theme='sleek-modern'] [role='button']:not(#condition-chips-dropdown button):not(.text-stone-400):not(.opacity-70):not(#sidebar-menu button):not(#user-profile-btn):hover {
+[data-theme='sleek-modern'] button:not(#condition-chips-dropdown button):not(.text-stone-400):not(.opacity-70):not(#sidebar-menu button):not(#user-profile-btn):not(.no-blue-hover):hover,
+[data-theme='sleek-modern'] [role='button']:not(#condition-chips-dropdown button):not(.text-stone-400):not(.opacity-70):not(#sidebar-menu button):not(#user-profile-btn):not(.no-blue-hover):hover {
   background-color: #1d4ed8 !important; /* High-quality hover depth blue */
   color: #ffffff !important;
   transform: translateY(-0.5px);
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12) !important;
 }
 
-[data-theme='sleek-modern'] button:not(#condition-chips-dropdown button):not(.text-stone-400):not(.opacity-70):not(#sidebar-menu button):not(#user-profile-btn):hover *,
-[data-theme='sleek-modern'] [role='button']:not(#condition-chips-dropdown button):not(.text-stone-400):not(.opacity-70):not(#sidebar-menu button):not(#user-profile-btn):hover * {
+[data-theme='sleek-modern'] button:not(#condition-chips-dropdown button):not(.text-stone-400):not(.opacity-70):not(#sidebar-menu button):not(#user-profile-btn):not(.no-blue-hover):hover *,
+[data-theme='sleek-modern'] [role='button']:not(#condition-chips-dropdown button):not(.text-stone-400):not(.opacity-70):not(#sidebar-menu button):not(#user-profile-btn):not(.no-blue-hover):hover * {
   color: #ffffff !important;
 }
 
-[data-theme='sleek-modern'] button:not(#condition-chips-dropdown button):not(.text-stone-400):not(.opacity-70):not(#sidebar-menu button):not(#user-profile-btn):hover svg,
-[data-theme='sleek-modern'] [role='button']:not(#condition-chips-dropdown button):not(.text-stone-400):not(.opacity-70):not(#sidebar-menu button):not(#user-profile-btn):hover svg {
+[data-theme='sleek-modern'] button:not(#condition-chips-dropdown button):not(.text-stone-400):not(.opacity-70):not(#sidebar-menu button):not(#user-profile-btn):not(.no-blue-hover):hover svg,
+[data-theme='sleek-modern'] [role='button']:not(#condition-chips-dropdown button):not(.text-stone-400):not(.opacity-70):not(#sidebar-menu button):not(#user-profile-btn):not(.no-blue-hover):hover svg {
   color: #ffffff !important;
   stroke: currentColor !important;
 }

@@ -4,14 +4,9 @@ import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { CommandPalette } from '../CommandPalette';
 import { useAppState } from '../../hooks/useAppState';
-import { useParty } from '../PartyTab/hooks/useParty';
 
 vi.mock('../../hooks/useAppState', () => ({
   useAppState: vi.fn(),
-}));
-
-vi.mock('../PartyTab/hooks/useParty', () => ({
-  useParty: vi.fn(),
 }));
 
 describe('CommandPalette', () => {
@@ -79,10 +74,6 @@ describe('CommandPalette', () => {
       } as any,
       updateState: vi.fn(),
     } as any);
-
-    vi.mocked(useParty).mockReturnValue({
-      handleLongRest: vi.fn(),
-    } as any);
   });
 
   afterEach(() => {
@@ -116,13 +107,8 @@ describe('CommandPalette', () => {
     ).toBeInTheDocument();
   });
 
-  it('long rest command calls handleLongRest with active character ids', async () => {
-    const handleLongRestMock = vi.fn().mockResolvedValue(undefined);
-
-    // Mock useParty to return our spy
-    vi.mocked(useParty).mockReturnValue({
-      handleLongRest: handleLongRestMock,
-    } as any);
+  it('long rest command opens longRest dialog', async () => {
+    const updateStateMock = vi.fn();
 
     // Mock useAppState with active and inactive characters
     vi.mocked(useAppState).mockReturnValue({
@@ -142,11 +128,8 @@ describe('CommandPalette', () => {
         conditions: [],
         spells: [],
       } as any,
-      updateState: vi.fn(),
+      updateState: updateStateMock,
     } as any);
-
-    // Mock window.confirm to return true
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
 
     render(<CommandPalette {...defaultProps} />);
 
@@ -154,8 +137,11 @@ describe('CommandPalette', () => {
     const longRestItem = screen.getByText('Long Rest');
     fireEvent.click(longRestItem);
 
-    // Assert handleLongRest was called with only the active character IDs
-    expect(handleLongRestMock).toHaveBeenCalledWith(['char-1', 'char-3']);
+    // Assert updateState was called with the openDialog action
+    expect(updateStateMock).toHaveBeenCalled();
+    const updateFn = updateStateMock.mock.calls[0][0];
+    const prevMockState = { openDialog: null };
+    expect(updateFn(prevMockState)).toEqual({ openDialog: 'longRest' });
   });
 
   it('typing 2+ characters shows matching condition in search results', () => {

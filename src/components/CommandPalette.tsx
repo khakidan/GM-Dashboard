@@ -20,7 +20,6 @@ import {
   Sparkles,
   Music
 } from 'lucide-react';
-import { useParty } from './PartyTab/hooks/useParty';
 import { useDeathEvent, useDamageEvent, useHealEvent, useInitiativeEvent } from '../hooks/useOverlayEvents';
 import { StoredAudioFile } from '../lib/audioFileStore';
 import { cn } from '../lib/utils';
@@ -55,7 +54,6 @@ export function CommandPalette({
 }: CommandPaletteProps) {
   const { state, updateState } = useAppState();
   const { conditions, spells } = state;
-  const { handleLongRest: triggerLongRest } = useParty();
   const { fire: fireDeathEvent } = useDeathEvent();
   const { fire: fireDamageEvent } = useDamageEvent();
   const { fire: fireHealEvent } = useHealEvent();
@@ -106,12 +104,6 @@ export function CommandPalette({
     toast('Heal animation triggered — check the Player View.', {
       duration: 3000,
     });
-  };
-
-  const handleLongRest = async () => {
-    if (!confirm("Are you sure you want the party to take a long rest? This will reset all Current HP to Max HP and clear all Temp HP.")) return;
-    const activeCharIds = state.characters.filter(c => c.isActive).map(c => c.id);
-    await triggerLongRest(activeCharIds);
   };
 
   if (!isOpen && !selectedReference) return null;
@@ -372,7 +364,8 @@ export function CommandPalette({
                   <Command.Item
                     id="cmd-long-rest"
                     onSelect={() => {
-                      handleLongRest();
+                      window.dispatchEvent(new CustomEvent('gm-change-tab', { detail: 'party' }));
+                      updateState(prev => ({ ...prev, openDialog: 'longRest' }));
                       onClose();
                     }}
                     className={COMMAND_ITEM_CLASS}

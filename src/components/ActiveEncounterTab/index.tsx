@@ -198,7 +198,7 @@ export function ActiveEncounterTab({ onBack }: { onBack: () => void }) {
               ) : (
                 state.combatState.combatants.map(c => {
                   const pcCharacter = c.type === 'pc' && c.characterId ? state.characters.find(char => char.id === c.characterId) : undefined;
-                  const npcModel = c.type === 'npc' ? state.npcs.find(n => c.id.startsWith(`combat-npc-${n.id}-`)) : undefined;
+                  const npcModel = c.type === 'npc' ? state.npcs.find(n => n.id === c.npcId) : undefined;
                   return (
                     <CombatantCard
                       key={c.id}

@@ -118,7 +118,7 @@ export function EncounterLogModal({ encounterId, encounterName, isOpen, onClose 
                         toggleExpand(log.id);
                       }
                     }}
-                    className="w-full flex items-center justify-between p-4 bg-[#f9f8ff]/50 hover:bg-[#f9f8ff] transition-colors text-left cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[#2563eb] focus-visible:ring-inset"
+                    className="w-full flex items-center justify-between p-4 bg-[#f9f8ff]/50 hover:bg-[#f9f8ff] transition-colors text-left cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[#2563eb] focus-visible:ring-inset no-blue-hover"
                   >
                     <div className="flex items-center gap-4">
                       {isExpanded ? (
