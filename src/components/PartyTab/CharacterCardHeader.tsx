@@ -4,6 +4,7 @@ import { motion } from 'motion/react';
 import { cn } from '../../lib/utils';
 import { DebouncedInput } from '../ui/DebouncedInput';
 import { Badge } from '../ui/Badge';
+import { IconButton } from '../ui/IconButton';
 
 const healthStatusMap: Record<string, 'emerald' | 'green' | 'yellow' | 'red' | 'gray'> = {
   Full: 'emerald',
@@ -138,14 +139,16 @@ export const CharacterCardHeader: React.FC<CharacterCardHeaderProps> = ({
             Level Up
           </button>
         )}
-        <button 
+        <IconButton
+          icon={
+            <motion.div animate={{ rotate: isExpanded ? 180 : 0 }}>
+              <ChevronDown className="w-5 h-5" />
+            </motion.div>
+          }
           onClick={onToggleExpand}
-          className="p-2 text-[#8d8db9] opacity-30 hover:opacity-100 hover:bg-[#f9f8ff] rounded-full transition-all"
-        >
-          <motion.div animate={{ rotate: isExpanded ? 180 : 0 }}>
-            <ChevronDown className="w-5 h-5" />
-          </motion.div>
-        </button>
+          aria-label={isExpanded ? "Collapse character card" : "Expand character card"}
+          className="opacity-30 hover:opacity-100"
+        />
       </div>
     </div>
   );

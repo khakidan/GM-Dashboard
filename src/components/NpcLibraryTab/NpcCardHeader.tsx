@@ -2,6 +2,7 @@ import React from 'react';
 import { Heart, Shield, ChevronDown } from 'lucide-react';
 import { motion } from 'motion/react';
 import { DebouncedInput } from '../ui/DebouncedInput';
+import { IconButton } from '../ui/IconButton';
 
 export interface NpcCardHeaderProps {
   name: string;
@@ -50,14 +51,16 @@ export const NpcCardHeader: React.FC<NpcCardHeaderProps> = ({
       </div>
 
       <div className="flex items-center gap-2 shrink-0 border-l border-[#e2e8f0] pl-3">
-        <button
+        <IconButton
+          icon={
+            <motion.div animate={{ rotate: isExpanded ? 180 : 0 }}>
+              <ChevronDown className="w-5 h-5" />
+            </motion.div>
+          }
           onClick={onToggleExpand}
-          className="p-2 text-[#8d8db9] opacity-30 hover:opacity-100 hover:bg-[#e2e8f0] rounded-full transition-all"
-        >
-          <motion.div animate={{ rotate: isExpanded ? 180 : 0 }}>
-            <ChevronDown className="w-5 h-5" />
-          </motion.div>
-        </button>
+          aria-label={isExpanded ? "Collapse NPC card" : "Expand NPC card"}
+          className="opacity-30 hover:opacity-100"
+        />
       </div>
     </div>
   );
