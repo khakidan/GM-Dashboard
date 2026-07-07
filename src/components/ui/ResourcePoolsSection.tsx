@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Plus, Minus, Trash2, Edit2, Save, X, RotateCcw } from 'lucide-react';
 import { Character } from '../../types';
 import { cn } from '../../lib/utils';
+import { PipTracker } from './PipTracker';
 import {
   parseResourcePools,
   serializeResourcePools,
@@ -340,37 +341,21 @@ export const ResourcePoolsSection: React.FC<ResourcePoolsSectionProps> = ({
                       </div>
 
                       {/* Dot Pips Visual list */}
-                      <div className="flex flex-wrap items-center gap-1 max-w-[50%]">
-                        {Array.from({ length: pool.max }).map((_, pipIdx) => {
-                          const isActive = pipIdx < pool.current;
-                          return (
-                            <button
-                              key={pipIdx}
-                              onClick={() => {
-                                // Toggles state up to this pip
-                                const nextCurrent = pipIdx + 1;
-                                if (pool.current === nextCurrent) {
-                                  // toggle this single pip off (means count decreases by 1)
-                                  savePools(spendResourcePip(pools, pool.name, 1));
-                                } else if (pool.current > nextCurrent) {
-                                  // count reduces to nextCurrent
-                                  savePools(spendResourcePip(pools, pool.name, pool.current - nextCurrent));
-                                } else {
-                                  // count increases to nextCurrent
-                                  savePools(recoverResourcePip(pools, pool.name, nextCurrent - pool.current));
-                                }
-                              }}
-                              className={cn(
-                                "w-3 h-3 rounded-full transition-all cursor-pointer",
-                                isActive
-                                  ? "bg-[#2563eb] border border-[#567eff] hover:bg-[#567eff]"
-                                  : "bg-gray-100 border border-gray-300 hover:bg-gray-200"
-                              )}
-                              title={isActive ? "Spent/Pip Active" : "Empty Pip"}
-                            />
-                          );
-                        })}
-                      </div>
+                      <PipTracker
+                        max={pool.max}
+                        remaining={pool.current}
+                        onChange={(newValue) => {
+                          if (newValue > pool.current) {
+                            savePools(recoverResourcePip(pools, pool.name, newValue - pool.current));
+                          } else {
+                            savePools(spendResourcePip(pools, pool.name, pool.current - newValue));
+                          }
+                        }}
+                        color="blue"
+                        size="default"
+                        label={pool.name}
+                        className="max-w-[50%] flex-wrap"
+                      />
                     </div>
                   </div>
                 )}
