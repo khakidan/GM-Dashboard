@@ -6,12 +6,14 @@ import { Combatant } from '../../types';
 interface CombatantCompactIndicatorsProps {
   type: 'pc' | 'npc';
   c: Combatant;
+  onUpdateCombatant: (updates: Partial<Combatant>) => void;
   onMarkSpent?: (abilityName: string) => void;
 }
 
 export const CombatantCompactIndicators = ({
   type,
   c,
+  onUpdateCombatant,
   onMarkSpent,
 }: CombatantCompactIndicatorsProps) => {
   if (type !== 'npc') return null;
@@ -30,14 +32,39 @@ export const CombatantCompactIndicators = ({
           className={cn(
             "inline-flex items-center gap-1 px-1.5 py-[2px] rounded-full border select-none shrink-0",
             c.legendaryActions.remaining === c.legendaryActions.max
-              ? "bg-[#f9f8ff] border-amber-300 text-[#567eff] font-sans font-bold text-[9px] uppercase tracking-wide"
+              ? "bg-[#f9f8ff] border-amber-300 text-[#567eff]"
               : c.legendaryActions.remaining > 0
-              ? "bg-[#f9f8ff] border-amber-200 text-[#2563eb] font-sans font-bold text-[9px] uppercase tracking-wide"
-              : "bg-gray-100 border-gray-200 text-gray-400 font-sans font-bold text-[9px] uppercase tracking-wide"
+              ? "bg-[#f9f8ff] border-amber-200 text-[#2563eb]"
+              : "bg-gray-100 border-gray-200 text-gray-400"
           )}
         >
           <Zap className="w-3 h-3 fill-current" />
-          <span>{c.legendaryActions.remaining}/{c.legendaryActions.max}</span>
+          <div className="flex items-center gap-1 ml-0.5">
+            {Array.from({ length: c.legendaryActions.max }).map((_, i) => {
+              const isFilled = i < c.legendaryActions!.remaining;
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const newValue = isFilled ? i : i + 1;
+                    onUpdateCombatant({
+                      legendaryActions: {
+                        ...c.legendaryActions!,
+                        remaining: newValue,
+                      },
+                    });
+                  }}
+                  className={cn(
+                    "w-1.5 h-1.5 rounded-full transition-all focus:outline-none cursor-pointer",
+                    isFilled ? "bg-current" : "bg-current/25 hover:bg-current/40"
+                  )}
+                  aria-label={`Legendary Action ${i + 1}`}
+                />
+              );
+            })}
+          </div>
         </div>
       )}
 
@@ -48,14 +75,39 @@ export const CombatantCompactIndicators = ({
           className={cn(
             "inline-flex items-center gap-1 px-1.5 py-[2px] rounded-full border select-none shrink-0",
             c.legendaryResistances.remaining === c.legendaryResistances.max
-              ? "bg-blue-50 border-blue-300 text-blue-700 font-sans font-bold text-[9px] uppercase tracking-wide"
+              ? "bg-blue-50 border-blue-300 text-blue-700"
               : c.legendaryResistances.remaining > 0
-              ? "bg-blue-50 border-blue-200 text-blue-500 font-sans font-bold text-[9px] uppercase tracking-wide"
-              : "bg-gray-100 border-gray-200 text-gray-400 font-sans font-bold text-[9px] uppercase tracking-wide"
+              ? "bg-blue-50 border-blue-200 text-blue-500"
+              : "bg-gray-100 border-gray-200 text-gray-400"
           )}
         >
           <Shield className="w-3 h-3" />
-          <span>{c.legendaryResistances.remaining}/{c.legendaryResistances.max}</span>
+          <div className="flex items-center gap-1 ml-0.5">
+            {Array.from({ length: c.legendaryResistances.max }).map((_, i) => {
+              const isFilled = i < c.legendaryResistances!.remaining;
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const newValue = isFilled ? i : i + 1;
+                    onUpdateCombatant({
+                      legendaryResistances: {
+                        ...c.legendaryResistances!,
+                        remaining: newValue,
+                      },
+                    });
+                  }}
+                  className={cn(
+                    "w-1.5 h-1.5 rounded-full transition-all focus:outline-none cursor-pointer",
+                    isFilled ? "bg-current" : "bg-current/25 hover:bg-current/40"
+                  )}
+                  aria-label={`Legendary Resistance ${i + 1}`}
+                />
+              );
+            })}
+          </div>
         </div>
       )}
 

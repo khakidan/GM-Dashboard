@@ -48,7 +48,7 @@ export function CombatantCardBadges({
           {mechanicalSummary.finalOutgoing === 'disadvantage' && <span className="bg-yellow-100 text-yellow-700 border border-yellow-200 px-1.5 py-[2px] rounded-full font-sans text-[9px] font-bold uppercase tracking-wide">DISADV</span>}
           {mechanicalSummary.finalOutgoing === 'advantage' && <span className="bg-green-100 text-green-700 border border-green-200 px-1.5 py-[2px] rounded-full font-sans text-[9px] font-bold uppercase tracking-wide">ADVAN</span>}
           {mechanicalSummary.finalOutgoing === 'normal' && <span className="bg-gray-100 text-gray-500 border border-gray-200 px-1.5 py-[2px] rounded-full font-sans text-[9px] font-bold uppercase tracking-wide">CANCELLED</span>}
-          {mechanicalSummary.finalIncoming === 'advantage' && <span className="bg-purple-100 text-purple-700 border border-purple-200 px-1.5 py-[2px] rounded-full font-sans text-[9px] font-bold uppercase tracking-wide">VULN</span>}
+          {mechanicalSummary.finalIncoming === 'advantage' && <div className="w-2 h-2 rounded-full bg-purple-500" title="Attacks against this creature have advantage" />}
           {isCritVulnerable && <span className="bg-red-100 text-red-700 border border-red-200 px-1.5 py-[2px] rounded-full font-sans text-[9px] font-bold uppercase tracking-wide">AUTO CRIT</span>}
         </div>
       )}

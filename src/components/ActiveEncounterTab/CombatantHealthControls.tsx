@@ -86,7 +86,7 @@ export const CombatantHealthControls = ({
               setSelectedDamageType(null);
             }}
             disabled={isSyncing}
-            className="px-2 h-8 leading-none bg-red-55 text-red-700 hover:bg-red-100 border border-red-100 rounded-md text-xs font-bold uppercase disabled:opacity-50 cursor-pointer"
+            className="px-2 h-8 leading-none bg-red-50 text-red-700 hover:bg-red-100 border border-red-100 rounded-md text-xs font-bold uppercase disabled:opacity-50 cursor-pointer"
             title="Damage"
           >
             DMG
