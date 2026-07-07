@@ -246,6 +246,27 @@ Original `dbOperations.test.ts` deleted. Verified: TypeScript clean (exit code 0
 
 ---
 
+## Active Encounter Combatant Row Redesign (Completed)
+
+GM-reported UX problem: the collapsed combatant row in `ActiveEncounterTab` (`CombatantCardHeader.tsx`) had grown to pack up to ~17 distinct pieces of information/controls into one dense line with no visual hierarchy — identity, vitals, action economy, and condition-derived badges all competing at the same weight. A busy NPC (multiple legendary actions/resistances, recharge abilities, several active conditions) made this especially unreadable. Goal: keep everything visible at a glance (no more expanding every turn than necessary), but organize it so the GM can actually scan it quickly — plus make Legendary Actions/Resistances directly clickable, which they weren't before.
+
+**Design process**: two interactive mockups were built and iterated with the user via the Visualizer tool before any code was written. First pass proposed two directions (a two-row "vitals + status" split, and a maximally-compact single-row icon rail); the user picked the two-row option. Second pass corrected a real gap in that mockup — it had over-simplified the DMG/HEAL controls down to one input each and dropped the NPC `Stat Block` toggle row and the PC resource-pool (`Ki Points`) row entirely — before the user gave final approval. A static reference image of the approved design was also rendered (via `wkhtmltoimage`) for the user to attach alongside the implementation prompt.
+
+**Final structure, implemented across 4 files**:
+- **Row 1 (vitals, full visual weight, unchanged sizing)**: selection checkbox, INIT, name block (name + dead-NPC skull + `CON` concentration badge + `DeathSaveTrackerDisplay` — kept here deliberately since dying/concentration state is urgent, not secondary) on the left; AC badge, current HP, the full `CombatantHealthControls` (both DMG and HEAL as two genuinely separate input+button clusters, unchanged internally), and the expand chevron on the right.
+- **Row 2 (status, new, quieter, `border-t` divider)**: Reaction toggle + `CombatantCompactIndicators` (Legendary Actions/Resistances, now clickable dot trackers; recharge ability pills, unchanged) on the left; `CombatantCardBadges` (mechanical condition badges + the corrected `VULN` dot) + the health-status label (moved here from Row 1) on the right.
+- `CombatantCompactResourceRow` (`Ki Points`-style rows) and the NPC `Stat Block` toggle (`NpcReferencePanel`, rendered by the parent `CombatantCard.tsx`, not by the header itself) were both confirmed to already render below the whole header block and were left completely untouched — no functional change needed there, just confirmed they'd stay in place under the new two-row header.
+
+**Legendary Actions/Resistances made clickable — a real feature gap, not just styling**: both were previously pure display `<div>`s with no `onClick` at all. `CombatantCard.tsx` already had `handleSpendAction`/`handleRestoreActions`/`handleSpendResistance`/`handleRestoreResistances`, but those were only wired to the full expanded view. Rather than reuse those simpler (decrement-by-one / restore-to-max-only) handlers for the new header dot-trackers, new logic was built directly against the already-available `onUpdateCombatant` prop, supporting the more granular approved-mockup behavior: click any filled dot at index `i` to spend down to exactly `i`; click any empty dot at index `i` to restore up to exactly `i + 1`. This is deliberately independent of `CombatantCard.tsx`'s existing handlers, which remain untouched and still serve the expanded view's own `+`/`-` controls.
+
+**Two small bugs fixed along the way, unrelated to the redesign itself**:
+- `CombatantCardBadges.tsx`'s `VULN` badge was genuinely mislabeled — it means "attacks against this creature have advantage," not damage-type vulnerability (a different, already-tracked D&D concept). Replaced the text badge with an unlabeled dot + accurate tooltip, matching the existing condition/effect dot styling in the same file.
+- `CombatantHealthControls.tsx`'s DMG button had `bg-red-55` — not a real Tailwind class, silently rendering no background at all. Fixed to `bg-red-50`, matching its own hover state and the HEAL button's equivalent.
+
+Verified: TypeScript clean, Batch 5A (7 files/45 tests) and Batch 5B (11 files/26 tests) both matching established baselines exactly, all diffs verified directly against the real files.
+
+---
+
 ## Post-Refactor Bug Sweep (Completed)
 
 A round of ad-hoc GM-reported bugs found while using the app after the Button/StatTile consolidation and the NPC Template/Combat-Instance architecture fix. Six issues, most cosmetic but two turned out to be genuine, previously-undiscovered logic bugs surfaced by (but not necessarily caused by) the surrounding refactor work.
