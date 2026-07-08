@@ -503,3 +503,17 @@ Second entry from the "Component Consolidation Candidates" list, built with the 
 **A real, live TV-readability question surfaced and resolved correctly during `PlayerView.tsx`'s adoption**: `EmptyState`'s fixed sizing happened to be slightly *larger* than that page's own small `text-xs` empty-state labels, so this specific adoption was a genuine, checked improvement, not a regression — but this was confirmed with real numbers, not assumed safe by default. `ROADMAP.md`'s `PlayerView.tsx` tracker was updated with this concrete comparison, since the *rest* of that page (the combatant table's genuinely large `text-xl`/`text-2xl` text) is not automatically safe against future component adoptions using their normal GM-dashboard-scale defaults.
 
 Verified: TypeScript clean across all 4 stages, Batch 6A (9 files/46 tests), Batch 6B (5 files/20 tests), Batch 6C (5 files/13 tests), and Batch 7B-2 (4 files/4 tests) all matching established baselines with real raw output, every diff checked directly against the real files.
+
+---
+
+## Two Small Fixes Found While Scoping `CardHeader`/`ExpandableContent` (Completed)
+
+Found during a direct verification pass across all four cards' header/expand-content structure, before any design work on the next two pieces of the card componentization effort began — same discipline as everywhere else.
+
+**`CombatantCardHeader.tsx`'s expand/collapse chevron never got the `IconButton` treatment** — a leftover gap from the earlier "Pattern C" fix (`CharacterCardHeader.tsx`/`NpcCardHeader.tsx`'s rotating chevrons), which never touched this file. Same shape as that fix exactly: `IconButton` adopted, old `hover:bg-[#f9f8ff]` dropped in favor of the default neutral hover, the deliberate `opacity-40`/`hover:opacity-100` fade preserved via `className`, and a real accessibility fix — this button had no `aria-label` at all before.
+
+**`EncounterCard.tsx` had an unused `ChevronDown` import** — dead code, confirmed via direct search to have zero usages anywhere in the file, consistent with this card genuinely having no expand/collapse mechanism at all (already known from the `CardShell` work).
+
+**A significant finding from this same verification pass, directly relevant to scoping the next two pieces**: `EncounterCard.tsx` is confirmed to lack the "collapsed header + expandable content" structure entirely — no separate header file (its header is inline), no chevron, no `AnimatePresence`. `CardHeader`/`ExpandableContent` will exclude it entirely, the same way `Soundboard.tsx` was excluded from `EmptyState` — these two components will only apply to `CombatantCard`/`NpcCard`/`CharacterCard`. Also confirmed: `CombatantCardHeader.tsx`'s name is deliberately non-editable (plain `<h3>{name}</h3>`, unlike the other two's `DebouncedInput`) — you don't rename a combatant mid-fight — a real, intentional difference to design around, not something to normalize away.
+
+Verified: TypeScript clean, Batch 5B (11 files/26 tests) and Batch 6B (5 files/20 tests) both matching established baselines with real raw output, both diffs checked directly against the real files.
