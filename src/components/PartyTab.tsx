@@ -1,6 +1,7 @@
 import React from 'react';
 import { Coffee, Loader2, Users, Plus, Moon, Heart } from 'lucide-react';
 import { Callout } from './ui/Callout';
+import { EmptyState } from './ui/EmptyState';
 import { useAppState } from '../hooks/useAppState';
 import { useParty } from './PartyTab/hooks/useParty';
 import { CharacterCard } from './PartyTab/CharacterCard';
@@ -95,21 +96,15 @@ export function PartyTab() {
         )}
 
         {state.characters.length === 0 ? (
-        <div className="bg-white border border-[#e2e8f0] rounded-2xl py-16 px-6 text-center shadow-sm flex flex-col items-center">
-          <Users className="w-12 h-12 text-[#8d8db9] opacity-20 mb-4" />
-          <h3 className="text-lg font-serif font-bold text-[#0f172a] mb-2">No characters found</h3>
-          <p className="text-sm text-[#8d8db9] max-w-sm mx-auto mb-6">
-            Your party roster is empty. Add players to track their health, conditions, and active status during encounters.
-          </p>
-          <button
-            onClick={() => setIsNewPlayerDialogOpen(true)}
-            disabled={isAddingPlayer}
-            className="flex items-center justify-center gap-2 bg-[#2563eb] hover:bg-[#567eff] text-white px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#2563eb] shadow-sm disabled:opacity-50"
-          >
-             {isAddingPlayer ? "Adding Player..." : "+ Add First Player"}
-          </button>
-        </div>
-      ) : (
+          <EmptyState
+            icon={Users}
+            title="No characters found"
+            description="Your party roster is empty. Add players to track their health, conditions, and active status during encounters."
+            actionLabel={isAddingPlayer ? "Adding Player..." : "+ Add First Player"}
+            onAction={() => setIsNewPlayerDialogOpen(true)}
+            actionDisabled={isAddingPlayer}
+          />
+        ) : (
         <div className="grid grid-cols-1 gap-6">
           {state.characters.map(char => (
             <CharacterCard 
