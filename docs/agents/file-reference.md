@@ -9,7 +9,7 @@ Referenced from the root [AGENTS.md](../../AGENTS.md). File-by-file inventory of
 ## src/lib/
 
 - `constants.ts` — `OVERLAY_DURATIONS`, `ANIMATION_TIMING`, `SHEET_RANGES`, `WRITE_QUEUE`, `STORAGE_KEYS`, `TIMERS`, `MOODS`, `AUDIO`, `campaignKey()` helper
-- `sheetSchemas.ts` — Zod validation for each sheet row. Defines defaults for every column. NPC schema covers 25 columns (0–24).
+- `sheetSchemas.ts` — Zod validation for each sheet row. Defines defaults for every column. NPC schema covers 22 columns (0–21) — templates only, no mutable combat state (see `CHANGELOG.md`'s "NPC Template vs. Combat-Instance State Isolation" entry).
 - `sheetAdapters.ts` — Maps raw row arrays from the API into typed model objects.
 - `sheetSyncParser.ts` — Validates full campaign workbooks on initial sync. Includes `parseConditions` and `parseSpells` functions alongside `parseNPCs`.
 - `combatLogic.ts` — HP/damage/healing math, IRV application, health status calculation.
@@ -88,6 +88,10 @@ Shared test data factories used across many test files. These are not tests them
 - `GMDashboard.tsx` — Root shell. Calls `useAudioEngine(campaign.id)` and `useMoodPresets(campaign.id)` exactly once.
 - `GMDashboardSidebar.tsx` — Permanent icon sidebar with hover tooltips via `SidebarIcon`.
 - `GMTabContent.tsx` — Routes sidebar selection to `PartyTab`, `EncountersTab`, `NpcLibraryTab`, `ActiveEncounterTab`, and `SettingsPage`.
+- `PartyTab.tsx` — Top-level Party Roster tab. Renders the error banner (`Callout`, `severity="error"`) and the character card list.
+- `NpcLibraryTab.tsx` — Top-level NPC Library tab. Renders the search box (`SearchInput`), filter controls, the error banner (`Callout`, `severity="error"`), and the NPC card list (single-column, full-width — see `CHANGELOG.md`).
+- `EncountersTab.tsx` — Top-level Encounters tab. Renders the error banner (`Callout`, `severity="error"`) and the encounter card list.
+- `DiceRoller.tsx` — Floating dice-roller drawer. Parses dice notation (via `lib/diceRoller.ts`) and displays results. Uses `Accordion` for its expand/collapse drawer trigger. No dedicated test file exists for this component (confirmed directly — see `CHANGELOG.md`).
 - `EncounterLogModal.tsx` — Modal for browsing past encounter logs. Shows collapsible event view and raw transcript toggle.
 - `CampaignSelector.tsx` — Pre-dashboard launcher for campaign create/connect/switch.
 - `PlayerView.tsx` — Cross-tab broadcast view for a second monitor.
@@ -151,6 +155,8 @@ Shared test data factories used across many test files. These are not tests them
 - `NpcReferencePanel.tsx` — Collapsible NPC stat block reference displayed on NPC combatants during encounters. Manages its own expanded state. Hidden when the combatant has no stat block data. Toggle text is `"▶ Stat Block"` / `"▼ Stat Block"`. Displays CR, speed, senses, languages, and all four `NpcStatBlockSection` lists. Imports both `NpcStatBlockSection` and `formatActionMeta`.
 - `CombatMechanicsSummary.tsx` — Pure presentational component showing combat mechanics (speed restrictions, advantage/disadvantage, auto-fail warnings) from a `mechanicalSummary` object. No store access.
 - `CombatantIrvDisplay.tsx` — Read-only display for combatant resistances, immunities, and vulnerabilities.
+- `CombatantLegendaryTracker.tsx` — Full-width legendary action/resistance tracker for the expanded combatant card view. Distinct from the compact dot-pip version in `CombatantCompactIndicators.tsx` used in the collapsed row.
+- `CombatantRechargeTracker.tsx` — Full-width recharge ability tracker for the expanded combatant card view. Distinct from the compact pill version in `CombatantCompactIndicators.tsx` used in the collapsed row.
 - `hooks/useDeathSaves.ts` — Death saving throw state and stabilization logic.
 - `hooks/useCombatantExpanded.ts` — Encapsulates resource pool updates and condition-triggered resource depletion via `onConditionAdded`. Used by `CombatantCardExpanded`.
 - `hooks/useHealthChange.ts` — Damage/healing with IRV math. Fires `fireConcentrationAlert()` whenever a concentrating combatant takes damage.

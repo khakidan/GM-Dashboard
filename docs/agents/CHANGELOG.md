@@ -425,3 +425,17 @@ Added to both components: `Button.tsx` (spinner replaces `children`) and `IconBu
 Adopted in `EncounterCard.tsx`'s delete button, replacing its one-off implementation entirely; `isUpdating` remains a separate real `disabled` condition, `isDeleting` now maps to `loading`. A leftover unused `Loader2` import (no longer needed once `Button` owns spinner rendering internally) was caught and removed in a follow-up fix.
 
 Verified: TypeScript clean, Batch 6B (5 files/20 tests) matching the established baseline with real raw output, all diffs checked directly against real files.
+
+---
+
+## DebouncedInput `variant` Prop — Inline Edit Consistency (Completed)
+
+GM-reported inconsistency, found via screenshots: `CharacterCardHeader.tsx` (Party Roster), `NpcCardHeader.tsx` (NPC Library), and `EncounterCard.tsx` (Encounters) all used `DebouncedInput` for their inline-editable name fields, but two of the three (`NpcCardHeader.tsx`, `EncounterCard.tsx`) shared the exact same className that **actively suppressed** hover/focus feedback (`border-none focus:ring-0`) rather than just omitting it — a strong sign one instance was the intended reference and the other two never got the same treatment.
+
+**Why this got a new `variant` prop instead of just fixing the two broken instances' classNames directly**: the difference between a permanently-boxed input (a search bar, a stat field) and an inline title that only reveals its editability on hover/focus is a genuine, evidenced difference in UI purpose, not accidental drift — the same reasoning that justified every other multi-option prop this project (`Badge`'s sizes, `ToggleBadge`'s per-instance colors). Baking it into `DebouncedInput` itself, rather than leaving three separately-pasted classNames, guarantees this distinction going forward the same way every other shared component in this project guarantees its own consistency by construction.
+
+**`DebouncedInput.tsx`**: added `variant?: 'boxed' | 'inline'`, defaulting to `'boxed'` — this preserves every existing instance's current appearance exactly unchanged (`SearchInput.tsx`, any `StatTile`-wrapped fields), since `'boxed'` is just today's existing behavior, renamed. `'inline'` bakes in `CharacterCardHeader.tsx`'s reference treatment (`bg-transparent` until hover/focus, `hover:bg-[#f9f8ff]`, `focus:bg-white focus:border-[#2563eb] focus:ring-1`) and is orthogonal to the existing `size` axis — `size` no longer applies when `variant="inline"`, since inline has its own fixed padding.
+
+**Adopted in 2 locations**: `NpcCardHeader.tsx` and `EncounterCard.tsx`, both switched to `variant="inline"` with their classNames trimmed to just typography/layout (the box/hover/focus classes removed, since `DebouncedInput` now owns that). `CharacterCardHeader.tsx` needed no change — it was already the correct reference implementation.
+
+Verified: TypeScript clean, Batch 6B (5 files/20 tests) and Batch 6C (5 files/13 tests) both matching established baselines with real raw output, all diffs checked directly against real files, `SearchInput.tsx`'s continued `'boxed'` default behavior confirmed.

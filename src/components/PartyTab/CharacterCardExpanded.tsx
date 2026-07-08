@@ -8,10 +8,12 @@ import { DebouncedTextarea } from '../ui/DebouncedTextarea';
 import { CharacterResourceSection } from './CharacterResourceSection';
 import { IrvSection } from '../ui/IrvSection';
 import { ResourcePoolsSection } from '../ui/ResourcePoolsSection';
-import { getHitDiceStatus, getTotalHitDiceCount } from '../../lib/hitDice';
+import { getHitDiceStatus, getTotalHitDiceCount, parseHitDiceUsed, serializeHitDiceUsed } from '../../lib/hitDice';
 import { getResourceForEffect, parseResourcePools, spendResourcePip, serializeResourcePools } from '../../lib/resourcePools';
 import { toast } from 'sonner';
 import { StatBlock } from '../ui/StatBlock';
+import { StatTile } from '../ui/StatTile';
+import { PipTracker } from '../ui/PipTracker';
 import { parseAbilityScores, parseProficiencies, serializeAbilityScores, serializeProficiencies, proficiencyBonusFromLevel } from '../../lib/abilityScores';
 import { SpellcastingStatsRow } from '../ui/SpellcastingStatsRow';
 import { serializeSpellcastingAbility } from '../../lib/spellcasting';
@@ -59,8 +61,7 @@ export const CharacterCardExpanded: React.FC<CharacterCardExpandedProps> = ({
   return (
     <div className="p-6 flex flex-col font-sans gap-5 bg-white">
       <div className="grid grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4">
-        <div className="text-center p-3 bg-[#ffffff] border border-[#e2e8f0] rounded-xl shadow-sm">
-          <div className="text-[10px] font-bold uppercase tracking-widest text-[#8d8db9] mb-1">AC</div>
+        <StatTile label="AC">
           <CardNumberInput
             value={character.ac || 0}
             onChange={v => onUpdate({ ac: v })}
@@ -69,9 +70,8 @@ export const CharacterCardExpanded: React.FC<CharacterCardExpandedProps> = ({
             className="text-lg font-bold text-[#0f172a] w-full text-center bg-transparent border border-transparent outline-none focus:bg-white focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] rounded transition-all disabled:opacity-50"
             disabled={isSyncing}
           />
-        </div>
-        <div className="text-center p-3 bg-[#ffffff] border border-[#e2e8f0] rounded-xl shadow-sm">
-          <div className="text-[10px] font-bold uppercase tracking-widest text-[#8d8db9] mb-1">Max HP</div>
+        </StatTile>
+        <StatTile label="Max HP">
           <CardNumberInput
             value={character.maxHp || 0}
             onChange={v => onUpdate({ maxHp: v })}
@@ -84,9 +84,8 @@ export const CharacterCardExpanded: React.FC<CharacterCardExpandedProps> = ({
             title={character.tempHpMax && character.tempHpMax > 0 ? `Temp max (original: ${character.maxHp})` : undefined}
             disabled={isSyncing}
           />
-        </div>
-        <div className="text-center p-3 bg-[#ffffff] border border-[#e2e8f0] rounded-xl shadow-sm">
-          <div className="text-[10px] font-bold uppercase tracking-widest text-[#8d8db9] mb-1">HP</div>
+        </StatTile>
+        <StatTile label="HP">
           <CardNumberInput
             value={character.currentHp ?? 0}
             onChange={v => onUpdate({ currentHp: v })}
@@ -94,9 +93,8 @@ export const CharacterCardExpanded: React.FC<CharacterCardExpandedProps> = ({
             className="text-lg font-bold text-[#0f172a] w-full text-center bg-transparent border border-transparent outline-none focus:bg-white focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] rounded transition-all disabled:opacity-50"
             disabled={isSyncing}
           />
-        </div>
-        <div className="text-center p-3 bg-[#ffffff] border border-[#e2e8f0] rounded-xl shadow-sm">
-          <div className="text-[10px] font-bold uppercase tracking-widest text-[#8d8db9] mb-1">Temp</div>
+        </StatTile>
+        <StatTile label="Temp">
           <CardNumberInput
             value={character.tempHp ?? 0}
             onChange={v => onUpdate({ tempHp: v })}
@@ -105,9 +103,8 @@ export const CharacterCardExpanded: React.FC<CharacterCardExpandedProps> = ({
             className="text-lg font-bold text-[#0f172a] w-full text-center bg-transparent border border-transparent outline-none focus:bg-white focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] rounded transition-all disabled:opacity-50"
             disabled={isSyncing}
           />
-        </div>
-        <div className="text-center p-3 bg-[#ffffff] border border-[#e2e8f0] rounded-xl shadow-sm group/lvl">
-          <div className="text-[10px] font-bold uppercase tracking-widest text-[#8d8db9] mb-1">Level</div>
+        </StatTile>
+        <StatTile label="Level" className="group/lvl">
           <CardNumberInput
             value={character.level || 1}
             onChange={v => onUpdate({ level: v })}
@@ -118,7 +115,7 @@ export const CharacterCardExpanded: React.FC<CharacterCardExpandedProps> = ({
             className="text-lg font-bold text-[#0f172a] w-full text-center bg-transparent border border-transparent rounded hover:bg-white focus:bg-white focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] outline-none transition-colors disabled:opacity-50"
             disabled={isSyncing}
           />
-        </div>
+        </StatTile>
       </div>
 
       <StatBlock
@@ -202,15 +199,9 @@ export const CharacterCardExpanded: React.FC<CharacterCardExpandedProps> = ({
                   </p>
                 );
               }
-              return pools.map((pool, idx) => {
-                const dotsRemaining = Array.from({ length: pool.remaining }, (_, i) => (
-                  <span key={`rem-${idx}-${i}`} className="inline-block w-2.5 h-2.5 rounded-full bg-[#2563eb] border border-[#567eff]" title="Remaining" />
-                ));
-                const dotsSpent = Array.from({ length: pool.used }, (_, i) => (
-                  <span key={`spent-${idx}-${i}`} className="inline-block w-2.5 h-2.5 rounded-full bg-gray-100 border border-gray-300" title="Spent" />
-                ));
+              return pools.map((pool) => {
                 return (
-                  <div key={pool.die} className="flex items-center justify-between text-xs py-1 px-1 border-b border-[#ffffff]/50 last:border-b-0" id={`pool-display-d{pool.die}`}>
+                  <div key={pool.die} className="flex items-center justify-between text-xs py-1 px-1 border-b border-[#ffffff]/50 last:border-b-0" id={`pool-display-d${pool.die}`}>
                     <div className="flex items-center gap-2">
                       <span className="font-serif font-bold text-[#20201a] inline-block bg-[#f9f8ff] px-1.5 py-0.5 rounded text-[10px]">
                         d{pool.die}
@@ -220,10 +211,19 @@ export const CharacterCardExpanded: React.FC<CharacterCardExpandedProps> = ({
                       </span>
                     </div>
                     {/* Visual spent indicators */}
-                    <div className="flex items-center gap-1">
-                      {dotsRemaining}
-                      {dotsSpent}
-                    </div>
+                    <PipTracker
+                      max={pool.count}
+                      remaining={pool.remaining}
+                      onChange={(newValue) => {
+                        const used = parseHitDiceUsed(character.hitDiceUsed || '{}');
+                        const newUsed = pool.count - newValue;
+                        const updatedUsed = { ...used, [`d${pool.die}`]: Math.max(0, newUsed) };
+                        onUpdate({ hitDiceUsed: serializeHitDiceUsed(updatedUsed) });
+                      }}
+                      color="blue"
+                      size="compact"
+                      label={`d${pool.die} hit die`}
+                    />
                   </div>
                 );
               });
