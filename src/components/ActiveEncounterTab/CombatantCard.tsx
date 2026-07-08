@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
 import { Zap } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { toast } from 'sonner';
@@ -14,6 +13,7 @@ import { SpellcastingStatsRow } from '../ui/SpellcastingStatsRow';
 import { CardShell } from '../ui/CardShell';
 import { parseAbilityScores, parseProficiencies, proficiencyBonusFromLevel } from '../../lib/abilityScores';
 import { NpcReferencePanel } from './NpcReferencePanel';
+import { ExpandableContent } from '../ui/ExpandableContent';
 
 export interface CombatantCardProps {
   c: Combatant;
@@ -129,26 +129,16 @@ export function CombatantCard({
         </div>
       )}
 
-      <AnimatePresence>
-        {isExpanded && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="overflow-hidden bg-white"
-          >
-            <CombatantCardExpanded
-              c={c} isSyncing={isSyncing} currentRound={currentRound} onUpdateCombatant={onUpdateCombatant}
-              onRemoveCombatant={onRemoveCombatant} onConcentrationPrompt={onConcentrationPrompt}
-              recentRechargeRolls={recentRechargeRolls} onMarkSpent={handleMarkSpent} onRollRecharge={handleRechargeRoll}
-              onSpendAction={handleSpendAction} onSpendResistance={handleSpendResistance}
-              onRestoreActions={handleRestoreActions} onRestoreResistances={handleRestoreResistances}
-              pcCharacter={pcCharacter} npcModel={npcModel}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <ExpandableContent isExpanded={isExpanded}>
+        <CombatantCardExpanded
+          c={c} isSyncing={isSyncing} currentRound={currentRound} onUpdateCombatant={onUpdateCombatant}
+          onRemoveCombatant={onRemoveCombatant} onConcentrationPrompt={onConcentrationPrompt}
+          recentRechargeRolls={recentRechargeRolls} onMarkSpent={handleMarkSpent} onRollRecharge={handleRechargeRoll}
+          onSpendAction={handleSpendAction} onSpendResistance={handleSpendResistance}
+          onRestoreActions={handleRestoreActions} onRestoreResistances={handleRestoreResistances}
+          pcCharacter={pcCharacter} npcModel={npcModel}
+        />
+      </ExpandableContent>
     </CardShell>
   );
 }

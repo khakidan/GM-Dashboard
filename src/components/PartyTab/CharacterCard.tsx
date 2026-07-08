@@ -1,11 +1,11 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'motion/react';
 import { Character } from '../../types';
 import { cn } from '../../lib/utils';
 import { getHealthStatus, effectiveMaxHp, effectiveAc } from '../../lib/conditions';
 import { SpellcastingStatsRow } from '../ui/SpellcastingStatsRow';
 import { parseAbilityScores, parseProficiencies, proficiencyBonusFromLevel } from '../../lib/abilityScores';
 import { CardShell } from '../ui/CardShell';
+import { ExpandableContent } from '../ui/ExpandableContent';
 
 // Modular Sub-components
 import { CharacterCardHeader } from './CharacterCardHeader';
@@ -113,23 +113,14 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({
         </div>
       )}
 
-      <AnimatePresence>
-        {isExpanded && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden border-t border-[#e2e8f0] bg-white"
-          >
-            <CharacterCardExpanded
-              character={character}
-              isSyncing={isSyncing}
-              onUpdate={onUpdate}
-              onDelete={onDelete}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <ExpandableContent isExpanded={isExpanded}>
+        <CharacterCardExpanded
+          character={character}
+          isSyncing={isSyncing}
+          onUpdate={onUpdate}
+          onDelete={onDelete}
+        />
+      </ExpandableContent>
     </CardShell>
   );
 };

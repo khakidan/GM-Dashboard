@@ -1,10 +1,10 @@
 import React from 'react';
-import { ChevronDown, Loader2 } from 'lucide-react';
-import { motion } from 'motion/react';
+import { ChevronDown } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { DebouncedInput } from '../ui/DebouncedInput';
 import { Badge } from '../ui/Badge';
-import { IconButton } from '../ui/IconButton';
+import { Button } from '../ui/Button';
+import { CardHeaderChevron } from '../ui/CardHeaderChevron';
 
 const healthStatusMap: Record<string, 'emerald' | 'green' | 'yellow' | 'red' | 'gray'> = {
   Full: 'emerald',
@@ -126,30 +126,19 @@ export const CharacterCardHeader: React.FC<CharacterCardHeaderProps> = ({
         </div>
       </div>
 
-      <div className="flex items-center gap-2 shrink-0 border-l border-[#e2e8f0] pl-3">
-        {statusId === 1 && onLevelUpClick && (
-          <button
-            id={`lvl-btn-${characterId}`}
-            onClick={(e) => {
-              e.stopPropagation();
-              onLevelUpClick();
-            }}
-            className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider bg-[#2563eb]/10 text-[#8d8db9] hover:bg-[#2563eb] hover:text-white rounded-md transition-all cursor-pointer border border-[#2563eb]/20"
-          >
-            Level Up
-          </button>
-        )}
-        <IconButton
-          icon={
-            <motion.div animate={{ rotate: isExpanded ? 180 : 0 }}>
-              <ChevronDown className="w-5 h-5" />
-            </motion.div>
-          }
-          onClick={onToggleExpand}
-          aria-label={isExpanded ? "Collapse character card" : "Expand character card"}
-          className="opacity-30 hover:opacity-100"
-        />
-      </div>
+      {statusId === 1 && onLevelUpClick && (
+        <Button
+          id={`lvl-btn-${characterId}`}
+          intent="secondary"
+          onClick={(e) => {
+            e.stopPropagation();
+            onLevelUpClick();
+          }}
+        >
+          Level Up
+        </Button>
+      )}
+      <CardHeaderChevron isExpanded={isExpanded} onToggleExpand={onToggleExpand} label="character card" />
     </div>
   );
 };

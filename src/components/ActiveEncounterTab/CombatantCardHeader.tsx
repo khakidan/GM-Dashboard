@@ -1,4 +1,3 @@
-import { motion } from 'motion/react';
 import React from 'react';
 import { ChevronDown, Zap, ZapOff, Skull } from 'lucide-react';
 import { AnimatedHpDisplay } from './AnimatedHpDisplay';
@@ -15,7 +14,7 @@ import { useCombatantCard } from './hooks/useCombatantCard';
 import { ResourcePool } from '../../lib/resourcePools';
 import { Badge } from '../ui/Badge';
 import { ToggleBadge } from '../ui/ToggleBadge';
-import { IconButton } from '../ui/IconButton';
+import { CardHeaderChevron } from '../ui/CardHeaderChevron';
 
 const healthStatusMap: Record<string, 'emerald' | 'green' | 'yellow' | 'red' | 'gray'> = {
   Full: 'emerald',
@@ -176,19 +175,7 @@ export function CombatantCardHeader({
             />
 
             {/* Chevron/expand button */}
-            <IconButton
-              icon={
-                <motion.div animate={{ rotate: isExpanded ? 180 : 0 }}>
-                  <ChevronDown className="w-5 h-5" />
-                </motion.div>
-              }
-              onClick={(e) => {
-                e.stopPropagation();
-                onToggleExpand();
-              }}
-              aria-label={isExpanded ? "Collapse combatant card" : "Expand combatant card"}
-              className="opacity-40 hover:opacity-100 shrink-0"
-            />
+            <CardHeaderChevron isExpanded={isExpanded} onToggleExpand={onToggleExpand} label="combatant card" stopPropagation />
           </div>
         </div>
 
