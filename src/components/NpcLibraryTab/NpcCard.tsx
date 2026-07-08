@@ -1,8 +1,9 @@
 import React from 'react';
 import { NPC, NpcTrait, NpcAction, NpcReaction, NpcLegendaryAction } from '../../types';
-import { Loader2, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
+import { CardShell } from '../ui/CardShell';
 import { DebouncedInput } from '../ui/DebouncedInput';
 import { CardNumberInput } from '../ui/CardNumberInput';
 import { DebouncedTextarea } from '../ui/DebouncedTextarea';
@@ -293,16 +294,13 @@ export const NpcCard: React.FC<NpcCardProps> = ({
   );
 
   return (
-    <div className={cn(
-      "bg-[#ffffff] rounded-2xl border border-[#e2e8f0] overflow-hidden flex flex-col relative group transition-all",
-      isExpanded ? "border-[#2563eb]/40" : "hover:border-[#2563eb]/20",
-      isSyncing ? "border-[#2563eb] shadow-[0_0_15px_rgba(37,99,235,0.2)] shadow-[#2563eb]/20" : "shadow-sm hover:shadow-md"
-    )}>
-      {isSyncing && (
-        <div className="absolute top-2 right-10 z-20 flex items-center gap-1 bg-[#2563eb] text-white text-xs uppercase font-bold px-3 py-1 rounded-full shadow-sm animate-pulse">
-          <Loader2 className="w-3.5 h-3.5 animate-spin"/> Syncing
-        </div>
+    <CardShell
+      syncing={isSyncing}
+      className={cn(
+        "flex flex-col relative group",
+        isExpanded ? "border-[#2563eb]/40" : "hover:border-[#2563eb]/20"
       )}
+    >
 
       <NpcCardHeader
         name={npc.name} ac={npc.ac} maxHp={npc.maxHp}
@@ -511,6 +509,6 @@ export const NpcCard: React.FC<NpcCardProps> = ({
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </CardShell>
   );
 };

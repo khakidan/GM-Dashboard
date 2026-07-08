@@ -11,6 +11,7 @@ import { useCombatantCard } from './hooks/useCombatantCard';
 import { useCombatantExpanded } from './hooks/useCombatantExpanded';
 import { ResourcePool, serializeResourcePools } from '../../lib/resourcePools';
 import { SpellcastingStatsRow } from '../ui/SpellcastingStatsRow';
+import { CardShell } from '../ui/CardShell';
 import { parseAbilityScores, parseProficiencies, proficiencyBonusFromLevel } from '../../lib/abilityScores';
 import { NpcReferencePanel } from './NpcReferencePanel';
 
@@ -75,26 +76,24 @@ export function CombatantCard({
   const handleRestoreActions = () => c.legendaryActions && onUpdateCombatant({ legendaryActions: { ...c.legendaryActions, remaining: c.legendaryActions.max } });
 
   return (
-    <motion.div
+    <CardShell
       id={`combatant-card-${c.id}`}
       layout
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
+      highlight={isSelected ? 'selected' : (isActive && !isSelectable ? 'active-turn' : null)}
+      cornerBadge={isActive && !isSelectable ? (
+        <div className="bg-[#2563eb] text-white text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full shadow-sm flex items-center gap-1">
+          <Zap className="w-3 h-3 fill-current" /> Active
+        </div>
+      ) : undefined}
       className={cn(
-        'relative bg-[#ffffff] border rounded-2xl transition-all h-fit',
-        isSelected 
-          ? 'bg-[#f0f7ff] border-[#2563eb] shadow-[0_0_15px_rgba(37,99,235,0.15)] border-l-[6px] border-l-[#2563eb]' 
-          : (isActive ? 'bg-[#f0f7ff] border-2 border-[#2563eb] shadow-md z-10' : 'border-[#e2e8f0] hover:border-[#2563eb]/40'),
+        'h-fit',
         c.type === 'npc' && c.currentHp <= 0 
           ? 'bg-[#f9f8ff] opacity-60 grayscale-[0.5]' 
           : (c.currentHp <= 0 ? 'opacity-60 grayscale-[0.5]' : '')
       )}
     >
-      {isActive && !isSelectable && (
-        <div className="absolute -top-3 left-6 bg-[#2563eb] text-white text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full shadow-sm z-20 flex items-center gap-1">
-          <Zap className="w-3 h-3 fill-current" /> Active
-        </div>
-      )}
 
       <CombatantCardHeader
         c={c}
@@ -150,6 +149,6 @@ export function CombatantCard({
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.div>
+    </CardShell>
   );
 }

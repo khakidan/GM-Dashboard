@@ -3,7 +3,7 @@ import { Encounter, EncounterCombatant } from '../../types';
 import { Swords, MapPin, Skull, Trash2, AlertCircle, ChevronDown, ScrollText } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { toast } from 'sonner';
-import { motion, AnimatePresence } from 'motion/react';
+import { CardShell } from '../ui/CardShell';
 import { DebouncedInput } from '../ui/DebouncedInput';
 import { EncounterLogModal } from './EncounterLogModal';
 import { Badge } from '../ui/Badge';
@@ -99,10 +99,10 @@ export const EncounterCard: React.FC<EncounterCardProps> = ({
     .reduce((sum, current) => sum + current.quantity, 0);
 
   return (
-    <div className={cn(
-      "bg-white rounded-2xl border border-[#e2e8f0] overflow-hidden group transition-all hover:shadow-md",
+    <CardShell className={cn(
+      "overflow-hidden group",
       (isUpdating || isDeleting) && "opacity-75 pointer-events-none",
-      isCompleted && "bg-[#f9f8ff] border-[#e2e8f0]"
+      isCompleted && "bg-[#f9f8ff]"
     )}>
       <div className="p-4 flex flex-col md:flex-row items-stretch md:items-center gap-4 px-6">
         {/* Name Field */}
@@ -223,6 +223,6 @@ export const EncounterCard: React.FC<EncounterCardProps> = ({
         isOpen={isLogModalOpen}
         onClose={() => setIsLogModalOpen(false)}
       />
-    </div>
+    </CardShell>
   );
 };

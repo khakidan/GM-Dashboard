@@ -1,11 +1,11 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Loader2 } from 'lucide-react';
 import { Character } from '../../types';
 import { cn } from '../../lib/utils';
 import { getHealthStatus, effectiveMaxHp, effectiveAc } from '../../lib/conditions';
 import { SpellcastingStatsRow } from '../ui/SpellcastingStatsRow';
 import { parseAbilityScores, parseProficiencies, proficiencyBonusFromLevel } from '../../lib/abilityScores';
+import { CardShell } from '../ui/CardShell';
 
 // Modular Sub-components
 import { CharacterCardHeader } from './CharacterCardHeader';
@@ -59,16 +59,13 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({
   };
 
   return (
-    <div className={cn(
-      "bg-[#ffffff] rounded-2xl border overflow-hidden flex flex-col relative group transition-all",
-      isExpanded ? "border-[#2563eb]/40" : "border-[#e2e8f0] hover:border-[#2563eb]/20",
-      isSyncing ? "border-[#2563eb] shadow-[0_0_15px_rgba(37,99,235,0.2)] shadow-[#2563eb]/20" : "shadow-sm hover:shadow-md"
-    )}>
-      {isSyncing && (
-        <div className="absolute top-2 right-10 z-20 flex items-center gap-1 bg-[#2563eb] text-white text-xs uppercase font-bold px-3 py-1 rounded-full shadow-sm animate-pulse">
-          <Loader2 className="w-3.5 h-3.5 animate-spin"/> Syncing
-        </div>
+    <CardShell
+      syncing={isSyncing}
+      className={cn(
+        "flex flex-col relative group",
+        isExpanded ? "border-[#2563eb]/40" : "hover:border-[#2563eb]/20"
       )}
+    >
       
       <CharacterCardHeader
         characterName={character.characterName}
@@ -133,6 +130,6 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </CardShell>
   );
 };
