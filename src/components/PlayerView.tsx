@@ -2,7 +2,7 @@ import { getHealthStatus } from '../lib/conditions';
 import { useAppState } from '../hooks/useAppState';
 import { cn } from '../lib/utils';
 import { Skull, Heart, ShieldAlert, Shield, Swords } from 'lucide-react';
-;
+import { EmptyState } from './ui/EmptyState';
 
 export function PlayerView() {
   const { state: appState } = useAppState();
@@ -10,12 +10,13 @@ export function PlayerView() {
 
   if (!state.activeEncounterId || state.combatants.length === 0) {
     return (
-      <div className="min-h-screen bg-[#ffffff] text-[#0f172a] p-4 md:p-8 font-serif flex flex-col items-center justify-center">
-        <div className="bg-white border border-[#e2e8f0] rounded-2xl text-center text-[#8d8db9] italic py-24 px-8 max-w-md flex flex-col items-center justify-center gap-3 shadow-sm">
-          <Swords className="w-12 h-12 opacity-20" />
-          <p className="font-sans font-bold uppercase tracking-widest text-[#8d8db9] text-xs">Waiting for GM to start the encounter...</p>
-          <p className="font-sans text-xs text-[#8d8db9] opacity-70">The GM has not activated combat yet. Standby...</p>
-        </div>
+      <div className="min-h-screen bg-[#ffffff] p-4 md:p-8 flex flex-col items-center justify-center">
+        <EmptyState
+          icon={Swords}
+          title="Waiting for GM to start the encounter..."
+          description="The GM has not activated combat yet. Standby..."
+          className="max-w-md"
+        />
       </div>
     );
   }
@@ -152,10 +153,11 @@ export function PlayerView() {
         useTwoCols && "grid grid-cols-1 lg:grid-cols-2 gap-6"
       )}>
         {state.combatants.length === 0 ? (
-          <div className="col-span-full bg-white border border-[#e2e8f0] rounded-2xl text-center text-[#8d8db9] italic py-24 flex flex-col items-center justify-center gap-3 shadow-sm">
-             <Swords className="w-12 h-12 opacity-20" />
-             <p className="font-sans font-bold uppercase tracking-widest text-xs">Peace reigns... for now.</p>
-          </div>
+          <EmptyState
+            icon={Swords}
+            title="Peace reigns... for now."
+            className="col-span-full"
+          />
         ) : (
           <>
             {renderTable(firstHalf)}

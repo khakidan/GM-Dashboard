@@ -4,6 +4,7 @@ import { useAppState } from '../hooks/useAppState';
 import { useNpcLibrary } from './NpcLibraryTab/hooks/useNpcLibrary';
 import { BookOpen, Plus, Filter, X, Shield, Activity } from 'lucide-react';
 import { Callout } from './ui/Callout';
+import { EmptyState } from './ui/EmptyState';
 import { SearchInput } from './ui/SearchInput';
 import { cn } from '../lib/utils';
 import { NewNpcDialog } from './NpcLibraryTab/NewNpcDialog';
@@ -150,21 +151,13 @@ export function NpcLibraryTab() {
 
         <div className="space-y-4">
           {filteredNpcs.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-center">
-              <BookOpen className="w-12 h-12 text-[#8d8db9] opacity-20 mb-4" />
-              <h3 className="text-lg font-serif font-bold text-[#0f172a] mb-2">
-                No NPCs in library
-              </h3>
-              <p className="text-sm text-[#8d8db9] mb-6 max-w-xs">
-                Add NPCs to build your library. They will be available to add to any encounter.
-              </p>
-              <button
-                onClick={() => setIsNewNpcDialogOpen(true)}
-                className="bg-[#2563eb] hover:bg-[#567eff] text-white font-bold font-sans uppercase tracking-widest text-xs px-6 py-3 rounded-xl transition-all shadow-md active:scale-95"
-              >
-                Add New NPC
-              </button>
-            </div>
+            <EmptyState
+              icon={BookOpen}
+              title="No NPCs in library"
+              description="Add NPCs to build your library. They will be available to add to any encounter."
+              actionLabel="Add New NPC"
+              onAction={() => setIsNewNpcDialogOpen(true)}
+            />
           ) : (
           <div className="flex flex-col gap-4">
             {filteredNpcs.map(npc => (

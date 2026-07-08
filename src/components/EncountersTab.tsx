@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAppState } from '../hooks/useAppState';
 import { Swords, Loader2, Plus } from 'lucide-react';
 import { Callout } from './ui/Callout';
+import { EmptyState } from './ui/EmptyState';
 import { useEncounters } from './EncountersTab/hooks/useEncounters';
 import { EncounterCard } from './EncountersTab/EncounterCard';
 import { NewEncounterDialog } from './EncountersTab/NewEncounterDialog';
@@ -84,21 +85,15 @@ export function EncountersTab({
         )}
 
         {state.encounters.length === 0 ? (
-        <div className="bg-white border border-[#e2e8f0] rounded-2xl py-20 px-6 text-center shadow-sm flex flex-col items-center">
-          <Swords className="w-12 h-12 text-[#8d8db9] opacity-20 mb-4" />
-          <h3 className="text-lg font-serif font-bold text-[#0f172a] mb-2">No encounters found</h3>
-          <p className="text-sm text-[#8d8db9] max-w-sm mx-auto mb-8">
-            Your encounter library is empty. Start by creating a new scenario for your players to overcome.
-          </p>
-          <button 
-            onClick={() => setIsNewDialogOpen(true)}
-            disabled={isAdding}
-            className="bg-[#2563eb] hover:bg-[#567eff] text-white px-10 py-4 rounded-full text-sm font-bold uppercase tracking-widest transition-all shadow-md active:scale-95"
-          >
-            Create Your First Encounter
-          </button>
-        </div>
-      ) : (
+          <EmptyState
+            icon={Swords}
+            title="No encounters found"
+            description="Your encounter library is empty. Start by creating a new scenario for your players to overcome."
+            actionLabel="Create Your First Encounter"
+            onAction={() => setIsNewDialogOpen(true)}
+            actionDisabled={isAdding}
+          />
+        ) : (
         <div className="grid grid-cols-1 gap-4">
           {state.encounters.map(enc => (
             <EncounterCard 
