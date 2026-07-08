@@ -18,7 +18,7 @@ export const CardShell: React.FC<CardShellProps> = ({
   className,
   ...props
 }) => {
-  const baseStyle = "bg-white rounded-2xl border transition-all";
+  const baseStyle = "relative bg-white rounded-2xl border transition-all";
 
   let stateStyle = "";
   if (highlight === 'selected') {

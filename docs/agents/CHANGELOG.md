@@ -453,3 +453,35 @@ Two independent fixes, found via a user-initiated audit request run through AI S
 **Other ideas from that same AI Studio audit, not part of this fix, tracked for later consideration**: `EmptyState`, `LabeledField`/`FormControl`, `ConfirmationDialog`, a `DashboardLayout` page-level wrapper, and a larger `CardShell`/`CardHeader`/`ExpandableContent` card-componentization effort spanning all 4 entity-card types — none independently verified yet; several specific claims from that audit (an exact file-tree reconstruction in particular) were checked and found significantly inaccurate before being corrected in a follow-up, so none of these should be treated as confirmed without their own direct verification pass first.
 
 Verified: TypeScript clean, Batch 6A (9 files/46 tests) matching the established baseline with real raw output, `HitDiePool`'s `count` field confirmed via its real interface definition, all diffs checked directly against the real file.
+
+---
+
+## CardShell Component (Completed) — Step 1 of the 3-part Card Componentization Effort
+
+First of three planned pieces (`CardShell` → `CardHeader` → `ExpandableContent`, see `ROADMAP.md` for the remaining two). Deliberately split into 4 small, sequential prompts rather than one large build — same lesson as the original `Badge` audit's under-scoping and the six-part audit fabrication incident, applied proactively this time instead of learned the hard way again.
+
+**The originating audit's specific illustrative code was checked directly and found wrong**, not just imprecise: it claimed the `AnimatePresence` expand block was byte-identical across all four cards, including an exact `bg-[#fcfdff]` background. Direct comparison showed every real instance actually uses `bg-white`, with genuinely different transition timing (`CombatantCard.tsx` specifies `duration: 0.2` explicitly, `NpcCard.tsx` doesn't) and different `border-t` presence. The real, useful signal underneath the audit — that these four *do* share real structural DNA — held up; the specific supporting code did not.
+
+**What was actually confirmed, file by file**: `CombatantCard.tsx` uses a real `motion.div` with two combat-specific emphasis concepts (`isSelected` for selection mode, `isActive` for whose turn) and puts `overflow-hidden` only on its *inner* expand wrapper — deliberately, since its turn-order badge is positioned `-top-3`, extending above the card's own top edge. `NpcCard.tsx` and `CharacterCard.tsx` use a plain `<div>` with **byte-identical** `isSyncing`-driven styling and badge content, `overflow-hidden` on the outer container. `EncounterCard.tsx` has no emphasis-state concept at all, and — a finding relevant to the next piece of this effort — doesn't use `AnimatePresence`/`motion` anywhere in the file, unlike the other three.
+
+**Design decided, given that data**: `CardShell` exposes named, shell-owned semantic states rather than a generic style-passthrough — `syncing?: boolean` (owns the confirmed-identical border/shadow treatment and the `Loader2`-spin badge automatically), `highlight?: 'selected' | 'active-turn' | null` and `cornerBadge?: React.ReactNode` (both exist specifically for `CombatantCard.tsx`'s narrower need, unused by the other three). The shell's own container deliberately does **not** include `overflow-hidden` — the load-bearing constraint found during verification — leaving each card's own inner expand-wrapper to keep managing that independently, exactly as it already did.
+
+**Adopted in all 4 locations**, each verified directly against the real file, not assumed from the diff alone:
+- `NpcCard.tsx` (`syncing` only) — `Loader2` import cleanly removed, Batch 6C (5 files/13 tests) matches baseline.
+- `CharacterCard.tsx` (`syncing` only) — near-mechanical given the confirmed byte-identical match to `NpcCard.tsx`, Batch 6A (9 files/46 tests) matches baseline.
+- `CombatantCard.tsx` (`highlight` + `cornerBadge`, the hardest of the four) — motion props (`layout`/`initial`/`animate`) correctly pass through `CardShell`'s prop-spreading to the underlying `motion.div` (a good validation the shell's prop design was appropriately general rather than over-constrained for its simplest use case); the dead-NPC-vs-dead-PC className distinction (`bg-[#f9f8ff]` extra tint only for dead NPCs, not dead PCs) was genuinely preserved — more detailed than the build prompt's own paraphrase of it, confirmed against the real file rather than assumed accurate; inner `overflow-hidden` confirmed untouched; Batch 5B (11 files/26 tests) matches baseline.
+- `EncounterCard.tsx` (no state props at all) — confirmed the `motion`/`AnimatePresence` import removal was safe (zero other usage in the file, a real and useful finding in itself); `isUpdating`/`isDeleting` confirmed to exist but only currently drive a generic `opacity-75 pointer-events-none` treatment, not wired to `syncing` in this pass (a plausible future enhancement, not part of this like-for-like swap — see `ROADMAP.md`); Batch 6B (5 files/20 tests) matches baseline.
+
+Verified: TypeScript clean across all 4 steps, all four real batches matching established baselines with real raw output, every diff checked directly against the real files rather than accepted from summary claims alone.
+
+---
+
+## CardShell Regression: Missing `relative` Positioning (Fixed)
+
+A real bug in the just-completed `CardShell` component, caught via a screenshot (the `Active` turn badge rendering detached, floating near the top of the page instead of anchored to its own combatant card).
+
+**Root cause**: `CardShell.tsx`'s `baseStyle` never included `relative`, even though all three original outer containers it replaced (`CombatantCard.tsx`, `NpcCard.tsx`, `CharacterCard.tsx`) had it in their own className before the refactor — it simply fell through the cracks during the `CardShell` build and wasn't restored by any of the four adoption diffs' `className` passthrough either. Without `position: relative` on `CardShell`'s own container, absolutely-positioned children (`cornerBadge`'s `-top-3 left-6` "Active" badge, the `syncing` badge's `top-2 right-10`) lost their intended positioning anchor and inherited positioning from whatever distant ancestor happened to have `relative`/`absolute`/`fixed` set instead — explaining exactly the reported symptom, including the "floats correctly for a split second" detail (consistent with the entrance animation briefly showing before layout fully resolved to the broken position).
+
+**Fix**: one line, `relative` added to `CardShell.tsx`'s `baseStyle`, applied universally (including `EncounterCard.tsx`, which has no absolutely-positioned children and is unaffected either way — safe to apply unconditionally rather than only to the three cards that need it).
+
+Verified: TypeScript clean, all three affected batches re-verified since this is a shared-component fix — Batch 5B (11 files/26 tests), Batch 6A (9 files/46 tests), Batch 6C (5 files/13 tests) — all matching established baselines with real raw output, diff checked directly against the real file.
