@@ -30,8 +30,9 @@ export const NpcCardHeader: React.FC<NpcCardHeaderProps> = ({
           <DebouncedInput
             type="text"
             value={name}
+            variant="inline"
             onChange={(val) => onUpdateName(val as string)}
-            className="text-lg font-bold text-[#0f172a] font-serif bg-transparent border-none focus:ring-0 w-full p-0 truncate disabled:opacity-50"
+            className="text-lg font-bold text-[#0f172a] font-serif w-full truncate disabled:opacity-50"
             disabled={isSyncing}
           />
         </div>

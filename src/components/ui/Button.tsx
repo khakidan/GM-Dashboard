@@ -1,5 +1,6 @@
 import React from 'react';
 import { cn } from '../../lib/utils';
+import { Loader2 } from 'lucide-react';
 
 /**
  * Future extensions planned:
@@ -9,14 +10,17 @@ import { cn } from '../../lib/utils';
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   intent?: 'primary' | 'secondary' | 'tertiary' | 'destructive';
   size?: 'large' | 'small';
+  loading?: boolean;
 }
 
 export function Button({
   children,
   intent = 'primary',
   size = 'small',
+  loading = false,
   className,
   type = 'button',
+  disabled,
   ...props
 }: ButtonProps) {
   const isTertiary = intent === 'tertiary';
@@ -41,10 +45,17 @@ export function Button({
   return (
     <button
       type={type}
-      className={cn(baseStyle, !isTertiary && sizeStyles[size], intentStyles[intent], className)}
+      className={cn(
+        baseStyle, 
+        !isTertiary && sizeStyles[size], 
+        intentStyles[intent], 
+        loading && "flex items-center justify-center",
+        className
+      )}
+      disabled={disabled || loading}
       {...props}
     >
-      {children}
+      {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : children}
     </button>
   );
 }

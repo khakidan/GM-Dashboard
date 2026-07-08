@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Encounter, EncounterCombatant } from '../../types';
-import { Swords, MapPin, Skull, Trash2, Loader2, AlertCircle, ChevronDown, ScrollText } from 'lucide-react';
+import { Swords, MapPin, Skull, Trash2, AlertCircle, ChevronDown, ScrollText } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'motion/react';
 import { DebouncedInput } from '../ui/DebouncedInput';
 import { EncounterLogModal } from './EncounterLogModal';
 import { Badge } from '../ui/Badge';
+import { Button } from '../ui/Button';
 
 export interface EncounterCardProps {
   enc: Encounter;
@@ -110,11 +111,12 @@ export const EncounterCard: React.FC<EncounterCardProps> = ({
           <DebouncedInput 
             type="text"
             value={name}
+            variant="inline"
             onChange={(v) => setName(v as string)}
             onBlur={() => handleUpdate()}
             disabled={isUpdating || isDeleting}
             placeholder="Encounter Name"
-            className="text-base font-bold text-[#0f172a] font-serif bg-transparent border-none focus:ring-0 w-full p-0 truncate disabled:opacity-50"
+            className="text-base font-bold text-[#0f172a] font-serif w-full truncate disabled:opacity-50"
           />
         </div>
 
@@ -195,15 +197,17 @@ export const EncounterCard: React.FC<EncounterCardProps> = ({
             <Swords className="w-5 h-5" />
             <span className="md:hidden text-[10px] font-bold uppercase tracking-widest">Run</span>
           </button>
-          <button 
+          <Button
+            intent="destructive"
+            loading={isDeleting}
+            disabled={isUpdating}
             onClick={() => onDelete(enc)}
-            disabled={isDeleting || isUpdating}
-            className="flex-1 md:flex-none p-2.5 bg-red-50 hover:bg-red-100 text-red-500 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-30"
             title="Delete Encounter"
+            className="flex-1 md:flex-none"
           >
-            {isDeleting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Trash2 className="w-5 h-5" />}
+            <Trash2 className="w-5 h-5" />
             <span className="md:hidden text-[10px] font-bold uppercase tracking-widest">Delete</span>
-          </button>
+          </Button>
         </div>
 
         {errorStatus && (

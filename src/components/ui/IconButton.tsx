@@ -1,14 +1,16 @@
 import React from 'react';
 import { cn } from '../../lib/utils';
+import { Loader2 } from 'lucide-react';
 
 export interface IconButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'aria-label'> {
   icon: React.ReactNode;
   intent?: 'neutral' | 'destructive';
   onDark?: boolean;
+  loading?: boolean;
   'aria-label': string;
 }
 
-const baseStyle = "p-2 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed";
+const baseStyle = "p-2 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center";
 
 const styleMap = {
   neutral: {
@@ -27,17 +29,20 @@ export const IconButton: React.FC<IconButtonProps> = ({
   icon,
   intent = 'neutral',
   onDark = false,
+  loading = false, // Note: Loading state for IconButton currently has no confirmed instance validating it.
   className,
   'aria-label': ariaLabel,
+  disabled,
   ...props
 }) => {
   return (
     <button
       aria-label={ariaLabel}
       className={cn(baseStyle, styleMap[intent][onDark ? 'dark' : 'light'], className)}
+      disabled={disabled || loading}
       {...props}
     >
-      {icon}
+      {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : icon}
     </button>
   );
 };

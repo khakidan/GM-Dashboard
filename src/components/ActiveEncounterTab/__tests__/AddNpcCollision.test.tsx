@@ -107,7 +107,7 @@ describe('ActiveEncounterTab ID Uniqueness', () => {
     fireEvent.change(nameInput, { target: { value: 'Custom Goblin' } });
 
     // Switch to Combat tab for HP and AC
-    fireEvent.click(screen.getByRole('button', { name: 'Combat' }));
+    fireEvent.click(screen.getByRole('tab', { name: 'Combat' }));
 
     const hpInput = screen.getByLabelText(/Max HP/i);
     fireEvent.change(hpInput, { target: { value: '15' } });

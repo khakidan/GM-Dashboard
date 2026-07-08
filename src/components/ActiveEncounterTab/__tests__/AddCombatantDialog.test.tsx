@@ -32,7 +32,7 @@ describe('AddCombatantDialog', () => {
     fireEvent.change(screen.getByLabelText(/Name/), { target: { value: 'New Test NPC' } });
 
     // Switch to Combat tab for AC and HP
-    fireEvent.click(screen.getByRole('button', { name: 'Combat' }));
+    fireEvent.click(screen.getByRole('tab', { name: 'Combat' }));
     fireEvent.change(screen.getByLabelText(/AC/), { target: { value: '18' } });
     fireEvent.change(screen.getByLabelText(/HP/), { target: { value: '45' } });
 
