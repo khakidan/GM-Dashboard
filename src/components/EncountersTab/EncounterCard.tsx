@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Encounter, EncounterCombatant } from '../../types';
-import { Swords, MapPin, Skull, Trash2, AlertCircle, ChevronDown, ScrollText } from 'lucide-react';
+import { Swords, MapPin, Skull, Trash2, AlertCircle, ScrollText } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { toast } from 'sonner';
 import { CardShell } from '../ui/CardShell';

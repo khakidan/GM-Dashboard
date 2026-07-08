@@ -15,6 +15,7 @@ import { useCombatantCard } from './hooks/useCombatantCard';
 import { ResourcePool } from '../../lib/resourcePools';
 import { Badge } from '../ui/Badge';
 import { ToggleBadge } from '../ui/ToggleBadge';
+import { IconButton } from '../ui/IconButton';
 
 const healthStatusMap: Record<string, 'emerald' | 'green' | 'yellow' | 'red' | 'gray'> = {
   Full: 'emerald',
@@ -175,17 +176,19 @@ export function CombatantCardHeader({
             />
 
             {/* Chevron/expand button */}
-            <button
+            <IconButton
+              icon={
+                <motion.div animate={{ rotate: isExpanded ? 180 : 0 }}>
+                  <ChevronDown className="w-5 h-5" />
+                </motion.div>
+              }
               onClick={(e) => {
                 e.stopPropagation();
                 onToggleExpand();
               }}
-              className="p-2 text-[#8d8db9] opacity-40 hover:opacity-100 hover:bg-[#f9f8ff] rounded transition-all shrink-0 cursor-pointer"
-            >
-              <motion.div animate={{ rotate: isExpanded ? 180 : 0 }}>
-                <ChevronDown className="w-5 h-5" />
-              </motion.div>
-            </button>
+              aria-label={isExpanded ? "Collapse combatant card" : "Expand combatant card"}
+              className="opacity-40 hover:opacity-100 shrink-0"
+            />
           </div>
         </div>
 
