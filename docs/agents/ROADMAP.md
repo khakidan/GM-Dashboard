@@ -19,8 +19,8 @@ None currently open. (The `useNpcLibrary.ts` double-confirmation bug is fixed �
 **3 raw `confirm()`/`window.confirm()` call sites remain, discovered by the real exhaustive audit (`grep -rn "confirm(" src/`) but not part of the original request** — the other 5 originally-known sites are fully migrated to `ConfirmationDialog` (see `CHANGELOG.md`). Not yet scoped or designed — should get the same direct-verification treatment as everything else before building:
 
 - `useCombatConcentration.ts:63` — "already concentrating, end previous and start new?" — a different *kind* of confirmation than a destructive delete (an override/replace warning), worth checking whether `ConfirmationDialog`'s wording (`confirmLabel`/`cancelLabel` defaults) genuinely fits before assuming it does.
-- `useBatchActions.ts:311` — bulk combatant removal, genuinely destructive and irreversible, a natural fit.
-- `useSettings.ts:83` — resetting the spreadsheet configuration, a significant, app-wide action.
+- `useBatchActions.ts:311` — **done, verified directly**: `window.confirm()` removed, `ConfirmationDialog` correctly adopted in `MultiTargetActionPanel.tsx` with `selectedCount`-driven singular/plural wording. Batch 5A (7 files/45 tests) and Batch 5B (11 files/26 tests) both match established baselines.
+- `useSettings.ts:83` — **done, verified directly**: `confirm()` removed, `ConfirmationDialog` correctly adopted in `SheetConnectionSettings.tsx`. Confirmed neither `SheetConnectionSettings.tsx` nor `SettingsPage.tsx` has a dedicated test file (same category as `DiceRoller.tsx`/`Soundboard.tsx`) — `useSettings.ts`'s own logic is covered via Batch 3 (11 files/41 tests), which matches baseline.
 - All three are (or are likely) hooks, not components — same architectural split needed as `useParty.ts`/`useCombatantMutations.ts` (confirmation lives at the component level, the hook function becomes unconditional) — confirm which component each is actually called from before building.
 
 ### 🔵 Architecture / Technical Debt

@@ -307,10 +307,6 @@ export function useBatchActions({ selectedIds, combatants, onSuccess }: UseBatch
   const handleDeleteSelected = async () => {
     if (selectedIds.size === 0) return;
 
-    const count = selectedIds.size;
-    const confirm = window.confirm(`Remove ${count} combatants from this encounter? This cannot be undone.`);
-    if (!confirm) return;
-
     const previousState = getSnapshot();
     const idsToDelete = Array.from(selectedIds);
     const activeId = previousState.combatState.activeTurnId;
@@ -372,7 +368,7 @@ export function useBatchActions({ selectedIds, combatants, onSuccess }: UseBatch
       if (onSuccess) {
         onSuccess();
       }
-      toast.success(`${count} combatants removed.`);
+      toast.success(`${idsToDelete.length} combatants removed.`);
     } catch (error) {
       updateState(() => previousState);
       toast.error('Failed to remove combatants. Please try again.', {

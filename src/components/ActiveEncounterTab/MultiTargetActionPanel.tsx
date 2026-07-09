@@ -1,8 +1,8 @@
 import { DAMAGE_TYPE_OPTIONS } from '../../lib/conditions';
 import React, { useState } from 'react';
 import { DamageType } from '../../types';
-;
 import { Shield, Heart, PlusCircle, Trash2, X } from 'lucide-react';
+import { ConfirmationDialog } from '../ui/ConfirmationDialog';
 
 interface MultiTargetActionPanelProps {
   selectedCount: number;
@@ -25,6 +25,7 @@ export const MultiTargetActionPanel: React.FC<MultiTargetActionPanelProps> = ({
   const [damageType, setDamageType] = useState<DamageType | ''>('');
   const [healAmount, setHealAmount] = useState<string>('');
   const [conditionName, setConditionName] = useState<string>('');
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   const isDmgDisabled = selectedCount === 0 || !damageAmount;
   const isHealDisabled = selectedCount === 0 || !healAmount;
@@ -183,12 +184,20 @@ export const MultiTargetActionPanel: React.FC<MultiTargetActionPanelProps> = ({
             </p>
           </div>
           <button
-            onClick={onDeleteSelected}
+            onClick={() => setIsConfirmOpen(true)}
             disabled={isGlobalDisabled}
             className="w-full h-8 bg-red-100 hover:bg-red-200 text-red-700 border border-red-300 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all disabled:opacity-30 disabled:hover:bg-red-100 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-1"
           >
             Delete Selected
           </button>
+          <ConfirmationDialog
+            isOpen={isConfirmOpen}
+            title="Remove Selected Combatants?"
+            description={`This will remove ${selectedCount} ${selectedCount === 1 ? 'combatant' : 'combatants'} from this encounter. This cannot be undone.`}
+            confirmLabel="Remove"
+            onConfirm={onDeleteSelected}
+            onClose={() => setIsConfirmOpen(false)}
+          />
         </div>
       </div>
     </div>
