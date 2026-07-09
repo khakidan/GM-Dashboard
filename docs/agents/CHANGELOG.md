@@ -555,3 +555,19 @@ The third and final part of the three-part effort (`CardShell` → `CardHeaderCh
 **This completes the entire three-part card componentization effort**: `CardShell` (the outer container and its states), `CardHeaderChevron` (the one piece of the header genuinely worth sharing, after a full `CardHeader` was investigated and correctly rejected as too divergent), and `ExpandableContent` (the expand/collapse mechanics and boundary styling). `EncounterCard.tsx` was deliberately and correctly excluded from the latter two throughout, having been confirmed structurally different from the other three at every step.
 
 Verified: TypeScript clean, Batch 5B (11 files/26 tests), Batch 6A (9 files/46 tests), and Batch 6C (5 files/13 tests) all matching established baselines with real raw output, every diff and the single-source border-ownership claim checked directly against the real files.
+
+---
+
+## LabeledField Component (Completed)
+
+A quick, well-contained candidate from the "Component Consolidation Candidates" list — 2 files, 6 real instances, no complex state or behavior, much lower scope than `CardHeader`/`ExpandableContent`.
+
+**Confirmed a genuine distinction the original audit didn't surface**: `CharacterCardExpanded.tsx`'s "Hit Dice" label looked identical to the others at a glance, but turned out to be a different pattern entirely — a section header sitting inline next to a compact input, not a label stacked above a full-width field. Explicitly excluded from this build rather than forced in.
+
+**Design, matching the established "shell owns chrome, not content" philosophy**: `LabeledField.tsx` is a minimal wrapper — `label: string`, `children: React.ReactNode`, `className?`. It does not style or know anything about the input passed as `children`. This mattered here specifically: every real instance's actual input has genuinely different, deliberate styling (different text sizes, `italic` vs. not, different heights) — variation that needed to be fully preserved, not normalized away along with the label.
+
+**One real, close normalization decision, explicitly made rather than defaulted**: the label's margin was `mb-1.5` in `NpcCard.tsx` (4 instances) vs. `mb-2` in `CharacterCardExpanded.tsx` (2 instances) — a genuine tie by file count, resolved in favor of `mb-2` by explicit choice rather than an automatic majority-instance-count rule.
+
+**Adopted in 6 locations**: `NpcCard.tsx`'s `Speed`/`Senses`/`Languages`/`Notes`, `CharacterCardExpanded.tsx`'s `Class`/`Notes` — every input's own props and bespoke className preserved completely unchanged in all 6, confirmed directly against the real files.
+
+Verified: TypeScript clean, Batch 6A (9 files/46 tests) and Batch 6C (5 files/13 tests) both matching established baselines with real raw output, all diffs checked directly against the real files.

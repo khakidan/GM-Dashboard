@@ -10,6 +10,7 @@ import { NpcListEditor } from '../ui/NpcListEditor';
 import { Button } from '../ui/Button';
 import { StatTile } from '../ui/StatTile';
 import { ExpandableContent } from '../ui/ExpandableContent';
+import { LabeledField } from '../ui/LabeledField';
 
 // Modular Sub-components
 import { NpcCardHeader } from './NpcCardHeader';
@@ -387,20 +388,17 @@ export const NpcCard: React.FC<NpcCardProps> = ({
             }}
           />
 
-          <div>
-            <div className="text-[10px] uppercase text-[#8d8db9] font-bold tracking-widest mb-1.5 px-1">Speed</div>
+          <LabeledField label="Speed">
             <DebouncedInput type="text" value={npc.speed || ''} onChange={(v) => onUpdate({ speed: v as string })} placeholder="e.g. 30 ft., fly 60 ft." className="w-full text-xs text-[#0f172a] bg-[#ffffff] p-3 rounded-lg border border-[#e2e8f0] focus:bg-white focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] outline-none transition-all placeholder:text-[#cccbcb] disabled:opacity-50" disabled={isSyncing} />
-          </div>
+          </LabeledField>
 
-          <div>
-            <div className="text-[10px] uppercase text-[#8d8db9] font-bold tracking-widest mb-1.5 px-1">Senses</div>
+          <LabeledField label="Senses">
             <DebouncedInput type="text" value={npc.senses || ''} onChange={(v) => onUpdate({ senses: v as string })} placeholder="e.g. darkvision 60 ft." className="w-full text-xs text-[#0f172a] bg-[#ffffff] p-3 rounded-lg border border-[#e2e8f0] focus:bg-white focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] outline-none transition-all placeholder:text-[#cccbcb] disabled:opacity-50" disabled={isSyncing} />
-          </div>
+          </LabeledField>
 
-          <div>
-            <div className="text-[10px] uppercase text-[#8d8db9] font-bold tracking-widest mb-1.5 px-1">Languages</div>
+          <LabeledField label="Languages">
             <DebouncedInput type="text" value={npc.languages || ''} onChange={(v) => onUpdate({ languages: v as string })} placeholder="e.g. Common" className="w-full text-xs text-[#0f172a] bg-[#ffffff] p-3 rounded-lg border border-[#e2e8f0] focus:bg-white focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] outline-none transition-all placeholder:text-[#cccbcb] disabled:opacity-50" disabled={isSyncing} />
-          </div>
+          </LabeledField>
 
           <IrvSection
             resistances={npc.resistances || ''}
@@ -420,10 +418,9 @@ export const NpcCard: React.FC<NpcCardProps> = ({
             gap="gap-3"
           />
 
-          <div>
-            <div className="text-[10px] uppercase text-[#8d8db9] font-bold tracking-widest mb-1.5 px-1">Notes</div>
+          <LabeledField label="Notes">
             <DebouncedTextarea value={npc.notes || ''} onChange={(v) => onUpdate({ notes: v as string })} placeholder="Special abilities or description..." rows={3} className="w-full text-xs text-[#0f172a] bg-[#ffffff] p-3 rounded-lg border border-[#e2e8f0] focus:bg-white focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] outline-none transition-all resize-none placeholder:text-[#cccbcb] disabled:opacity-50 leading-relaxed font-sans" disabled={isSyncing} />
-          </div>
+          </LabeledField>
 
           <div className="space-y-4 pt-4 border-t border-[#e2e8f0]/40">
             <NpcListEditor<NpcTrait>

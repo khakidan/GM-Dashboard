@@ -12,6 +12,7 @@ import { getHitDiceStatus, getTotalHitDiceCount, parseHitDiceUsed, serializeHitD
 import { getResourceForEffect, parseResourcePools, spendResourcePip, serializeResourcePools } from '../../lib/resourcePools';
 import { toast } from 'sonner';
 import { StatBlock } from '../ui/StatBlock';
+import { LabeledField } from '../ui/LabeledField';
 import { StatTile } from '../ui/StatTile';
 import { PipTracker } from '../ui/PipTracker';
 import { parseAbilityScores, parseProficiencies, serializeAbilityScores, serializeProficiencies, proficiencyBonusFromLevel } from '../../lib/abilityScores';
@@ -150,8 +151,7 @@ export const CharacterCardExpanded: React.FC<CharacterCardExpandedProps> = ({
         }}
       />
 
-      <div>
-        <div className="text-[10px] uppercase text-[#8d8db9] font-bold tracking-widest mb-2 px-1">Class</div>
+      <LabeledField label="Class">
         <DebouncedInput 
           type="text"
           value={character.class || ''}
@@ -160,7 +160,7 @@ export const CharacterCardExpanded: React.FC<CharacterCardExpandedProps> = ({
           placeholder="e.g. Barbarian or Barbarian / Fighter"
           disabled={isSyncing}
         />
-      </div>
+      </LabeledField>
 
       {/* Hit Dice Config and Display Section */}
       <div className="border border-[#e2e8f0] hover:border-[#2563eb]/30 rounded-xl bg-white p-4 space-y-3 shadow-inner">
@@ -266,8 +266,7 @@ export const CharacterCardExpanded: React.FC<CharacterCardExpandedProps> = ({
         gap="gap-4"
       />
 
-      <div>
-        <div className="text-[10px] uppercase text-[#8d8db9] font-bold tracking-widest mb-2 px-1">Notes</div>
+      <LabeledField label="Notes">
         <DebouncedTextarea 
           value={character.notes}
           onChange={(v) => onUpdate({ notes: v })}
@@ -275,7 +274,7 @@ export const CharacterCardExpanded: React.FC<CharacterCardExpandedProps> = ({
           className="w-full text-sm text-[#0f172a] bg-transparent p-3 rounded-lg italic resize-none border border-[#e2e8f0] focus:bg-white focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] outline-none transition-all h-24 placeholder:text-[#8d8db9]/40 disabled:opacity-50"
           disabled={isSyncing}
         />
-      </div>
+      </LabeledField>
 
       <div className="pt-4">
         <Button intent="destructive" size="large" onClick={onDelete} disabled={isSyncing} className="w-full flex items-center justify-center gap-2">
