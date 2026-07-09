@@ -11,6 +11,7 @@ import { Button } from '../ui/Button';
 import { StatTile } from '../ui/StatTile';
 import { ExpandableContent } from '../ui/ExpandableContent';
 import { LabeledField } from '../ui/LabeledField';
+import { ConfirmationDialog } from '../ui/ConfirmationDialog';
 
 // Modular Sub-components
 import { NpcCardHeader } from './NpcCardHeader';
@@ -33,6 +34,7 @@ export interface NpcCardProps {
 export const NpcCard: React.FC<NpcCardProps> = ({
   npc, isSyncing, isExpanded, onToggleExpand, onUpdate, onDelete
 }) => {
+  const [isConfirmOpen, setIsConfirmOpen] = React.useState(false);
   const parsedProfs = parseProficiencies(npc.proficiencies || '');
   const parsedScores = parseAbilityScores(npc.abilityScores || '');
 
@@ -491,12 +493,21 @@ export const NpcCard: React.FC<NpcCardProps> = ({
           </div>
 
           <div className="flex gap-4 pt-4 border-t border-[#e2e8f0]/40">
-            <Button intent="destructive" size="large" onClick={onDelete} disabled={isSyncing} className="flex items-center justify-center gap-2">
+            <Button intent="destructive" size="large" onClick={() => setIsConfirmOpen(true)} disabled={isSyncing} className="flex items-center justify-center gap-2">
               <Trash2 className="w-4 h-4" /> Delete NPC
             </Button>
           </div>
         </div>
       </ExpandableContent>
+
+      <ConfirmationDialog
+        isOpen={isConfirmOpen}
+        title="Delete NPC?"
+        description={`This will permanently remove ${npc.name} from your NPC library. This cannot be undone.`}
+        confirmLabel="Delete"
+        onConfirm={onDelete}
+        onClose={() => setIsConfirmOpen(false)}
+      />
     </CardShell>
   );
 };

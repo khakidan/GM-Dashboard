@@ -8,6 +8,7 @@ import { DebouncedInput } from '../ui/DebouncedInput';
 import { EncounterLogModal } from './EncounterLogModal';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
+import { ConfirmationDialog } from '../ui/ConfirmationDialog';
 
 export interface EncounterCardProps {
   enc: Encounter;
@@ -43,6 +44,7 @@ export const EncounterCard: React.FC<EncounterCardProps> = ({
   const [isUpdating, setIsUpdating] = useState(false);
   const [errorStatus, setErrorStatus] = useState<string | null>(null);
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   useEffect(() => {
     setName(enc.name || '');
@@ -201,7 +203,7 @@ export const EncounterCard: React.FC<EncounterCardProps> = ({
             intent="destructive"
             loading={isDeleting}
             disabled={isUpdating}
-            onClick={() => onDelete(enc)}
+            onClick={() => setIsConfirmOpen(true)}
             title="Delete Encounter"
             className="flex-1 md:flex-none"
           >
@@ -222,6 +224,15 @@ export const EncounterCard: React.FC<EncounterCardProps> = ({
         encounterName={name}
         isOpen={isLogModalOpen}
         onClose={() => setIsLogModalOpen(false)}
+      />
+
+      <ConfirmationDialog
+        isOpen={isConfirmOpen}
+        title="Delete Encounter?"
+        description={`This will permanently remove "${enc.name}" and its combat log history. This cannot be undone.`}
+        confirmLabel="Delete"
+        onConfirm={() => onDelete(enc)}
+        onClose={() => setIsConfirmOpen(false)}
       />
     </CardShell>
   );

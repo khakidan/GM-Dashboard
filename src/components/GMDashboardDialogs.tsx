@@ -5,6 +5,7 @@ import { CommandPalette } from './CommandPalette';
 import { SyncingOverlay } from './SyncingOverlay';
 import { useAudioEngine } from '../hooks/useAudioEngine';
 import { useMoodPresets } from '../hooks/useMoodPresets';
+import { ConfirmationDialog } from './ui/ConfirmationDialog';
 
 interface GMDashboardDialogsProps {
   campaignId: string;
@@ -85,35 +86,15 @@ export function GMDashboardDialogs({
         activateMood={moodPresets.activateMood}
       />
 
-      {showLeaveConfirm && (
-        <div id="leave-campaign-confirm-overlay" className="fixed inset-0 bg-[#0f172a]/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 select-none animate-fade-in font-serif">
-          <div className="bg-[#ffffff] border-2 border-[#2563eb] rounded-2xl p-6 max-w-sm w-full shadow-2xl text-center">
-            <h3 className="text-xl font-bold text-[#0f172a] mb-3">Leave Campaign?</h3>
-            <p className="text-sm font-sans text-[#8d8db9] mb-6">
-              An encounter is in progress. Leave this campaign?
-            </p>
-            <div className="flex justify-center gap-3 font-sans">
-              <button
-                id="leave-campaign-stay-btn"
-                onClick={onCloseLeaveConfirm}
-                className="px-5 py-2.5 bg-stone-200 hover:bg-stone-300 font-bold text-stone-800 rounded-lg text-sm transition-colors cursor-pointer"
-              >
-                Stay
-              </button>
-              <button
-                id="leave-campaign-leave-btn"
-                onClick={() => {
-                  onCloseLeaveConfirm();
-                  onConfirmLeave();
-                }}
-                className="px-5 py-2.5 bg-red-600 hover:bg-red-700 font-bold text-white rounded-lg text-sm transition-colors cursor-pointer animate-pulse"
-              >
-                Leave
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmationDialog
+        isOpen={showLeaveConfirm}
+        title="Leave Campaign?"
+        description="An encounter is in progress. Leave this campaign?"
+        confirmLabel="Leave"
+        cancelLabel="Stay"
+        onConfirm={onConfirmLeave}
+        onClose={onCloseLeaveConfirm}
+      />
     </>
   );
 }
