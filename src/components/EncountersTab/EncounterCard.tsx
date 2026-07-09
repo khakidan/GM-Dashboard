@@ -132,7 +132,7 @@ export const EncounterCard: React.FC<EncounterCardProps> = ({
               onBlur={() => handleUpdate()}
               disabled={isUpdating || isDeleting}
               placeholder="No Location"
-              className="text-xs text-[#8d8db9] font-bold uppercase tracking-widest bg-transparent border-none focus:ring-0 p-0 w-full truncate placeholder:text-gray-300 disabled:opacity-50"
+              className="text-xs text-[#8d8db9] uppercase tracking-wider font-bold opacity-60 bg-transparent border border-transparent rounded hover:bg-[#f9f8ff] focus:bg-white focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] outline-none px-2 py-1 -ml-2 transition-all placeholder:text-[#8d8db9]/30 disabled:opacity-50 w-auto truncate"
             />
           </div>
         </div>
