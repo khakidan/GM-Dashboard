@@ -207,8 +207,6 @@ export function useNpcLibrary() {
     const npc = latestSnapshot.npcs.find(n => n.id === npcId);
     if (!npc) return;
 
-    if (!confirm(`Are you sure you want to delete ${npc.name}? This action cannot be undone.`)) return;
-
     const previousState = state;
     
     // Optimistic delete

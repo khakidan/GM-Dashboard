@@ -4,6 +4,7 @@ import { Character } from '../../types';
 import { cn } from '../../lib/utils';
 import { PipTracker } from './PipTracker';
 import { Badge } from './Badge';
+import { ConfirmationDialog } from './ConfirmationDialog';
 import {
   parseResourcePools,
   serializeResourcePools,
@@ -39,6 +40,7 @@ export const ResourcePoolsSection: React.FC<ResourcePoolsSectionProps> = ({
   const [editName, setEditName] = useState('');
   const [editMax, setEditMax] = useState(3);
   const [editReset, setEditReset] = useState<ResourcePool['reset']>('long');
+  const [pendingDeleteName, setPendingDeleteName] = useState<string | null>(null);
 
   // Trigger spreadsheet/state updates
   const savePools = (updatedPools: ResourcePool[]) => {
@@ -64,10 +66,14 @@ export const ResourcePoolsSection: React.FC<ResourcePoolsSectionProps> = ({
   };
 
   const handleDelete = (name: string) => {
-    if (confirm(`Remove the "${name}" resource pool?`)) {
-      const updated = removeResourcePool(pools, name);
-      savePools(updated);
-    }
+    setPendingDeleteName(name);
+  };
+
+  const confirmDelete = () => {
+    if (!pendingDeleteName) return;
+    const updated = removeResourcePool(pools, pendingDeleteName);
+    savePools(updated);
+    setPendingDeleteName(null);
   };
 
   const startEdit = (pool: ResourcePool) => {
@@ -368,6 +374,14 @@ export const ResourcePoolsSection: React.FC<ResourcePoolsSectionProps> = ({
           })}
         </div>
       )}
+      <ConfirmationDialog
+        isOpen={pendingDeleteName !== null}
+        title="Remove Resource Pool?"
+        description={pendingDeleteName ? `Remove the "${pendingDeleteName}" resource pool?` : ''}
+        confirmLabel="Remove"
+        onConfirm={confirmDelete}
+        onClose={() => setPendingDeleteName(null)}
+      />
     </div>
   );
 };

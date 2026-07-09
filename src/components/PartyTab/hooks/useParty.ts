@@ -436,8 +436,6 @@ export function useParty() {
     const char = state.characters.find(c => c.id === id);
     if (!char) return;
 
-    if (!confirm(`Are you sure you want to delete ${char.characterName}?`)) return;
-
     setGlobalError(null);
     const previousState = state;
     

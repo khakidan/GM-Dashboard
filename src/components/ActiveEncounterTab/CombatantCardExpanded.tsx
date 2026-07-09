@@ -14,6 +14,7 @@ import { useCombatantExpanded } from './hooks/useCombatantExpanded';
 import { CombatMechanicsSummary } from './CombatMechanicsSummary';
 import { CombatantIrvDisplay } from './CombatantIrvDisplay';
 import { Button } from '../ui/Button';
+import { ConfirmationDialog } from '../ui/ConfirmationDialog';
 
 export interface CombatantCardExpandedProps {
   c: Combatant;
@@ -50,6 +51,7 @@ export function CombatantCardExpanded({
   pcCharacter,
   npcModel,
 }: CombatantCardExpandedProps) {
+  const [isConfirmOpen, setIsConfirmOpen] = React.useState(false);
   const conditionList = (c.conditions || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
   const mechanicalSummary = buildConditionSummary(conditionList);
 
@@ -210,9 +212,17 @@ export function CombatantCardExpanded({
 
       <div className="flex justify-between items-center pt-4 border-t border-[#e2e8f0]">
         <span className="text-xs text-[#8d8db9] opacity-40 font-mono tracking-tighter">{c.id.split('-').pop()}</span>
-        <Button intent="destructive" size="small" onClick={onRemoveCombatant} disabled={isSyncing} className="flex items-center gap-2">
+        <Button intent="destructive" size="small" onClick={() => setIsConfirmOpen(true)} disabled={isSyncing} className="flex items-center gap-2">
           <Trash2 className="w-4 h-4" /> Remove Combatant
         </Button>
+        <ConfirmationDialog
+          isOpen={isConfirmOpen}
+          title="Remove Combatant?"
+          description={`This will remove ${c.name} from the current encounter. This cannot be undone.`}
+          confirmLabel="Remove"
+          onConfirm={onRemoveCombatant}
+          onClose={() => setIsConfirmOpen(false)}
+        />
       </div>
     </div>
   );

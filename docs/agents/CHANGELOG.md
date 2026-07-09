@@ -571,3 +571,49 @@ A quick, well-contained candidate from the "Component Consolidation Candidates" 
 **Adopted in 6 locations**: `NpcCard.tsx`'s `Speed`/`Senses`/`Languages`/`Notes`, `CharacterCardExpanded.tsx`'s `Class`/`Notes` — every input's own props and bespoke className preserved completely unchanged in all 6, confirmed directly against the real files.
 
 Verified: TypeScript clean, Batch 6A (9 files/46 tests) and Batch 6C (5 files/13 tests) both matching established baselines with real raw output, all diffs checked directly against the real files.
+
+---
+
+## ConfirmationDialog Component (Completed)
+
+The last of the originally-flagged "Component Consolidation Candidates." Unlike every other component this project, this one is a real *new safety behavior* for two of its three adoptions, not a refactor of existing behavior — `NpcCard.tsx` and `EncounterCard.tsx`'s delete buttons previously called their delete handler directly, with zero confirmation step at all. Explicitly decided and understood as new behavior before building, not assumed to be a like-for-like extraction.
+
+**Design, per explicit decisions**: one single look regardless of severity — no `severity`/`intent` prop on the component itself, matching the existing "Leave Campaign" reference exactly (`GMDashboardDialogs.tsx`, the only prior real instance). Deliberately does **not** use `DialogShell` — stays a raw `fixed inset-0` overlay, matching the reference implementation as-is. Uses the real, unmodified `Button` component for both actions: `intent="destructive"` for confirm (no `className` override, no `animate-pulse` — the original's bold-pulse styling was confirmed unnecessary and dropped) and `intent="secondary"` for cancel (the original's `stone`-family palette was confirmed to be unintentional drift from every other secondary/cancel button in the app, not a deliberate choice, and was normalized away).
+
+**A specific, checkable factual claim was independently verified, not accepted on the strength of the claim alone**: the `EncounterCard.tsx` adoption's description text states that deleting an encounter removes its combat log history — confirmed genuinely true by reading `deleteEncounterFully`'s own cascade-delete test suite directly (`src/services/__tests__/encounters.test.ts`), which explicitly tests that deleting an encounter cascades to both its `Encounter_Combatants` rows and its `EncounterLogs` rows, correctly scoped to just that encounter. Also independently confirmed: no test or file anywhere depends on the old Leave Campaign dialog's specific element IDs (`leave-campaign-confirm-overlay`, `-stay-btn`, `-leave-btn`), so they were correctly dropped rather than preserved.
+
+**`ConfirmationDialog.tsx`** (`src/components/ui/`): `isOpen`, `title`, `description`, `confirmLabel`, `cancelLabel?` (default `"Cancel"`), `onConfirm`, `onClose`.
+
+**Adopted in 3 locations**: `GMDashboardDialogs.tsx` (the existing Leave Campaign case, now parameterized instead of inline), `NpcCard.tsx` (new — "Delete NPC?", gated behind local `isConfirmOpen` state, existing `disabled={isSyncing}` preserved), `EncounterCard.tsx` (new — "Delete Encounter?", same gating pattern, existing `loading`/`disabled` states on the underlying delete button preserved unchanged).
+
+Verified: TypeScript clean, Batch 5B (11 files/26 tests), Batch 6B (5 files/20 tests), Batch 6C (5 files/13 tests), and Batch 7B-1 (5 files/13 tests) all matching established baselines with real raw output, every diff and both factual claims checked directly against the real files rather than accepted from summary.
+
+---
+
+## Double-Confirmation Bug Fix in `useNpcLibrary.ts` (Fixed)
+
+A real regression caught in already-shipped `ConfirmationDialog` work, found while scoping a follow-up request (adding confirmation to "Delete Player" and "Remove Combatant"). `NpcCard.tsx`'s delete flow shows the new `ConfirmationDialog`, but `handleDeleteNpc` — the function its `onDelete` prop ultimately calls — still had its own raw `confirm()` call left over from before that adoption, meaning deleting an NPC showed two confirmations back to back. This should have been caught during the original `ConfirmationDialog` adoption and wasn't.
+
+Fixed: the raw `confirm()` call removed from `handleDeleteNpc` entirely — `NpcCard.tsx`'s `ConfirmationDialog` is now the sole confirmation step, confirmed directly (zero `confirm()` calls remain anywhere in the file).
+
+**This also prompted a real, exhaustive full-codebase audit** (`grep -rn "confirm(" src/`) for any other raw `confirm()`/`window.confirm()` call sites — a genuinely important step, since an earlier, only-locally-available-files search had found 5 sites, but the real, complete search found 8. Three additional instances were discovered that weren't part of the original request at all: `useCombatConcentration.ts` (concentration-override warning), `useBatchActions.ts` (bulk combatant removal), and `useSettings.ts` (spreadsheet configuration reset). All tracked in `ROADMAP.md` for the same staged migration treatment as the originally-known 5.
+
+Verified: TypeScript clean, Batch 6C (5 files/13 tests) matching the established baseline with real raw output, diff checked directly against the real file.
+
+---
+
+## Raw `confirm()`/`window.confirm()` Migration to `ConfirmationDialog` (Completed) — 5 of 8 Real Instances
+
+The originally-known 5 raw `confirm()`/`window.confirm()` call sites (found alongside the `useNpcLibrary.ts` double-confirmation bug above) are now fully migrated to the shared `ConfirmationDialog`, in 4 deliberately small, sequential stages — the same discipline as `CardShell`/`EmptyState`.
+
+**Delete Player** (`useParty.ts`'s `handleDeletePlayer` → `CharacterCardExpanded.tsx`) and **Remove Combatant** (`useCombatantMutations.ts`'s `removeCombatant` → `CombatantCardExpanded.tsx`) both used the simple boolean `isConfirmOpen` pattern already proven out by `NpcCard.tsx`/`EncounterCard.tsx`. `Remove Combatant` in particular is a genuinely new safety feature, not a migration — it had zero confirmation of any kind before this, confirmed via screenshot.
+
+**Cancel Encounter** (`CombatHeader.tsx`) needed a deliberate non-default `cancelLabel` — but the first attempt ("Keep Going") was reverted by explicit user correction after review, and a second attempt (`cancelLabel="Cancel Encounter"`, matching the confirm button's own label) was caught as a genuine usability bug before shipping: two identically-labeled buttons in the same dialog make it impossible to tell which one actually cancels the encounter and which one just dismisses the dialog. Resolved by dropping the `cancelLabel` override entirely, falling back to `ConfirmationDialog`'s own plain default ("Cancel") — simpler, and consistent with every other adoption rather than introducing a new one-off phrase.
+
+**Delete Encounter Log** (`EncounterLogModal.tsx`) and **Remove Resource Pool** (`ResourcePoolsSection.tsx`) were the two genuinely harder cases — each handler acts on one specific item among several (a log ID, a pool name), so a single boolean wasn't sufficient. Both were restructured to track *which* item is pending via nullable state (`pendingDeleteLogId`, `pendingDeleteName`), splitting the original handler into a trigger (sets the pending target) and a separate confirm function (performs the actual action, then clears the pending state) — `ConfirmationDialog`'s `isOpen` keyed off `pending... !== null` rather than a plain boolean.
+
+**A process note worth remembering**: a "Batch 5B passed" claim was given without any raw output at all on the first attempt for this exact step (twice, actually — the same gap this project has hit before) — real, complete raw output was required and obtained before treating it as verified. `ResourcePoolsSection.tsx` in particular is adopted in two different parent components (`CharacterCardExpanded.tsx` → Batch 6A, `CombatantCardExpanded.tsx` → Batch 5B), so touching it required both real batches re-verified, not just one.
+
+**Remaining, tracked separately in `ROADMAP.md`**: 3 more raw `confirm()` instances discovered only by the real exhaustive audit (`useCombatConcentration.ts`, `useBatchActions.ts`, `useSettings.ts`) — not yet scoped or built.
+
+Verified across all 4 stages: TypeScript clean, Batch 6A (9 files/46 tests), Batch 5B (11 files/26 tests), and Batch 6B (5 files/20 tests) all matching established baselines with real raw output, every diff checked directly against the real files.

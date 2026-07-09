@@ -12,11 +12,16 @@ Features and bugs that have been discussed and approved but not yet implemented.
 
 ### 🔴 Bugs to Fix
 
-None currently open.
+None currently open. (The `useNpcLibrary.ts` double-confirmation bug is fixed — confirmed directly, zero `confirm()` calls remain in that file, Batch 6C matches baseline. See `CHANGELOG.md`.)
 
 ### 🟡 Features to Add
 
-None.
+**3 raw `confirm()`/`window.confirm()` call sites remain, discovered by the real exhaustive audit (`grep -rn "confirm(" src/`) but not part of the original request** — the other 5 originally-known sites are fully migrated to `ConfirmationDialog` (see `CHANGELOG.md`). Not yet scoped or designed — should get the same direct-verification treatment as everything else before building:
+
+- `useCombatConcentration.ts:63` — "already concentrating, end previous and start new?" — a different *kind* of confirmation than a destructive delete (an override/replace warning), worth checking whether `ConfirmationDialog`'s wording (`confirmLabel`/`cancelLabel` defaults) genuinely fits before assuming it does.
+- `useBatchActions.ts:311` — bulk combatant removal, genuinely destructive and irreversible, a natural fit.
+- `useSettings.ts:83` — resetting the spreadsheet configuration, a significant, app-wide action.
+- All three are (or are likely) hooks, not components — same architectural split needed as `useParty.ts`/`useCombatantMutations.ts` (confirmation lives at the component level, the hook function becomes unconditional) — confirm which component each is actually called from before building.
 
 ### 🔵 Architecture / Technical Debt
 
@@ -35,8 +40,7 @@ Surfaced by a user-run AI Studio audit, not this project's own audit cadence. **
    - **Critical constraint for anything built here, now confirmed with real numbers, not just a general caution**: every shared component so far was sized for a GM working up close on a laptop. This page is read from across a room. The `EmptyState` adoption here happened to be safe — its fixed `text-lg`/`text-sm` sizing is actually slightly *larger* than this page's own small `text-xs` empty-state labels — but that was a coincidence specific to those two elements, not a general rule. The rest of the page is **not** safe by default: the combatant table currently uses genuinely large text (`text-xl`/`text-2xl` for names and HP), deliberately sized for cross-the-room reading, which is much bigger than any shared component's normal GM-dashboard-scale defaults (`Badge`'s padding/text size, a typical `PipTracker` dot size, etc.). Naively adopting those components here with their standard sizing would shrink this page down, the opposite of its purpose. Any future work on the health-status pill, the round-indicator pill, or the death-save pips needs to explicitly preserve or exceed the current large sizing — never just apply a component's normal default and assume it's fine.
    - Does not fit: the initiative circle (a circular avatar, not a horizontal pill) and `DashboardLayout` (this isn't a GM dashboard tab at all).
 
-2. **`ConfirmationDialog`** — a standardized "destructive confirmation" flow built on `DialogShell.tsx`, motivated by `GMDashboardDialogs.tsx`'s Leave Campaign confirmation (currently claimed to be a manual, one-off implementation) and potentially reusable for delete actions in `NpcCard`/`EncounterCard`. Not independently verified — check `GMDashboardDialogs.tsx` directly first.
-3. **`DashboardLayout` page-level wrapper** — the top-level structure (fixed header with title/actions, scrollable content area, consistent `bg-[#f8fafc]`) is claimed to repeat across `PartyTab`, `EncountersTab`, `NpcLibraryTab`. Higher risk than every other component built so far — this would be the first *page-layout* wrapper rather than a leaf-level UI element, and layout wrappers tend to accumulate per-page exceptions over time if built without a real audit first. The specific claim that `NpcLibraryTab.tsx` uses "nested headers" while the others use a single-level flex header needs direct verification, not assumption.
+2. **`DashboardLayout` page-level wrapper** — the top-level structure (fixed header with title/actions, scrollable content area, consistent `bg-[#f8fafc]`) is claimed to repeat across `PartyTab`, `EncountersTab`, `NpcLibraryTab`. Higher risk than every other component built so far — this would be the first *page-layout* wrapper rather than a leaf-level UI element, and layout wrappers tend to accumulate per-page exceptions over time if built without a real audit first. The specific claim that `NpcLibraryTab.tsx` uses "nested headers" while the others use a single-level flex header needs direct verification, not assumption.
 ## Code Organization / Decomposition (different kind of work — not visual consolidation)
 
 Also surfaced by the same audit, but this is file-size/maintainability work, not visual-consistency work — same category as the earlier "Codebase Modularity Audit," not the component-consolidation projects above. Track and scope separately if pursued.

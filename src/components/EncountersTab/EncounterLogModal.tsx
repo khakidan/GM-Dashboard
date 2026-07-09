@@ -7,6 +7,7 @@ import { DialogShell } from '../ui/DialogShell';
 import { IconButton } from '../ui/IconButton';
 import { Badge } from '../ui/Badge';
 import { Accordion } from '../ui/Accordion';
+import { ConfirmationDialog } from '../ui/ConfirmationDialog';
 
 
 interface EncounterLogModalProps {
@@ -20,6 +21,7 @@ export function EncounterLogModal({ encounterId, encounterName, isOpen, onClose 
   const { fetchLogsForEncounter, deleteLog, isLoading, error } = useEncounterLogs();
   const [logs, setLogs] = useState<EncounterLog[]>([]);
   const [expandedLogId, setExpandedLogId] = useState<string | null>(null);
+  const [pendingDeleteLogId, setPendingDeleteLogId] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -38,11 +40,14 @@ export function EncounterLogModal({ encounterId, encounterName, isOpen, onClose 
     setExpandedLogId(prev => (prev === id ? null : id));
   };
 
-  const handleDelete = async (e: React.MouseEvent, logId: string) => {
+  const handleDelete = (e: React.MouseEvent, logId: string) => {
     e.stopPropagation();
-    const confirmed = window.confirm('Delete this encounter log? This cannot be undone.');
-    if (!confirmed) return;
+    setPendingDeleteLogId(logId);
+  };
 
+  const confirmDelete = async () => {
+    if (!pendingDeleteLogId) return;
+    const logId = pendingDeleteLogId;
     const success = await deleteLog(logId);
     if (success) {
       setLogs(prev => prev.filter(log => log.id !== logId));
@@ -50,6 +55,7 @@ export function EncounterLogModal({ encounterId, encounterName, isOpen, onClose 
         setExpandedLogId(null);
       }
     }
+    setPendingDeleteLogId(null);
   };
 
   return (
@@ -157,6 +163,14 @@ export function EncounterLogModal({ encounterId, encounterName, isOpen, onClose 
           </div>
         )}
       </div>
+      <ConfirmationDialog
+        isOpen={pendingDeleteLogId !== null}
+        title="Delete Encounter Log?"
+        description="This cannot be undone."
+        confirmLabel="Delete"
+        onConfirm={confirmDelete}
+        onClose={() => setPendingDeleteLogId(null)}
+      />
     </DialogShell>
   );
 }

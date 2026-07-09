@@ -19,6 +19,7 @@ import { parseAbilityScores, parseProficiencies, serializeAbilityScores, seriali
 import { SpellcastingStatsRow } from '../ui/SpellcastingStatsRow';
 import { serializeSpellcastingAbility } from '../../lib/spellcasting';
 import { Button } from '../ui/Button';
+import { ConfirmationDialog } from '../ui/ConfirmationDialog';
 
 export interface CharacterCardExpandedProps {
   character: Character;
@@ -33,6 +34,7 @@ export const CharacterCardExpanded: React.FC<CharacterCardExpandedProps> = ({
   onUpdate,
   onDelete,
 }) => {
+  const [isConfirmOpen, setIsConfirmOpen] = React.useState(false);
   const handleConditionAdded = (label: string) => {
     const resourceName = getResourceForEffect(label);
     if (!resourceName) return;
@@ -277,10 +279,18 @@ export const CharacterCardExpanded: React.FC<CharacterCardExpandedProps> = ({
       </LabeledField>
 
       <div className="pt-4">
-        <Button intent="destructive" size="large" onClick={onDelete} disabled={isSyncing} className="w-full flex items-center justify-center gap-2">
+        <Button intent="destructive" size="large" onClick={() => setIsConfirmOpen(true)} disabled={isSyncing} className="w-full flex items-center justify-center gap-2">
           <Trash2 className="w-4 h-4" />
           Delete Player
         </Button>
+        <ConfirmationDialog
+          isOpen={isConfirmOpen}
+          title="Delete Player?"
+          description={`This will permanently remove ${character.characterName} from your party roster. This cannot be undone.`}
+          confirmLabel="Delete"
+          onConfirm={onDelete}
+          onClose={() => setIsConfirmOpen(false)}
+        />
       </div>
     </div>
   );

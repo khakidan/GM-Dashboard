@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Eye, RefreshCcw, Zap, Swords, HelpCircle } from 'lucide-react';
 import { Encounter, DamageType } from '../../types';
 import { cn } from '../../lib/utils';
 import { MultiTargetActionPanel } from './MultiTargetActionPanel';
 import { ToggleBadge } from '../ui/ToggleBadge';
+import { ConfirmationDialog } from '../ui/ConfirmationDialog';
 
 interface CombatHeaderProps {
   encounter?: Encounter;
@@ -49,6 +50,7 @@ export function CombatHeader({
   onApplyHealing,
   onApplyCondition,
 }: CombatHeaderProps) {
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   return (
     <div className="bg-[#ffffff] border-b border-[#e2e8f0] flex flex-col w-full">
       <div className="p-6 flex flex-col gap-4">
@@ -153,15 +155,19 @@ export function CombatHeader({
 
           {/* CANCEL ENCOUNTER BUTTON */}
           <button
-            onClick={() => {
-              if (window.confirm("Cancel this encounter? The combat log will be discarded and this cannot be undone.")) {
-                onCancelEncounter();
-              }
-            }}
+            onClick={() => setIsConfirmOpen(true)}
             className="bg-red-50 text-red-600 border border-red-100 rounded-xl uppercase text-xs font-bold px-3 py-2 hover:bg-red-100 transition-colors cursor-pointer"
           >
             Cancel Encounter
           </button>
+          <ConfirmationDialog
+            isOpen={isConfirmOpen}
+            title="Cancel Encounter?"
+            description="The combat log will be discarded and this cannot be undone."
+            confirmLabel="Cancel Encounter"
+            onConfirm={onCancelEncounter}
+            onClose={() => setIsConfirmOpen(false)}
+          />
 
           {/* NEXT TURN BUTTON */}
           <button
