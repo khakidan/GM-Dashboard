@@ -10,7 +10,7 @@ import { cn } from '../lib/utils';
 import { NewNpcDialog } from './NpcLibraryTab/NewNpcDialog';
 import { NpcCard } from './NpcLibraryTab/NpcCard';
 import { checkIrvMatch } from '../lib/combatLogic';
-;
+import { DashboardLayout } from './ui/DashboardLayout';
 
 export function NpcLibraryTab() {
   const { state: appState, updateState } = useAppState();
@@ -92,73 +92,64 @@ export function NpcLibraryTab() {
   );
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-[#e2e8f0] overflow-hidden flex-1 flex flex-col w-full">
-      {/* Page Header */}
-      <div className="bg-[#ffffff] border-b border-[#e2e8f0] p-6">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-[#0f172a]">NPC Library</h1>
-            <p className="text-sm text-[#8d8db9] mt-0.5">Reference NPCs loaded from your campaign sheets. Directly inspect stats and health status.</p>
+    <DashboardLayout
+      title="NPC Library"
+      description="Reference NPCs loaded from your campaign sheets. Directly inspect stats and health status."
+      actions={
+        <button
+          onClick={() => setIsNewNpcDialogOpen(true)}
+          className="flex items-center gap-1.5 px-4 py-1.5 bg-[#2563eb] hover:bg-[#567eff] text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all shadow-md hover:shadow-lg flex-shrink-0"
+          id="add-npc-btn"
+        >
+          <Plus className="w-4 h-4" />
+          New NPC
+        </button>
+      }
+      filterControls={
+        <div className="flex flex-col md:flex-row gap-3">
+          <SearchInput
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder="Search by name..."
+            id="npc-search-input"
+            className="flex-1"
+          />
+          
+          <div className="grid grid-cols-2 md:flex gap-3 flex-wrap">
+            {renderFilterSelect(<Shield className="w-4 h-4 text-blue-500/60" />, "Resist", filterResistances, setFilterResistances)}
+            {renderFilterSelect(<Shield className="w-4 h-4 text-green-600/60" />, "Immune", filterImmunities, setFilterImmunities)}
+            {renderFilterSelect(<Shield className="w-4 h-4 text-red-500/60" />, "Vulnerable", filterVulnerabilities, setFilterVulnerabilities)}
           </div>
 
-          <button
-            onClick={() => setIsNewNpcDialogOpen(true)}
-            className="flex items-center gap-1.5 px-4 py-1.5 bg-[#2563eb] hover:bg-[#567eff] text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all shadow-md hover:shadow-lg flex-shrink-0"
-            id="add-npc-btn"
-          >
-            <Plus className="w-4 h-4" />
-            New NPC
-          </button>
+          {hasActiveFilters && (
+            <button
+              onClick={clearFilters}
+              className="flex items-center justify-center gap-1.5 px-3 py-2 text-[#8d8db9] hover:text-[#0f172a] text-xs font-bold uppercase tracking-widest transition-colors"
+              id="clear-filters-btn"
+            >
+              <X className="w-3.5 h-3.5" />
+              Clear
+            </button>
+          )}
         </div>
+      }
+    >
+      {globalError && (
+        <Callout severity="error" className="mb-6">
+          <p>{globalError}</p>
+        </Callout>
+      )}
 
-        {/* Filter Controls Area */}
-        <div className="mt-6 flex flex-col gap-4">
-          <div className="flex flex-col md:flex-row gap-3">
-            <SearchInput
-              value={searchQuery}
-              onChange={setSearchQuery}
-              placeholder="Search by name..."
-              id="npc-search-input"
-              className="flex-1"
-            />
-            
-            <div className="grid grid-cols-2 md:flex gap-3 flex-wrap">
-              {renderFilterSelect(<Shield className="w-4 h-4 text-blue-500/60" />, "Resist", filterResistances, setFilterResistances)}
-              {renderFilterSelect(<Shield className="w-4 h-4 text-green-600/60" />, "Immune", filterImmunities, setFilterImmunities)}
-              {renderFilterSelect(<Shield className="w-4 h-4 text-red-500/60" />, "Vulnerable", filterVulnerabilities, setFilterVulnerabilities)}
-            </div>
-
-            {hasActiveFilters && (
-              <button
-                onClick={clearFilters}
-                className="flex items-center justify-center gap-1.5 px-3 py-2 text-[#8d8db9] hover:text-[#0f172a] text-xs font-bold uppercase tracking-widest transition-colors"
-                id="clear-filters-btn"
-              >
-                <X className="w-3.5 h-3.5" />
-                Clear
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div className="flex-1 bg-white w-full p-6 overflow-y-auto">
-        {globalError && (
-          <Callout severity="error" className="mb-6">
-            <p>{globalError}</p>
-          </Callout>
-        )}
-
-        <div className="space-y-4">
-          {filteredNpcs.length === 0 ? (
-            <EmptyState
-              icon={BookOpen}
-              title="No NPCs in library"
-              description="Add NPCs to build your library. They will be available to add to any encounter."
-              actionLabel="Add New NPC"
-              onAction={() => setIsNewNpcDialogOpen(true)}
-            />
-          ) : (
+      <div className="space-y-4">
+        {filteredNpcs.length === 0 ? (
+          <EmptyState
+            icon={BookOpen}
+            title="No NPCs in library"
+            description="Add NPCs to build your library. They will be available to add to any encounter."
+            actionLabel="Add New NPC"
+            onAction={() => setIsNewNpcDialogOpen(true)}
+          />
+        ) : (
           <div className="flex flex-col gap-4">
             {filteredNpcs.map(npc => (
               <NpcCard
@@ -183,7 +174,6 @@ export function NpcLibraryTab() {
           setIsNewNpcDialogOpen(false);
         }}
       />
-      </div>
-    </div>
+    </DashboardLayout>
   );
 }

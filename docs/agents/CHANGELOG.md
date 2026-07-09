@@ -617,3 +617,23 @@ The originally-known 5 raw `confirm()`/`window.confirm()` call sites (found alon
 **Remaining, tracked separately in `ROADMAP.md`**: 3 more raw `confirm()` instances discovered only by the real exhaustive audit (`useCombatConcentration.ts`, `useBatchActions.ts`, `useSettings.ts`) — not yet scoped or built.
 
 Verified across all 4 stages: TypeScript clean, Batch 6A (9 files/46 tests), Batch 5B (11 files/26 tests), and Batch 6B (5 files/20 tests) all matching established baselines with real raw output, every diff checked directly against the real files.
+
+---
+
+## DashboardLayout Component (Completed)
+
+The last of the original "Component Consolidation Candidates," and — despite being flagged as the highest-risk item on the list — turned out to have the strongest evidence of any component built this project. Direct comparison of `PartyTab.tsx`, `EncountersTab.tsx`, and `NpcLibraryTab.tsx` found their outer container, header wrapper, title row, and content-area wrapper byte-identical across all three, not just similar.
+
+**The "nested headers" claim about `NpcLibraryTab.tsx`, precisely clarified rather than taken at face value**: not literally nested — its outer structure matches the other two exactly. The real difference is an additional filter/search row appended below the title, still inside the same header div, cleanly modeled as an optional `filterControls` slot.
+
+**A fourth real instance found by asking the right question, not assumed**: when asked whether this pattern might also apply to `ActiveEncounterTab`/`SettingsPage`, direct verification showed `ActiveEncounterTab` (`index.tsx`) doesn't fit at all — it already has its own dedicated, far more complex header (`CombatHeader.tsx`, a real-time combat control bar), and its outer container isn't even byte-identical to the other three. `SettingsPage.tsx`, however, was a genuine fourth match — close but not identical, with three small real differences (missing `flex-1`, an extra `min-h-full`, an extra `shrink-0` on its header), each resolved by explicit decision to normalize toward the other three rather than preserve as one-offs.
+
+**Design**: `title`, `description`, `actions?` (a flexible slot — some pages need their own wrapping div for a button cluster, others render a single button directly; `DashboardLayout` doesn't try to own that), `filterControls?` (optional, only `NpcLibraryTab.tsx` uses it), `children`, `className?`/`id?` passthrough for rare one-offs.
+
+**A real bug caught before it shipped, not just a process note**: `SettingsPage.tsx`'s own internal `space-y-8` (spacing its several stacked sections apart) was initially passed as `className="space-y-8"` directly to `<DashboardLayout>` itself — which applies `className` to the outer shell container, not any wrapper around the actual children. Since `space-y-*` only affects direct children, this silently broke the spacing between `SheetConnectionSettings`, the two-column grid, `ReferenceDataSeeder`, and `GMTestingTools` rather than just relocating it. Fixed by wrapping the actual children in their own `<div className="space-y-8">` directly inside the `DashboardLayout` call, restoring the correct original DOM structure.
+
+**Process note**: `ROADMAP.md`/`CHANGELOG.md` were edited without authorization during this component's build, a repeat of an issue already flagged and acknowledged earlier in this project. The specific edit made (removing the completed item) was reasonable in content, but was independently redone from the maintained copy rather than trusted as-is, consistent with this project's standing practice.
+
+Verified: TypeScript clean, Batch 6A (9 files/46 tests), Batch 6B (5 files/20 tests), Batch 6C (5 files/13 tests), and Batch 7B-2 (4 files/4 tests) all matching established baselines with real raw output, every diff checked directly against the real files.
+
+This closes out every item from the original "Component Consolidation Candidates" audit.

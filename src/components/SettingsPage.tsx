@@ -6,6 +6,7 @@ import { SheetConnectionSettings } from './SheetConnectionSettings';
 import { AuthPortalSettings } from './auth/AuthPortalSettings';
 import { ReferenceDataSeeder } from './ReferenceDataSeeder';
 import { GMTestingTools } from './GMTestingTools';
+import { DashboardLayout } from './ui/DashboardLayout';
 
 interface SettingsPageProps {
   isGoogleConnected: boolean;
@@ -46,18 +47,12 @@ export function SettingsPage(props: SettingsPageProps) {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-[#e2e8f0] overflow-hidden flex flex-col w-full min-h-full" id="settings-standalone-container">
-      {/* Page Header */}
-      <div className="bg-[#ffffff] border-b border-[#e2e8f0] p-6 shrink-0">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-[#0f172a]">Settings</h1>
-            <p className="text-sm text-[#8d8db9] mt-0.5">Manage Google Sheets connectivity, database synchronization, and campaign resources.</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex-1 bg-white w-full p-6 overflow-y-auto space-y-8">
+    <DashboardLayout
+      id="settings-standalone-container"
+      title="Settings"
+      description="Manage Google Sheets connectivity, database synchronization, and campaign resources."
+    >
+      <div className="space-y-8">
         {/* Full width — Sheet Connection */}
         <SheetConnectionSettings
           tempSpreadsheetId={tempSpreadsheetId}
@@ -122,6 +117,6 @@ export function SettingsPage(props: SettingsPageProps) {
           fireInitiativeEvent={fireInitiativeEvent}
         />
       </div>
-    </div>
+    </DashboardLayout>
   );
 }

@@ -8,6 +8,7 @@ import { EncounterCard } from './EncountersTab/EncounterCard';
 import { NewEncounterDialog } from './EncountersTab/NewEncounterDialog';
 import { DifficultyLevel } from '../types';
 import { readEncounterLogs } from '../services/dbOperations';
+import { DashboardLayout } from './ui/DashboardLayout';
 
 export function EncountersTab({ 
   onSelectEncounter, 
@@ -57,43 +58,37 @@ export function EncountersTab({
   }));
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-[#e2e8f0] overflow-hidden flex-1 flex flex-col w-full">
-      {/* Page Header */}
-      <div className="bg-[#ffffff] border-b border-[#e2e8f0] p-6">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-[#0f172a]">Encounters</h1>
-            <p className="text-sm text-[#8d8db9] mt-0.5">Manage your campaign encounters. Tap to view details or trigger dynamic combat.</p>
-          </div>
-          <button 
-            onClick={() => setIsNewDialogOpen(true)}
-            disabled={isAdding}
-            className="flex items-center gap-1.5 px-4 py-1.5 bg-[#2563eb] hover:bg-[#567eff] text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all shadow-md hover:shadow-lg flex-shrink-0"
-            id="new-encounter-btn"
-          >
-            {isAdding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-            New Encounter
-          </button>
-        </div>
-      </div>
+    <DashboardLayout
+      title="Encounters"
+      description="Manage your campaign encounters. Tap to view details or trigger dynamic combat."
+      actions={
+        <button 
+          onClick={() => setIsNewDialogOpen(true)}
+          disabled={isAdding}
+          className="flex items-center gap-1.5 px-4 py-1.5 bg-[#2563eb] hover:bg-[#567eff] text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all shadow-md hover:shadow-lg flex-shrink-0"
+          id="new-encounter-btn"
+        >
+          {isAdding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+          New Encounter
+        </button>
+      }
+    >
+      {globalError && (
+        <Callout severity="error" className="mb-6">
+          <p>{globalError}</p>
+        </Callout>
+      )}
 
-      <div className="flex-1 bg-white w-full p-6 overflow-y-auto">
-        {globalError && (
-          <Callout severity="error" className="mb-6">
-            <p>{globalError}</p>
-          </Callout>
-        )}
-
-        {state.encounters.length === 0 ? (
-          <EmptyState
-            icon={Swords}
-            title="No encounters found"
-            description="Your encounter library is empty. Start by creating a new scenario for your players to overcome."
-            actionLabel="Create Your First Encounter"
-            onAction={() => setIsNewDialogOpen(true)}
-            actionDisabled={isAdding}
-          />
-        ) : (
+      {state.encounters.length === 0 ? (
+        <EmptyState
+          icon={Swords}
+          title="No encounters found"
+          description="Your encounter library is empty. Start by creating a new scenario for your players to overcome."
+          actionLabel="Create Your First Encounter"
+          onAction={() => setIsNewDialogOpen(true)}
+          actionDisabled={isAdding}
+        />
+      ) : (
         <div className="grid grid-cols-1 gap-4">
           {state.encounters.map(enc => (
             <EncounterCard 
@@ -121,7 +116,6 @@ export function EncountersTab({
         }}
         difficulties={difficulties}
       />
-      </div>
-    </div>
+    </DashboardLayout>
   );
 }
