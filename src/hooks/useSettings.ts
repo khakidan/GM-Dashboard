@@ -80,8 +80,6 @@ export function useSettings({
 
   // Schema/Configuration reset operations
   const handleResetConfiguration = async () => {
-    const conf = confirm('Are you sure you want to reset the Spreadsheet configuration?');
-    if (!conf) return;
     setSpreadsheetId('');
     setTempSpreadsheetId('');
     toast.success('Spreadsheet ID has been reset.');

@@ -1,6 +1,8 @@
 // src/components/SheetConnectionSettings.tsx
 
+import { useState } from 'react';
 import { Save, RotateCcw } from 'lucide-react';
+import { ConfirmationDialog } from './ui/ConfirmationDialog';
 
 interface SheetConnectionSettingsProps {
   tempSpreadsheetId: string;
@@ -17,6 +19,8 @@ export function SheetConnectionSettings({
   handleResetConfiguration,
   isGoogleConnected,
 }: SheetConnectionSettingsProps) {
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+
   return (
     <div className="bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm space-y-4">
       <div>
@@ -48,12 +52,20 @@ export function SheetConnectionSettings({
                 Save ID
               </button>
               <button
-                onClick={handleResetConfiguration}
+                onClick={() => setIsConfirmOpen(true)}
                 title="Reset Spreadsheet Config"
                 className="border border-[#e2e8f0] hover:bg-stone-50 text-[#8d8db9] p-3 rounded-xl transition-all cursor-pointer"
               >
                 <RotateCcw className="w-4 h-4" />
               </button>
+              <ConfirmationDialog
+                isOpen={isConfirmOpen}
+                title="Reset Spreadsheet Configuration?"
+                description="This will disconnect your current Google Spreadsheet link. This cannot be undone."
+                confirmLabel="Reset"
+                onConfirm={handleResetConfiguration}
+                onClose={() => setIsConfirmOpen(false)}
+              />
             </div>
           </div>
         </div>
