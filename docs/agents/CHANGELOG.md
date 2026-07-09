@@ -637,3 +637,21 @@ The last of the original "Component Consolidation Candidates," and — despite b
 Verified: TypeScript clean, Batch 6A (9 files/46 tests), Batch 6B (5 files/20 tests), Batch 6C (5 files/13 tests), and Batch 7B-2 (4 files/4 tests) all matching established baselines with real raw output, every diff checked directly against the real files.
 
 This closes out every item from the original "Component Consolidation Candidates" audit.
+
+---
+
+## Raw `confirm()`/`window.confirm()` Migration — Final 3 Instances (Completed) — All 8 of 8 Now Done
+
+The last 3 of the 8 raw `confirm()`/`window.confirm()` call sites found by the earlier exhaustive audit, done in 3 sequential stages by explicit request, simplest first. This closes out the entire migration started by the `useNpcLibrary.ts` double-confirmation bug fix.
+
+**Reset Configuration** (`useSettings.ts`'s `handleResetConfiguration` → `SheetConnectionSettings.tsx`) and **Remove Selected Combatants** (`useBatchActions.ts`'s `handleDeleteSelected` → `MultiTargetActionPanel.tsx`) both used the simple boolean `isConfirmOpen` pattern already proven out repeatedly. `MultiTargetActionPanel.tsx`'s adoption used `selectedCount` (already a prop on the component) directly for singular/plural wording, no new data needed. Neither `SheetConnectionSettings.tsx` nor `SettingsPage.tsx` has a dedicated test file (same category as `DiceRoller.tsx`/`Soundboard.tsx`); `useSettings.ts`'s own logic is covered via Batch 3.
+
+**The concentration override** (`useCombatConcentration.ts`'s `handleSelectCaster` → `CasterAttributionDialog.tsx`) was the genuinely hard one, and for a real reason: it isn't a delete at all, it's a conditional override warning — the original code only asked for confirmation *if* the chosen caster was already concentrating on something else, applying immediately with no confirmation otherwise. A single `ConfirmationDialog` gate around the whole function wouldn't preserve that branching; the *decision of whether to ask* had to move to `CasterAttributionDialog.tsx` itself, since that's the only place with access to the full combatant list needed to check this ahead of time.
+
+**Design**: a shared `isConcentrating(conditions)` helper was extracted into `lib/conditions`'s barrel (`index.ts`) rather than duplicating the check between the hook and the dialog, so the two can never drift out of sync. `useCombatConcentration.ts`'s `handleSelectCaster` was simplified to always execute unconditionally — the `isCasterConcentrating` branch, the `window.confirm()` call, and the `executeCasterUpdate` wrapper function were all removed, folded directly into the main flow. `CasterAttributionDialog.tsx` now checks `isConcentrating(c.conditions)` *before* calling `onSelect` — if false, applies immediately exactly as before (zero behavior change for the common case); if true, holds a `pendingCasterId` and shows `ConfirmationDialog` instead of the old browser popup.
+
+**A genuine, deliberate bonus**: a real unit test for the new `isConcentrating` helper was added to the existing `lib/__tests__/conditions.barrel.test.ts` file as part of this work — Batch 1's established baseline is now 440 tests, not 439, a legitimate permanent increase, not a discrepancy.
+
+Verified across all 3 stages: TypeScript clean, Batch 3 (11 files/41 tests), Batch 5A (7 files/45 tests), Batch 5B (11 files/26 tests), and Batch 1 (19 files/440 tests, baseline permanently updated from 439) all matching established baselines with real raw output, every diff checked directly against the real files.
+
+**This completes the entire raw `confirm()`/`window.confirm()` migration — all 8 of 8 real instances found by the exhaustive audit are now using the shared `ConfirmationDialog`, and no raw browser confirmation dialogs remain anywhere in the app.**

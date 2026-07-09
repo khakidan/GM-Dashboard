@@ -7,6 +7,11 @@ export {
   IRV_OPTIONS,
 } from '../irvOptions';
 
+export function isConcentrating(conditions: string | undefined | null): boolean {
+  const lowerConditions = (conditions || '').toLowerCase();
+  return lowerConditions.split(',').map(s => s.trim()).includes('concentrating');
+}
+
 export {
   CONDITION_MECHANICS,
   buildConditionSummary,

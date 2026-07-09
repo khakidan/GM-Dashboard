@@ -24,4 +24,12 @@ describe('Conditions Barrel Exports', () => {
     expect(barrel.getEffectiveResistances).toBeDefined();
     expect(barrel.getEffectiveResistances).toBe(logic.getEffectiveResistances);
   });
+
+  it('exports isConcentrating and correctly detects concentration', () => {
+    expect(barrel.isConcentrating).toBeDefined();
+    expect(barrel.isConcentrating('concentrating')).toBe(true);
+    expect(barrel.isConcentrating('Concentrating, Poisoned')).toBe(true);
+    expect(barrel.isConcentrating('Poisoned')).toBe(false);
+    expect(barrel.isConcentrating(null)).toBe(false);
+  });
 });

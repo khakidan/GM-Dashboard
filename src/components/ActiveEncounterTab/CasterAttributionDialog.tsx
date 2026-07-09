@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Flame } from 'lucide-react';
 import { Combatant } from '../../types';
 import { DialogShell } from '../ui/DialogShell';
+import { isConcentrating } from '../../lib/conditions';
+import { ConfirmationDialog } from '../ui/ConfirmationDialog';
 
 export interface CasterAttributionDialogProps {
   isOpen: boolean;
@@ -20,6 +22,16 @@ export function CasterAttributionDialog({
   onSelect,
   onDismiss,
 }: CasterAttributionDialogProps) {
+  const [pendingCasterId, setPendingCasterId] = useState<string | null>(null);
+
+  const handleCasterClick = (c: Combatant) => {
+    if (isConcentrating(c.conditions)) {
+      setPendingCasterId(c.id);
+    } else {
+      onSelect(c.id);
+    }
+  };
+
   return (
     <DialogShell
       isOpen={isOpen}
@@ -44,7 +56,7 @@ export function CasterAttributionDialog({
           {combatants.map((c) => (
             <button
               key={c.id}
-              onClick={() => onSelect(c.id)}
+              onClick={() => handleCasterClick(c)}
               className="w-full text-left px-4 py-2.5 rounded-lg border border-[#e2e8f0] hover:border-[#2563eb] hover:bg-[#f9f8ff] font-sans text-sm font-medium transition-all text-[#0f172a] flex justify-between items-center group cursor-pointer"
             >
               <span>{c.name}</span>
@@ -65,6 +77,21 @@ export function CasterAttributionDialog({
         >
           Dismiss (already applied)
         </button>
+
+        <ConfirmationDialog
+          isOpen={pendingCasterId !== null}
+          title="Already Concentrating?"
+          description={(() => {
+            const pendingCaster = combatants.find(c => c.id === pendingCasterId);
+            return pendingCaster ? `${pendingCaster.name} is already concentrating. End previous and start new?` : '';
+          })()}
+          confirmLabel="End Previous & Start New"
+          onConfirm={() => {
+            if (pendingCasterId) onSelect(pendingCasterId);
+            setPendingCasterId(null);
+          }}
+          onClose={() => setPendingCasterId(null)}
+        />
       </div>
     </DialogShell>
   );
