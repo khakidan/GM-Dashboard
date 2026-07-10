@@ -94,20 +94,20 @@ export function useDeathSaves() {
           ...prev,
           characters: prev.characters.map(c => 
             c.id === combatant.characterId 
-              ? { ...c, deathSavesFails: 0, deathSavesSuccesses: 0 } 
+              ? { ...c, deathSavesFails: fails, deathSavesSuccesses: successes } 
               : c
           ),
           combatState: {
             ...prev.combatState,
             combatants: prev.combatState.combatants.map(c => 
               c.id === combatantId 
-                ? { ...c, deathSavesFails: 0, deathSavesSuccesses: 0, isStable: true } 
+                ? { ...c, deathSavesFails: fails, deathSavesSuccesses: successes, isStable: true } 
                 : c
             )
           }
         }));
 
-        await updateDeathSavesDB(combatant.characterId, 0, 0);
+        await updateDeathSavesDB(combatant.characterId, fails, successes);
         toast(`${combatant.name} is stable — no further death saves required until they take damage again.`);
         return 'stable';
       }

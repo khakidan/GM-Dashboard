@@ -4,7 +4,7 @@ Referenced from the root [AGENTS.md](../../AGENTS.md) (Rule 9: report all 12 bat
 
 This file is maintained with the same discipline as [ROADMAP.md](ROADMAP.md)/[CHANGELOG.md](CHANGELOG.md)/[file-reference.md](file-reference.md) — kept current every session, not left stale. It was split out of `AGENTS.md` specifically because it's frequently-changing data (updated almost every session as tests are added), unlike `AGENTS.md`'s otherwise-stable rules and conventions, and unlike [testing-philosophy.md](testing-philosophy.md)'s stable quality principles. Update the table and baseline below immediately whenever a test count changes.
 
-**Current baseline: 705 tests.**
+**Current baseline: 708 tests.**
 
 Run each batch individually. Never chain with `&&`. Never use glob patterns. Never run all tests at once with `npx vitest run`.
 
@@ -12,7 +12,7 @@ Run each batch individually. Never chain with `&&`. Never use glob patterns. Nev
 |-------|-------------|------------|
 | 1 | `src/lib/__tests__` | 449 |
 | 2 | `src/services/__tests__` | 34 |
-| 3 | `src/hooks/__tests__` | 41 |
+| 3 | `src/hooks/__tests__` | 44 |
 | 4 | `src/server/__tests__` + `src/__tests__` | 9 |
 | 5A | ActiveEncounterTab hooks (`.test.ts`) | 48 |
 | 5B | ActiveEncounterTab components (`.test.tsx`) | 26 |
@@ -30,7 +30,7 @@ npx vitest run src/lib/__tests__
 # BATCH 2 — 34 tests
 npx vitest run src/services/__tests__
 
-# BATCH 3 — 41 tests
+# BATCH 3 — 44 tests
 npx vitest run src/hooks/__tests__
 
 # BATCH 4 — 9 tests
@@ -62,6 +62,8 @@ npx vitest run src/components/ui/__tests__
 ```
 
 *Note: `EncounterLogModal.test.tsx` (5 tests) and `useEncounterLogs.test.ts` (4 tests) are part of Batch 6B.*
+
+*Note: Batch 3 corrected from 41 → 44 tests (discovered during the useDeathSaves.ts stabilization-counter fix). This was pre-existing staleness — 3 tests were added to `src/hooks/__tests__` in an untracked prior session and never reflected here. No source of the discrepancy beyond "not this session's change" could be confirmed (no git history available in the working copy).*
 
 ## Where new test files go
 

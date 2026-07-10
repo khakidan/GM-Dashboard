@@ -6,13 +6,14 @@ import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { CardHeaderChevron } from '../ui/CardHeaderChevron';
 
-const healthStatusMap: Record<string, 'emerald' | 'green' | 'yellow' | 'red' | 'gray'> = {
+const healthStatusMap: Record<string, 'emerald' | 'green' | 'yellow' | 'red' | 'gray' | 'blue'> = {
   Full: 'emerald',
   Defeated: 'red',
   Healthy: 'green',
   Injured: 'yellow',
   Bloodied: 'red',
   Unconscious: 'red',
+  Stable: 'blue',
 };
 
 export interface CharacterCardHeaderProps {
@@ -109,7 +110,7 @@ export const CharacterCardHeader: React.FC<CharacterCardHeaderProps> = ({
 
           {!isExpanded && (
             <div className="flex items-center gap-4 pl-4 border-l border-[#e2e8f0] whitespace-nowrap">
-              {conditions && (
+              {conditions && !['Dead', 'Stable', 'Unconscious'].includes(healthStatus.label) && (
                 <div className="hidden lg:flex items-center gap-1.5 px-3 py-1 bg-red-50 text-red-700 border border-red-100 rounded-full text-[14px] font-bold italic max-w-[220px] truncate">
                   {conditions}
                 </div>

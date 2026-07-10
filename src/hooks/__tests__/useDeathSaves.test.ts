@@ -119,8 +119,8 @@ describe('useDeathSaves', () => {
     expect(toast).toHaveBeenCalledWith(expect.stringContaining('is stable'));
   });
 
-  it('reset clears both fail and success counts', async () => {
-    // Under 3 successes, stabilization resets the counts to 0
+  it('does not clear fail and success counts on stabilization', async () => {
+    // Under 3 successes, stabilization keeps the counts
     const stableState = {
       ...mockState,
       combatState: {
@@ -134,8 +134,8 @@ describe('useDeathSaves', () => {
       await result.current.recordDeathSave('c1', 'success');
     });
 
-    // Expecting state to be reset (deathSavesFails: 0, deathSavesSuccesses: 0)
-    expect(updateDeathSavesDB).toHaveBeenCalledWith('char1', 0, 0);
+    // Expecting state to be preserved (deathSavesFails: 1, deathSavesSuccesses: 3)
+    expect(updateDeathSavesDB).toHaveBeenCalledWith('char1', 1, 3);
   });
 
   it('a natural 20 on a death save triggers stabilization immediately', async () => {
@@ -154,7 +154,6 @@ describe('useDeathSaves', () => {
     });
 
     expect(updateDeathSavesDB).toHaveBeenCalledWith('char1', 0, 3);
-    expect(updateDeathSavesDB).toHaveBeenCalledWith('char1', 0, 0); // Cleared upon stabilization
   });
 
   it('a natural 1 on a death save counts as 2 failures', async () => {

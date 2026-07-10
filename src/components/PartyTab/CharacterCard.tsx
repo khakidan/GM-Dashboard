@@ -38,6 +38,8 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({
   if (character.currentHp <= 0) {
     if (isPcDead || character.statusId === 3) {
       healthStatus = { label: 'Dead', color: 'text-gray-500' };
+    } else if ((character.deathSavesSuccesses || 0) >= 3) {
+      healthStatus = { label: 'Stable', color: 'text-blue-500' };
     } else {
       healthStatus = { label: 'Unconscious', color: 'text-red-500' };
     }
