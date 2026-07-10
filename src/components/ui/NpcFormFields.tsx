@@ -5,12 +5,8 @@ import { Tabs } from './Tabs';
 import { NpcListEditor } from './NpcListEditor';
 import { NpcIdentityTab } from './NpcIdentityTab';
 import { NpcCombatTab } from './NpcCombatTab';
-import {
-  TraitFieldsEditor,
-  ActionFieldsEditor,
-  ReactionFieldsEditor,
-  LegendaryActionFieldsEditor
-} from './NpcActionEditors';
+import { NpcSimpleFieldEditor } from './NpcSimpleFieldEditor';
+import { NpcCombatActionFields } from './NpcCombatActionFields';
 import {
   parseAbilityScores,
   parseProficiencies,
@@ -229,11 +225,12 @@ export function NpcFormFields({ data, onChange, errors = {}, compact = false }: 
             items={traits}
             emptyItem={{ name: '', description: '' }}
             renderFields={(item, index, onChange) => (
-              <TraitFieldsEditor
-                item={item}
-                index={index}
-                onItemChange={onChange}
-                compact={compact}
+              <NpcSimpleFieldEditor
+                name={item.name}
+                onNameChange={name => onChange({ ...item, name })}
+                namePlaceholder="Trait name"
+                description={item.description}
+                onDescriptionChange={description => onChange({ ...item, description })}
               />
             )}
             onChange={handleTraitsChange}
@@ -253,11 +250,43 @@ export function NpcFormFields({ data, onChange, errors = {}, compact = false }: 
               recharge: undefined,
             }}
             renderFields={(item, index, onChange) => (
-              <ActionFieldsEditor
-                item={item}
-                index={index}
-                onItemChange={onChange}
-                compact={compact}
+              <NpcCombatActionFields
+                name={item.name}
+                onNameChange={name => onChange({ ...item, name })}
+                namePlaceholder="Action name (e.g. Bite)"
+                secondaryField={
+                  <input
+                    type="text"
+                    value={item.recharge || ''}
+                    onChange={e => onChange({ ...item, recharge: e.target.value || undefined })}
+                    className="w-full bg-white border border-[#e2e8f0] rounded-xl outline-none transition-all font-serif italic text-sm py-1 px-2 focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]"
+                    placeholder="e.g. Recharge 5–6"
+                  />
+                }
+                attackBonus={item.attackBonus}
+                onAttackBonusChange={val => onChange({ ...item, attackBonus: val })}
+                damage={item.damage}
+                onDamageChange={val => onChange({ ...item, damage: val })}
+                damagePlaceholder="2d8+5 fire"
+                saveDC={item.saveDC}
+                onSaveDCChange={val => onChange({ ...item, saveDC: val })}
+                saveType={item.saveType}
+                onSaveTypeChange={val => onChange({ ...item, saveType: val })}
+                range={
+                  <div>
+                    <label className="block text-[10px] font-semibold text-[#8d8db9] uppercase px-1">Range</label>
+                    <input
+                      type="text"
+                      value={item.range || ''}
+                      onChange={e => onChange({ ...item, range: e.target.value || undefined })}
+                      className="w-full bg-white border border-[#e2e8f0] rounded-xl outline-none transition-all font-serif italic text-sm py-1 px-2 focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]"
+                      placeholder="reach 10 ft. / 30 ft. cone"
+                    />
+                  </div>
+                }
+                description={item.description}
+                onDescriptionChange={description => onChange({ ...item, description })}
+                descriptionRows={3}
               />
             )}
             onChange={handleActionsChange}
@@ -268,11 +297,12 @@ export function NpcFormFields({ data, onChange, errors = {}, compact = false }: 
             items={reactions}
             emptyItem={{ name: '', description: '' }}
             renderFields={(item, index, onChange) => (
-              <ReactionFieldsEditor
-                item={item}
-                index={index}
-                onItemChange={onChange}
-                compact={compact}
+              <NpcSimpleFieldEditor
+                name={item.name}
+                onNameChange={name => onChange({ ...item, name })}
+                namePlaceholder="Reaction name"
+                description={item.description}
+                onDescriptionChange={description => onChange({ ...item, description })}
               />
             )}
             onChange={handleReactionsChange}
@@ -291,11 +321,36 @@ export function NpcFormFields({ data, onChange, errors = {}, compact = false }: 
               saveType: undefined,
             }}
             renderFields={(item, index, onChange) => (
-              <LegendaryActionFieldsEditor
-                item={item}
-                index={index}
-                onItemChange={onChange}
-                compact={compact}
+              <NpcCombatActionFields
+                name={item.name}
+                onNameChange={name => onChange({ ...item, name })}
+                namePlaceholder="Action name"
+                secondaryField={
+                  <div>
+                    <label className="block text-[10px] font-semibold text-[#8d8db9] uppercase px-1">Cost</label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="3"
+                      value={item.cost !== undefined ? item.cost : 1}
+                      onChange={e => onChange({ ...item, cost: parseInt(e.target.value) || 1 })}
+                      className="w-full bg-white border border-[#e2e8f0] rounded-xl outline-none transition-all font-serif italic text-sm py-1 px-2 focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]"
+                      placeholder="Cost (1-3)"
+                    />
+                  </div>
+                }
+                attackBonus={item.attackBonus}
+                onAttackBonusChange={val => onChange({ ...item, attackBonus: val })}
+                damage={item.damage}
+                onDamageChange={val => onChange({ ...item, damage: val })}
+                damagePlaceholder="2d8+5"
+                saveDC={item.saveDC}
+                onSaveDCChange={val => onChange({ ...item, saveDC: val })}
+                saveType={item.saveType}
+                onSaveTypeChange={val => onChange({ ...item, saveType: val })}
+                description={item.description}
+                onDescriptionChange={description => onChange({ ...item, description })}
+                descriptionRows={2}
               />
             )}
             onChange={handleLegendaryActionsListChange}

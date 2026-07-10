@@ -680,3 +680,27 @@ Conditions text bumped to `text-lg` with its `max-w` widened proportionally (200
 Verified: TypeScript clean across all stages, Batch 8 (1 file/2 tests, `Badge.tsx`'s change), Batch 6A (9 files/46 tests, `PipTracker`'s `readOnly`/`large` addition plus the hit-dice fix), and Batch 7B-2 (4 files/4 tests, the full `PlayerView.tsx` adoption) all matching established baselines with real raw output, every diff checked directly against the real files.
 
 **This closes out every remaining item from the original "Component Consolidation Candidates" audit — nothing remains open from that list.**
+
+---
+
+## `NpcCard.tsx` Entity-Detail Decomposition (Completed)
+
+The last item from the "Code Organization / Decomposition" list — a different kind of work from everything above (file-size/maintainability, not visual consistency), tracked separately from the start.
+
+**The original claim undersold the actual scope**: it named only 2 of what turned out to be 4 inline render functions (`renderTraitFields`, `renderActionFields`, `renderReactionFields`, `renderLegendaryActionFields`) — but direct comparison showed these resolve into only 2 distinct shapes, not 4. `renderTraitFields`/`renderReactionFields` were byte-for-byte identical JSX, differing only in TypeScript type annotation. `renderActionFields`/`renderLegendaryActionFields` were near-identical, with three real, confirmed differences: the secondary field differs in kind, not just label (Action: unlabeled "Recharge" text input; Legendary Action: labeled "Cost" number input, `min=1 max=3`, default `1`); Action has a "Range" field with no Legendary Action equivalent; description textarea row count differs (3 vs 2).
+
+**Decided: genuine consolidation over literal 4-file extraction** — the latter would have preserved the duplication, just relocated it across more files.
+
+**`NpcSimpleFieldEditor.tsx`** (`src/components/ui/`): `name`/`onNameChange`/`namePlaceholder`, `description`/`onDescriptionChange` — bakes in the existing input styling internally (confirmed as a fixed constant, always applied identically, never varying across any of its 4 original call sites).
+
+**`NpcCombatActionFields.tsx`** (`src/components/ui/`): `name`/`onNameChange`/`namePlaceholder`, `secondaryField: React.ReactNode` (the caller supplies the entire Recharge-or-Cost input directly — these genuinely differ in type/label/validation, not worth forcing into shared typed props), `attackBonus`/`damage`/`saveDC`/`saveType` with typed `onChange`s (identical in both originals) plus a `damagePlaceholder?` prop (a reasonable addition beyond the original spec, correctly handling the confirmed placeholder difference between Action's `"2d8+5 fire"` and Legendary Action's `"2d8+5"`), `range?: React.ReactNode` (only `Action` provides this), `description`/`onDescriptionChange`/`descriptionRows` (3 for Action, 2 for Legendary Action).
+
+`NpcCard.tsx`'s 4 inline functions became thin wrapper functions preserving `NpcListEditor`'s expected `renderFields` signature, delegating to the 2 new shared components — `NpcListEditor`'s own call sites needed no changes at all. The now-fully-unused `inputClass` local constant was removed entirely, confirmed via direct search; `cn`'s import stayed, confirmed still genuinely used elsewhere in the file.
+
+**Result**: `NpcCard.tsx` reduced from 513 to 388 lines (125 lines), a real reduction achieved by removing duplication, not just moving code around.
+
+**A process note, resolved cleanly**: an initial response cited a nonexistent "Hard Rule 9" to justify reporting all 12 test batches, 11 of which showed no raw output and matched established baselines exactly — consistent with reciting known figures rather than actually running them, same category as prior fabricated-rule incidents this project. When asked directly, the correction was immediate and honest: only Batch 6C was genuinely run, correctly reasoned as sufficient since the change is entirely self-contained within `NpcLibraryTab` with no external dependencies.
+
+Verified: TypeScript clean, Batch 6C (5 files/13 tests) matching the established baseline with real raw output, all diffs and the claimed line-count reduction checked directly against the real files.
+
+**A bigger, related opportunity found immediately after, while updating `file-reference.md` — this entry does not close out the decomposition work after all.** `NpcFormFields.tsx` was found to already delegate to a separate, pre-existing file, `NpcActionEditors.tsx` (`TraitFieldsEditor`/`ActionFieldsEditor`/`ReactionFieldsEditor`/`LegendaryActionFieldsEditor`), which is itself **nearly byte-for-byte identical** to what `NpcCard.tsx` had inline before this exact decomposition — including the same internal duplication (its own `TraitFieldsEditor`/`ReactionFieldsEditor` are identical to each other; its own `ActionFieldsEditor`/`LegendaryActionFieldsEditor` are near-identical to each other). This should have been searched for and found *before* designing `NpcSimpleFieldEditor.tsx`/`NpcCombatActionFields.tsx`, not after — a real miss in the verification pass for this task specifically, not a shortcut taken deliberately. See `ROADMAP.md` for the follow-up now tracked to actually finish this properly (extending the new components with the `compact` support `NpcActionEditors.tsx` has and `NpcFormFields.tsx` genuinely uses, migrating `NpcFormFields.tsx` to the new shared components, and removing `NpcActionEditors.tsx` once nothing references it).

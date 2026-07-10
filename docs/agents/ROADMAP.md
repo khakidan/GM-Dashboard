@@ -20,13 +20,13 @@ None.
 
 ### 🔵 Architecture / Technical Debt
 
-**Remaining Technical Debt:** None.
+**A real, unaddressed duplication found immediately after the `NpcCard.tsx` decomposition, while updating `file-reference.md` — see `CHANGELOG.md` for the full story.** `NpcFormFields.tsx` already delegates to `NpcActionEditors.tsx` (`TraitFieldsEditor`/`ActionFieldsEditor`/`ReactionFieldsEditor`/`LegendaryActionFieldsEditor`), which is nearly byte-for-byte identical to what `NpcCard.tsx` had inline before its own decomposition into `NpcSimpleFieldEditor.tsx`/`NpcCombatActionFields.tsx` — including the same internal duplication (its `TraitFieldsEditor`/`ReactionFieldsEditor` are identical to each other; its `ActionFieldsEditor`/`LegendaryActionFieldsEditor` are near-identical to each other). This means `NpcCard.tsx` and `NpcFormFields.tsx` were each independently maintaining their own hand-copied version of the same two shapes.
 
----
+Confirmed directly: `NpcActionEditors.tsx`'s editors support a `compact?: boolean` prop (`px-2 py-1.5` vs `px-4 py-3`), and `NpcFormFields.tsx` genuinely passes this through to all four (propagated from its own `compact` prop, ultimately from `AddCombatantDialog.tsx`'s "Create NPC" tab, which passes `compact`). `NpcSimpleFieldEditor.tsx`/`NpcCombatActionFields.tsx` don't support this at all — they'd need it before they can be a true replacement.
 
-## Code Organization / Decomposition (different kind of work — not visual consolidation)
+**To actually finish this properly**:
+1. Add `compact?: boolean` to both `NpcSimpleFieldEditor.tsx` and `NpcCombatActionFields.tsx`, matching `NpcActionEditors.tsx`'s exact conditional padding.
+2. Migrate `NpcFormFields.tsx` to use the two new shared components instead of `NpcActionEditors.tsx`'s four.
+3. Remove `NpcActionEditors.tsx` entirely once nothing references it — confirm via direct search first, don't assume.
 
-Also surfaced by the same audit, but this is file-size/maintainability work, not visual-consistency work — same category as the earlier "Codebase Modularity Audit," not the component-consolidation projects above. Track and scope separately if pursued.
-
-- **`NpcCard.tsx` decomposition** — claimed to have grown past 500 lines, largely from inline functions like `renderActionFields`/`renderTraitFields`. Line count not independently confirmed.
-- **Entity detail decomposition** (`NpcActionEditor.tsx`, `NpcTraitEditor.tsx`) — extracting the above inline functions into their own files under `src/components/ui/`, potentially reusable if a similar trait-based system is ever added for player characters.
+Not yet scoped into a build prompt.

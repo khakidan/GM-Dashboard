@@ -12,6 +12,8 @@ import { StatTile } from '../ui/StatTile';
 import { ExpandableContent } from '../ui/ExpandableContent';
 import { LabeledField } from '../ui/LabeledField';
 import { ConfirmationDialog } from '../ui/ConfirmationDialog';
+import { NpcSimpleFieldEditor } from '../ui/NpcSimpleFieldEditor';
+import { NpcCombatActionFields } from '../ui/NpcCombatActionFields';
 
 // Modular Sub-components
 import { NpcCardHeader } from './NpcCardHeader';
@@ -70,139 +72,65 @@ export const NpcCard: React.FC<NpcCardProps> = ({
     }
   }, [npc.legendaryActionsList]);
 
-  const inputClass = "w-full bg-white border border-[#e2e8f0] rounded-xl outline-none transition-all font-serif italic text-sm px-4 py-3 focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]";
-
   const renderTraitFields = (item: NpcTrait, index: number, onItemChange: (updated: NpcTrait) => void) => (
-    <div className="space-y-2">
-      <input
-        type="text"
-        value={item.name}
-        onChange={e => onItemChange({ ...item, name: e.target.value })}
-        className={cn(inputClass, "py-1 px-2")}
-        placeholder="Trait name"
-      />
-      <DebouncedTextarea
-        value={item.description}
-        onChange={v => onItemChange({ ...item, description: v })}
-        placeholder="Description"
-        rows={2}
-        className="py-1 px-2 text-sm"
-      />
-    </div>
+    <NpcSimpleFieldEditor
+      name={item.name}
+      onNameChange={name => onItemChange({ ...item, name })}
+      namePlaceholder="Trait name"
+      description={item.description}
+      onDescriptionChange={description => onItemChange({ ...item, description })}
+    />
   );
 
   const renderActionFields = (item: NpcAction, index: number, onItemChange: (updated: NpcAction) => void) => (
-    <div className="space-y-2">
-      <div className="grid grid-cols-3 gap-2">
-        <div className="col-span-2">
-          <input
-            type="text"
-            value={item.name}
-            onChange={e => onItemChange({ ...item, name: e.target.value })}
-            className={cn(inputClass, "py-1 px-2")}
-            placeholder="Action name (e.g. Bite)"
-          />
-        </div>
-        <div>
-          <input
-            type="text"
-            value={item.recharge || ''}
-            onChange={e => onItemChange({ ...item, recharge: e.target.value || undefined })}
-            className={cn(inputClass, "py-1 px-2")}
-            placeholder="e.g. Recharge 5–6"
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-4 gap-2">
-        <div>
-          <label className="block text-[10px] font-semibold text-[#8d8db9] uppercase px-1">Atk</label>
-          <input
-            type="number"
-            value={item.attackBonus !== undefined ? item.attackBonus : ''}
-            onChange={e => {
-              const val = e.target.value;
-              onItemChange({ ...item, attackBonus: val !== '' ? parseInt(val) : undefined });
-            }}
-            className={cn(inputClass, "py-1 px-2")}
-            placeholder="+N"
-          />
-        </div>
-        <div>
-          <label className="block text-[10px] font-semibold text-[#8d8db9] uppercase px-1">Dmg</label>
-          <input
-            type="text"
-            value={item.damage || ''}
-            onChange={e => onItemChange({ ...item, damage: e.target.value || undefined })}
-            className={cn(inputClass, "py-1 px-2")}
-            placeholder="2d8+5 fire"
-          />
-        </div>
-        <div>
-          <label className="block text-[10px] font-semibold text-[#8d8db9] uppercase px-1">DC</label>
-          <input
-            type="number"
-            value={item.saveDC !== undefined ? item.saveDC : ''}
-            onChange={e => {
-              const val = e.target.value;
-              onItemChange({ ...item, saveDC: val !== '' ? parseInt(val) : undefined });
-            }}
-            className={cn(inputClass, "py-1 px-2")}
-            placeholder="DC"
-          />
-        </div>
-        <div>
-          <label className="block text-[10px] font-semibold text-[#8d8db9] uppercase px-1">Save</label>
-          <input
-            type="text"
-            value={item.saveType || ''}
-            onChange={e => onItemChange({ ...item, saveType: e.target.value || undefined })}
-            className={cn(inputClass, "py-1 px-2")}
-            placeholder="Con"
-          />
-        </div>
-      </div>
-
-      <div>
-        <label className="block text-[10px] font-semibold text-[#8d8db9] uppercase px-1">Range</label>
+    <NpcCombatActionFields
+      name={item.name}
+      onNameChange={name => onItemChange({ ...item, name })}
+      namePlaceholder="Action name (e.g. Bite)"
+      secondaryField={
         <input
           type="text"
-          value={item.range || ''}
-          onChange={e => onItemChange({ ...item, range: e.target.value || undefined })}
-          className={cn(inputClass, "py-1 px-2")}
-          placeholder="reach 10 ft. / 30 ft. cone"
+          value={item.recharge || ''}
+          onChange={e => onItemChange({ ...item, recharge: e.target.value || undefined })}
+          className="w-full bg-white border border-[#e2e8f0] rounded-xl outline-none transition-all font-serif italic text-sm py-1 px-2 focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]"
+          placeholder="e.g. Recharge 5–6"
         />
-      </div>
-
-      <div>
-        <DebouncedTextarea
-          value={item.description}
-          onChange={v => onItemChange({ ...item, description: v })}
-          placeholder="Full action description"
-          rows={3}
-          className="py-1 px-2 text-sm"
-        />
-      </div>
-    </div>
+      }
+      attackBonus={item.attackBonus}
+      onAttackBonusChange={val => onItemChange({ ...item, attackBonus: val })}
+      damage={item.damage}
+      onDamageChange={val => onItemChange({ ...item, damage: val })}
+      damagePlaceholder="2d8+5 fire"
+      saveDC={item.saveDC}
+      onSaveDCChange={val => onItemChange({ ...item, saveDC: val })}
+      saveType={item.saveType}
+      onSaveTypeChange={val => onItemChange({ ...item, saveType: val })}
+      range={
+        <div>
+          <label className="block text-[10px] font-semibold text-[#8d8db9] uppercase px-1">Range</label>
+          <input
+            type="text"
+            value={item.range || ''}
+            onChange={e => onItemChange({ ...item, range: e.target.value || undefined })}
+            className="w-full bg-white border border-[#e2e8f0] rounded-xl outline-none transition-all font-serif italic text-sm py-1 px-2 focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]"
+            placeholder="reach 10 ft. / 30 ft. cone"
+          />
+        </div>
+      }
+      description={item.description}
+      onDescriptionChange={description => onItemChange({ ...item, description })}
+      descriptionRows={3}
+    />
   );
 
   const renderReactionFields = (item: NpcReaction, index: number, onItemChange: (updated: NpcReaction) => void) => (
-    <div className="space-y-2">
-      <input
-        type="text"
-        value={item.name}
-        onChange={e => onItemChange({ ...item, name: e.target.value })}
-        className={cn(inputClass, "py-1 px-2")}
-        placeholder="Reaction name"
-      />
-      <DebouncedTextarea
-        value={item.description}
-        onChange={v => onItemChange({ ...item, description: v })}
-        placeholder="Description"
-        rows={2}
-        className="py-1 px-2 text-sm"
-      />
-    </div>
+    <NpcSimpleFieldEditor
+      name={item.name}
+      onNameChange={name => onItemChange({ ...item, name })}
+      namePlaceholder="Reaction name"
+      description={item.description}
+      onDescriptionChange={description => onItemChange({ ...item, description })}
+    />
   );
 
   const renderLegendaryActionFields = (
@@ -210,17 +138,11 @@ export const NpcCard: React.FC<NpcCardProps> = ({
     index: number,
     onItemChange: (updated: NpcLegendaryAction) => void
   ) => (
-    <div className="space-y-2">
-      <div className="grid grid-cols-3 gap-2">
-        <div className="col-span-2">
-          <input
-            type="text"
-            value={item.name}
-            onChange={e => onItemChange({ ...item, name: e.target.value })}
-            className={cn(inputClass, "py-1 px-2")}
-            placeholder="Action name"
-          />
-        </div>
+    <NpcCombatActionFields
+      name={item.name}
+      onNameChange={name => onItemChange({ ...item, name })}
+      namePlaceholder="Action name"
+      secondaryField={
         <div>
           <label className="block text-[10px] font-semibold text-[#8d8db9] uppercase px-1">Cost</label>
           <input
@@ -229,71 +151,24 @@ export const NpcCard: React.FC<NpcCardProps> = ({
             max="3"
             value={item.cost !== undefined ? item.cost : 1}
             onChange={e => onItemChange({ ...item, cost: parseInt(e.target.value) || 1 })}
-            className={cn(inputClass, "py-1 px-2")}
+            className="w-full bg-white border border-[#e2e8f0] rounded-xl outline-none transition-all font-serif italic text-sm py-1 px-2 focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]"
             placeholder="Cost (1-3)"
           />
         </div>
-      </div>
-
-      <div className="grid grid-cols-4 gap-2">
-        <div>
-          <label className="block text-[10px] font-semibold text-[#8d8db9] uppercase px-1">Atk</label>
-          <input
-            type="number"
-            value={item.attackBonus !== undefined ? item.attackBonus : ''}
-            onChange={e => {
-              const val = e.target.value;
-              onItemChange({ ...item, attackBonus: val !== '' ? parseInt(val) : undefined });
-            }}
-            className={cn(inputClass, "py-1 px-2")}
-            placeholder="+N"
-          />
-        </div>
-        <div>
-          <label className="block text-[10px] font-semibold text-[#8d8db9] uppercase px-1">Dmg</label>
-          <input
-            type="text"
-            value={item.damage || ''}
-            onChange={e => onItemChange({ ...item, damage: e.target.value || undefined })}
-            className={cn(inputClass, "py-1 px-2")}
-            placeholder="2d8+5"
-          />
-        </div>
-        <div>
-          <label className="block text-[10px] font-semibold text-[#8d8db9] uppercase px-1">DC</label>
-          <input
-            type="number"
-            value={item.saveDC !== undefined ? item.saveDC : ''}
-            onChange={e => {
-              const val = e.target.value;
-              onItemChange({ ...item, saveDC: val !== '' ? parseInt(val) : undefined });
-            }}
-            className={cn(inputClass, "py-1 px-2")}
-            placeholder="DC"
-          />
-        </div>
-        <div>
-          <label className="block text-[10px] font-semibold text-[#8d8db9] uppercase px-1">Save</label>
-          <input
-            type="text"
-            value={item.saveType || ''}
-            onChange={e => onItemChange({ ...item, saveType: e.target.value || undefined })}
-            className={cn(inputClass, "py-1 px-2")}
-            placeholder="Con"
-          />
-        </div>
-      </div>
-
-      <div>
-        <DebouncedTextarea
-          value={item.description}
-          onChange={v => onItemChange({ ...item, description: v })}
-          placeholder="Description"
-          rows={2}
-          className="py-1 px-2 text-sm"
-        />
-      </div>
-    </div>
+      }
+      attackBonus={item.attackBonus}
+      onAttackBonusChange={val => onItemChange({ ...item, attackBonus: val })}
+      damage={item.damage}
+      onDamageChange={val => onItemChange({ ...item, damage: val })}
+      damagePlaceholder="2d8+5"
+      saveDC={item.saveDC}
+      onSaveDCChange={val => onItemChange({ ...item, saveDC: val })}
+      saveType={item.saveType}
+      onSaveTypeChange={val => onItemChange({ ...item, saveType: val })}
+      description={item.description}
+      onDescriptionChange={description => onItemChange({ ...item, description })}
+      descriptionRows={2}
+    />
   );
 
   return (
