@@ -68,7 +68,8 @@ export function useCombatTurn(updateCombatant: (id: string, updates: Partial<Com
           ...prev.combatState,
           combatants: sortedCombatants,
           activeTurnId: firstActiveId,
-          combatStarted: true
+          combatStarted: true,
+          actionContext: { sourceOverride: null, actionType: 'attack' }
         }
       }));
 
@@ -148,6 +149,7 @@ export function useCombatTurn(updateCombatant: (id: string, updates: Partial<Com
           activeTurnId: nextActiveId,
           round: nextRound,
           combatants: nextCombatants,
+          actionContext: { sourceOverride: null, actionType: 'attack' },
         },
       };
     });

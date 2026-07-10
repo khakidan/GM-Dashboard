@@ -284,6 +284,30 @@ describe('useCombatSync', () => {
     );
   });
 
+  it('nextTurn resets actionContext to default on turn advance, even if manually set beforehand', () => {
+    act(() => {
+      useDashboardStore.setState(prev => ({
+        ...prev,
+        combatState: {
+          ...prev.combatState,
+          actionContext: { sourceOverride: 'c3', actionType: 'legendary-action' }
+        }
+      }));
+    });
+
+    const { result } = renderHook(() => useCombatSync());
+
+    act(() => {
+      result.current.nextTurn();
+    });
+
+    const state = getSnapshot();
+    expect(state.combatState.actionContext).toEqual({
+      sourceOverride: null,
+      actionType: 'attack'
+    });
+  });
+
   it('removeCombatant calls deleteEncounterCombatantDB when quantity is 1', async () => {
     act(() => {
       useDashboardStore.setState(prev => ({
@@ -622,5 +646,58 @@ describe('useCombatSync', () => {
       resourceMax: 3,
       isManualAdjustment: false,
     });
+  });
+
+  it('updateCombatant does NOT log resource-changed events when legendary action/resistance values do not change', async () => {
+    const addCombatEventSpy = vi.spyOn(useDashboardStore.getState(), 'addCombatEvent');
+    
+    act(() => {
+      useDashboardStore.setState(prev => ({
+        ...prev,
+        activeCombatLog: { id: 'log-1', currentRound: 3, events: [] } as any,
+        combatState: {
+          ...prev.combatState,
+          activeTurnId: 'c1',
+          combatants: [
+            {
+              id: 'c1',
+              name: 'Hero',
+              type: 'pc',
+              initiative: 20,
+              currentHp: 30,
+              maxHp: 40,
+            },
+            {
+              id: 'c2',
+              name: 'Lich',
+              type: 'npc',
+              initiative: 15,
+              encounterCombatantId: 'ec-lich',
+              currentHp: 100,
+              maxHp: 100,
+              legendaryActions: { max: 3, remaining: 3 },
+              legendaryResistances: { max: 3, remaining: 3 },
+            }
+          ]
+        }
+      }));
+    });
+
+    const { result } = renderHook(() => useCombatSync());
+
+    await act(async () => {
+      await result.current.updateCombatant('c2', {
+        legendaryActions: { max: 3, remaining: 3 },
+        legendaryResistances: { max: 3, remaining: 3 },
+      });
+    });
+
+    // Verify no resource-changed events were added for c2
+    const resourceChangedCalls = addCombatEventSpy.mock.calls.filter(call => {
+      const arg = call[0] as any;
+      return arg.type === 'resource-changed' && arg.targetId === 'c2';
+    });
+
+    expect(resourceChangedCalls.length).toBe(0);
   });
 });
