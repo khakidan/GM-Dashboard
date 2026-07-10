@@ -223,7 +223,7 @@ export const CharacterCardExpanded: React.FC<CharacterCardExpandedProps> = ({
                         onUpdate({ hitDiceUsed: serializeHitDiceUsed(updatedUsed) });
                       }}
                       color="blue"
-                      size="compact"
+                      size="default"
                       label={`d${pool.die} hit die`}
                     />
                   </div>

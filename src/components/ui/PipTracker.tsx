@@ -5,11 +5,12 @@ import { BadgeProps } from './Badge';
 export interface PipTrackerProps {
   max: number;
   remaining: number;
-  onChange: (newValue: number) => void;
+  onChange?: (newValue: number) => void;
   color: BadgeProps['color'];
-  size?: 'compact' | 'default';
+  size?: 'compact' | 'default' | 'large';
   label?: string;
   className?: string;
+  readOnly?: boolean;
 }
 
 const filledStyles: Record<BadgeProps['color'], string> = {
@@ -43,6 +44,7 @@ const emptyStyles: Record<BadgeProps['color'], string> = {
 const sizeStyles = {
   compact: 'w-1.5 h-1.5',
   default: 'w-3 h-3',
+  large: 'w-5 h-5',
 };
 
 export function PipTracker({
@@ -53,8 +55,12 @@ export function PipTracker({
   size = 'default',
   label,
   className,
+  readOnly = false,
 }: PipTrackerProps) {
-  const baseStyle = 'rounded-full border transition-all focus:outline-none cursor-pointer shrink-0';
+  const baseStyle = cn(
+    'rounded-full border transition-all shrink-0',
+    !readOnly && 'focus:outline-none cursor-pointer'
+  );
 
   return (
     <div className={cn("flex items-center gap-1", className)}>
@@ -62,19 +68,39 @@ export function PipTracker({
         const isFilled = i < remaining;
         const ariaLabelText = `${label || 'Pip'} ${i + 1}`;
 
+        let pipStyle = isFilled ? filledStyles[color] : emptyStyles[color];
+        if (readOnly) {
+          pipStyle = pipStyle.replace(/\bhover:\S+/g, '');
+        }
+
+        const classNameString = cn(
+          baseStyle,
+          sizeStyles[size],
+          pipStyle
+        );
+
+        if (readOnly) {
+          return (
+            <div
+              key={i}
+              className={classNameString}
+              aria-hidden="true"
+              title={label ? ariaLabelText : undefined}
+            />
+          );
+        }
+
         return (
           <button
             key={i}
             type="button"
             onClick={(e) => {
               e.stopPropagation();
-              onChange(isFilled ? i : i + 1);
+              if (onChange) {
+                onChange(isFilled ? i : i + 1);
+              }
             }}
-            className={cn(
-              baseStyle,
-              sizeStyles[size],
-              isFilled ? filledStyles[color] : emptyStyles[color]
-            )}
+            className={classNameString}
             aria-label={ariaLabelText}
             title={label ? ariaLabelText : undefined}
           />

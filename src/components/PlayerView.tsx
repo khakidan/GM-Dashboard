@@ -3,6 +3,17 @@ import { useAppState } from '../hooks/useAppState';
 import { cn } from '../lib/utils';
 import { Skull, Heart, ShieldAlert, Shield, Swords } from 'lucide-react';
 import { EmptyState } from './ui/EmptyState';
+import { CardShell } from './ui/CardShell';
+import { Badge } from './ui/Badge';
+import { PipTracker } from './ui/PipTracker';
+
+const healthStatusMap: Record<string, 'emerald' | 'green' | 'yellow' | 'red' | 'gray'> = {
+  Full: 'emerald',
+  Defeated: 'red',
+  Healthy: 'green',
+  Injured: 'yellow',
+  Bloodied: 'red',
+};
 
 export function PlayerView() {
   const { state: appState } = useAppState();
@@ -22,7 +33,7 @@ export function PlayerView() {
   }
 
   const renderTable = (combatants: typeof state.combatants, isSecondary: boolean = false) => (
-    <div className="bg-white border border-[#e2e8f0] rounded-2xl shadow-sm overflow-hidden h-fit">
+    <CardShell className="overflow-hidden h-fit">
       <table className="w-full text-left border-collapse">
         <thead>
           <tr className="bg-[#e2e8f0] border-b border-[#e2e8f0] text-[#8d8db9] font-sans text-sm uppercase tracking-widest text-left">
@@ -70,7 +81,7 @@ export function PlayerView() {
                           </span>
                         </div>
                         {c.conditions && (
-                            <div className="text-sm text-red-600 font-bold italic mt-1 truncate max-w-[200px]" title={c.conditions}>{c.conditions}</div>
+                            <div className="text-lg text-red-600 font-bold italic mt-1 truncate max-w-[300px]" title={c.conditions}>{c.conditions}</div>
                         )}
                       </div>
                     </div>
@@ -78,29 +89,25 @@ export function PlayerView() {
                       <div className="flex flex-col gap-2 mt-1 select-none shrink-0">
                         <div className="flex items-center gap-4 text-xl md:text-2xl font-bold font-sans">
                           <span className="text-red-800 uppercase tracking-wide min-w-[120px] md:min-w-[145px]">FAILS</span>
-                          <div className="flex gap-2">
-                            {[1, 2, 3].map(slot => {
-                              const isFailed = (c.deathSavesFails || 0) >= slot;
-                              return (
-                                <span key={slot} className={cn("leading-none", isFailed ? "text-red-600" : "text-gray-300")}>
-                                  {isFailed ? "●" : "○"}
-                                </span>
-                              );
-                            })}
-                          </div>
+                          <PipTracker
+                            max={3}
+                            remaining={c.deathSavesFails || 0}
+                            color="red"
+                            size="large"
+                            readOnly
+                            label="Death save failure"
+                          />
                         </div>
                         <div className="flex items-center gap-4 text-xl md:text-2xl font-bold font-sans">
                           <span className="text-emerald-800 uppercase tracking-wide min-w-[120px] md:min-w-[145px]">SUCCESSES</span>
-                          <div className="flex gap-2">
-                            {[1, 2, 3].map(slot => {
-                              const isSuccess = (c.deathSavesSuccesses || 0) >= slot;
-                              return (
-                                <span key={slot} className={cn("leading-none", isSuccess ? "text-emerald-600" : "text-gray-300")}>
-                                  {isSuccess ? "♥" : "○"}
-                                </span>
-                              );
-                            })}
-                          </div>
+                          <PipTracker
+                            max={3}
+                            remaining={c.deathSavesSuccesses || 0}
+                            color="emerald"
+                            size="large"
+                            readOnly
+                            label="Death save success"
+                          />
                         </div>
                       </div>
                     )}
@@ -108,13 +115,10 @@ export function PlayerView() {
                 </td>
                 <td className="p-4 font-bold text-sm uppercase tracking-wider">
                   <div className="flex justify-center">
-                    <div className={cn(
-                      "flex items-center gap-2 px-4 py-2 rounded-full bg-[#e2e8f0]",
-                      health.color
-                    )}>
-                      {isDead ? <Skull className="w-4 h-4" /> : (['Full', 'Healthy'].includes(health.label) ? <Heart className="w-4 h-4" /> : <ShieldAlert className="w-4 h-4" />)}
-                      <span className="hidden sm:inline">{health.label}</span>
-                    </div>
+                    <Badge color={healthStatusMap[health.label] || 'gray'} size="large" className="gap-2">
+                      {isDead ? <Skull className="w-6 h-6" /> : (['Full', 'Healthy'].includes(health.label) ? <Heart className="w-6 h-6" /> : <ShieldAlert className="w-6 h-6" />)}
+                      <span>{health.label}</span>
+                    </Badge>
                   </div>
                 </td>
                 <td className="p-4 text-center text-lg md:text-xl min-w-[7rem] whitespace-nowrap">
@@ -131,7 +135,7 @@ export function PlayerView() {
           })}
         </tbody>
       </table>
-    </div>
+    </CardShell>
   );
 
   const useTwoCols = state.combatants.length > 10;

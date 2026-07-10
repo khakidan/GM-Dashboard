@@ -3,7 +3,7 @@ import { cn } from '../../lib/utils';
 
 export interface BadgeProps {
   color: 'slate' | 'pink' | 'orange' | 'yellow' | 'green' | 'gray' | 'red' | 'purple' | 'emerald' | 'amber' | 'blue';
-  size?: 'compact' | 'default';
+  size?: 'compact' | 'default' | 'large';
   children: React.ReactNode;
   className?: string;
 }
@@ -25,6 +25,7 @@ export const colorStyles: Record<BadgeProps['color'], string> = {
 export const sizeStyles = {
   compact: 'text-[9px] px-1.5 py-[2px]',
   default: 'text-xs px-2 py-0.5',
+  large: 'text-lg px-4 py-1.5',
 };
 
 export function Badge({ color, size = 'default', children, className }: BadgeProps) {

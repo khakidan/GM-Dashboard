@@ -655,3 +655,28 @@ The last 3 of the 8 raw `confirm()`/`window.confirm()` call sites found by the e
 Verified across all 3 stages: TypeScript clean, Batch 3 (11 files/41 tests), Batch 5A (7 files/45 tests), Batch 5B (11 files/26 tests), and Batch 1 (19 files/440 tests, baseline permanently updated from 439) all matching established baselines with real raw output, every diff checked directly against the real files.
 
 **This completes the entire raw `confirm()`/`window.confirm()` migration — all 8 of 8 real instances found by the exhaustive audit are now using the shared `ConfirmationDialog`, and no raw browser confirmation dialogs remain anywhere in the app.**
+
+---
+
+## `PlayerView.tsx` TV-Readability Review (Completed) — the Last Item from the Original Component Consolidation Candidates
+
+The final entry from the very first "Component Consolidation Candidates" list. Unlike every other page in the app, `PlayerView.tsx` is a read-only display shown on a 50"+ TV, viewed from ~10 feet away — a fundamentally different context that every shared component built so far had been sized for the opposite of (a GM working up close on a laptop). The explicit design principle throughout: fix genuinely too-small elements directly, and extend the *original* shared components with a proper large option each, rather than building parallel TV-specific components or reaching for normal defaults that would make things worse.
+
+**Two elements identified as genuinely too small for this context, independent of any component work**: the Conditions text (`text-sm`, one of the smallest elements on a page where combatant names and death-save labels are `text-xl`/`text-2xl`) and the health-status pill (`w-4 h-4` icon, `text-sm` label — undersized relative to everything else, and carrying a leftover `hidden sm:inline` mobile-first assumption that doesn't belong on a page that only ever renders on a wide TV).
+
+**`Badge.tsx`**: added a `large` size (`text-lg px-4 py-1.5`) alongside the existing `compact`/`default`, chosen to match the scale already established elsewhere on `PlayerView.tsx` — a considered addition, not an arbitrary value, with `compact`/`default` completely unchanged for every existing GM-facing adopter.
+
+**`PipTracker.tsx`**: added both a `readOnly` mode (renders plain, non-interactive `<div>`s instead of `<button>`s, `onChange` becomes optional, aria-hidden rather than carrying interactive `aria-label` wording) and a `large` size (`w-5 h-5`, deliberately not `w-6 h-6` — chosen specifically to avoid excessive horizontal width when multiple pips sit in a row). This was the first genuine use case for a read-only pip display, validating the gap flagged much earlier (the hit-dice question turned out to need real interactivity instead; this one genuinely doesn't, since nothing on this page is ever clickable).
+
+**A confirmed, unrelated sizing inconsistency caught and fixed along the way**: `CharacterCardExpanded.tsx`'s hit dice pips used `size="compact"` while `ResourcePoolsSection.tsx`'s Ki Points pips (the same conceptual pattern) used `size="default"` — normalized hit dice to `size="default"` to match, a small, independent fix unrelated to `PlayerView.tsx` itself.
+
+**Three real design decisions made explicitly, not defaulted or glossed over**:
+1. `CardShell` adopted for the table wrapper — introduces a `hover:shadow-md` that wasn't there before (part of `CardShell`'s own default state), accepted since this is a read-only display with no mouse interaction; it will never actually be visible in practice.
+2. The health-status pill's `Badge` color now reuses the exact `healthStatusMap` already established in `CombatantCardHeader.tsx`/`CharacterCardHeader.tsx`, rather than inventing a new mapping — genuine consistency with how this same status displays elsewhere in the app.
+3. Death-save pips' empty state changes from neutral gray to a pale version of the row's own color (red/emerald) — `PipTracker`'s established convention everywhere else in the app (Legendary Actions, Ki Points, Hit Dice) — a deliberate, disclosed visual change, not an oversight, made with the explicit understanding it can be reverted later if it doesn't read well in practice.
+
+Conditions text bumped to `text-lg` with its `max-w` widened proportionally (200px → 300px, reasoned from the actual font-scale ratio rather than picked arbitrarily) to avoid the larger font causing more aggressive truncation than before.
+
+Verified: TypeScript clean across all stages, Batch 8 (1 file/2 tests, `Badge.tsx`'s change), Batch 6A (9 files/46 tests, `PipTracker`'s `readOnly`/`large` addition plus the hit-dice fix), and Batch 7B-2 (4 files/4 tests, the full `PlayerView.tsx` adoption) all matching established baselines with real raw output, every diff checked directly against the real files.
+
+**This closes out every remaining item from the original "Component Consolidation Candidates" audit — nothing remains open from that list.**
