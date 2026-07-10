@@ -175,7 +175,8 @@ export function PlayerView() {
       </div>
 
       <div className={cn(
-        "w-full max-w-7xl",
+        "w-full",
+        !useTwoCols && "max-w-7xl",
         useTwoCols && "grid grid-cols-1 lg:grid-cols-2 gap-6"
       )}>
         {state.combatants.length === 0 ? (
