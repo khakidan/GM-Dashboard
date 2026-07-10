@@ -147,12 +147,21 @@ export function useCombatLifecycle() {
           events: JSON.stringify(finalLog.events),
           transcript,
         }
-      ).catch(err =>
+      ).catch(err => {
         console.error(
           '[CombatLog] Failed to write log:',
           err
-        )
-      )
+        );
+        toast.error('Failed to save the encounter log.', {
+          description: err instanceof Error ? err.message : 'Unknown error'
+        });
+      })
+    } else {
+      if (!activeCombatLog) {
+        toast.warning('No combat log was recorded for this encounter — initiative may not have been called, or the log was cleared unexpectedly.');
+      } else if (!currentSpreadsheetId) {
+        toast.warning('Encounter ended, but no Google Spreadsheet is configured — the combat log was not saved.');
+      }
     }
 
     clearCombatLog()

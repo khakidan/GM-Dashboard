@@ -51,8 +51,8 @@ export function GlobalActionContextPanel({
   return (
     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-[#f8fafc] border-b border-[#e2e8f0] px-6 py-2 w-full">
       <div className="flex items-center gap-2">
-        <span className="text-[#8d8db9] text-[10px] font-bold uppercase tracking-widest shrink-0">
-          Source
+        <span className="text-[#475569] text-xs font-semibold shrink-0">
+          Source:
         </span>
         <select
           value={actionContext.sourceOverride || activeTurnId || 'unknown'}
@@ -79,8 +79,8 @@ export function GlobalActionContextPanel({
       </div>
 
       <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-[#8d8db9] text-[10px] font-bold uppercase tracking-widest shrink-0">
-          Type
+        <span className="text-[#475569] text-xs font-semibold shrink-0">
+          Type:
         </span>
         <div className="flex flex-wrap items-center gap-1">
           {actionTypes.map(t => {

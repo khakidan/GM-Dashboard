@@ -12,15 +12,11 @@ Features and bugs that have been discussed and approved but not yet implemented.
 
 ### 🔴 Bugs to Fix
 
-**5 user-reported bugs on the Active Encounter page, none yet investigated or verified against the real code — report findings before proposing any fix, same discipline as everything else in this project.** Grouped by likely-shared root cause, not confirmed:
+**All 5 originally-reported Active Encounter bugs are now resolved** — #1 confirmed by the user to be a one-off glitch, not a real bug; #5 confirmed fixed by the same #2/#3 turn-skip fix, as suspected. See `CHANGELOG.md` for #2/#3/#4.
 
-1. **Call For Initiative animation doesn't fire on the GM's side** when the button is pressed. Player-view side not yet checked. Likely thread: `CombatHeader.tsx`'s `onCallInitiative` handler, or wherever `fireInitiativeEvent` is actually triggered/consumed.
-2. **A dead PC's turn is not skipped** — the turn tracker advances to their turn instead of passing over them, and their info isn't grayed out the way a defeated NPC's is. Likely the same underlying "whose turn is next" mechanism as #3 below — investigate together, not necessarily two separate fixes.
-3. **A PC who succeeds all 3 death saves becomes "Stabilized" but their turn isn't skipped** — they should remain unconscious-and-skipped until actually healed to 1+ HP, not treated as able to act just because they stabilized. Likely shares a root cause with #2.
-4. **Clicking "End Encounter" no longer triggers the combat-log-writing action** — previously did (per user, "like it used to"), implying a regression, not a feature gap. This is a prerequisite to investigating #5, since there's no log to inspect without it firing.
-5. **Round-counting on the Structured View may be skipping rounds with no events** (user saw Round 1 → Round 3, no Round 2, in a real encounter log) — cannot be confirmed as a genuine bug versus expected behavior (an empty round with zero tracked events might correctly not render) until #4 is fixed and a real log can be inspected. Needs: whatever groups events into "Round N" buckets for the Structured View (likely `EncounterLogDetails.tsx`), and wherever the round counter itself increments (likely `combatLogSlice.ts` or similar).
-
-**Suggested investigation order**: #4 first (unblocks #5), then #2/#3 together (likely shared mechanism), then #1 (independent). Not yet started — no files requested, no root cause confirmed for any of these.
+**2 new items found while re-testing, not yet investigated**:
+1. **`actionContext` (the damage/healing "Source" combatant and action type) doesn't reset when Next Turn is clicked.** Expected: advancing the turn should automatically move the source to the newly-active combatant, regardless of what was manually set during the previous turn. Actual: the manually-set source and type persist across the turn change. Likely fix location: `useCombatTurn.ts`'s `nextTurn()` — confirmed this function currently updates `activeTurnId`/`round`/`combatants` but never touches `actionContext` at all. Not yet verified against the actual UI consumer of `actionContext` (likely `GlobalActionContextPanel.tsx`, referenced in `index.tsx` but not yet requested/seen).
+2. **The "Type" label (for the damage-type selector) isn't visually distinct enough from the actual damage type options it displays** — a UI clarity request, not a logic bug. Same file as #1 above, not yet seen directly.
 
 ### 🟡 Features to Add
 

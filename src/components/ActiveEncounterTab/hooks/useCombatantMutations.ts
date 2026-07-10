@@ -324,6 +324,56 @@ export function useCombatantMutations() {
           });
       }
     }
+
+    if (updates.legendaryActions !== undefined || updates.legendaryResistances !== undefined) {
+      const { addCombatEvent, activeCombatLog, combatState } = useDashboardStore.getState();
+
+      if (activeCombatLog) {
+        const activeTurnCombatant = combatState.combatants.find(x => x.id === combatState.activeTurnId);
+
+        if (currentCombatant) {
+          if (updates.legendaryActions !== undefined) {
+            const before = currentCombatant.legendaryActions?.remaining ?? 0;
+            const after = updates.legendaryActions.remaining;
+            if (before !== after) {
+              addCombatEvent({
+                round: activeCombatLog.currentRound,
+                type: 'resource-changed',
+                actorId: activeTurnCombatant?.id ?? null,
+                actorName: activeTurnCombatant?.name ?? null,
+                targetId: id,
+                targetName: currentCombatant.name,
+                resourceName: 'Legendary Actions',
+                resourceBefore: before,
+                resourceAfter: after,
+                resourceMax: updates.legendaryActions.max,
+                isManualAdjustment: false,
+              });
+            }
+          }
+
+          if (updates.legendaryResistances !== undefined) {
+            const before = currentCombatant.legendaryResistances?.remaining ?? 0;
+            const after = updates.legendaryResistances.remaining;
+            if (before !== after) {
+              addCombatEvent({
+                round: activeCombatLog.currentRound,
+                type: 'resource-changed',
+                actorId: activeTurnCombatant?.id ?? null,
+                actorName: activeTurnCombatant?.name ?? null,
+                targetId: id,
+                targetName: currentCombatant.name,
+                resourceName: 'Legendary Resistances',
+                resourceBefore: before,
+                resourceAfter: after,
+                resourceMax: updates.legendaryResistances.max,
+                isManualAdjustment: false,
+              });
+            }
+          }
+        }
+      }
+    }
   };
 
   return {

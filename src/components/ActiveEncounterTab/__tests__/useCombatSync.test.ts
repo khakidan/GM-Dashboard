@@ -18,6 +18,9 @@ vi.mock('sonner', () => ({
     error: vi.fn(),
     success: vi.fn(),
     dismiss: vi.fn(),
+    warning: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
   }),
 }));
 
@@ -31,6 +34,7 @@ vi.mock('../../../services/dbOperations', () => ({
   updateNpcInstanceHpDB: vi.fn().mockResolvedValue(undefined),
   updateNpcInstanceConditionsDB: vi.fn().mockResolvedValue(undefined),
   updateNpcInstanceAcModDB: vi.fn().mockResolvedValue(undefined),
+  updateNpcInstanceLegendaryDB: vi.fn().mockResolvedValue(undefined),
 }));
 
 describe('useCombatSync', () => {
@@ -111,7 +115,7 @@ describe('useCombatSync', () => {
           combatants: [
             { id: 'c1', name: 'PC 1', type: 'pc', initiative: 20, currentHp: 50 },
             { id: 'c2', name: 'NPC 1', type: 'npc', initiative: 15, currentHp: 0 },
-            { id: 'c3', name: 'PC 2', type: 'pc', initiative: 10, currentHp: 0 } // PC at 0 should NOT be skipped
+            { id: 'c3', name: 'PC 2', type: 'pc', initiative: 10, currentHp: 10 } // PC is above 0 HP so not skipped (combatants at 0 HP are skipped under new rules)
           ]
         }
       }));
@@ -545,5 +549,78 @@ describe('useCombatSync', () => {
     expect(
       vi.mocked(updateInitiativeDB)
     ).toHaveBeenCalledWith('ec-3', 0);
+  });
+
+  it('updateCombatant logs legendary action and resistance changes when activeCombatLog is present', async () => {
+    const addCombatEventSpy = vi.spyOn(useDashboardStore.getState(), 'addCombatEvent');
+    
+    act(() => {
+      useDashboardStore.setState(prev => ({
+        ...prev,
+        activeCombatLog: { id: 'log-1', currentRound: 3, events: [] } as any,
+        combatState: {
+          ...prev.combatState,
+          activeTurnId: 'c1',
+          combatants: [
+            {
+              id: 'c1',
+              name: 'Hero',
+              type: 'pc',
+              initiative: 20,
+              currentHp: 30,
+              maxHp: 40,
+            },
+            {
+              id: 'c2',
+              name: 'Lich',
+              type: 'npc',
+              initiative: 15,
+              encounterCombatantId: 'ec-lich',
+              currentHp: 100,
+              maxHp: 100,
+              legendaryActions: { max: 3, remaining: 3 },
+              legendaryResistances: { max: 3, remaining: 3 },
+            }
+          ]
+        }
+      }));
+    });
+
+    const { result } = renderHook(() => useCombatSync());
+
+    await act(async () => {
+      await result.current.updateCombatant('c2', {
+        legendaryActions: { max: 3, remaining: 2 },
+        legendaryResistances: { max: 3, remaining: 1 },
+      });
+    });
+
+    expect(addCombatEventSpy).toHaveBeenCalledWith({
+      round: 3,
+      type: 'resource-changed',
+      actorId: 'c1',
+      actorName: 'Hero',
+      targetId: 'c2',
+      targetName: 'Lich',
+      resourceName: 'Legendary Actions',
+      resourceBefore: 3,
+      resourceAfter: 2,
+      resourceMax: 3,
+      isManualAdjustment: false,
+    });
+
+    expect(addCombatEventSpy).toHaveBeenCalledWith({
+      round: 3,
+      type: 'resource-changed',
+      actorId: 'c1',
+      actorName: 'Hero',
+      targetId: 'c2',
+      targetName: 'Lich',
+      resourceName: 'Legendary Resistances',
+      resourceBefore: 3,
+      resourceAfter: 1,
+      resourceMax: 3,
+      isManualAdjustment: false,
+    });
   });
 });
