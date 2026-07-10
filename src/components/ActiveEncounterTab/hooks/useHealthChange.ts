@@ -5,7 +5,7 @@ import { applyHealthChange, computeDamageWithIrv } from '../../../lib/combatLogi
 import { toast } from 'sonner';
 import { useAppState } from '../../../hooks/useAppState';
 import { useDashboardStore } from '../../../hooks/dashboardStore';
-import { useDamageEvent, useHealEvent, useUnconsciousEvent } from '../../../hooks/useOverlayEvents';
+import { useDamageEvent, useHealEvent, useUnconsciousEvent } from '../../../hooks/useCombatOverlayEvents';
 import { useDeathSaves } from '../../../hooks/useDeathSaves';
 import { isConcentrating, fireConcentrationAlert } from '../../../lib/concentrationCheck';
 

@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { useAppState, getSnapshot } from './useAppState';
-import { useDeathEvent, useUnconsciousEvent } from './useOverlayEvents';
+import { useDeathEvent, useUnconsciousEvent } from './useCombatOverlayEvents';
 import { updateDeathSavesDB, updateCharacterDB } from '../services/dbOperations';
 import { toast } from 'sonner';
 import { Combatant } from '../types';

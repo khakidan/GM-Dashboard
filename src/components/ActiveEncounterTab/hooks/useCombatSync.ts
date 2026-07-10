@@ -5,7 +5,7 @@ import { useCombatLifecycle } from './useCombatLifecycle';
 import { useCombatTurn } from './useCombatTurn';
 import { useCombatConcentration } from './useCombatConcentration';
 import { toast } from 'sonner';
-import { useDeathEvent, useDamageEvent, useHealEvent, useUnconsciousEvent, useRageEvent } from '../../../hooks/useOverlayEvents';
+import { useDeathEvent, useDamageEvent, useHealEvent, useUnconsciousEvent, useRageEvent } from '../../../hooks/useCombatOverlayEvents';
 
 export function useCombatSync() {
   const { state, updateState } = useAppState();

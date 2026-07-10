@@ -298,9 +298,9 @@ export function getNextActiveTurnIndex(
     
     while (fullLoopCount < combatants.length) {
       const candidate = combatants[candidateIndex];
-      const isDeadNpc = candidate.type === 'npc' && candidate.currentHp <= 0;
+      const isDowned = candidate.currentHp <= 0;
       
-      if (!isDeadNpc) {
+      if (!isDowned) {
         nextIndex = candidateIndex;
         break;
       }
@@ -309,11 +309,11 @@ export function getNextActiveTurnIndex(
       fullLoopCount++;
     }
   } else {
-    // If somehow no active turn, start at 0 if not dead NPC
-    nextIndex = (combatants[0].type === 'npc' && combatants[0].currentHp <= 0) ? -1 : 0;
+    // If somehow no active turn, start at 0 if not downed
+    nextIndex = combatants[0].currentHp <= 0 ? -1 : 0;
     if (nextIndex === -1 && combatants.length > 1) {
-      // Find first non-dead
-      nextIndex = combatants.findIndex(c => !(c.type === 'npc' && c.currentHp <= 0));
+      // Find first non-downed
+      nextIndex = combatants.findIndex(c => !(c.currentHp <= 0));
     }
   }
 

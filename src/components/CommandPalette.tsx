@@ -20,7 +20,7 @@ import {
   Sparkles,
   Music
 } from 'lucide-react';
-import { useDeathEvent, useDamageEvent, useHealEvent, useInitiativeEvent } from '../hooks/useOverlayEvents';
+import { useDeathEvent, useDamageEvent, useHealEvent, useInitiativeEvent } from '../hooks/useCombatOverlayEvents';
 import { StoredAudioFile } from '../lib/audioFileStore';
 import { cn } from '../lib/utils';
 import { MOODS, MoodId } from '../lib/constants';

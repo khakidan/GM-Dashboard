@@ -15,7 +15,7 @@ import {
 import { Combatant } from '../../../types';
 import { buildConditionSummary } from '../../../lib/conditions';
 import { calculateConditionAcModifier, calculateExhaustionHpCap } from '../../../lib/combatLogic';
-import { useRageEvent } from '../../../hooks/useOverlayEvents';
+import { useRageEvent } from '../../../hooks/useCombatOverlayEvents';
 
 export function useCombatantMutations() {
   const { state, updateState } = useAppState();

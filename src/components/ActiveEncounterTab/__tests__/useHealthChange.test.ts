@@ -39,7 +39,7 @@ vi.mock('../../../lib/concentrationCheck', async (importOriginal) => {
   };
 });
 
-vi.mock('../../../hooks/useOverlayEvents', () => ({
+vi.mock('../../../hooks/useCombatOverlayEvents', () => ({
   useDamageEvent: () => ({ fire: vi.fn() }),
   useHealEvent: () => ({ fire: vi.fn() }),
   useUnconsciousEvent: () => ({ fire: vi.fn() }),

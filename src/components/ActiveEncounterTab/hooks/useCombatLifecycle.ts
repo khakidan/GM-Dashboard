@@ -5,7 +5,7 @@ import { getSpreadsheetId } from '../../../services/sheetsService';
 import { updateInitiativeDB, appendEncounterLog } from '../../../services/dbOperations';
 import { generateTranscript } from '../../../lib/combatLog';
 import { toast } from 'sonner';
-import { useInitiativeEvent } from '../../../hooks/useOverlayEvents';
+import { useInitiativeEvent } from '../../../hooks/useCombatOverlayEvents';
 import { calculateModifier, parseAbilityScores } from '../../../lib/abilityScores';
 
 export function useCombatLifecycle() {

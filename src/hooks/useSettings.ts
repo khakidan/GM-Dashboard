@@ -14,7 +14,7 @@ import {
   useUnconsciousEvent,
   useRageEvent,
   useInitiativeEvent,
-} from './useOverlayEvents';
+} from './useCombatOverlayEvents';
 
 interface UseSettingsProps {
   isGoogleConnected: boolean;

@@ -47,7 +47,7 @@ vi.mock('../useAppState', () => ({
   }),
 }));
 
-vi.mock('../useOverlayEvents', () => ({
+vi.mock('../useCombatOverlayEvents', () => ({
   useDeathEvent: () => ({ fire: vi.fn() }),
   useDamageEvent: () => ({ fire: vi.fn() }),
   useHealEvent: () => ({ fire: vi.fn() }),

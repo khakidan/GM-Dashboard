@@ -1,4 +1,4 @@
-import { useOverlayEvent } from './useOverlayEvent';
+import { useOverlayEvent } from './createOverlayEvent';
 import { OVERLAY_DURATIONS } from '../lib/constants';
 
 export function useDeathEvent() {

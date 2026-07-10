@@ -8,7 +8,7 @@ import { getHealthStatus, getEffectiveResistances, effectiveMaxHp, effectiveAc }
 // ────────────────────────────────────────────────────
 
 import { describe, it, expect } from 'vitest';
-import { applyHealthChange, nextTurnIndex, isNewRound, rollD20, checkIrvMatch, computeDamageWithIrv, getExpiredConditions, computeConcentrationDC, calculateConditionAcModifier, calculateExhaustionHpCap } from '../combatLogic';
+import { applyHealthChange, nextTurnIndex, isNewRound, rollD20, checkIrvMatch, computeDamageWithIrv, getExpiredConditions, computeConcentrationDC, calculateConditionAcModifier, calculateExhaustionHpCap, getNextActiveTurnIndex } from '../combatLogic';
 import type { Combatant } from '../../types';
 
 // ─── applyHealthChange — damage ───────────────────────────────────────────────
@@ -614,3 +614,62 @@ describe('effectiveAc', () => {
     expect(effectiveAc(16, undefined)).toBe(16);
   });
 });
+
+// ─── getNextActiveTurnIndex ────────────────────────────────────────────────────
+
+describe('getNextActiveTurnIndex', () => {
+  it('returns null when combatants are empty', () => {
+    expect(getNextActiveTurnIndex([], null)).toBeNull();
+  });
+
+  it('skips downed PCs (HP <= 0) and downed NPCs (HP <= 0)', () => {
+    const combatants = [
+      { id: '1', type: 'pc', currentHp: 10 } as Combatant,
+      { id: '2', type: 'pc', currentHp: 0 } as Combatant,   // Should be skipped (downed PC)
+      { id: '3', type: 'npc', currentHp: 0 } as Combatant,  // Should be skipped (downed NPC)
+      { id: '4', type: 'npc', currentHp: 15 } as Combatant,
+    ];
+
+    // From active ID '1', the next active should be '4' (skipping '2' and '3')
+    expect(getNextActiveTurnIndex(combatants, '1')).toBe('4');
+  });
+
+  it('wraps around to the first active combatant', () => {
+    const combatants = [
+      { id: '1', type: 'pc', currentHp: 10 } as Combatant,
+      { id: '2', type: 'npc', currentHp: 0 } as Combatant,  // Should be skipped
+      { id: '3', type: 'pc', currentHp: 12 } as Combatant,
+    ];
+
+    // From active ID '3', the next active should wrap around and skip '2' to hit '1'
+    expect(getNextActiveTurnIndex(combatants, '3')).toBe('1');
+  });
+
+  it('returns null if all combatants are downed', () => {
+    const combatants = [
+      { id: '1', type: 'pc', currentHp: 0 } as Combatant,
+      { id: '2', type: 'npc', currentHp: 0 } as Combatant,
+    ];
+
+    expect(getNextActiveTurnIndex(combatants, '1')).toBeNull();
+  });
+
+  it('starts at 0 if no active turn id is provided and combatant 0 is active', () => {
+    const combatants = [
+      { id: '1', type: 'pc', currentHp: 10 } as Combatant,
+      { id: '2', type: 'pc', currentHp: 12 } as Combatant,
+    ];
+
+    expect(getNextActiveTurnIndex(combatants, null)).toBe('1');
+  });
+
+  it('starts at the first non-downed combatant if combatant 0 is downed and no active turn id is provided', () => {
+    const combatants = [
+      { id: '1', type: 'pc', currentHp: 0 } as Combatant,
+      { id: '2', type: 'pc', currentHp: 12 } as Combatant,
+    ];
+
+    expect(getNextActiveTurnIndex(combatants, null)).toBe('2');
+  });
+});
+

@@ -70,7 +70,7 @@ vi.mock('../../../hooks/useAppState', () => ({
 }));
 
 const mockFireUnconscious = vi.fn();
-vi.mock('../../../hooks/useOverlayEvents', () => ({
+vi.mock('../../../hooks/useCombatOverlayEvents', () => ({
   useDamageEvent: () => ({ fire: vi.fn() }),
   useHealEvent: () => ({ fire: vi.fn() }),
   useUnconsciousEvent: () => ({ fire: mockFireUnconscious }),

@@ -10,7 +10,7 @@ vi.mock('../useAppState', () => ({
   getSnapshot: vi.fn(),
 }));
 
-vi.mock('../useOverlayEvents', () => ({
+vi.mock('../useCombatOverlayEvents', () => ({
   useDeathEvent: () => ({ fire: vi.fn() }),
   useUnconsciousEvent: () => ({ fire: vi.fn() }),
 }));
