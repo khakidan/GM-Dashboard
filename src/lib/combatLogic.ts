@@ -96,7 +96,7 @@ export function isNewRound(currentIndex: number, nextIndex: number): boolean {
 // ─── Health status label (used in PlayerView) ─────────────────────────────────
 
 export interface HealthStatus {
-  label: 'Full' | 'Defeated' | 'Healthy' | 'Injured' | 'Bloodied';
+  label: 'Full' | 'Defeated' | 'Healthy' | 'Injured' | 'Bloodied' | 'Dead' | 'Unconscious';
   /** Tailwind color class */
   color: string;
 }

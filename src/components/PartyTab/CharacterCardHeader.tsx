@@ -12,6 +12,7 @@ const healthStatusMap: Record<string, 'emerald' | 'green' | 'yellow' | 'red' | '
   Healthy: 'green',
   Injured: 'yellow',
   Bloodied: 'red',
+  Unconscious: 'red',
 };
 
 export interface CharacterCardHeaderProps {
@@ -113,13 +114,15 @@ export const CharacterCardHeader: React.FC<CharacterCardHeaderProps> = ({
                   {conditions}
                 </div>
               )}
-              <Badge
-                color={healthStatusMap[healthStatus.label] || 'gray'}
-                size="default"
-                className="hidden sm:flex items-center"
-              >
-                {healthStatus.label}
-              </Badge>
+              {healthStatus.label !== 'Dead' && (
+                <Badge
+                  color={healthStatusMap[healthStatus.label] || 'gray'}
+                  size="default"
+                  className="hidden sm:flex items-center"
+                >
+                  {healthStatus.label}
+                </Badge>
+              )}
               {statGrid}
             </div>
           )}

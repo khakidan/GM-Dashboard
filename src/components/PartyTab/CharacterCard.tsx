@@ -32,10 +32,25 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({
   onLevelUpClick
 }) => {
   const maxHpCeiling = effectiveMaxHp(character.maxHp || 1, character.tempHpMax);
-  const healthStatus = getHealthStatus(character.currentHp || 0, maxHpCeiling);
+  let healthStatus = getHealthStatus(character.currentHp || 0, maxHpCeiling);
+
+  const isPcDead = (character.deathSavesFails || 0) >= 3;
+  if (character.currentHp <= 0) {
+    if (isPcDead || character.statusId === 3) {
+      healthStatus = { label: 'Dead', color: 'text-gray-500' };
+    } else {
+      healthStatus = { label: 'Unconscious', color: 'text-red-500' };
+    }
+  }
 
   const [localTempAc, setLocalTempAc] = React.useState(character.tempAc ?? 0);
   const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  React.useEffect(() => {
+    if (isPcDead && character.statusId !== 3) {
+      onUpdate({ statusId: 3, statusName: 'Dead' });
+    }
+  }, [isPcDead, character.statusId, onUpdate]);
 
   React.useEffect(() => {
     setLocalTempAc(character.tempAc ?? 0);
