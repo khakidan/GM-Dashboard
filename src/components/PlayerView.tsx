@@ -1,7 +1,7 @@
 import { getHealthStatus } from '../lib/conditions';
 import { useAppState } from '../hooks/useAppState';
 import { cn } from '../lib/utils';
-import { Skull, Heart, ShieldAlert, Shield, Swords } from 'lucide-react';
+import { Skull, Heart, ShieldAlert, Shield, Swords, HeartCrack } from 'lucide-react';
 import { EmptyState } from './ui/EmptyState';
 import { CardShell } from './ui/CardShell';
 import { Badge } from './ui/Badge';
@@ -14,6 +14,14 @@ const healthStatusMap: Record<string, 'emerald' | 'green' | 'yellow' | 'red' | '
   Injured: 'yellow',
   Bloodied: 'red',
 };
+
+const formatConditionsForDisplay = (conditions: string): string =>
+  conditions
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean)
+    .map(s => s.charAt(0).toUpperCase() + s.slice(1))
+    .join(', ');
 
 export function PlayerView() {
   const { state: appState } = useAppState();
@@ -48,6 +56,8 @@ export function PlayerView() {
             const isActive = c.id === state.activeTurnId;
             const health = getHealthStatus(c.currentHp, c.maxHp);
             const isDead = c.currentHp <= 0;
+            const isPcDefeated = c.type === 'pc' && (c.deathSavesFails || 0) >= 3;
+            const showPcUnconscious = c.type === 'pc' && c.currentHp <= 0 && !isPcDefeated;
 
             return (
               <tr 
@@ -81,7 +91,12 @@ export function PlayerView() {
                           </span>
                         </div>
                         {c.conditions && (
-                            <div className="text-lg text-red-600 font-bold italic mt-1 truncate max-w-[300px]" title={c.conditions}>{c.conditions}</div>
+                          <div 
+                            className="text-lg text-red-600 font-bold italic mt-1 truncate max-w-[300px]" 
+                            title={formatConditionsForDisplay(c.conditions)}
+                          >
+                            {formatConditionsForDisplay(c.conditions)}
+                          </div>
                         )}
                       </div>
                     </div>
@@ -115,14 +130,21 @@ export function PlayerView() {
                 </td>
                 <td className="p-4 font-bold text-sm uppercase tracking-wider">
                   <div className="flex justify-center">
-                    <Badge color={healthStatusMap[health.label] || 'gray'} size="large" className="gap-2">
-                      {isDead ? <Skull className="w-6 h-6" /> : (['Full', 'Healthy'].includes(health.label) ? <Heart className="w-6 h-6" /> : <ShieldAlert className="w-6 h-6" />)}
-                      <span>{health.label}</span>
-                    </Badge>
+                    {showPcUnconscious ? (
+                      <Badge color="orange" size="large" className="gap-2">
+                        <HeartCrack className="w-6 h-6" />
+                        <span>Unconscious</span>
+                      </Badge>
+                    ) : (
+                      <Badge color={healthStatusMap[health.label] || 'gray'} size="large" className="gap-2">
+                        {isDead ? <Skull className="w-6 h-6" /> : (['Full', 'Healthy'].includes(health.label) ? <Heart className="w-6 h-6" /> : <ShieldAlert className="w-6 h-6" />)}
+                        <span>{health.label}</span>
+                      </Badge>
+                    )}
                   </div>
                 </td>
                 <td className="p-4 text-center text-lg md:text-xl min-w-[7rem] whitespace-nowrap">
-                  {c.type === 'pc' && !isDead ? (
+                  {c.type === 'pc' ? (
                     <div className="font-sans font-bold text-[#0f172a] whitespace-nowrap">
                       {c.currentHp} <span className="text-[#8d8db9] opacity-70">/ {c.maxHp}</span>
                     </div>

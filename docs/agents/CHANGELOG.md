@@ -733,3 +733,17 @@ User-driven, from real screenshots showing the collapsed header sprawling across
 Verified across all 5 stages: TypeScript clean, Batch 5A (7 files/45 tests) and Batch 5B (11 files/26 tests) both matching established baselines with real raw output at every stage, every diff checked directly against the real files.
 
 **Separately deferred, not yet started**: `PlayerView.tsx` further UI improvements for readability at 10-15 feet — raised in the same original request as this header redesign, tracked as its own follow-up.
+
+---
+
+## `PlayerView.tsx` D&D Rules-Accuracy Fixes (Completed)
+
+Three real bugs, not cosmetic polish, found from user screenshots showing a PC with only 1-2 failed death saves already labeled "Defeated."
+
+**The root cause**: `getHealthStatus(c.currentHp, c.maxHp)` — a shared utility — returns the label `"Defeated"` whenever `currentHp <= 0`, correct for NPCs (no death-save mechanic in this app) but wrong for PCs, who are only truly dead after 3 failed death saves; before that they're `"Unconscious"`. The single `isDead = c.currentHp <= 0` variable was driving four different things at once — row dimming/strikethrough (correctly), and the status badge, its icon, and the HP column (all incorrectly, for PCs specifically).
+
+**Fix**: a new, PC-aware `isPcDefeated = c.type === 'pc' && (c.deathSavesFails || 0) >= 3` and `showPcUnconscious = c.type === 'pc' && c.currentHp <= 0 && !isPcDefeated`, used only for the badge/icon/HP-column decisions — `isDead` itself is untouched and still correctly drives dimming/strikethrough for both PCs and NPCs. When `showPcUnconscious`, the badge shows `color="orange"`, a `HeartCrack` icon (distinct from `Skull`'s implication of death), and the label `"Unconscious"`; otherwise every existing case (NPCs, truly-defeated PCs, anyone above 0 HP) falls through to the original, unchanged logic. The HP column now always shows real `currentHp`/`maxHp` for PCs regardless of status — the old `!isDead` gate that hid it behind a dash for any PC at 0 HP is removed; NPCs keep showing "-" as before.
+
+**A third, smaller but real bug fixed alongside**: conditions displayed to players (e.g. `"paralyzed, unconscious"`) were shown in their raw, lowercase, internal-matching form. A local `formatConditionsForDisplay` helper (deliberately kept local to this file, not added to the shared conditions lib, since this is a display-only concern specific to the player-facing page) capitalizes each comma-separated condition — applied to both the visible text and its hover tooltip.
+
+Verified: TypeScript clean, `HeartCrack`'s availability in the installed `lucide-react` confirmed directly (not assumed) before use, Batch 7B-2 (4 files/4 tests) matching the established baseline with real raw output, all three fixes checked directly against the real file — including confirming a truly-defeated PC (3 failed saves) still correctly falls through to the original Skull/"Defeated" path rather than getting stuck on the new "Unconscious" branch.

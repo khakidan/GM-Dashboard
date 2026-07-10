@@ -16,7 +16,7 @@ None currently open. (The `useNpcLibrary.ts` double-confirmation bug is fixed �
 
 ### 🟡 Features to Add
 
-**`PlayerView.tsx` further UI improvements for readability at 10-15 feet** — raised in the same original request as the now-completed PC combatant card header redesign (see `CHANGELOG.md`), but not yet scoped or discussed beyond the initial ask. Not yet started.
+**`PlayerView.tsx` further UI improvements for readability at 10-15 feet** — raised alongside the now-completed PC combatant card header redesign (see `CHANGELOG.md`). Three specific D&D rules-accuracy bugs on this page are now fixed (PC "Defeated" mislabeling, HP column hiding real HP, condition capitalization — see `CHANGELOG.md`). Whether any further UI work is wanted on this page beyond those three fixes is still an open question — not yet confirmed either way.
 
 ### 🔵 Architecture / Technical Debt
 
