@@ -15,6 +15,8 @@ import { ResourcePool } from '../../lib/resourcePools';
 import { Badge } from '../ui/Badge';
 import { ToggleBadge } from '../ui/ToggleBadge';
 import { CardHeaderChevron } from '../ui/CardHeaderChevron';
+import { parseAbilityScores, parseProficiencies, proficiencyBonusFromLevel, calculateModifier } from '../../lib/abilityScores';
+import { getEffectiveSpellcastingAbility, calculateSpellSaveDC, calculateSpellAttackBonus } from '../../lib/spellcasting';
 
 const healthStatusMap: Record<string, 'emerald' | 'green' | 'yellow' | 'red' | 'gray'> = {
   Full: 'emerald',
@@ -63,6 +65,28 @@ export function CombatantCardHeader({
   const { name, ac, tempAcModifier, initiative, type } = c;
 
   const maxHpCeiling = effectiveMaxHp(c.maxHp, c.tempHpMax || 0);
+
+  // Spellcasting stats computation for Row 1
+  let spellcastingStatsElement: React.ReactNode = null;
+  if (type === 'pc' && pcCharacter) {
+    const parsedScores = parseAbilityScores(pcCharacter.abilityScores);
+    const parsedProfs = parseProficiencies(pcCharacter.proficiencies);
+    const profBonus = proficiencyBonusFromLevel(pcCharacter.level ?? 1);
+    const effectiveAbility = getEffectiveSpellcastingAbility(pcCharacter.class, parsedProfs.spellcastingAbility);
+
+    if (effectiveAbility !== null) {
+      const mod = calculateModifier(parsedScores[effectiveAbility]);
+      const dc = calculateSpellSaveDC(mod, profBonus);
+      const atk = calculateSpellAttackBonus(mod, profBonus);
+      const formattedAtk = atk >= 0 ? `+${atk}` : `\u2212${Math.abs(atk)}`;
+
+      spellcastingStatsElement = (
+        <span className="text-sm text-[#8d8db9] whitespace-nowrap">
+          DC <span className="font-bold text-[#0f172a]">{dc}</span> · Atk <span className="font-bold text-[#0f172a]">{formattedAtk}</span>
+        </span>
+      );
+    }
+  }
 
   return (
     <div className="flex flex-col">
@@ -135,6 +159,8 @@ export function CombatantCardHeader({
 
           {/* Right side */}
           <div data-testid="right-container" className="flex flex-row items-center justify-end gap-3 shrink-0">
+            {spellcastingStatsElement}
+
             {/* AC Badge */}
             {(() => {
               const baseAc = ac;
@@ -193,7 +219,7 @@ export function CombatantCardHeader({
                 onClick={() => onUpdateCombatant({ reactionUsed: !c.reactionUsed })}
                 disabled={isSyncing}
                 className={cn(
-                  "text-[10px] whitespace-nowrap h-6 gap-1",
+                  "text-sm whitespace-nowrap h-6 gap-1",
                   c.reactionUsed && "line-through opacity-70"
                 )}
               >
@@ -210,6 +236,13 @@ export function CombatantCardHeader({
                 )}
               </ToggleBadge>
             </div>
+
+            <CombatantCompactResourceRow
+              c={c}
+              isSyncing={isSyncing}
+              onUpdateResourcePools={onUpdateResourcePools}
+              character={pcCharacter}
+            />
 
             {/* CombatantCompactIndicators */}
             <CombatantCompactIndicators
@@ -232,7 +265,7 @@ export function CombatantCardHeader({
                 <Badge
                   color={healthStatusMap[hs.label] || 'gray'}
                   size="default"
-                  className="bg-white/50 shrink-0 border-current"
+                  className="bg-white/50 shrink-0 border-current text-sm"
                 >
                   {hs.label}
                 </Badge>
@@ -241,13 +274,6 @@ export function CombatantCardHeader({
           </div>
         </div>
       </div>
-
-      <CombatantCompactResourceRow
-        c={c}
-        isSyncing={isSyncing}
-        onUpdateResourcePools={onUpdateResourcePools}
-        character={pcCharacter}
-      />
     </div>
   );
 }

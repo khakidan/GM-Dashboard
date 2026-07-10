@@ -9,9 +9,7 @@ import { CombatantCardExpanded } from './CombatantCardExpanded';
 import { useCombatantCard } from './hooks/useCombatantCard';
 import { useCombatantExpanded } from './hooks/useCombatantExpanded';
 import { ResourcePool, serializeResourcePools } from '../../lib/resourcePools';
-import { SpellcastingStatsRow } from '../ui/SpellcastingStatsRow';
 import { CardShell } from '../ui/CardShell';
-import { parseAbilityScores, parseProficiencies, proficiencyBonusFromLevel } from '../../lib/abilityScores';
 import { NpcReferencePanel } from './NpcReferencePanel';
 import { ExpandableContent } from '../ui/ExpandableContent';
 
@@ -44,8 +42,6 @@ export function CombatantCard({
   const [recentRechargeRolls, setRecentRechargeRolls] = useState<Record<string, number>>({});
   const { isActiveTurn: _isActiveTurn, isSelected, isSelectable, isSyncing } = useCombatantCard(c.id);
   const isActive = _isActiveTurn && !!combatStarted;
-  const parsedProfs = parseProficiencies(c.proficiencies || '');
-  const parsedScores = parseAbilityScores(c.abilityScores || '');
   const { handleResourcePoolUpdate } = useCombatantExpanded(c);
 
   const handleUpdateResourcePools = (combatant: Combatant, updatedPools: ResourcePool[]) => {
@@ -115,17 +111,6 @@ export function CombatantCard({
       {c.type === 'npc' && (
         <div className="px-6 pb-3">
           <NpcReferencePanel combatant={c} />
-        </div>
-      )}
-
-      {!isExpanded && (
-        <div className="px-6 pb-3 -mt-1" id={`spellcasting-stats-container-${c.id}`}>
-          <SpellcastingStatsRow
-            abilityScores={parsedScores}
-            profBonus={c.type === 'pc' ? proficiencyBonusFromLevel(c.level ?? 1) : (parsedProfs.proficiencyBonus ?? 0)}
-            className={c.type === 'pc' ? c.class : undefined}
-            overrideAbility={parsedProfs.spellcastingAbility}
-          />
         </div>
       )}
 

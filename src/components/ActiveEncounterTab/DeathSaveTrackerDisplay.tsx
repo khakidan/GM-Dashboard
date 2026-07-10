@@ -27,7 +27,7 @@ export function DeathSaveTrackerDisplay({
       onClick={e => e.stopPropagation()}
     >
       <div className="flex items-center gap-1.5 font-mono">
-        <span className="text-[#8d8db9] font-bold text-[10px] uppercase w-12">Fails:</span>
+        <span className="text-[#8d8db9] font-bold text-sm uppercase w-4">F:</span>
         <div className="flex gap-1" id={`death-fails-${cId}`}>
           {[1, 2, 3].map(slot => {
             const isFailed = deathSavesFails >= slot;
@@ -44,7 +44,7 @@ export function DeathSaveTrackerDisplay({
         </div>
       </div>
       <div className="flex items-center gap-1.5 font-mono">
-        <span className="text-[#8d8db9] font-bold text-[10px] uppercase w-12">Success:</span>
+        <span className="text-[#8d8db9] font-bold text-sm uppercase w-4">S:</span>
         <div className="flex gap-1" id={`death-successes-${cId}`}>
           {[1, 2, 3].map(slot => {
             const isSuccess = deathSavesSuccesses >= slot;
