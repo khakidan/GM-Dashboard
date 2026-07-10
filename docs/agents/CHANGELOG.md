@@ -712,3 +712,24 @@ Verified: TypeScript clean, Batch 6C (5 files/13 tests) matching the established
 Verified: TypeScript clean, Batch 6C (5 files/13 tests) matching the established baseline with real raw output, both the migration and the deletion checked directly against the real files.
 
 **This closes out the entire "Code Organization / Decomposition" list for real this time — the consolidation now spans both real consumers of this pattern, not just one.**
+
+---
+
+## PC Combatant Card Header Redesign (Completed) — 4 Rows Down to 2
+
+User-driven, from real screenshots showing the collapsed header sprawling across 4 rows for PCs — 2 built-in rows, plus `CombatantCompactResourceRow`'s own separate bordered row, plus a 4th line for spell stats. Fully iterated design over several rounds of live mockup review before any code was written, then a 5-stage build, smallest and most isolated pieces first.
+
+**A first, single all-in-one build prompt caused AI Studio to stall for 300+ seconds without making any edit** — the prompt assumed spell-stat rendering already lived inside `CombatantCardHeader.tsx`, but investigation (Stage 1) found it was actually a completely separate sibling render in `CombatantCard.tsx`, only shown when collapsed. That's real cross-file wiring, not a simple move, and asking for it inside a single large prompt alongside three other simultaneous changes was too much to reason about at once. Restaged into 5 small, sequential steps instead, each stage's output already correct and verified before the next stage depended on it — this is why the final integration stage was able to be "mostly wiring, not new design."
+
+**The final design**:
+- **Row 1 (vitals)**: unchanged Init/name/AC/HP/damage+heal controls/chevron, plus two additions — "DC {n} · Atk {±n}" (true minus sign for negative bonuses, matching `SpellcastingStatsRow.tsx`'s own formatting) as small muted text before the AC badge, spellcasters only; and the death-save tracker restructured into a small bordered/tinted box with two stacked lines, "F: [pips]" / "S: [pips]" (shortened from "Fails:"/"Success:").
+- **Row 2 (status)**: Reaction toggle immediately followed by resource-pool trackers as clickable pips (`PipTracker` at `size="compact"`, fully interactive — `isSyncing` handled via `readOnly={isSyncing}` since `PipTracker` has no native `disabled` prop), then the existing mechanical/health badges.
+- **`CombatantCardBadges.tsx`**: the "active conditions" and "active effects" dot indicators removed entirely (confirmed redundant — real condition/effect badges already exist elsewhere for every state these summarized), including the underlying now-dead logic computing them, not just their rendering. The "attacks against this creature have advantage" purple dot became a real `<Badge color="purple">VULNERABLE</Badge>` — words over decorative dots-with-tooltips, per explicit user direction applied consistently everywhere this pattern appeared.
+- Font sizes bumped to `text-sm` across Row 2's badges, the Reaction toggle, resource-tracker labels, death-save labels, and the spell-stats text — targeted `className` overrides at each specific call site, `Badge`'s and `PipTracker`'s own `default`/`compact` size definitions themselves untouched, since they're used elsewhere throughout the app.
+- Resolves a standing complaint about a horizontal line in the Active Encounter header — `CombatantCompactResourceRow`'s own `border-t` divider — with no separate fix needed, since that row (and its border) no longer exists once its content merged inline into Row 2.
+
+**Staged build** (5 stages): investigation (`SpellcastingStatsRow`'s real render location, `DeathSaveTrackerDisplay.tsx`'s real implementation) → `CombatantCardBadges.tsx` alone → `DeathSaveTrackerDisplay.tsx` alone → `CombatantCompactResourceRow.tsx` alone (interaction-model change, still its own row) → final integration (`CombatantCardHeader.tsx` restructuring, spell-stat computation wired in, `CombatantCompactResourceRow` merged into Row 2, `CombatantCard.tsx`'s now-redundant separate render removed along with its now-unused imports and local variables).
+
+Verified across all 5 stages: TypeScript clean, Batch 5A (7 files/45 tests) and Batch 5B (11 files/26 tests) both matching established baselines with real raw output at every stage, every diff checked directly against the real files.
+
+**Separately deferred, not yet started**: `PlayerView.tsx` further UI improvements for readability at 10-15 feet — raised in the same original request as this header redesign, tracked as its own follow-up.
