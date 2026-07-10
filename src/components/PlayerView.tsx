@@ -91,7 +91,7 @@ export function PlayerView() {
                             {c.name}
                           </span>
                         </div>
-                        {c.conditions && (
+                        {c.conditions && !isPcDefeated && !showPcStable && (
                           <div 
                             className="text-lg text-red-600 font-bold italic mt-1 truncate max-w-[300px]" 
                             title={formatConditionsForDisplay(c.conditions)}
@@ -101,7 +101,7 @@ export function PlayerView() {
                         )}
                       </div>
                     </div>
-                    {c.type === 'pc' && c.conditions?.toLowerCase().includes('unconscious') && (c.deathSavesSuccesses || 0) < 3 && !c.isStable && (
+                    {c.type === 'pc' && c.currentHp <= 0 && !isPcDefeated && !c.isStable && (
                       <div className="flex flex-col gap-2 mt-1 select-none shrink-0">
                         <div className="flex items-center gap-4 text-xl md:text-2xl font-bold font-sans">
                           <span className="text-red-800 uppercase tracking-wide min-w-[120px] md:min-w-[145px]">FAILS</span>
@@ -131,7 +131,12 @@ export function PlayerView() {
                 </td>
                 <td className="p-4 font-bold text-sm uppercase tracking-wider">
                 <div className="flex justify-center">
-                  {showPcStable ? (
+                  {isPcDefeated ? (
+                    <Badge color="gray" size="large" className="gap-2">
+                      <Skull className="w-6 h-6" />
+                      <span>Dead</span>
+                    </Badge>
+                  ) : showPcStable ? (
                     <Badge color="blue" size="large" className="gap-2">
                       <ShieldCheck className="w-6 h-6" />
                       <span>Stable</span>

@@ -65,6 +65,7 @@ export function CombatantCardHeader({
   const { name, ac, tempAcModifier, initiative, type } = c;
 
   const maxHpCeiling = effectiveMaxHp(c.maxHp, c.tempHpMax || 0);
+  const isPcDead = type === 'pc' && (c.deathSavesFails || 0) >= 3 && !c.isStable;
 
   // Spellcasting stats computation for Row 1
   let spellcastingStatsElement: React.ReactNode = null;
@@ -134,7 +135,7 @@ export function CombatantCardHeader({
                 'text-lg font-bold font-serif truncate flex items-center gap-2', 
                 type === 'npc' 
                   ? (c.currentHp <= 0 ? 'text-[#8d8db9]' : 'text-red-800') 
-                  : 'text-[#0f172a]'
+                  : (isPcDead ? 'text-[#8d8db9]' : 'text-[#0f172a]')
               )}>
                 {name}
                 {type === 'npc' && c.currentHp <= 0 && (
@@ -142,6 +143,9 @@ export function CombatantCardHeader({
                 )}
                 {type === 'pc' && c.isStable && (
                   <HeartCrack className="w-4 h-4 text-[#8d8db9] shrink-0" />
+                )}
+                {isPcDead && (
+                  <Skull className="w-4 h-4 text-[#8d8db9] shrink-0" />
                 )}
               </h3>
               {c.conditions?.toLowerCase().includes('concentrating') && (
@@ -213,53 +217,61 @@ export function CombatantCardHeader({
           {/* Left side */}
           <div className="flex flex-wrap items-center gap-3">
             {/* Reaction toggle pill */}
-            <div className="shrink-0 flex items-center" onClick={(e) => e.stopPropagation()}>
-              <ToggleBadge
-                id={`reaction-toggle-${c.id}`}
-                active={!c.reactionUsed}
-                activeColor="emerald"
-                inactiveColor="gray"
-                onClick={() => onUpdateCombatant({ reactionUsed: !c.reactionUsed })}
-                disabled={isSyncing}
-                className={cn(
-                  "text-sm whitespace-nowrap h-6 gap-1",
-                  c.reactionUsed && "line-through opacity-70"
-                )}
-              >
-                {c.reactionUsed ? (
-                  <>
-                    <ZapOff className="w-3 h-3" />
-                    <span>REACTION USED</span>
-                  </>
-                ) : (
-                  <>
-                    <Zap className="w-3 h-3 fill-current" />
-                    <span>REACTION</span>
-                  </>
-                )}
-              </ToggleBadge>
-            </div>
+            {!isPcDead && (
+              <div className="shrink-0 flex items-center" onClick={(e) => e.stopPropagation()}>
+                <ToggleBadge
+                  id={`reaction-toggle-${c.id}`}
+                  active={!c.reactionUsed}
+                  activeColor="emerald"
+                  inactiveColor="gray"
+                  onClick={() => onUpdateCombatant({ reactionUsed: !c.reactionUsed })}
+                  disabled={isSyncing}
+                  className={cn(
+                    "text-sm whitespace-nowrap h-6 gap-1",
+                    c.reactionUsed && "line-through opacity-70"
+                  )}
+                >
+                  {c.reactionUsed ? (
+                    <>
+                      <ZapOff className="w-3 h-3" />
+                      <span>REACTION USED</span>
+                    </>
+                  ) : (
+                    <>
+                      <Zap className="w-3 h-3 fill-current" />
+                      <span>REACTION</span>
+                    </>
+                  )}
+                </ToggleBadge>
+              </div>
+            )}
 
-            <CombatantCompactResourceRow
-              c={c}
-              isSyncing={isSyncing}
-              onUpdateResourcePools={onUpdateResourcePools}
-              character={pcCharacter}
-            />
+            {!isPcDead && (
+              <CombatantCompactResourceRow
+                c={c}
+                isSyncing={isSyncing}
+                onUpdateResourcePools={onUpdateResourcePools}
+                character={pcCharacter}
+              />
+            )}
 
             {/* CombatantCompactIndicators */}
-            <CombatantCompactIndicators
-              type={type}
-              c={c}
-              onUpdateCombatant={onUpdateCombatant}
-              onMarkSpent={onMarkSpent}
-            />
+            {!isPcDead && (
+              <CombatantCompactIndicators
+                type={type}
+                c={c}
+                onUpdateCombatant={onUpdateCombatant}
+                onMarkSpent={onMarkSpent}
+              />
+            )}
           </div>
 
           {/* Right side */}
           <div className="flex items-center gap-2 ml-auto shrink-0">
             {/* CombatantCardBadges */}
-            <CombatantCardBadges conditions={c.conditions || ''} combatant={c} />
+            {!isPcDead && (
+              <CombatantCardBadges conditions={c.conditions || ''} combatant={c} />
+            )}
 
             {/* Health-status label */}
             {(c.currentHp < maxHpCeiling && c.currentHp > 0) && (() => {
@@ -286,7 +298,7 @@ export function CombatantCardHeader({
                 color = 'blue';
                 icon = <ShieldCheck className="w-3 h-3" />;
               } else if ((c.deathSavesFails || 0) >= 3) {
-                label = 'Defeated';
+                label = 'Dead';
                 color = 'red';
                 icon = <Skull className="w-3 h-3" />;
               }
