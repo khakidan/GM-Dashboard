@@ -85,9 +85,9 @@ export function CombatantCard({
       ) : undefined}
       className={cn(
         'h-fit',
-        c.type === 'npc' && c.currentHp <= 0 
+        (c.type === 'npc' && c.currentHp <= 0)
           ? 'bg-[#f9f8ff] opacity-60 grayscale-[0.5]' 
-          : (c.currentHp <= 0 ? 'opacity-60 grayscale-[0.5]' : '')
+          : ((c.currentHp <= 0 || (c.type === 'pc' && c.isStable)) ? 'opacity-60 grayscale-[0.5]' : '')
       )}
     >
 

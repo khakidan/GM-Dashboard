@@ -1,7 +1,7 @@
 import { getHealthStatus } from '../lib/conditions';
 import { useAppState } from '../hooks/useAppState';
 import { cn } from '../lib/utils';
-import { Skull, Heart, ShieldAlert, Shield, Swords, HeartCrack } from 'lucide-react';
+import { Skull, Heart, ShieldAlert, Shield, Swords, HeartCrack, ShieldCheck } from 'lucide-react';
 import { EmptyState } from './ui/EmptyState';
 import { CardShell } from './ui/CardShell';
 import { Badge } from './ui/Badge';
@@ -57,7 +57,8 @@ export function PlayerView() {
             const health = getHealthStatus(c.currentHp, c.maxHp);
             const isDead = c.currentHp <= 0;
             const isPcDefeated = c.type === 'pc' && (c.deathSavesFails || 0) >= 3;
-            const showPcUnconscious = c.type === 'pc' && c.currentHp <= 0 && !isPcDefeated;
+            const showPcStable = c.type === 'pc' && c.currentHp <= 0 && !isPcDefeated && c.isStable;
+            const showPcUnconscious = c.type === 'pc' && c.currentHp <= 0 && !isPcDefeated && !c.isStable;
 
             return (
               <tr 
@@ -129,19 +130,24 @@ export function PlayerView() {
                   </div>
                 </td>
                 <td className="p-4 font-bold text-sm uppercase tracking-wider">
-                  <div className="flex justify-center">
-                    {showPcUnconscious ? (
-                      <Badge color="orange" size="large" className="gap-2">
-                        <HeartCrack className="w-6 h-6" />
-                        <span>Unconscious</span>
-                      </Badge>
-                    ) : (
-                      <Badge color={healthStatusMap[health.label] || 'gray'} size="large" className="gap-2">
-                        {isDead ? <Skull className="w-6 h-6" /> : (['Full', 'Healthy'].includes(health.label) ? <Heart className="w-6 h-6" /> : <ShieldAlert className="w-6 h-6" />)}
-                        <span>{health.label}</span>
-                      </Badge>
-                    )}
-                  </div>
+                <div className="flex justify-center">
+                  {showPcStable ? (
+                    <Badge color="blue" size="large" className="gap-2">
+                      <ShieldCheck className="w-6 h-6" />
+                      <span>Stable</span>
+                    </Badge>
+                  ) : showPcUnconscious ? (
+                    <Badge color="orange" size="large" className="gap-2">
+                      <HeartCrack className="w-6 h-6" />
+                      <span>Unconscious</span>
+                    </Badge>
+                  ) : (
+                    <Badge color={healthStatusMap[health.label] || 'gray'} size="large" className="gap-2">
+                      {isDead ? <Skull className="w-6 h-6" /> : (['Full', 'Healthy'].includes(health.label) ? <Heart className="w-6 h-6" /> : <ShieldAlert className="w-6 h-6" />)}
+                      <span>{health.label}</span>
+                    </Badge>
+                  )}
+                </div>
                 </td>
                 <td className="p-4 text-center text-lg md:text-xl min-w-[7rem] whitespace-nowrap">
                   {c.type === 'pc' ? (

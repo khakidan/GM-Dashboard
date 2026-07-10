@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronDown, Zap, ZapOff, Skull } from 'lucide-react';
+import { ChevronDown, Zap, ZapOff, Skull, HeartCrack, ShieldCheck } from 'lucide-react';
 import { AnimatedHpDisplay } from './AnimatedHpDisplay';
 import { InitiativeInput } from './InitiativeInput';
 import { CombatantCompactIndicators } from './CombatantCompactIndicators';
@@ -140,6 +140,9 @@ export function CombatantCardHeader({
                 {type === 'npc' && c.currentHp <= 0 && (
                   <Skull className="w-4 h-4 text-[#8d8db9] shrink-0" />
                 )}
+                {type === 'pc' && c.isStable && (
+                  <HeartCrack className="w-4 h-4 text-[#8d8db9] shrink-0" />
+                )}
               </h3>
               {c.conditions?.toLowerCase().includes('concentrating') && (
                 <Badge color="purple" size="compact" className="ml-2 shrink-0">
@@ -259,7 +262,7 @@ export function CombatantCardHeader({
             <CombatantCardBadges conditions={c.conditions || ''} combatant={c} />
 
             {/* Health-status label */}
-            {c.currentHp < maxHpCeiling && c.currentHp > 0 && (() => {
+            {(c.currentHp < maxHpCeiling && c.currentHp > 0) && (() => {
               const hs = getHealthStatus(c.currentHp, maxHpCeiling);
               return (
                 <Badge
@@ -268,6 +271,34 @@ export function CombatantCardHeader({
                   className="bg-white/50 shrink-0 border-current text-sm"
                 >
                   {hs.label}
+                </Badge>
+              );
+            })()}
+
+            {/* Unconscious/Stable/Defeated label for PCs */}
+            {type === 'pc' && c.currentHp <= 0 && (() => {
+              let label = 'Unconscious';
+              let color: 'blue' | 'red' | 'orange' = 'orange';
+              let icon = <HeartCrack className="w-3 h-3" />;
+
+              if (c.isStable) {
+                label = 'Stable';
+                color = 'blue';
+                icon = <ShieldCheck className="w-3 h-3" />;
+              } else if ((c.deathSavesFails || 0) >= 3) {
+                label = 'Defeated';
+                color = 'red';
+                icon = <Skull className="w-3 h-3" />;
+              }
+
+              return (
+                <Badge
+                  color={color}
+                  size="default"
+                  className="bg-white/50 shrink-0 border-current text-sm flex items-center gap-1"
+                >
+                  {icon}
+                  {label}
                 </Badge>
               );
             })()}
