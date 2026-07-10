@@ -210,5 +210,28 @@ describe('combatLog', () => {
       expect(transcript).toContain('Aria: Ki Points 3 -> 2');
       expect(transcript).toContain('Aria: Ki Points 2 -> 3 (restored)');
     });
+
+    it('TEST 1.9 — Death save event formatting', () => {
+      const log: ActiveCombatLog = {
+        encounterId: 'enc-1', encounterName: 'Test', location: 'Test', startedAt: '...', currentRound: 1,
+        partySnapshot: [], initiativeOrder: [],
+        events: [
+          {
+            id: 'e1', round: 1, type: 'death-save', actorId: null, actorName: null,
+            targetId: 'aria-1', targetName: 'Aria', condition: 'success',
+            resourceName: 'Death Save Successes', resourceBefore: 0, resourceAfter: 1, resourceMax: 3, isManualAdjustment: false, timestamp: '...'
+          },
+          {
+            id: 'e2', round: 1, type: 'death-save', actorId: null, actorName: null,
+            targetId: 'aria-1', targetName: 'Aria', condition: 'failure',
+            resourceName: 'Death Save Failures', resourceBefore: 1, resourceAfter: 2, resourceMax: 3, isManualAdjustment: false, timestamp: '...'
+          }
+        ]
+      };
+
+      const transcript = generateTranscript(log, 'Victory');
+      expect(transcript).toContain('Aria rolled a death saving throw: Success (Death Save Successes: 0 -> 1)');
+      expect(transcript).toContain('Aria rolled a death saving throw: Failure (Death Save Failures: 1 -> 2)');
+    });
   });
 });

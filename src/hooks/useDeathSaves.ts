@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useAppState, getSnapshot } from './useAppState';
+import { useDashboardStore } from './dashboardStore';
 import { useDeathEvent, useUnconsciousEvent } from './useCombatOverlayEvents';
 import { updateDeathSavesDB, updateCharacterDB } from '../services/dbOperations';
 import { toast } from 'sonner';
@@ -69,6 +70,19 @@ export function useDeathSaves() {
           }, fullChar);
         } else {
           throw new Error(`Character ${combatant.characterId} not found in state`);
+        }
+
+        const { addCombatEvent, activeCombatLog } = useDashboardStore.getState();
+        if (activeCombatLog) {
+          addCombatEvent({
+            round: activeCombatLog.currentRound,
+            type: 'combatant-defeated',
+            actorId: null,
+            actorName: null,
+            targetId: combatantId,
+            targetName: combatant.name,
+            isManualAdjustment: false,
+          });
         }
 
         fireDeathEvent({ characterName: combatant.name });
@@ -141,6 +155,24 @@ export function useDeathSaves() {
         }
       }));
 
+      const { addCombatEvent, activeCombatLog } = useDashboardStore.getState();
+      if (activeCombatLog) {
+        addCombatEvent({
+          round: activeCombatLog.currentRound,
+          type: 'death-save',
+          actorId: null,
+          actorName: null,
+          targetId: combatantId,
+          targetName: combatant.name,
+          condition: result,
+          resourceName: result === 'success' ? 'Death Save Successes' : 'Death Save Failures',
+          resourceBefore: result === 'success' ? successes - (isCritical ? 2 : 1) : fails - (isCritical ? 2 : 1),
+          resourceAfter: result === 'success' ? successes : fails,
+          resourceMax: 3,
+          isManualAdjustment: false,
+        });
+      }
+
       try {
         await updateDeathSavesDB(combatant.characterId, fails, successes);
         const outcome = await checkDeathSaveOutcome(combatantId, fails, successes, combatant);
@@ -193,6 +225,24 @@ export function useDeathSaves() {
           )
         }
       }));
+
+      const { addCombatEvent, activeCombatLog } = useDashboardStore.getState();
+      if (activeCombatLog) {
+        addCombatEvent({
+          round: activeCombatLog.currentRound,
+          type: 'death-save',
+          actorId: null,
+          actorName: null,
+          targetId: combatantId,
+          targetName: combatant.name,
+          condition: 'failure',
+          resourceName: 'Death Save Failures',
+          resourceBefore: currentFails,
+          resourceAfter: newFails,
+          resourceMax: 3,
+          isManualAdjustment: false,
+        });
+      }
 
       try {
         await updateDeathSavesDB(combatant.characterId, newFails, successes);

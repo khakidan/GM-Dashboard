@@ -57,8 +57,8 @@ A full-stack web application for Dungeons & Dragons 5e Game Masters. The GM uses
     - New `lib` files → [docs/agents/file-reference.md](docs/agents/file-reference.md)
     - New shared UI components → [docs/agents/file-reference.md](docs/agents/file-reference.md)
     - File moves → both the old and new sections of file-reference.md
-    - Test count changes → baseline and per-batch counts below in this file
-    - New explicit Batch 5A/5B/7B-1/7B-2 files → the batch list below in this file
+    - Test count changes → baseline and per-batch counts in [docs/agents/testing-batches.md](docs/agents/testing-batches.md)
+    - New explicit Batch 5A/5B/7B-1/7B-2 files → the batch list in [docs/agents/testing-batches.md](docs/agents/testing-batches.md)
     - New NPC schema columns → [docs/agents/schema.md](docs/agents/schema.md) and TypeScript interfaces
     - New architectural patterns → [docs/agents/patterns.md](docs/agents/patterns.md)
     - New color tokens, component styles, or layout conventions → [docs/agents/STYLE_GUIDE.md](docs/agents/STYLE_GUIDE.md)
@@ -108,80 +108,7 @@ Full file-by-file inventory of what lives in each layer: [docs/agents/file-refer
 
 ## Testing Structure — 12-Batch System
 
-**Current baseline: 692 tests.**
-
-Run each batch individually. Never chain with `&&`. Never use glob patterns. Never run all tests at once with `npx vitest run`.
-
-| Batch | Description | Test Count |
-|-------|-------------|------------|
-| 1 | `src/lib/__tests__` | 439 |
-| 2 | `src/services/__tests__` | 34 |
-| 3 | `src/hooks/__tests__` | 41 |
-| 4 | `src/server/__tests__` + `src/__tests__` | 9 |
-| 5A | ActiveEncounterTab hooks (`.test.ts`) | 45 |
-| 5B | ActiveEncounterTab components (`.test.tsx`) | 26 |
-| 6A | `src/components/PartyTab/__tests__` | 46 |
-| 6B | `src/components/EncountersTab/__tests__` | 20 |
-| 6C | `src/components/NpcLibraryTab/__tests__` | 13 |
-| 7B-1 | Audio + main dashboard top-level components | 13 |
-| 7B-2 | Other top-level components | 4 |
-| 8 | `src/components/ui/__tests__` | 2 |
-
-```bash
-# BATCH 1 — 439 tests
-npx vitest run src/lib/__tests__
-
-# BATCH 2 — 34 tests
-npx vitest run src/services/__tests__
-
-# BATCH 3 — 41 tests
-npx vitest run src/hooks/__tests__
-
-# BATCH 4 — 9 tests
-npx vitest run src/server/__tests__ src/__tests__
-
-# BATCH 5A — 45 tests
-npx vitest run src/components/ActiveEncounterTab/__tests__/useBatchActions.test.ts src/components/ActiveEncounterTab/__tests__/useCombatSync.test.ts src/components/ActiveEncounterTab/__tests__/useCombatantCard.test.ts src/components/ActiveEncounterTab/__tests__/useCombatantExpanded.test.ts src/components/ActiveEncounterTab/__tests__/useEncounterPresetLoader.test.ts src/components/ActiveEncounterTab/__tests__/useHealthChange.test.ts src/components/ActiveEncounterTab/__tests__/useSelectionMode.test.ts
-
-# BATCH 5B — 26 tests
-npx vitest run src/components/ActiveEncounterTab/__tests__/AddNpcCollision.test.tsx src/components/ActiveEncounterTab/__tests__/CasterAttributionDialog.test.tsx src/components/ActiveEncounterTab/__tests__/CombatHeader.test.tsx src/components/ActiveEncounterTab/__tests__/AddCombatantDialog.test.tsx src/components/ActiveEncounterTab/__tests__/CombatantCard.test.tsx src/components/ActiveEncounterTab/__tests__/KeyboardShortcuts.test.tsx src/components/ActiveEncounterTab/__tests__/MultiTargetActionPanel.test.tsx src/components/ActiveEncounterTab/__tests__/NpcReferencePanel.test.tsx src/components/ActiveEncounterTab/__tests__/ShortcutCheatSheet.test.tsx src/components/ActiveEncounterTab/__tests__/combatStarted.test.tsx src/components/ActiveEncounterTab/__tests__/index.test.tsx
-
-# BATCH 6A — 46 tests
-npx vitest run src/components/PartyTab/__tests__
-
-# BATCH 6B — 20 tests
-npx vitest run src/components/EncountersTab/__tests__
-
-# BATCH 6C — 13 tests
-npx vitest run src/components/NpcLibraryTab/__tests__
-
-# BATCH 7B-1 — 13 tests
-npx vitest run src/components/__tests__/CommandPalette.test.tsx src/components/__tests__/ErrorBoundary.test.tsx src/components/__tests__/GMDashboard.test.tsx src/components/__tests__/GMDashboardSidebar.test.tsx src/components/__tests__/AudioLibrary.test.tsx
-
-# BATCH 7B-2 — 4 tests
-npx vitest run src/components/__tests__/CampaignSelector.test.tsx src/components/__tests__/GMTabContent.test.tsx src/components/__tests__/PlayerView.test.tsx src/components/__tests__/ThemeContext.test.tsx
-
-# BATCH 8 — 2 tests
-npx vitest run src/components/ui/__tests__
-```
-
-*Note: `EncounterLogModal.test.tsx` (5 tests) and `useEncounterLogs.test.ts` (4 tests) are part of Batch 6B.*
-
-### Where new test files go
-
-| New test covers | Add to batch |
-|-----------------|--------------|
-| `src/lib/` | Batch 1 (auto-picked up) |
-| `src/services/` | Batch 2 (auto-picked up) |
-| `src/hooks/` | Batch 3 (auto-picked up) |
-| AET hook (`.test.ts`) | Add to Batch 5A explicitly |
-| AET component (`.test.tsx`) | Add to Batch 5B explicitly |
-| PartyTab | Batch 6A (auto-picked up) |
-| EncountersTab | Batch 6B (auto-picked up) |
-| NpcLibraryTab | Batch 6C (auto-picked up) |
-| Audio or main dashboard | Add to Batch 7B-1 explicitly |
-| Other top-level component | Add to Batch 7B-2 explicitly |
-| `src/components/ui/` | Batch 8 (auto-picked up) |
+Full batch table, bash commands, and "where new test files go" reference: [docs/agents/testing-batches.md](docs/agents/testing-batches.md). Run each batch individually — never chain with `&&`, never use glob patterns, never run all tests at once with `npx vitest run`.
 
 ---
 
@@ -212,5 +139,6 @@ This project follows the testing principles established by Kent C. Dodds and the
 - [docs/agents/file-reference.md](docs/agents/file-reference.md) — File-by-file inventory of `lib/`, `services/`, `hooks/`, `server/routes/`, `test-utils/`, and `components/`
 - [docs/agents/patterns.md](docs/agents/patterns.md) — Patterns and Conventions, Architectural Decisions, Workflows
 - [docs/agents/testing-philosophy.md](docs/agents/testing-philosophy.md) — Kent C. Dodds testing standards, anti-patterns, seam test standard
+- [docs/agents/testing-batches.md](docs/agents/testing-batches.md) — The 12-batch test table, bash commands, and current baseline count. Updated every session as test counts change — read this for the live numbers, not this file.
 - [docs/agents/ROADMAP.md](docs/agents/ROADMAP.md) — **Read this for current status.** Pending features, in-progress/scoped work not yet built. Kept small and current — everything here is still open.
 - [docs/agents/CHANGELOG.md](docs/agents/CHANGELOG.md) — Historical record of completed refactor/decomposition write-ups. Read for rationale/history on a specific past decision; not needed to know what's currently being worked on.

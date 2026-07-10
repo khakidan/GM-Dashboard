@@ -28,6 +28,20 @@ vi.mock('sonner', () => ({
   }),
 }));
 
+const mockAddCombatEvent = vi.fn();
+const mockActiveCombatLog = {
+  currentRound: 1,
+};
+
+vi.mock('../dashboardStore', () => ({
+  useDashboardStore: {
+    getState: () => ({
+      addCombatEvent: mockAddCombatEvent,
+      activeCombatLog: mockActiveCombatLog,
+    }),
+  },
+}));
+
 describe('useDeathSaves', () => {
   const mockUpdateState = vi.fn();
   const mockState = {
@@ -43,6 +57,7 @@ describe('useDeathSaves', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockAddCombatEvent.mockClear();
     (useAppState as any).mockReturnValue({
       updateState: mockUpdateState,
       state: mockState
@@ -149,5 +164,60 @@ describe('useDeathSaves', () => {
     });
 
     expect(updateDeathSavesDB).toHaveBeenCalledWith('char1', 2, 0);
+  });
+
+  it('fires a death-save event on manual roll', async () => {
+    const { result } = renderHook(() => useDeathSaves());
+    await act(async () => {
+      await result.current.recordDeathSave('c1', 'success');
+    });
+
+    expect(mockAddCombatEvent).toHaveBeenCalledWith(expect.objectContaining({
+      type: 'death-save',
+      targetId: 'c1',
+      targetName: 'Test PC',
+      condition: 'success',
+      resourceName: 'Death Save Successes',
+      resourceBefore: 0,
+      resourceAfter: 1,
+    }));
+  });
+
+  it('fires a death-save failure event on taking damage while unconscious', async () => {
+    const { result } = renderHook(() => useDeathSaves());
+    await act(async () => {
+      await result.current.applyDamageToUnconscious('c1', false);
+    });
+
+    expect(mockAddCombatEvent).toHaveBeenCalledWith(expect.objectContaining({
+      type: 'death-save',
+      targetId: 'c1',
+      targetName: 'Test PC',
+      condition: 'failure',
+      resourceName: 'Death Save Failures',
+      resourceBefore: 0,
+      resourceAfter: 1,
+    }));
+  });
+
+  it('fires combatant-defeated when PC reaches 3 failed saves', async () => {
+    const dyingState = {
+      ...mockState,
+      combatState: {
+        combatants: [{ ...mockState.combatState.combatants[0], deathSavesFails: 2 }]
+      }
+    };
+    (getSnapshot as any).mockReturnValue(dyingState);
+
+    const { result } = renderHook(() => useDeathSaves());
+    await act(async () => {
+      await result.current.recordDeathSave('c1', 'failure');
+    });
+
+    expect(mockAddCombatEvent).toHaveBeenCalledWith(expect.objectContaining({
+      type: 'combatant-defeated',
+      targetId: 'c1',
+      targetName: 'Test PC',
+    }));
   });
 });

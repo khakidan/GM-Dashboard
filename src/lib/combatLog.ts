@@ -25,7 +25,8 @@ export type CombatEventType =
   | 'condition-removed'
   | 'combatant-defeated'
   | 'manual-adjustment'
-  | 'resource-changed';
+  | 'resource-changed'
+  | 'death-save';
 
 export type ActionType =
   | 'attack'
@@ -165,6 +166,10 @@ function formatEventDescription(evt: CombatEvent): string {
         return `${target}: ${rName} ${rBefore} -> ${rAfter} (restored)`;
       }
       return `${target}: ${rName} ${rBefore} -> ${rAfter}`;
+    }
+    case 'death-save': {
+      const outcome = evt.condition === 'success' ? 'Success' : 'Failure';
+      return `${target} rolled a death saving throw: ${outcome} (${evt.resourceName}: ${evt.resourceBefore} -> ${evt.resourceAfter})`;
     }
     default:
       return '';

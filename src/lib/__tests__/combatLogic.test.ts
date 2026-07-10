@@ -625,7 +625,7 @@ describe('getNextActiveTurnIndex', () => {
   it('skips downed PCs (HP <= 0) and downed NPCs (HP <= 0)', () => {
     const combatants = [
       { id: '1', type: 'pc', currentHp: 10 } as Combatant,
-      { id: '2', type: 'pc', currentHp: 0 } as Combatant,   // Should be skipped (downed PC)
+      { id: '2', type: 'pc', currentHp: 0, isStable: true } as Combatant,   // Should be skipped (stable downed PC)
       { id: '3', type: 'npc', currentHp: 0 } as Combatant,  // Should be skipped (downed NPC)
       { id: '4', type: 'npc', currentHp: 15 } as Combatant,
     ];
@@ -647,7 +647,7 @@ describe('getNextActiveTurnIndex', () => {
 
   it('returns null if all combatants are downed', () => {
     const combatants = [
-      { id: '1', type: 'pc', currentHp: 0 } as Combatant,
+      { id: '1', type: 'pc', currentHp: 0, isStable: true } as Combatant,
       { id: '2', type: 'npc', currentHp: 0 } as Combatant,
     ];
 
@@ -665,11 +665,37 @@ describe('getNextActiveTurnIndex', () => {
 
   it('starts at the first non-downed combatant if combatant 0 is downed and no active turn id is provided', () => {
     const combatants = [
-      { id: '1', type: 'pc', currentHp: 0 } as Combatant,
+      { id: '1', type: 'pc', currentHp: 0, isStable: true } as Combatant,
       { id: '2', type: 'pc', currentHp: 12 } as Combatant,
     ];
 
     expect(getNextActiveTurnIndex(combatants, null)).toBe('2');
+  });
+
+  it('does NOT skip a PC at 0 HP with 0 failed saves and who is not stable', () => {
+    const combatants = [
+      { id: '1', type: 'pc', currentHp: 10 } as Combatant,
+      { id: '2', type: 'pc', currentHp: 0, isStable: false, deathSavesFails: 0 } as Combatant, // Should NOT be skipped
+      { id: '3', type: 'npc', currentHp: 15 } as Combatant,
+    ];
+
+    expect(getNextActiveTurnIndex(combatants, '1')).toBe('2');
+  });
+
+  it('skips a PC at 0 HP who is stable or has 3 failed saves', () => {
+    const combatantsStable = [
+      { id: '1', type: 'pc', currentHp: 10 } as Combatant,
+      { id: '2', type: 'pc', currentHp: 0, isStable: true, deathSavesFails: 0 } as Combatant, // Should be skipped (stable)
+      { id: '3', type: 'npc', currentHp: 15 } as Combatant,
+    ];
+    expect(getNextActiveTurnIndex(combatantsStable, '1')).toBe('3');
+
+    const combatantsDead = [
+      { id: '1', type: 'pc', currentHp: 10 } as Combatant,
+      { id: '2', type: 'pc', currentHp: 0, isStable: false, deathSavesFails: 3 } as Combatant, // Should be skipped (3 fails)
+      { id: '3', type: 'npc', currentHp: 15 } as Combatant,
+    ];
+    expect(getNextActiveTurnIndex(combatantsDead, '1')).toBe('3');
   });
 });
 

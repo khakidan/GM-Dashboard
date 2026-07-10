@@ -298,9 +298,11 @@ export function getNextActiveTurnIndex(
     
     while (fullLoopCount < combatants.length) {
       const candidate = combatants[candidateIndex];
-      const isDowned = candidate.currentHp <= 0;
+      const isSkippable = candidate.type === 'npc'
+        ? candidate.currentHp <= 0
+        : candidate.currentHp <= 0 && (candidate.isStable || (candidate.deathSavesFails || 0) >= 3);
       
-      if (!isDowned) {
+      if (!isSkippable) {
         nextIndex = candidateIndex;
         break;
       }
@@ -310,10 +312,20 @@ export function getNextActiveTurnIndex(
     }
   } else {
     // If somehow no active turn, start at 0 if not downed
-    nextIndex = combatants[0].currentHp <= 0 ? -1 : 0;
+    const firstCandidate = combatants[0];
+    const isFirstSkippable = firstCandidate.type === 'npc'
+      ? firstCandidate.currentHp <= 0
+      : firstCandidate.currentHp <= 0 && (firstCandidate.isStable || (firstCandidate.deathSavesFails || 0) >= 3);
+
+    nextIndex = isFirstSkippable ? -1 : 0;
     if (nextIndex === -1 && combatants.length > 1) {
       // Find first non-downed
-      nextIndex = combatants.findIndex(c => !(c.currentHp <= 0));
+      nextIndex = combatants.findIndex(c => {
+        const isSkippable = c.type === 'npc'
+          ? c.currentHp <= 0
+          : c.currentHp <= 0 && (c.isStable || (c.deathSavesFails || 0) >= 3);
+        return !isSkippable;
+      });
     }
   }
 
