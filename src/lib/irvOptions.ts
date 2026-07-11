@@ -28,17 +28,18 @@ export const EFFECT_OPTIONS: string[] = [
   'hexed', "hunter's mark", 'shield of faith',
   'spirit guardians', 'spiritual weapon', 'blurred',
   'polymorphed', 'fly', 'stoneskin', 'firewall',
+  'enlarged', 'reduced',
   // Non-concentration effects
   'fire shield', 'mirror image', 'aid (boosted)',
-  'enlarged', 'reduced', 'mage armor',
+  'mage armor',
   'dodging', 'guided',
 ];
 
 export const CONCENTRATION_EFFECTS = new Set<string>([
   'hasted', 'slowed', 'blessed', 'baned', 'hexed',
   "hunter's mark", 'shield of faith', 'spirit guardians',
-  'blurred', 'polymorphed', 'fly', 'stoneskin',
-  'concentrating',
+  'blurred', 'polymorphed', 'fly', 'stoneskin', 'firewall',
+  'enlarged', 'reduced', 'concentrating',
 ]);
 
 export const IRV_OPTIONS: string[] = [

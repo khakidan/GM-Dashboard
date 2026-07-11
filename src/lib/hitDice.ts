@@ -170,6 +170,7 @@ export const CLASS_HIT_DIE_MAP: Record<string, number> = {
 // case-insensitive. Returns null for 
 // unrecognised classes (homebrew, etc.)
 export function getHitDieForClass(className: string): number | null {
+  if (!className || typeof className !== 'string') return null;
   return CLASS_HIT_DIE_MAP[className.toLowerCase().trim()] ?? null;
 }
 

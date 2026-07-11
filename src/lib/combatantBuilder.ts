@@ -1,4 +1,5 @@
 import { Character, Encounter, Combatant, NPC, EncounterCombatant } from '../types';
+import { getPassiveScore, parseAbilityScores, parseProficiencies } from './abilityScores';
 
 /**
  * Parses "Recharge X" style strings into a rechargeOn number (4, 5, or 6) or null.
@@ -53,6 +54,10 @@ export function buildSingleNpcCombatant(
     rechargeState?: Record<string, boolean>;
   }
 ): Combatant {
+  const abilityScores = parseAbilityScores(npcTemplate.abilityScores);
+  const proficiencies = parseProficiencies(npcTemplate.proficiencies);
+  const passivePerception = getPassiveScore(abilityScores, proficiencies, 'perception');
+
   return {
     id: options.id,
     encounterCombatantId: options.encounterCombatantId,
@@ -65,7 +70,7 @@ export function buildSingleNpcCombatant(
     tempHp: options.tempHp !== undefined ? options.tempHp : 0,
     conditions: options.conditions !== undefined ? options.conditions : '',
     notes: npcTemplate.notes,
-    passivePerception: 10,
+    passivePerception: passivePerception,
     resistances: npcTemplate.resistances,
     immunities: npcTemplate.immunities,
     vulnerabilities: npcTemplate.vulnerabilities,

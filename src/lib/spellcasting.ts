@@ -35,7 +35,11 @@ export const CLASS_SAVING_THROW_MAP: Record<string, AbilityName[]> = {
 };
 
 export function getAutoSpellcastingAbility(className: string): SpellcastingAbility {
-  return SPELLCASTING_ABILITY_MAP[className] ?? null;
+  const normalized = className.trim().toLowerCase();
+  const key = Object.keys(SPELLCASTING_ABILITY_MAP).find(
+    k => k.toLowerCase() === normalized
+  );
+  return key ? SPELLCASTING_ABILITY_MAP[key] : null;
 }
 
 export function getEffectiveSpellcastingAbility(

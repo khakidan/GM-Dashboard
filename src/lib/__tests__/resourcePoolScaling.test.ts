@@ -35,6 +35,12 @@ describe('resourcePoolScaling', () => {
       expect(sp?.suggestedMax).toBe(5);
     });
 
+    it('Wild Shape max at level 20 is 99 (unlimited sentinel)', () => {
+      const suggestions = getResourcePoolSuggestions('Druid', 20, []);
+      const ws = suggestions.find(s => s.name.toLowerCase() === 'wild shape');
+      expect(ws?.suggestedMax).toBe(99);
+    });
+
     it('matches existing pool names case-insensitively', () => {
       const currentPools: ResourcePool[] = [{
         name: 'RAGE',

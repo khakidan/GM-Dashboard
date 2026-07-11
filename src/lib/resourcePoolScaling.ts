@@ -67,7 +67,8 @@ const POOL_LEVEL_TABLES: Record<string, Record<number, number>> = {
     1: 0, 2: 2, 3: 2, 4: 2, 5: 2, 6: 2,
     7: 2, 8: 2, 9: 2, 10: 2, 11: 2,
     12: 2, 13: 2, 14: 2, 15: 2, 16: 2,
-    17: 2, 18: 2, 19: 2, 20: 2
+    17: 2, 18: 2, 19: 2, 20: 99
+      // 20 = unlimited; store as 99 as a sentinel
   }
 };
 

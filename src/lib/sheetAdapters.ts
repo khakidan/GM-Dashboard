@@ -73,7 +73,7 @@ export function mapCharacterRowToCharacter(
     passivePerception,
     level,
     statusId,
-    statusName: statuses[statusId.toString()] || 'Unknown',
+    statusName: statusId != null ? (statuses[statusId.toString()] || 'Unknown') : 'Unknown',
     notes,
     isActive: statusId === 1,
     sheetRowIndex: rowIndex,
@@ -179,7 +179,7 @@ export function mapEncounterRowToEncounter(
     name,
     location,
     difficultyId,
-    difficultyName: difficulties[difficultyId.toString()] || 'Unknown',
+    difficultyName: difficultyId != null ? (difficulties[difficultyId.toString()] || 'Unknown') : 'Unknown',
     npcDefinitions,
     status: 'planned',
     sheetRowIndex: rowIndex,
@@ -192,7 +192,22 @@ export function mapEncounterCombatantRowToEC(
   data: ECRowData,
   rowIndex: number
 ): EncounterCombatant {
-  const [id, encounterId, playerId, npcId, quantity, initiative, conditionTimers, npcCurrentHp, npcTempHp, npcCurrentConditions, npcTempAcMod] = data;
+  const [
+    id,
+    encounterId,
+    playerId,
+    npcId,
+    quantity,
+    initiative,
+    conditionTimers,
+    npcCurrentHp,
+    npcTempHp,
+    npcCurrentConditions,
+    npcTempAcMod,
+    npcLegendaryActionsRemaining,
+    npcLegendaryResistancesRemaining,
+    npcRechargeState
+  ] = data;
 
   let parsedTimers: Record<string, number> = {};
   if (conditionTimers) {
@@ -216,6 +231,9 @@ export function mapEncounterCombatantRowToEC(
     npcTempHp: npcTempHp !== undefined ? npcTempHp : 0,
     npcCurrentConditions,
     npcTempAcMod: npcTempAcMod ?? 0,
+    npcLegendaryActionsRemaining: npcLegendaryActionsRemaining ?? 0,
+    npcLegendaryResistancesRemaining: npcLegendaryResistancesRemaining ?? 0,
+    npcRechargeState: npcRechargeState || '{}',
   };
 }
 

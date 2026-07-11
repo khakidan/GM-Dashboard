@@ -8,7 +8,8 @@ import { getHealthStatus, getEffectiveResistances, effectiveMaxHp, effectiveAc }
 // ────────────────────────────────────────────────────
 
 import { describe, it, expect } from 'vitest';
-import { applyHealthChange, nextTurnIndex, isNewRound, rollD20, checkIrvMatch, computeDamageWithIrv, getExpiredConditions, computeConcentrationDC, calculateConditionAcModifier, calculateExhaustionHpCap, getNextActiveTurnIndex } from '../combatLogic';
+import { applyHealthChange, nextTurnIndex, isNewRound, rollD20, checkIrvMatch, computeDamageWithIrv, getExpiredConditions, calculateConditionAcModifier, calculateExhaustionHpCap, getNextActiveTurnIndex } from '../combatLogic';
+import { concentrationCheckDc } from '../concentrationCheck';
 import type { Combatant } from '../../types';
 
 // ─── applyHealthChange — damage ───────────────────────────────────────────────
@@ -501,18 +502,18 @@ describe('getExpiredConditions', () => {
   });
 });
 
-describe('computeConcentrationDC', () => {
+describe('concentrationCheckDc (via consolidation)', () => {
   it('is at least 10', () => {
-    expect(computeConcentrationDC(5)).toBe(10);
+    expect(concentrationCheckDc(5)).toBe(10);
   });
   it('is correct when damage is 20 or more', () => {
-    expect(computeConcentrationDC(28)).toBe(14);
+    expect(concentrationCheckDc(28)).toBe(14);
   });
   it('is 10 when damage < 20', () => {
-    expect(computeConcentrationDC(19)).toBe(10);
+    expect(concentrationCheckDc(19)).toBe(10);
   });
   it('is 10 when damage is 20 exactly', () => {
-    expect(computeConcentrationDC(20)).toBe(10);
+    expect(concentrationCheckDc(20)).toBe(10);
   });
 });
 

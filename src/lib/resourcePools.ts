@@ -83,10 +83,12 @@ export function resetResourcesOnShortRest(pools: ResourcePool[]): ResourcePool[]
   });
 }
 
-// On long rest: set current = max for ALL
-// pools regardless of reset type
+// On long rest: set current = max for pools where reset is 'short' or 'long' (skips 'none')
 export function resetResourcesOnLongRest(pools: ResourcePool[]): ResourcePool[] {
   return pools.map((pool) => {
+    if (pool.reset === 'none') {
+      return pool;
+    }
     return {
       ...pool,
       current: pool.max,
@@ -168,6 +170,9 @@ export const EFFECT_RESOURCE_MAP: Record<string, string> = {
 export function getResourceForEffect(
   effectName: string
 ): string | null {
+  if (!effectName || typeof effectName !== 'string') {
+    return null;
+  }
   return EFFECT_RESOURCE_MAP[
     effectName.toLowerCase().trim()
   ] ?? null;

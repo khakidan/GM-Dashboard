@@ -381,6 +381,7 @@ export const CONDITION_DESCRIPTIONS: Record<string, ConditionDescription> = {
 export function getConditionDescription(
   conditionName: string
 ): ConditionDescription | null {
+  if (!conditionName || typeof conditionName !== 'string') return null;
   const key = conditionName.toLowerCase().trim();
   return CONDITION_DESCRIPTIONS[key] ?? null;
 }
