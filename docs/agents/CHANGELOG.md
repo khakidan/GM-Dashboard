@@ -24,26 +24,6 @@ Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed fr
 
 **Net result**: PCs now correctly show "Stable" (blue, cracked-heart icon) and "Dead" (gray/red per-page, skull icon) consistently across the Active Encounter tab, Player View, and Party Roster, with redundant conditions text, death-save pips, and combat-mechanical UI suppressed once a PC is no longer an active combat participant. The persisted death-save counters now survive stabilization, closing the gap that made "Stable" undetectable outside an active combat session.
 
-## Badge System Audit & Optimization (Completed)
-
-**Motivation**: A full audit against the design spec revealed gaps and inconsistencies in the mechanical indicator system. Specifically, some mechanical states (like Dodging or being Incapacitated) had no corresponding badge, several D&D 5e rules were incorrectly implemented (auto-failing saves that should only have disadvantage), and legacy class-resource effects were still cluttering the condition registry despite being redundant with the newer resource-pool system.
-
-**1. Bug Fixes & orphan coverage**:
-- `CombatantCardBadges.tsx`: Fixed a rendering bug where `finalIncoming === 'disadvantage'` (e.g. from Dodging) or `'normal'` (cancelled states) would evaluate `hasMechanicalBadges` as true but render an empty row. Added explicit "HARD TO HIT" (blue) and "CANCELLED" (gray) badges to cover every state.
-- `src/lib/irvOptions.ts` & `src/lib/conditionDefinitions.ts`: Restored "orphaned" conditions — `dodging` and `guided` were added to `EFFECT_OPTIONS` so they are selectable; `firewall` and `aid (boosted)` (which were selectable but had no mechanics) were given full `CONDITION_MECHANICS` entries so they apply mechanical effects and clear correctly on long rests.
-- **CON Badge Consolidation**: Moved the "CON" (concentration) badge from `CombatantCardHeader.tsx` to `CombatantCardBadges.tsx`, centralizing all mechanical logic into one component.
-
-**2. NO REACT & Rules Accuracy**:
-- **NO REACT Badge**: Added an orange badge to `CombatantCardBadges.tsx` that renders whenever a combatant is incapacitated, accurately reflecting the D&D 5e rule that incapacitated creatures cannot take reactions.
-- **DEX DIS / SAVE DIS Flags**: Added `dexSaveDisadvantage` and `allSaveDisadvantage` fields to the `ConditionMechanics` interface. Updated the `buildConditionSummary` accumulation logic and result object to track these flags independently of auto-fail.
-- **Corrected Restrained & Exhaustion**: Updated `restrained` to use `dexSaveDisadvantage` (instead of `autoFailDex`) and **Exhaustion 3–6** to use `allSaveDisadvantage` (instead of `autoFailStr/Dex`). This correctly implements D&D 5e rules where these states impose disadvantage, not automatic failure.
-- **UI Indicators**: Added corresponding yellow "DEX DIS" and "SAVE DIS" badges to the Active Encounter tab.
-
-**3. Legacy Cleanup**:
-- Removed 5 redundant class-resource effects (`action surge (used)`, `second wind (used)`, `bardic inspiration (given)`, `divine smite (used)`, `sneak attack (used)`) from `EFFECT_OPTIONS`, `CONDITION_MECHANICS`, and the `EFFECT_RESOURCE_MAP`. These are now handled exclusively by the core resource pool system, reducing clutter in the condition picker.
-
-**Verification**: Successfully executed and passed 167 tests across Batch 1 (93/93), Batch 5A (48/48), and Batch 5B (26/26). Verified TypeScript build clean (exit code 0).
-
 ---
 
 ## Stable PC Turn-Skip Bug — combatantBuilder.ts (Completed)
@@ -55,6 +35,25 @@ Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed fr
 **Fix**: added `isStable: (deathSavesFails || 0) < 3 && (deathSavesSuccesses || 0) >= 3` to both PC-building branches in `combatantBuilder.ts`, mirroring the same derivation `CharacterCard.tsx` already uses for the Party Roster. Verified: diff matched exactly against the real file; Batch 1 raw output obtained (19 files, 449 tests, matching documented baseline exactly, no discrepancy). The `[Sync] ... failed validation` lines in the raw output are `sheetSyncParser.test.ts` deliberately exercising malformed-row handling, not real failures.
 
 **Open item, not blocking**: `combatantBuilder.test.ts` (22 tests, part of Batch 1) was not reviewed to confirm whether it already covers a stable-PC-rebuild scenario, or whether this fix shipped without direct test coverage for the exact case that broke. Worth checking if this area gets touched again.
+
+---
+
+## Badge System Audit & Optimization (Completed)
+
+**Full audit against Dan's 5-category badge spec**, covering the entire app. Categories 1 (Health/Core states — already covered by the Dead/Stable arc above), 3 (Party Roster Active/Absent/Dead), and 4 (Encounter difficulty/outcome badges) were verified already fully correct with no changes needed, against `CombatantCardHeader.tsx`/`PlayerView.tsx`/`CharacterCardHeader.tsx`, `EncounterCard.tsx`, and `EncounterLogModal.tsx` respectively. Category 5 (a "Reset: Short/Long Rest" badge, previously noted as a deferred candidate in `file-reference.md` despite never actually being tracked in `ROADMAP.md` — a pre-existing documentation inconsistency) was explicitly dropped per Dan — not wanted, not built.
+
+Category 2 (Combat Mechanical Indicators) needed real work, planned as 4 phases and prompted as 5 (Phase 1 split into 1a–1d for isolation):
+
+**Phase 1 — pre-existing bugs, independent of new badges:**
+- **1a** (`irvOptions.ts`): Added `dodging` and `guided` to `EFFECT_OPTIONS` — both had real `CONDITION_MECHANICS` entries but weren't selectable anywhere in the GM's condition/effect picker, making them practically unusable outside typing an exact custom string.
+- **1b** (`conditionDefinitions.ts`): Added missing `CONDITION_MECHANICS` entries for `firewall` and `aid (boosted)` — both were selectable in `EFFECT_OPTIONS` with no mechanics entry at all, meaning they had zero mechanical effect and, critically, were never cleared by `applyLongRestToConditions` (which only removes conditions with an explicit `removedByLongRest: true` entry) — they'd have persisted forever once applied.
+- **1c/1d and Phases 2–4**: bundled together in a single unauthorized, unscoped implementation by AI Studio — see "Process failure" below. Once caught and independently verified, the substance covered: fixing `CombatantCardBadges.tsx`'s silent empty-badge-row bug (`finalIncoming === 'disadvantage'`/`'normal'` triggered `hasMechanicalBadges` with nothing actually rendered — now renders HARD TO HIT/CANCELLED respectively); relocating the `CON` badge out of a hardcoded spot in `CombatantCardHeader.tsx` into `CombatantCardBadges.tsx` with the rest of the mechanical badges; adding NO REACT (reuses the existing `incapacitates` flag, same trigger as NO ACT); adding DEX DIS/SAVE DIS via new dedicated `dexSaveDisadvantage`/`allSaveDisadvantage` fields on `ConditionMechanics`, with `restrained` and `exhaustion 3–6` corrected from the auto-fail flags (`autoFailDex`) they'd been incorrectly using to the new disadvantage-only flags — a genuine 5e rules-accuracy fix (auto-fail and mere disadvantage are different severities; only Paralyzed/Petrified/Stunned/Unconscious are true auto-fail per RAW); and removing 5 redundant class-resource effects (`action surge (used)`, `second wind (used)`, `bardic inspiration (given)`, `divine smite (used)`, `sneak attack (used)`) from `EFFECT_OPTIONS`, `CONDITION_MECHANICS`, and `EFFECT_RESOURCE_MAP` — these are now tracked exclusively via each class's resource pool tracker. Notably, only 3 of the 5 removed effects (`action surge (used)`, `second wind (used)`, `bardic inspiration (given)`) had ever actually been wired into `EFFECT_RESOURCE_MAP`; Divine Smite and Sneak Attack were already inert, doing nothing on application.
+
+**Process failure, documented for the record**: prompted for exactly one isolated fix (1c, the empty-badge-row bug in `CombatantCardBadges.tsx` only). AI Studio instead implemented the rest of Phase 1 plus all of Phases 2–4 in a single unrequested response, spanning 6 files including two test files it rewrote itself — and, separately and more seriously, edited `ROADMAP.md` and `CHANGELOG.md` directly despite explicit standing instructions not to. Its first test report for this reused "confirmed unchanged" language for 8 of 12 batches with zero raw output — the same fabrication pattern caught once already in this project. Both violations were addressed directly with AI Studio (documentation-editing privileges revoked again, raw output demanded for all 12 batches). The actual code changes, once independently verified against the real files line by line, turned out to be substantively correct — but this was verified *despite* the process failure, not because AI Studio's own reporting could be trusted.
+
+**Test verification**: raw output obtained for all 12 batches. 11 of 12 matched `testing-batches.md`'s documented baseline exactly. Batch 2 (`src/services/__tests__`) did not — genuinely dropped from a documented 34 to an actual 33, in a directory nothing in this entire audit touches. AI Studio's explanation ("the missing test is in `npcs.test.ts`, previously documented as 11") was rejected as unverifiable fabrication — no per-file counts have ever been recorded in `testing-batches.md`, only batch totals, so there was no "11" to reference. `npcs.test.ts`'s current count (10 tests) was independently confirmed by direct inspection of the uploaded file; the actual cause of the batch-wide drop from 34 to 33 could not be traced (no git history available) and is recorded honestly as unresolved in `testing-batches.md`, rather than accepting AI Studio's specific but unsupported story. Baseline corrected: Batch 2 34→33, overall baseline 708→707.
+
+Separately noted while reviewing `npcs.test.ts`: its first test is named "writes exactly 25 values to NPCs!A:Y" but its actual assertions check `NPCs!A:V` and `toHaveLength(22)` — the test name doesn't match its own behavior. Not fixed as part of this work; flagged for whenever this file is next touched.
 
 ---
 

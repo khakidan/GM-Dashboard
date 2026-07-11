@@ -69,7 +69,7 @@ export function parseEncounters(values: SheetData, difficulties: Record<string, 
         console.warn('[Sync] Encounters row', i, 'failed validation:', result.error.issues);
         return null;
       }
-      return mapEncounterRowToEncounter(result.data, i + 1, difficulties);
+      return mapEncounterRowToEncounter(result.data, i + 2, difficulties);
     })
     .filter((enc): enc is Encounter => enc !== null);
 }
@@ -82,7 +82,7 @@ export function parseEncounterCombatants(values: SheetData): EncounterCombatant[
         console.warn('[Sync] Encounter_Combatants row', i, 'failed validation:', result.error.issues);
         return null;
       }
-      return mapEncounterCombatantRowToEC(result.data, i + 1);
+      return mapEncounterCombatantRowToEC(result.data, i + 2);
     })
     .filter((ec): ec is EncounterCombatant => ec !== null);
 }

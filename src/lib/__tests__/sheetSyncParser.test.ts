@@ -107,7 +107,7 @@ describe('sheetSyncParser', () => {
         status: 'planned',
         currentRound: 1,
         activeTurnId: 'turn123',
-        sheetRowIndex: 1,
+        sheetRowIndex: 2,
         npcDefinitions: '[]',
       });
     });
@@ -155,7 +155,7 @@ describe('sheetSyncParser', () => {
         npcCurrentHp: -1,
         npcTempHp: 0,
         initiative: 20,
-        sheetRowIndex: 1,
+        sheetRowIndex: 2,
       }));
     });
     
@@ -171,7 +171,7 @@ describe('sheetSyncParser', () => {
         npcCurrentHp: -1,
         npcTempHp: 0,
         initiative: 0,
-        sheetRowIndex: 1,
+        sheetRowIndex: 2,
       }));
     });
   });

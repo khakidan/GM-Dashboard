@@ -28,6 +28,14 @@ export const CONDITION_DESCRIPTIONS: Record<string, ConditionDescription> = {
       "Automatically fails any ability check that requires hearing."
     ]
   },
+  "dodging": {
+    summary: "Attack rolls against you have disadvantage if you can see the attacker, and you have advantage on DEX saves. Ends if incapacitated or speed is 0.",
+    rules: [
+      "Attack rolls against the creature have disadvantage if it can see the attacker.",
+      "The creature has advantage on Dexterity saving throws.",
+      "The benefit is lost if the creature is incapacitated or if its speed drops to 0."
+    ]
+  },
   "frightened": {
     summary: "Disadvantage on checks and attacks while source is visible. Can't move closer to source.",
     rules: [
@@ -308,6 +316,13 @@ export const CONDITION_DESCRIPTIONS: Record<string, ConditionDescription> = {
       "When hit in melee, the attacker takes 2d8 fire or cold damage (no save)."
     ]
   },
+  "firewall": {
+    summary: "Wall of fire that deals damage to creatures that touch it or end their turn within 10 feet. One side of the wall (caster's choice) deals damage.",
+    rules: [
+      "A wall of fire that deals damage to creatures that touch it or end their turn within 10 feet.",
+      "One side of the wall (caster's choice) deals damage while the other side is safe."
+    ]
+  },
   "mirror image": {
     summary: "Mirror Image: 3 illusory duplicates deflect attacks.",
     rules: [
@@ -316,7 +331,7 @@ export const CONDITION_DESCRIPTIONS: Record<string, ConditionDescription> = {
       "Duplicates are destroyed by area effects and cannot be targeted directly by spells."
     ]
   },
-  "aid": {
+  "aid (boosted)": {
     summary: "Aid: +5 to hit point maximum and current HP.",
     rules: [
       "Hit point maximum increased by 5 (at 2nd level, +5 per slot level above 2nd).",
@@ -351,28 +366,6 @@ export const CONDITION_DESCRIPTIONS: Record<string, ConditionDescription> = {
     rules: [
       "Add a d4 to one ability check of the creature's choice.",
       "Must be declared before the roll is made."
-    ]
-  },
-  "action surge (used)": {
-    summary: "Fighter's Action Surge has been used this combat.",
-    rules: [
-      "Action Surge grants one additional action on a turn.",
-      "Once per rest. Short or long rest recharges it."
-    ]
-  },
-  "second wind (used)": {
-    summary: "Fighter's Second Wind has been used this combat.",
-    rules: [
-      "Bonus action to regain hit points equal to 1d10 + Fighter level.",
-      "Once per rest. Short or long rest recharges it."
-    ]
-  },
-  "bardic inspiration (given)": {
-    summary: "Bard has given out a Bardic Inspiration die.",
-    rules: [
-      "Recipient can add the Inspiration die to one ability check, attack roll, or saving throw.",
-      "Die size scales with Bard level (d6 → d8 → d10 → d12).",
-      "Bard regains uses on a long rest (short rest at level 5+)."
     ]
   },
   "spiritual weapon": {
