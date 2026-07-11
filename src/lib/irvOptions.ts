@@ -22,8 +22,7 @@ export const CONDITION_OPTIONS: string[] = [
 // blocked by immunity checks.
 export const EFFECT_OPTIONS: string[] = [
   // Class features
-  'raging', 'wild shaped', 'action surge (used)',
-  'second wind (used)', 'bardic inspiration (given)',
+  'raging', 'wild shaped',
   // Concentration spells
   'concentrating', 'hasted', 'slowed', 'blessed', 'baned',
   'hexed', "hunter's mark", 'shield of faith',
@@ -32,7 +31,7 @@ export const EFFECT_OPTIONS: string[] = [
   // Non-concentration effects
   'fire shield', 'mirror image', 'aid (boosted)',
   'enlarged', 'reduced', 'mage armor',
-  'divine smite (used)', 'sneak attack (used)',
+  'dodging', 'guided',
 ];
 
 export const CONCENTRATION_EFFECTS = new Set<string>([

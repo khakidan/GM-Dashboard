@@ -148,11 +148,6 @@ export function CombatantCardHeader({
                   <Skull className="w-4 h-4 text-[#8d8db9] shrink-0" />
                 )}
               </h3>
-              {c.conditions?.toLowerCase().includes('concentrating') && (
-                <Badge color="purple" size="compact" className="ml-2 shrink-0">
-                  CON
-                </Badge>
-              )}
               <DeathSaveTrackerDisplay
                 deathSavesFails={c.deathSavesFails || 0}
                 deathSavesSuccesses={c.deathSavesSuccesses || 0}

@@ -16,9 +16,9 @@ None currently open. Dead/Stable PC status labeling and display (Party Roster, A
 
 ### 🟡 Features to Add
 
-**Badge Optimization (Active Encounter tab)** — from Dan's badge audit: consolidate the current ad-hoc mechanical indicator badges (CON, SPD 0, SPD ½, HP ½, NO ACT, DISADV, ADVAN, CANCELLED, VULNERABLE, AUTO CRIT) around "how does this creature's turn/attacks differ from normal," rather than exposing underlying conditions directly. Dan has a proposed target badge set (adds NO REACT, HARD TO HIT, DEX DIS, SAVE DIS; see conversation for full mapping, sourced from open5e.com/conditions). Not scoped into a build prompt yet — deliberately deferred, not started.
+None currently open. The Badge System Audit & Optimization (Phases 1–4) is complete — see `CHANGELOG.md`.
 
-**`PlayerView.tsx` further UI improvements for readability at 10-15 feet** — raised alongside the PC combatant card header redesign. Three specific D&D rules-accuracy bugs on this page were fixed previously (PC "Defeated" mislabeling, HP column hiding real HP, condition capitalization — see `CHANGELOG.md`) prior to the current Dead/Stable badge work above. Whether any further UI work is wanted on this page beyond the fixes above is still an open question — not yet confirmed either way.
+**`PlayerView.tsx` further UI improvements for readability at 10-15 feet** — raised alongside the PC combatant card header redesign. Three specific D&D rules-accuracy bugs on this page were fixed previously (PC "Defeated" mislabeling, HP column hiding real HP, condition capitalization — see `CHANGELOG.md`) prior to the Dead/Stable badge work. Whether any further UI work is wanted on this page beyond the fixes above is still an open question — not yet confirmed either way.
 
 ### 🔵 Architecture / Technical Debt
 

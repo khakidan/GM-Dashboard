@@ -24,6 +24,38 @@ Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed fr
 
 **Net result**: PCs now correctly show "Stable" (blue, cracked-heart icon) and "Dead" (gray/red per-page, skull icon) consistently across the Active Encounter tab, Player View, and Party Roster, with redundant conditions text, death-save pips, and combat-mechanical UI suppressed once a PC is no longer an active combat participant. The persisted death-save counters now survive stabilization, closing the gap that made "Stable" undetectable outside an active combat session.
 
+## Badge System Audit & Optimization (Completed)
+
+**Motivation**: A full audit against the design spec revealed gaps and inconsistencies in the mechanical indicator system. Specifically, some mechanical states (like Dodging or being Incapacitated) had no corresponding badge, several D&D 5e rules were incorrectly implemented (auto-failing saves that should only have disadvantage), and legacy class-resource effects were still cluttering the condition registry despite being redundant with the newer resource-pool system.
+
+**1. Bug Fixes & orphan coverage**:
+- `CombatantCardBadges.tsx`: Fixed a rendering bug where `finalIncoming === 'disadvantage'` (e.g. from Dodging) or `'normal'` (cancelled states) would evaluate `hasMechanicalBadges` as true but render an empty row. Added explicit "HARD TO HIT" (blue) and "CANCELLED" (gray) badges to cover every state.
+- `src/lib/irvOptions.ts` & `src/lib/conditionDefinitions.ts`: Restored "orphaned" conditions — `dodging` and `guided` were added to `EFFECT_OPTIONS` so they are selectable; `firewall` and `aid (boosted)` (which were selectable but had no mechanics) were given full `CONDITION_MECHANICS` entries so they apply mechanical effects and clear correctly on long rests.
+- **CON Badge Consolidation**: Moved the "CON" (concentration) badge from `CombatantCardHeader.tsx` to `CombatantCardBadges.tsx`, centralizing all mechanical logic into one component.
+
+**2. NO REACT & Rules Accuracy**:
+- **NO REACT Badge**: Added an orange badge to `CombatantCardBadges.tsx` that renders whenever a combatant is incapacitated, accurately reflecting the D&D 5e rule that incapacitated creatures cannot take reactions.
+- **DEX DIS / SAVE DIS Flags**: Added `dexSaveDisadvantage` and `allSaveDisadvantage` fields to the `ConditionMechanics` interface. Updated the `buildConditionSummary` accumulation logic and result object to track these flags independently of auto-fail.
+- **Corrected Restrained & Exhaustion**: Updated `restrained` to use `dexSaveDisadvantage` (instead of `autoFailDex`) and **Exhaustion 3–6** to use `allSaveDisadvantage` (instead of `autoFailStr/Dex`). This correctly implements D&D 5e rules where these states impose disadvantage, not automatic failure.
+- **UI Indicators**: Added corresponding yellow "DEX DIS" and "SAVE DIS" badges to the Active Encounter tab.
+
+**3. Legacy Cleanup**:
+- Removed 5 redundant class-resource effects (`action surge (used)`, `second wind (used)`, `bardic inspiration (given)`, `divine smite (used)`, `sneak attack (used)`) from `EFFECT_OPTIONS`, `CONDITION_MECHANICS`, and the `EFFECT_RESOURCE_MAP`. These are now handled exclusively by the core resource pool system, reducing clutter in the condition picker.
+
+**Verification**: Successfully executed and passed 167 tests across Batch 1 (93/93), Batch 5A (48/48), and Batch 5B (26/26). Verified TypeScript build clean (exit code 0).
+
+---
+
+## Stable PC Turn-Skip Bug — combatantBuilder.ts (Completed)
+
+**Found via screenshot** after the Dead/Stable arc above: a genuinely stable PC (confirmed correct on the Party Roster, showing "Stable") was still shown as "Unconscious" on the Active Encounter tab and was incorrectly given an active turn instead of being skipped.
+
+**Root cause**: `isStable` is not part of the persisted `Encounter_Combatants` schema (14 columns, confirmed via `schema.md` — no such field) — it only ever existed as in-memory state set at the moment `useDeathSaves.ts` fires its stabilization branch. `combatantBuilder.ts`'s `buildCombatantsFromState` (which rebuilds `Combatant` objects from persisted `Character`/`EncounterCombatant` data on page load, encounter start, or any resync) copied over `deathSavesFails`/`deathSavesSuccesses` in both its PC-building branches (linked-combatants and the "fallback: all active characters" path) but never set `isStable` at all — so it silently reverted to falsy on every rebuild, even for a PC with 3+ persisted death save successes. The existing turn-skip logic in `combatLogic.ts`'s `getNextActiveTurnIndex` and the badge/icon logic in `CombatantCardHeader.tsx` were both already correct and needed no changes — they simply never received a true `isStable` after a rebuild.
+
+**Fix**: added `isStable: (deathSavesFails || 0) < 3 && (deathSavesSuccesses || 0) >= 3` to both PC-building branches in `combatantBuilder.ts`, mirroring the same derivation `CharacterCard.tsx` already uses for the Party Roster. Verified: diff matched exactly against the real file; Batch 1 raw output obtained (19 files, 449 tests, matching documented baseline exactly, no discrepancy). The `[Sync] ... failed validation` lines in the raw output are `sheetSyncParser.test.ts` deliberately exercising malformed-row handling, not real failures.
+
+**Open item, not blocking**: `combatantBuilder.test.ts` (22 tests, part of Batch 1) was not reviewed to confirm whether it already covers a stable-PC-rebuild scenario, or whether this fix shipped without direct test coverage for the exact case that broke. Worth checking if this area gets touched again.
+
 ---
 
 ## Codebase Modularity Audit — Status: Substantively Complete

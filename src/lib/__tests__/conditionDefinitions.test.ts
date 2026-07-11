@@ -102,11 +102,12 @@ describe('conditionDefinitions', () => {
       expect(summary.finalIncoming).toBe('normal');
     });
 
-    it('buildConditionSummary(["exhaustion 3"]) returns speedHalved: true, outgoingDisadvantage: true, autoFailDex: true', () => {
+    it('buildConditionSummary(["exhaustion 3"]) returns speedHalved: true, outgoingDisadvantage: true, allSaveDisadvantage: true', () => {
       const summary = buildConditionSummary(['exhaustion 3']);
       expect(summary.speedHalved).toBe(true);
       expect(summary.outgoingDisadvantage).toBe(true);
-      expect(summary.autoFailDex).toBe(true);
+      expect(summary.allSaveDisadvantage).toBe(true);
+      expect(summary.autoFailDex).toBe(false);
     });
 
     it('buildConditionSummary(["exhaustion 5"]) returns speedZero: true, hpMaxHalved: true', () => {

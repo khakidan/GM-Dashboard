@@ -148,8 +148,8 @@ describe('ResourcePools pure utilities', () => {
       expect(getResourceForEffect('sneak attack (used)')).toBeNull();
     });
 
-    it('EFFECT_RESOURCE_MAP has exactly 5 entries', () => {
-      expect(Object.keys(EFFECT_RESOURCE_MAP)).toHaveLength(5);
+    it('EFFECT_RESOURCE_MAP has exactly 2 entries', () => {
+      expect(Object.keys(EFFECT_RESOURCE_MAP)).toHaveLength(2);
     });
   });
 });

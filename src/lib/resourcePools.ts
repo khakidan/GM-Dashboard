@@ -158,11 +158,8 @@ export function updateResourcePool(
 // Matching is case-insensitive and 
 // exact — no partial matches.
 export const EFFECT_RESOURCE_MAP: Record<string, string> = {
-  'raging':                   'rage',
-  'wild shaped':              'wild shape',
-  'action surge (used)':      'action surge',
-  'second wind (used)':       'second wind',
-  'bardic inspiration (given)': 'bardic inspiration',
+  'raging':      'rage',
+  'wild shaped': 'wild shape',
 };
 
 // Returns the resource pool name to 

@@ -10,6 +10,8 @@ export interface ConditionMechanics {
   critVulnerableInMelee: boolean;
   autoFailStr: boolean;
   autoFailDex: boolean;
+  dexSaveDisadvantage: boolean;
+  allSaveDisadvantage: boolean;
   turnStartNote?: string;
   removedByLongRest: boolean;
   tempAcModifier: number;
@@ -28,6 +30,8 @@ export function buildConditionSummary(
   critVulnerable: boolean;
   autoFailStr: boolean;
   autoFailDex: boolean;
+  dexSaveDisadvantage: boolean;
+  allSaveDisadvantage: boolean;
   finalOutgoing: 'advantage' | 'disadvantage' | 'normal' | null;
   finalIncoming: 'advantage' | 'disadvantage' | 'normal' | null;
   totalAcModifier: number;
@@ -44,6 +48,8 @@ export function buildConditionSummary(
     critVulnerable: false,
     autoFailStr: false,
     autoFailDex: false,
+    dexSaveDisadvantage: false,
+    allSaveDisadvantage: false,
     finalOutgoing: null as 'advantage' | 'disadvantage' | 'normal' | null,
     finalIncoming: null as 'advantage' | 'disadvantage' | 'normal' | null,
     totalAcModifier: 0,
@@ -59,6 +65,8 @@ export function buildConditionSummary(
       critVulnerable: [] as string[],
       autoFailStr: [] as string[],
       autoFailDex: [] as string[],
+      dexSaveDisadvantage: [] as string[],
+      allSaveDisadvantage: [] as string[],
     } as Record<string, string[]>
   };
 
@@ -114,6 +122,14 @@ export function buildConditionSummary(
     if (mechanics.autoFailDex) {
       result.autoFailDex = true;
       result.sources.autoFailDex.push(condition);
+    }
+    if (mechanics.dexSaveDisadvantage) {
+      result.dexSaveDisadvantage = true;
+      result.sources.dexSaveDisadvantage.push(condition);
+    }
+    if (mechanics.allSaveDisadvantage) {
+      result.allSaveDisadvantage = true;
+      result.sources.allSaveDisadvantage.push(condition);
     }
     if (mechanics.tempAcModifier) {
       result.totalAcModifier += mechanics.tempAcModifier;
@@ -193,6 +209,12 @@ export function buildConditionSummary(
   if (result.autoFailDex) {
     result.lines.push(`DEX saves: AUTO-FAIL (${result.sources.autoFailDex.join(', ')})`);
   }
+  if (result.dexSaveDisadvantage) {
+    result.lines.push(`DEX saves: DISADVANTAGE (${result.sources.dexSaveDisadvantage.join(', ')})`);
+  }
+  if (result.allSaveDisadvantage) {
+    result.lines.push(`All saves: DISADVANTAGE (${result.sources.allSaveDisadvantage.join(', ')})`);
+  }
 
   return result;
 }
@@ -205,6 +227,7 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: true, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
+    dexSaveDisadvantage: false, allSaveDisadvantage: false,
     removedByLongRest: false,
     tempAcModifier: 0
   },
@@ -215,6 +238,7 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
+    dexSaveDisadvantage: false, allSaveDisadvantage: false,
     removedByLongRest: false,
     tempAcModifier: 0
   },
@@ -225,6 +249,7 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
+    dexSaveDisadvantage: false, allSaveDisadvantage: false,
     removedByLongRest: false,
     tempAcModifier: 0
   },
@@ -235,6 +260,7 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
+    dexSaveDisadvantage: false, allSaveDisadvantage: false,
     removedByLongRest: false,
     tempAcModifier: 0
   },
@@ -245,6 +271,7 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
+    dexSaveDisadvantage: false, allSaveDisadvantage: false,
     removedByLongRest: false,
     tempAcModifier: 0
   },
@@ -255,6 +282,7 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
+    dexSaveDisadvantage: false, allSaveDisadvantage: false,
     removedByLongRest: false,
     tempAcModifier: 0
   },
@@ -265,6 +293,7 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: true,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
+    dexSaveDisadvantage: false, allSaveDisadvantage: false,
     removedByLongRest: false,
     tempAcModifier: 0
   },
@@ -275,6 +304,7 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: true, incomingDisadvantage: false,
     critVulnerableInMelee: true,
     autoFailStr: true, autoFailDex: true,
+    dexSaveDisadvantage: false, allSaveDisadvantage: false,
     removedByLongRest: false,
     tempAcModifier: 0
   },
@@ -285,6 +315,7 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: true, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: true, autoFailDex: true,
+    dexSaveDisadvantage: false, allSaveDisadvantage: false,
     removedByLongRest: false,
     tempAcModifier: 0
   },
@@ -295,6 +326,7 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
+    dexSaveDisadvantage: false, allSaveDisadvantage: false,
     removedByLongRest: false,
     tempAcModifier: 0
   },
@@ -305,6 +337,7 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: true, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
+    dexSaveDisadvantage: false, allSaveDisadvantage: false,
     removedByLongRest: false,
     tempAcModifier: 0
   },
@@ -314,7 +347,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     outgoingAdvantage: false, outgoingDisadvantage: true,
     incomingAdvantage: true, incomingDisadvantage: false,
     critVulnerableInMelee: false,
-    autoFailStr: false, autoFailDex: true,
+    autoFailStr: false, autoFailDex: false,
+    dexSaveDisadvantage: true, allSaveDisadvantage: false,
     removedByLongRest: false,
     tempAcModifier: 0
   },
@@ -325,6 +359,7 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: true, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: true, autoFailDex: true,
+    dexSaveDisadvantage: false, allSaveDisadvantage: false,
     removedByLongRest: false,
     tempAcModifier: 0
   },
@@ -335,6 +370,7 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: true, incomingDisadvantage: false,
     critVulnerableInMelee: true,
     autoFailStr: true, autoFailDex: true,
+    dexSaveDisadvantage: false, allSaveDisadvantage: false,
     removedByLongRest: false,
     tempAcModifier: 0
   },
@@ -345,6 +381,7 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: true,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
+    dexSaveDisadvantage: false, allSaveDisadvantage: false,
     removedByLongRest: true,
     tempAcModifier: 0
   },
@@ -355,6 +392,7 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
+    dexSaveDisadvantage: false, allSaveDisadvantage: false,
     removedByLongRest: true,
     tempAcModifier: 2
   },
@@ -365,6 +403,7 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
+    dexSaveDisadvantage: false, allSaveDisadvantage: false,
     removedByLongRest: true,
     tempAcModifier: -2
   },
@@ -375,6 +414,7 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
+    dexSaveDisadvantage: false, allSaveDisadvantage: false,
     removedByLongRest: true,
     tempAcModifier: 0
   },
@@ -385,6 +425,7 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
+    dexSaveDisadvantage: false, allSaveDisadvantage: false,
     removedByLongRest: true,
     tempAcModifier: 0
   },
@@ -395,6 +436,7 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
+    dexSaveDisadvantage: false, allSaveDisadvantage: false,
     removedByLongRest: false,
     tempAcModifier: 0
   },
@@ -405,6 +447,7 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
+    dexSaveDisadvantage: false, allSaveDisadvantage: false,
     removedByLongRest: false,
     tempAcModifier: 0
   },
@@ -414,7 +457,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     outgoingAdvantage: false, outgoingDisadvantage: true,
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
-    autoFailStr: false, autoFailDex: true,
+    autoFailStr: false, autoFailDex: false,
+    dexSaveDisadvantage: false, allSaveDisadvantage: true,
     removedByLongRest: false,
     tempAcModifier: 0
   },
@@ -424,7 +468,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     outgoingAdvantage: false, outgoingDisadvantage: true,
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
-    autoFailStr: false, autoFailDex: true,
+    autoFailStr: false, autoFailDex: false,
+    dexSaveDisadvantage: false, allSaveDisadvantage: true,
     removedByLongRest: false,
     tempAcModifier: 0
   },
@@ -434,7 +479,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     outgoingAdvantage: false, outgoingDisadvantage: true,
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
-    autoFailStr: false, autoFailDex: true,
+    autoFailStr: false, autoFailDex: false,
+    dexSaveDisadvantage: false, allSaveDisadvantage: true,
     removedByLongRest: false,
     tempAcModifier: 0
   },
@@ -444,7 +490,8 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     outgoingAdvantage: false, outgoingDisadvantage: true,
     incomingAdvantage: true, incomingDisadvantage: false,
     critVulnerableInMelee: false,
-    autoFailStr: true, autoFailDex: true,
+    autoFailStr: false, autoFailDex: false,
+    dexSaveDisadvantage: false, allSaveDisadvantage: true,
     removedByLongRest: false,
     tempAcModifier: 0
   },
@@ -455,6 +502,7 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
+    dexSaveDisadvantage: false, allSaveDisadvantage: false,
     removedByLongRest: true,
     tempAcModifier: 0
   },
@@ -465,6 +513,7 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
+    dexSaveDisadvantage: false, allSaveDisadvantage: false,
     removedByLongRest: true,
     tempAcModifier: 0
   },
@@ -475,6 +524,7 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
+    dexSaveDisadvantage: false, allSaveDisadvantage: false,
     removedByLongRest: true,
     tempAcModifier: 0
   },
@@ -485,6 +535,7 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
+    dexSaveDisadvantage: false, allSaveDisadvantage: false,
     removedByLongRest: true,
     tempAcModifier: 0
   },
@@ -495,6 +546,7 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
+    dexSaveDisadvantage: false, allSaveDisadvantage: false,
     removedByLongRest: true,
     tempAcModifier: 0
   },
@@ -505,6 +557,7 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
+    dexSaveDisadvantage: false, allSaveDisadvantage: false,
     removedByLongRest: true,
     tempAcModifier: 0
   },
@@ -515,6 +568,7 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
+    dexSaveDisadvantage: false, allSaveDisadvantage: false,
     removedByLongRest: true,
     tempAcModifier: 0
   },
@@ -525,6 +579,7 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
+    dexSaveDisadvantage: false, allSaveDisadvantage: false,
     removedByLongRest: true,
     tempAcModifier: 0
   },
@@ -535,6 +590,7 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
+    dexSaveDisadvantage: false, allSaveDisadvantage: false,
     removedByLongRest: true,
     tempAcModifier: 0
   },
@@ -545,6 +601,7 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
+    dexSaveDisadvantage: false, allSaveDisadvantage: false,
     removedByLongRest: true,
     tempAcModifier: 0
   },
@@ -555,6 +612,7 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
+    dexSaveDisadvantage: false, allSaveDisadvantage: false,
     removedByLongRest: true,
     tempAcModifier: 0
   },
@@ -565,6 +623,7 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
+    dexSaveDisadvantage: false, allSaveDisadvantage: false,
     removedByLongRest: true,
     tempAcModifier: 0
   },
@@ -575,6 +634,7 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
+    dexSaveDisadvantage: false, allSaveDisadvantage: false,
     removedByLongRest: true,
     tempAcModifier: 0
   },
@@ -585,6 +645,7 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
+    dexSaveDisadvantage: false, allSaveDisadvantage: false,
     removedByLongRest: true,
     tempAcModifier: 0
   },
@@ -595,6 +656,7 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
+    dexSaveDisadvantage: false, allSaveDisadvantage: false,
     removedByLongRest: true,
     tempAcModifier: 0
   },
@@ -605,6 +667,7 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
+    dexSaveDisadvantage: false, allSaveDisadvantage: false,
     removedByLongRest: true,
     tempAcModifier: 0
   },
@@ -615,56 +678,7 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
-    removedByLongRest: true,
-    tempAcModifier: 0
-  },
-  'action surge (used)': {
-    speedZero: false, speedHalved: false, hpMaxHalved: false,
-    incapacitates: false,
-    outgoingAdvantage: false, outgoingDisadvantage: false,
-    incomingAdvantage: false, incomingDisadvantage: false,
-    critVulnerableInMelee: false,
-    autoFailStr: false, autoFailDex: false,
-    removedByLongRest: true,
-    tempAcModifier: 0
-  },
-  'second wind (used)': {
-    speedZero: false, speedHalved: false, hpMaxHalved: false,
-    incapacitates: false,
-    outgoingAdvantage: false, outgoingDisadvantage: false,
-    incomingAdvantage: false, incomingDisadvantage: false,
-    critVulnerableInMelee: false,
-    autoFailStr: false, autoFailDex: false,
-    removedByLongRest: true,
-    tempAcModifier: 0
-  },
-  'bardic inspiration (given)': {
-    speedZero: false, speedHalved: false, hpMaxHalved: false,
-    incapacitates: false,
-    outgoingAdvantage: false, outgoingDisadvantage: false,
-    incomingAdvantage: false, incomingDisadvantage: false,
-    critVulnerableInMelee: false,
-    autoFailStr: false, autoFailDex: false,
-    removedByLongRest: true,
-    tempAcModifier: 0
-  },
-  'divine smite (used)': {
-    speedZero: false, speedHalved: false, hpMaxHalved: false,
-    incapacitates: false,
-    outgoingAdvantage: false, outgoingDisadvantage: false,
-    incomingAdvantage: false, incomingDisadvantage: false,
-    critVulnerableInMelee: false,
-    autoFailStr: false, autoFailDex: false,
-    removedByLongRest: true,
-    tempAcModifier: 0
-  },
-  'sneak attack (used)': {
-    speedZero: false, speedHalved: false, hpMaxHalved: false,
-    incapacitates: false,
-    outgoingAdvantage: false, outgoingDisadvantage: false,
-    incomingAdvantage: false, incomingDisadvantage: false,
-    critVulnerableInMelee: false,
-    autoFailStr: false, autoFailDex: false,
+    dexSaveDisadvantage: false, allSaveDisadvantage: false,
     removedByLongRest: true,
     tempAcModifier: 0
   },
@@ -675,6 +689,29 @@ export const CONDITION_MECHANICS: Record<string, ConditionMechanics> = {
     incomingAdvantage: false, incomingDisadvantage: false,
     critVulnerableInMelee: false,
     autoFailStr: false, autoFailDex: false,
+    dexSaveDisadvantage: false, allSaveDisadvantage: false,
+    removedByLongRest: true,
+    tempAcModifier: 0
+  },
+  firewall: {
+    speedZero: false, speedHalved: false, hpMaxHalved: false,
+    incapacitates: false,
+    outgoingAdvantage: false, outgoingDisadvantage: false,
+    incomingAdvantage: false, incomingDisadvantage: false,
+    critVulnerableInMelee: false,
+    autoFailStr: false, autoFailDex: false,
+    dexSaveDisadvantage: false, allSaveDisadvantage: false,
+    removedByLongRest: true,
+    tempAcModifier: 0
+  },
+  'aid (boosted)': {
+    speedZero: false, speedHalved: false, hpMaxHalved: false,
+    incapacitates: false,
+    outgoingAdvantage: false, outgoingDisadvantage: false,
+    incomingAdvantage: false, incomingDisadvantage: false,
+    critVulnerableInMelee: false,
+    autoFailStr: false, autoFailDex: false,
+    dexSaveDisadvantage: false, allSaveDisadvantage: false,
     removedByLongRest: true,
     tempAcModifier: 0
   }
