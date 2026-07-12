@@ -85,6 +85,16 @@ export function CombatEventRow({ event }: { event: CombatEvent }) {
       icon = <Flag className="w-3.5 h-3.5 text-[#8d8db9] shrink-0" />;
       break;
     }
+    case 'death-save': {
+      const outcome = event.condition === 'success' ? 'Success' : 'Failure';
+      const rName = event.resourceName || 'Death Saves';
+      const rBefore = event.resourceBefore ?? 0;
+      const rAfter = event.resourceAfter ?? 0;
+      text = `${target} rolled a death saving throw: ${outcome} (${rName}: ${rBefore} -> ${rAfter})`;
+      rowStyle += 'bg-[#f9f8ff] text-[#8d8db9] border border-[#e2e8f0]';
+      icon = <Flag className="w-3.5 h-3.5 text-[#8d8db9] shrink-0" />;
+      break;
+    }
     default:
       return null;
   }

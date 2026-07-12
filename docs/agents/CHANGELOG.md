@@ -6,6 +6,20 @@ Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed fr
 
 ---
 
+## `CombatEventRow.tsx` Missing `'death-save'` Render Case (Completed)
+
+`'death-save'` had no case in `CombatEventRow.tsx`'s render switch, falling to `default: return null` — death-save events were genuinely logged (`useDeathSaves.ts` calls `addCombatEvent({ type: 'death-save', ... })`) but completely invisible in the structured encounter log view.
+
+**Fix**: added a `case 'death-save':` rendering the outcome, styled consistently with the file's other metadata-heavy event cases (`Flag` icon, neutral slate styling matching `resource-changed`/`manual-adjustment`).
+
+**Verified the read shape against the real write shape before trusting it** — rather than assume `event.condition`/`resourceName`/`resourceBefore`/`resourceAfter` were the right fields to read, requested and reviewed `useDeathSaves.ts` directly to confirm both `recordDeathSave` and `applyDamageToUnconscious` actually write death-save events with exactly this shape (`condition: 'success' | 'failure'`, `resourceName` set to `'Death Save Successes'`/`'Death Save Failures'`, `resourceBefore`/`resourceAfter` tracking the counter). Confirmed exact match before accepting the fix.
+
+**Test coverage added**: no dedicated test file existed for this component at all — created `CombatEventRow.test.tsx` with two tests, one for each outcome (success/failure), asserting the exact rendered text. Verified by hand that both assertions match the real render logic's string interpolation, not just assumed correct.
+
+Verified: diff and test checked against real uploaded files. Raw Batch 6B output confirmed 22/22 passing (20→22, matching the 2 new tests).
+
+---
+
 ## `LongRestDialog.tsx` `selectedIds` Reset — Closes Out `PartyTab/` Entirely (Completed)
 
 The last remaining confirmed bug in `PartyTab/`. `useEffect(() => { if (isOpen) setSelectedIds(...) }, [isOpen, characters])` re-fired and reset the selection to "all non-dead characters" any time the `characters` array reference changed — which happens on any unrelated state update elsewhere in the app while this dialog happens to be open — silently wiping a GM's manual deselections mid-dialog.
