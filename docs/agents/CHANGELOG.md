@@ -6,6 +6,20 @@ Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed fr
 
 ---
 
+## `useAppState.ts` Selector — App-Wide Re-render Fix (Completed)
+
+**The single highest-impact finding of the entire audit, in terms of scale** — not a correctness bug, but a real, classic Zustand anti-pattern affecting the whole app rather than one feature. `useAppState()`'s main selector reconstructed a brand-new object literal on every call (`useDashboardStore((s): AppState => ({ characters: s.characters, ... }))`), with no equality function. Since Zustand's default comparison is `Object.is`, a freshly-constructed object is never equal to the previous one — so every component using `useAppState()` (pervasive throughout the app) re-rendered on *every single store update*, including updates to store fields this selector doesn't even return (like `activeCombatLog`, which lives in the same store but isn't part of `AppState`).
+
+**Fix**: wrapped the selector with Zustand's `useShallow` (`zustand/react/shallow`, confirmed the correct import path for this project's Zustand version, `^4.5.7`, via `package.json`) — now the selector only triggers a re-render when at least one of the 12 returned field values has actually changed by reference, not merely because a new wrapper object was constructed.
+
+**Two other queue items resolved as a direct consequence, not separately fixed:**
+- `useSettings.ts`'s `handleExportJSON` (`useCallback([state])`) — its memoization was neutralized by this same root cause, since `state` changed reference on every store update regardless of relevance. Now that `useAppState()`'s reference is stable when nothing relevant changes, this `useCallback` correctly memoizes again.
+- The `GMDashboard.tsx` compounding-performance-chain finding — the first link (the root shell re-rendering on every store update) is broken by this fix. The second link (`useDashboardShortcuts.ts`/`useMoodPresets.ts`'s own missing memoization) is unrelated and still open — the chain is now much less frequent, not fully eliminated, since `GMDashboard.tsx` still re-renders on legitimate `characters`/`npcs`/etc. changes, which still triggers the listener-thrashing on those renders.
+
+Verified: confirmed the pre-existing selector matched the original audit finding exactly before touching it. Confirmed no `[state]`-shaped hook dependency arrays exist anywhere that might rely on the old "re-render on every store update" behavior, and no component holds onto `state`'s object identity for anything beyond reading its fields — checked directly rather than assumed. Raw test output for both Batch 3 (ran combined with Batch 4 this round — more coverage than requested, not less) and Batch 6A confirmed all tests passing at their documented baselines (53 and 46 respectively) — the successful test runs are themselves strong evidence the `useShallow` import path resolves correctly, since a wrong path would have caused an immediate module-resolution failure across the entire suite, not scattered failures.
+
+---
+
 ## `useNpcLibrary.ts` Full-State Rollback (Completed — 3 of 3, pattern fully resolved)
 
 The third and final instance of the full-app-state-rollback pattern (`useEncounters.ts` and `useParty.ts` fixed previously). Given this file's structure was already known in detail from the earlier stale-closure fix, the investigation step for this round was lighter — a confirmation check built into the same prompt as the fix, rather than a separate round-trip — and the prior understanding held up exactly: `handleAddNpc`/`handleDeleteNpc` touch `npcs` only; `handleUpdateNpc` touches `npcs`, `encounterCombatants`, and `combatState.combatants` (propagating AC/maxHp/notes/resistances/immunities/vulnerabilities/rechargeAbilities changes to matching active combatants, and clamping `npcCurrentHp` when `maxHp` changes).

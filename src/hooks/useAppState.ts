@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { AppState } from '../types';
 import { useDashboardStore } from './dashboardStore';
 
@@ -19,7 +20,7 @@ export function useAppState() {
   // Subscribes this component to the full store.
   // Any state change triggers a re-render.
   const state = useDashboardStore(
-    (s): AppState => ({
+    useShallow((s): AppState => ({
       characters: s.characters,
       npcs: s.npcs,
       encounters: s.encounters,
@@ -32,7 +33,7 @@ export function useAppState() {
       hasInitialSynced: s.hasInitialSynced,
       openDialog: s.openDialog,
       combatState: s.combatState,
-    })
+    }))
   );
 
   const updateState = useCallback(
