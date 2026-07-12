@@ -6,6 +6,20 @@ Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed fr
 
 ---
 
+## `useNpcLibrary.ts` Full-State Rollback (Completed — 3 of 3, pattern fully resolved)
+
+The third and final instance of the full-app-state-rollback pattern (`useEncounters.ts` and `useParty.ts` fixed previously). Given this file's structure was already known in detail from the earlier stale-closure fix, the investigation step for this round was lighter — a confirmation check built into the same prompt as the fix, rather than a separate round-trip — and the prior understanding held up exactly: `handleAddNpc`/`handleDeleteNpc` touch `npcs` only; `handleUpdateNpc` touches `npcs`, `encounterCombatants`, and `combatState.combatants` (propagating AC/maxHp/notes/resistances/immunities/vulnerabilities/rechargeAbilities changes to matching active combatants, and clamping `npcCurrentHp` when `maxHp` changes).
+
+**Fix**: same pattern as the previous two files — `handleAddNpc`/`handleDeleteNpc` now restore only `npcs`; `handleUpdateNpc` restores `npcs` and `encounterCombatants` normally, but for `combatState` restores only `combatants`, not the whole object, preserving any concurrent changes to `activeTurnId`/`round`/etc. made elsewhere during the async write.
+
+Confirmed via direct read of the real file that the CR/proficiency-bonus recalculation block and the `getSnapshot()` fix from the earlier stale-closure bug were both left untouched, as required. No existing tests needed changes — `useNpcLibrary.test.ts` has no rollback-path test coverage at all (only success paths for add/update/delete), confirmed directly rather than assumed.
+
+Verified: diff checked against the real uploaded file, raw Batch 6C output confirmed 14/14 passing, matching the documented baseline exactly.
+
+**This closes out the full-app-state-rollback pattern across all 3 files it was found in.** All three (`useEncounters.ts`, `useParty.ts`, `useNpcLibrary.ts`) now correctly restore only the specific state slice(s) their own optimistic updates actually touch on a failed write, rather than discarding the entire app state — including, where relevant, correctly distinguishing `combatState.combatants` from the rest of `combatState` in all four affected `useParty.ts` handlers and `useNpcLibrary.ts`'s `handleUpdateNpc`.
+
+---
+
 ## `useParty.ts` Full-State Rollback (Completed — 2 of 3)
 
 The second of three known instances of the same pattern (`useEncounters.ts` fixed previously; `useNpcLibrary.ts` still open). Unlike `useEncounters.ts`, this file's version of the bug was never given its own detailed `ROADMAP.md` entry — only referenced in passing from the other two files' findings — so the investigation step here had more to establish than last time.

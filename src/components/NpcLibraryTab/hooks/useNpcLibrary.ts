@@ -59,7 +59,7 @@ export function useNpcLibrary() {
       toast.success(`${newNpcData.name} added to NPC Library`);
     } catch (error) {
       // 4a. Roll back to snapshot on failure
-      updateState(previousState);
+      updateState(prev => ({ ...prev, npcs: previousState.npcs }));
       
       // 4b. Show error toast
       toast.error('Failed to save changes. Please try again.', {
@@ -184,7 +184,15 @@ export function useNpcLibrary() {
       await updateNpcFullDB(npc);
     } catch (error) {
       // 4a. Roll back to snapshot on failure
-      updateState(previousState);
+      updateState(prev => ({
+        ...prev,
+        npcs: previousState.npcs,
+        encounterCombatants: previousState.encounterCombatants,
+        combatState: {
+          ...prev.combatState,
+          combatants: previousState.combatState.combatants,
+        },
+      }));
       
       // 4b. Show error toast
       toast.error('Failed to save changes. Please try again.', {
@@ -223,7 +231,7 @@ export function useNpcLibrary() {
       await deleteNpcDB(npcId);
     } catch (error) {
       // 4a. Roll back to snapshot on failure
-      updateState(previousState);
+      updateState(prev => ({ ...prev, npcs: previousState.npcs }));
       
       // 4b. Show error toast
       toast.error('Failed to save changes. Please try again.', {
