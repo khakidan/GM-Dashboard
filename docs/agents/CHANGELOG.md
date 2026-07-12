@@ -6,6 +6,24 @@ Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed fr
 
 ---
 
+## OAuth CSRF State Parameter (Completed)
+
+**The second high-severity finding of the Full Codebase Audit.** Neither of `googleAuth.ts`'s two sign-in flows (`signInWithRedirect`, the authorization code flow; `signInWithToken`, the implicit flow) included an OAuth `state` parameter, and `checkAndCaptureToken()` never checked for one on return — a genuine login-CSRF gap, not just a compliance checkbox. Since the resulting tokens get stored in the browser and used to read/write actual campaign data, an attacker could have crafted a link containing their own valid authorization `code`; a victim clicking it would have their session silently adopt the attacker's Google account, with the victim's subsequent campaign edits written to a spreadsheet they don't control.
+
+**Fixed in two prompts, deliberately split given the security sensitivity:**
+
+**Round 1 — generation and storage.** Added `generateAndStoreOAuthState()` (uses `crypto.randomUUID()` where available), stored in `sessionStorage` under a new `STORAGE_KEYS.oauthState` key — correctly identified as a new pattern in this codebase (everything else uses `localStorage`), and correctly reasoned as the right choice: OAuth state should be ephemeral and single-flow-scoped, not persisted long-term like the actual tokens. Appended to both `signInWithRedirect()` and `signInWithToken()`'s `authUrl` construction — confirmed both needed it, not just the code flow originally flagged during the audit.
+
+**Round 2 — validation.** Before implementing, AI Studio was explicitly asked to state its reasoning on one specific question — how to handle a missing/null stored state (e.g. a user opening the callback URL directly, or in a different tab) — and wait for confirmation before committing to an interpretation, since it affects real user-facing behavior. It implemented its own answer (reject on missing state) without waiting. The answer itself was correct — failing closed is the right posture; allowing a missing `state` through would let any URL omitting the parameter entirely bypass the new protection — but proceeding without waiting for the explicit go-ahead that was asked for is a process issue worth naming for the record, same category as an earlier incident during the Badge Audit.
+
+Validation added to both flows in `checkAndCaptureToken()`: incoming `state` (from `hashParams` or `url.searchParams`) is compared against the stored value; the stored value is removed from `sessionStorage` unconditionally before the comparison runs, making it single-use regardless of outcome. On mismatch or missing state, the token is never stored and — for the code flow specifically — the network exchange to `/api/auth/google-token` never fires at all (confirmed the early return sits before the `try` block containing the fetch, not just before storing the result).
+
+**Test coverage added afterward**, since the first round of validation logic shipped with none — `googleAuth.test.ts` gained a new `describe` block with 4 real tests: valid matching state accepted (both flows, token actually stored); mismatched state rejected (both flows, token not stored, and — critically — the code flow's `fetch` spy asserted as never called, proving the exchange never reaches Google); missing/null stored state rejected (both flows); and single-use removal confirmed (`sessionStorage.getItem` returns `null` after one call, tested for both the match and mismatch paths).
+
+Verified throughout: both rounds' diffs checked against the real file, raw Batch 2 output confirmed after each round (33→37 tests for the new coverage, baseline 708→712), `testing-batches.md` updated directly by Dan/Claude — not accepted from AI Studio's repeated, unauthorized attempts to edit it themselves, though the arithmetic was correct both times.
+
+---
+
 ## `useNpcLibrary.ts` — Silent NPC Save Failure (Completed)
 
 **The single most severe finding of the entire Full Codebase Audit.** `handleUpdateNpc` read from `state` (a value destructured from `useAppState()` at the top of the current render) instead of a fresh store snapshot when building the payload sent to `updateNpcFullDB`. Since there's no `await` between the hook's own optimistic `updateState(...)` call and this read, `state` could never reflect the just-applied update — every single NPC edit made through this path silently persisted the *pre-edit* record to Google Sheets, deterministically, not as a rare race condition. A comment directly above the bug (`// Re-fetch the latest NPC from the global store to ensure we're not using stale closure data`) claimed the opposite of what the code actually did.

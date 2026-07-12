@@ -1,12 +1,13 @@
 // src/services/__tests__/googleAuth.test.ts
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { requestAccessToken, clearTokens } from '../googleAuth';
+import { requestAccessToken, clearTokens, checkAndCaptureToken } from '../googleAuth';
 import { STORAGE_KEYS } from '../../lib/constants';
 
 describe('googleAuth token management tests', () => {
   beforeEach(() => {
     localStorage.clear();
+    sessionStorage.clear();
     clearTokens();
   });
 
@@ -56,3 +57,190 @@ describe('googleAuth token management tests', () => {
     expect(localStorage.getItem(STORAGE_KEYS.googleRefreshToken)).toBeNull();
   });
 });
+
+describe('checkAndCaptureToken state validation', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+    clearTokens();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.clearAllMocks();
+  });
+
+  it('accepts valid matching state and stores the token (Hash & Code flow)', async () => {
+    // 1. Hash/Implicit Flow
+    sessionStorage.setItem(STORAGE_KEYS.oauthState, 'matching-state-123');
+    vi.stubGlobal('location', {
+      href: 'http://localhost/callback#access_token=hash-token-abc&state=matching-state-123',
+      pathname: '/callback',
+      search: '',
+      hash: '#access_token=hash-token-abc&state=matching-state-123',
+      origin: 'http://localhost',
+    });
+    const replaceStateSpy = vi.fn();
+    vi.stubGlobal('history', { replaceState: replaceStateSpy });
+
+    let result = await checkAndCaptureToken();
+    expect(result).toBe(true);
+    expect(localStorage.getItem(STORAGE_KEYS.googleAccessToken)).toBe('hash-token-abc');
+    expect(replaceStateSpy).toHaveBeenCalled();
+
+    // Reset storage & token for the next part
+    localStorage.clear();
+    sessionStorage.clear();
+    clearTokens();
+
+    // 2. Code Flow
+    sessionStorage.setItem(STORAGE_KEYS.oauthState, 'matching-state-456');
+    vi.stubGlobal('location', {
+      href: 'http://localhost/callback?code=code-123&state=matching-state-456',
+      pathname: '/callback',
+      search: '?code=code-123&state=matching-state-456',
+      hash: '',
+      origin: 'http://localhost',
+    });
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ access_token: 'code-access-token', refresh_token: 'code-refresh-token' }))
+      )
+    );
+
+    result = await checkAndCaptureToken();
+    expect(result).toBe(true);
+    expect(localStorage.getItem(STORAGE_KEYS.googleAccessToken)).toBe('code-access-token');
+    expect(localStorage.getItem(STORAGE_KEYS.googleRefreshToken)).toBe('code-refresh-token');
+  });
+
+  it('rejects mismatched state and returns false (Hash & Code flow)', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    // 1. Hash Flow
+    sessionStorage.setItem(STORAGE_KEYS.oauthState, 'stored-state');
+    vi.stubGlobal('location', {
+      href: 'http://localhost/callback#access_token=hash-token-abc&state=attacker-state',
+      pathname: '/callback',
+      search: '',
+      hash: '#access_token=hash-token-abc&state=attacker-state',
+      origin: 'http://localhost',
+    });
+    const replaceStateSpy = vi.fn();
+    vi.stubGlobal('history', { replaceState: replaceStateSpy });
+
+    let result = await checkAndCaptureToken();
+    expect(result).toBe(false);
+    expect(localStorage.getItem(STORAGE_KEYS.googleAccessToken)).toBeNull();
+    expect(replaceStateSpy).toHaveBeenCalled();
+
+    // Reset storage & token for the next part
+    localStorage.clear();
+    sessionStorage.clear();
+    clearTokens();
+
+    // 2. Code Flow
+    sessionStorage.setItem(STORAGE_KEYS.oauthState, 'stored-state');
+    vi.stubGlobal('location', {
+      href: 'http://localhost/callback?code=code-123&state=attacker-state',
+      pathname: '/callback',
+      search: '?code=code-123&state=attacker-state',
+      hash: '',
+      origin: 'http://localhost',
+    });
+    const fetchSpy = vi.fn();
+    vi.stubGlobal('fetch', fetchSpy);
+
+    result = await checkAndCaptureToken();
+    expect(result).toBe(false);
+    expect(localStorage.getItem(STORAGE_KEYS.googleAccessToken)).toBeNull();
+    expect(fetchSpy).not.toHaveBeenCalled();
+
+    consoleErrorSpy.mockRestore();
+  });
+
+  it('rejects missing/null stored state (Hash & Code flow)', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    // 1. Hash Flow
+    // sessionStorage has no oauthState
+    vi.stubGlobal('location', {
+      href: 'http://localhost/callback#access_token=hash-token-abc&state=some-state',
+      pathname: '/callback',
+      search: '',
+      hash: '#access_token=hash-token-abc&state=some-state',
+      origin: 'http://localhost',
+    });
+    const replaceStateSpy = vi.fn();
+    vi.stubGlobal('history', { replaceState: replaceStateSpy });
+
+    let result = await checkAndCaptureToken();
+    expect(result).toBe(false);
+    expect(localStorage.getItem(STORAGE_KEYS.googleAccessToken)).toBeNull();
+
+    // Reset storage & token for the next part
+    localStorage.clear();
+    sessionStorage.clear();
+    clearTokens();
+
+    // 2. Code Flow
+    // sessionStorage has no oauthState
+    vi.stubGlobal('location', {
+      href: 'http://localhost/callback?code=code-123&state=some-state',
+      pathname: '/callback',
+      search: '?code=code-123&state=some-state',
+      hash: '',
+      origin: 'http://localhost',
+    });
+    const fetchSpy = vi.fn();
+    vi.stubGlobal('fetch', fetchSpy);
+
+    result = await checkAndCaptureToken();
+    expect(result).toBe(false);
+    expect(localStorage.getItem(STORAGE_KEYS.googleAccessToken)).toBeNull();
+    expect(fetchSpy).not.toHaveBeenCalled();
+
+    consoleErrorSpy.mockRestore();
+  });
+
+  it('removes stored state from sessionStorage after checkAndCaptureToken runs once (regardless of match or mismatch)', async () => {
+    // 1. Matching case
+    sessionStorage.setItem(STORAGE_KEYS.oauthState, 'matching-state');
+    vi.stubGlobal('location', {
+      href: 'http://localhost/callback#access_token=hash-token-abc&state=matching-state',
+      pathname: '/callback',
+      search: '',
+      hash: '#access_token=hash-token-abc&state=matching-state',
+      origin: 'http://localhost',
+    });
+    vi.stubGlobal('history', { replaceState: vi.fn() });
+
+    await checkAndCaptureToken();
+    expect(sessionStorage.getItem(STORAGE_KEYS.oauthState)).toBeNull();
+
+    // Reset storage & token for the next part
+    localStorage.clear();
+    sessionStorage.clear();
+    clearTokens();
+
+    // 2. Mismatch case
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    sessionStorage.setItem(STORAGE_KEYS.oauthState, 'mismatched-state');
+    vi.stubGlobal('location', {
+      href: 'http://localhost/callback#access_token=hash-token-abc&state=attacker-state',
+      pathname: '/callback',
+      search: '',
+      hash: '#access_token=hash-token-abc&state=attacker-state',
+      origin: 'http://localhost',
+    });
+    vi.stubGlobal('history', { replaceState: vi.fn() });
+
+    await checkAndCaptureToken();
+    expect(sessionStorage.getItem(STORAGE_KEYS.oauthState)).toBeNull();
+
+    consoleErrorSpy.mockRestore();
+  });
+});
+

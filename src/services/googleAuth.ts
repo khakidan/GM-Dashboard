@@ -91,6 +91,17 @@ export async function getGoogleClientId(): Promise<string> {
 }
 
 /**
+ * Generates a cryptographically secure random string and stores it in sessionStorage.
+ */
+function generateAndStoreOAuthState(): string {
+  const state = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+    ? crypto.randomUUID()
+    : Math.random().toString(36).substring(2) + Date.now().toString(36);
+  sessionStorage.setItem(STORAGE_KEYS.oauthState, state);
+  return state;
+}
+
+/**
  * Trigger a full-page redirect to Google's OAuth page.
  * Uses Authorization Code Flow for persistence.
  */
@@ -106,6 +117,8 @@ export async function signInWithRedirect() {
   // Clear any stale tokens before starting a fresh flow
   clearTokens();
 
+  const state = generateAndStoreOAuthState();
+
   // Use code flow for offline access (refresh token)
   const authUrl =
     `https://accounts.google.com/o/oauth2/v2/auth?` +
@@ -113,6 +126,7 @@ export async function signInWithRedirect() {
     `&redirect_uri=${encodeURIComponent(redirectUri)}` +
     `&response_type=code` +
     `&access_type=offline` +
+    `&state=${encodeURIComponent(state)}` +
     `&scope=${encodeURIComponent(scope)}` +
     `&prompt=consent select_account`; // Force consent to ensure we get a fresh refresh token
 
@@ -134,11 +148,14 @@ export async function signInWithToken() {
 
   clearTokens();
 
+  const state = generateAndStoreOAuthState();
+
   const authUrl =
     `https://accounts.google.com/o/oauth2/v2/auth?` +
     `client_id=${encodeURIComponent(clientId)}` +
     `&redirect_uri=${encodeURIComponent(redirectUri)}` +
     `&response_type=token` +
+    `&state=${encodeURIComponent(state)}` +
     `&scope=${encodeURIComponent(scope)}`;
 
   window.location.href = authUrl;
@@ -187,6 +204,16 @@ export async function checkAndCaptureToken() {
   const hashToken = hashParams.get('access_token');
 
   if (hashToken) {
+    const incomingState = hashParams.get('state');
+    const storedState = sessionStorage.getItem(STORAGE_KEYS.oauthState);
+    sessionStorage.removeItem(STORAGE_KEYS.oauthState);
+
+    if (!storedState || !incomingState || storedState !== incomingState) {
+      console.error('❌ [Sheets] OAuth State Validation Failed (CSRF Warning). Hash token rejected.');
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+      return false;
+    }
+
     localStorage.setItem(STORAGE_KEYS.googleAccessToken, hashToken);
     accessToken = hashToken;
     // Clean up hash
@@ -195,6 +222,16 @@ export async function checkAndCaptureToken() {
   }
 
   if (code) {
+    const incomingState = url.searchParams.get('state');
+    const storedState = sessionStorage.getItem(STORAGE_KEYS.oauthState);
+    sessionStorage.removeItem(STORAGE_KEYS.oauthState);
+
+    if (!storedState || !incomingState || storedState !== incomingState) {
+      console.error('❌ [Sheets] OAuth State Validation Failed (CSRF Warning). Authorization code exchange aborted.');
+      window.history.replaceState(null, '', window.location.pathname);
+      return false;
+    }
+
     try {
       const redirectUri = window.location.origin;
       const res = await fetch('/api/auth/google-token', {

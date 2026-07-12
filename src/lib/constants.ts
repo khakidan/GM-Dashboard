@@ -71,6 +71,7 @@ export const STORAGE_KEYS = {
   campaigns: 'gm_campaigns',
   activeCampaignId: 'gm_active_campaign_id',
   activeCampaignSpreadsheetId: 'gm_active_campaign_spreadsheet_id',
+  oauthState: 'gm_oauth_state',
 } as const;
 
 // Returns a campaign-scoped storage key.
