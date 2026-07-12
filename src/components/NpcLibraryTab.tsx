@@ -80,7 +80,7 @@ export function NpcLibraryTab() {
         onChange={e => setter(e.target.value)}
         className="w-full bg-[#ffffff]/50 border border-[#e2e8f0] rounded-xl pl-9 pr-3 py-2.5 text-sm focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] outline-none transition-all appearance-auto cursor-pointer text-[#0f172a]"
       >
-        <option value="">{placeholder}: All</option>
+        <option value="">{placeholder}: none</option>
         <optgroup label="Damage Types">
           {DAMAGE_TYPE_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
         </optgroup>

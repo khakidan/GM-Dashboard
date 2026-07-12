@@ -6,6 +6,32 @@ Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed fr
 
 ---
 
+## `EncounterLogModal.tsx` Missing `fetchLogsForEncounter` Dependency (Completed)
+
+`EncounterLogModal.tsx`'s log-fetching `useEffect` was missing `fetchLogsForEncounter` from its dependency array (`[isOpen, encounterId]`). One inaccuracy in the original audit's own evidence was also confirmed and corrected here: the audit's quoted "Verification Proof" included a trailing comment (`// fetchLogsForEncounter is omitted to prevent an infinite loop`) that doesn't exist anywhere in the real file — the line was genuinely just `}, [isOpen, encounterId]);`, no explanatory comment at all.
+
+**Investigated before fixing, since adding the function naively could have caused a worse bug**: `fetchLogsForEncounter` (`useEncounterLogs.ts`) was not wrapped in `useCallback` — since `useEncounterLogs()` is called fresh on every render of `EncounterLogModal.tsx`, adding an unmemoized function reference directly to the effect's dependencies would have created an infinite loop (render → new function reference → effect re-fires → state update → re-render → repeat). Confirmed the function has no reactive dependencies before choosing `useCallback(fn, [])` — `encounterId` is a function parameter, not closed-over state; `setIsLoading`/`setError` are stable `useState` setters; every other reference is a static import.
+
+**Fix**: wrapped `fetchLogsForEncounter` in `useCallback(..., [])` in `useEncounterLogs.ts`, then added it to `EncounterLogModal.tsx`'s effect dependency array.
+
+No new test coverage added — discussed and agreed existing coverage was sufficient, since `useEncounterLogs.test.ts` already exercises `fetchLogsForEncounter`'s referential stability and `EncounterLogModal.test.tsx` already covers the modal's render behavior; this is the same well-established fix pattern already applied successfully earlier in this session (`useMoodPresets.ts`), which didn't need dedicated new tests either.
+
+Verified: both diffs checked against real uploaded files. Raw Batch 6B output confirmed 23/23 passing, matching baseline exactly, with the suite completing in normal time (no hang) — direct evidence of no infinite loop, not just an inference from the dependency analysis.
+
+**Note**: `EncountersTab.tsx`'s separate, still-open redundant-API-read finding (also in this directory) is not resolved by this fix and remains tracked in `ROADMAP.md` — do not conflate the two `EncounterLog`-adjacent findings.
+
+---
+
+## NPC Library Filter Semantic Labels (Completed)
+
+The filter dropdowns for Resistances, Immunities, and Vulnerabilities in `NpcLibraryTab.tsx` used the label "All" for their empty/default state (e.g., "Resist: All"). This was semantically incorrect as it implied the NPC had *all* possible resistances by default, when it actually meant the filter was not narrowing the list by any specific resistance.
+
+**Fix**: Changed the default labels from "All" to "none" (e.g., "Resist: none") to correctly reflect that, by default, the filter does not require the presence of any specific resistance/immunity/vulnerability.
+
+Verified: Manually checked the updated `NpcLibraryTab.tsx`. The change is a straightforward string replacement in the `renderFilterSelect` helper function.
+
+---
+
 ## `EncounterCard.tsx` `name`/`location` Reset Effect (Completed, Narrower Scope Than Originally Described)
 
 `useEffect(() => { setName(...); setLocation(...); setDifficultyId(...) }, [enc])` depended on the whole `enc` object reference — since `parseEncounters` rebuilds fresh encounter objects on every background sheet sync, this effect re-fired on every sync cycle regardless of whether anything relevant to this specific card actually changed.

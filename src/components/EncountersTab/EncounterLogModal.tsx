@@ -34,7 +34,7 @@ export function EncounterLogModal({ encounterId, encounterName, isOpen, onClose 
         }
       });
     }
-  }, [isOpen, encounterId]);
+  }, [isOpen, encounterId, fetchLogsForEncounter]);
 
   const toggleExpand = (id: string) => {
     setExpandedLogId(prev => (prev === id ? null : id));

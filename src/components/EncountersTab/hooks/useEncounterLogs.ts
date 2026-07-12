@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { readEncounterLogs, deleteEncounterLog } from '../../../services/dbOperations';
 import { getSpreadsheetId, resolveActiveSpreadsheetId } from '../../../services/sheetsService';
 import { STORAGE_KEYS } from '../../../lib/constants';
@@ -9,7 +9,7 @@ export function useEncounterLogs() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchLogsForEncounter = async (encounterId: string): Promise<EncounterLog[]> => {
+  const fetchLogsForEncounter = useCallback(async (encounterId: string): Promise<EncounterLog[]> => {
     setIsLoading(true);
     setError(null);
     try {
@@ -36,7 +36,7 @@ export function useEncounterLogs() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   const deleteLog = async (logId: string): Promise<boolean> => {
     setIsLoading(true);
