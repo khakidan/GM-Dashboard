@@ -93,7 +93,7 @@ export function useSheetSync({ setIsGoogleConnected, onActiveTabChange }: UseShe
       addLog('Step 7: Synching active combatants...');
       let parsedEncounterCombatants: EncounterCombatant[] = [];
       try {
-        const ecResponse = await fetchSheetData(sid, 'Encounter_Combatants!A2:K');
+        const ecResponse = await fetchSheetData(sid, SHEET_RANGES.encounterCombatants);
         parsedEncounterCombatants = parseEncounterCombatants(ecResponse.values || []);
         addLog(`Combatant links loaded: ${parsedEncounterCombatants.length}`);
       } catch (err) {

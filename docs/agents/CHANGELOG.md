@@ -6,6 +6,18 @@ Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed fr
 
 ---
 
+## `useSheetSync.ts` Truncated Fetch Range (Completed)
+
+**The critical correction to an already-"fixed" bug**, discovered during the `src/server/routes/` audit pass. `useSheetSync.ts` fetched `Encounter_Combatants` via a hardcoded `'Encounter_Combatants!A2:K'` — only 11 columns, but the sheet has 14 (A–N) per this file's own record of the schema expansion. This meant the earlier `sheetAdapters.ts` fix (destructuring all 14 columns in `mapEncounterCombatantRowToEC`) was necessary but not sufficient: the parser correctly read all 14 positions, but the raw fetch never delivered columns L–N in the first place, so `npcLegendaryActionsRemaining`/`npcLegendaryResistancesRemaining`/`npcRechargeState` continued silently defaulting to `0`/`{}` on every resync.
+
+**Fix**: replaced the hardcoded literal with `SHEET_RANGES.encounterCombatants` (`lib/constants.ts`), which was already correctly defined as `'Encounter_Combatants!A2:N'` — this file's `NPCs`/`Characters` fetches already used their equivalent named constants (`SHEET_RANGES.npcs`/`SHEET_RANGES.characters`); `Encounter_Combatants` (and `Encounters`, not touched in this fix) were the exceptions using raw literals instead.
+
+**Codebase search turned up one more related, lower-severity finding**: `src/services/dbOperations/shared.ts` (line 211) fetches `'Encounter_Combatants!A2:Z'` — also a hardcoded literal, but wider than the real 14 columns rather than narrower, so it doesn't lose data the way the fixed bug did. Not fixed as part of this change; logged in `ROADMAP.md` as a minor cleanup opportunity for whenever that file is next touched.
+
+Verified: diff checked against the real file — confirmed `initializeDatabaseSchema`'s call site (a separate, still-open removal tracked elsewhere in `ROADMAP.md`) was correctly left untouched, not accidentally caught up in this fix. Raw Batch 3 output confirmed 44/44 tests passing, matching the documented baseline exactly, with the same expected pre-existing validation-noise stderr lines seen in prior runs. `useSheetSync.test.ts` confirmed to not assert the specific range string passed to `fetchSheetData`, so no test changes were needed for this fix.
+
+---
+
 ## OAuth CSRF State Parameter (Completed)
 
 **The second high-severity finding of the Full Codebase Audit.** Neither of `googleAuth.ts`'s two sign-in flows (`signInWithRedirect`, the authorization code flow; `signInWithToken`, the implicit flow) included an OAuth `state` parameter, and `checkAndCaptureToken()` never checked for one on return — a genuine login-CSRF gap, not just a compliance checkbox. Since the resulting tokens get stored in the browser and used to read/write actual campaign data, an attacker could have crafted a link containing their own valid authorization `code`; a victim clicking it would have their session silently adopt the attacker's Google account, with the victim's subsequent campaign edits written to a spreadsheet they don't control.
