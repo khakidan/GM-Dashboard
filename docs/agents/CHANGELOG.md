@@ -6,6 +6,20 @@ Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed fr
 
 ---
 
+## Short-Rest HP Cap (Completed)
+
+Fixed the same underlying mistake in two layers: the actual healing calculation (`useParty.ts`'s `calculateShortRestUpdates`) and the UI's displayed recoverable-HP cap (`ShortRestDialog.tsx`), both of which capped healing at `character.maxHp + tempHp` instead of `effectiveMaxHp(maxHp, tempHpMax)`. Two distinct problems in the old cap: adding `tempHp` to a current-HP ceiling doesn't make sense (temp HP is a separate buffer, not part of the real HP cap), and ignoring `tempHpMax` entirely meant an exhaustion-halved character could be healed straight back to their full, un-halved max during a short rest — a real rules violation, not just cosmetic, and one that would come up in nearly every session given how common short rests are.
+
+**Fix**: both files now use `effectiveMaxHp(maxHp, tempHpMax)` as the ceiling, with `tempHp` removed from the calculation entirely — confirmed consistent with how `effectiveMaxHp` is already used correctly elsewhere in the app (e.g. `CombatantCardHeader.tsx`'s `maxHpCeiling`).
+
+**Test coverage added**, since by direct confirmation nothing in the existing suite exercised an exhaustion-halved short rest before this fix. Three tests added to `usePartyRest.test.ts`: an exhaustion-halved character correctly capped at the halved max, not the base max; a character with active temp HP confirmed to *not* get an inflated ceiling from it (the specific old bug); and a plain, unaffected character confirmed to still heal normally to full — verifying the fix didn't break the common case. All three traced by hand against the actual `effectiveMaxHp` logic before accepting the assertions, not just trusted at face value.
+
+**Process note**: this update to `testing-batches.md` also corrected a gap Claude introduced, not AI Studio — the previous fix (Jack of All Trades multiclass automation, 2 new tests) was verified correct at the time but its test-count update to this file was missed. Caught and corrected together with this fix's own update (`usePartyRest.test.ts` 15→18, Batch 6A 46→51, baseline 712→717) once Dan asked directly whether `testing-batches.md` needed updating.
+
+Verified: diffs checked against real uploaded files at each round, raw Batch 6A output confirmed 51/51 passing.
+
+---
+
 ## Jack of All Trades & Bardic Inspiration Multiclass Automation (Completed)
 
 Two related automation bugs, fixed together since the fix for one already existed correctly in the other (`parseClassString`).

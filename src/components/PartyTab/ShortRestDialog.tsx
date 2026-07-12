@@ -9,6 +9,7 @@ import { DialogShell } from '../ui/DialogShell';
 import { Button } from '../ui/Button';
 import { Accordion } from '../ui/Accordion';
 import { Callout } from '../ui/Callout';
+import { effectiveMaxHp } from '../../lib/conditions';
 
 interface ShortRestDialogProps {
   isOpen: boolean;
@@ -234,7 +235,10 @@ export function ShortRestDialog({ isOpen, characters, onConfirm, onClose }: Shor
 
             const hdStatus = getHitDiceStatus(char.hitDiceConfig || '', char.hitDiceUsed || '{}');
             const remainingCountTotal = hdStatus.reduce((sum, p) => sum + p.remaining, 0);
-            const maxAllowedHP = Math.max(0, char.maxHp - char.currentHp);
+            const maxAllowedHP = Math.max(
+              0,
+              effectiveMaxHp(char.maxHp, char.tempHpMax) - char.currentHp
+            );
 
             return (
               <div

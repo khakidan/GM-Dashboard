@@ -4,7 +4,7 @@ Referenced from the root [AGENTS.md](../../AGENTS.md) (Rule 9: report all 12 bat
 
 This file is maintained with the same discipline as [ROADMAP.md](ROADMAP.md)/[CHANGELOG.md](CHANGELOG.md)/[file-reference.md](file-reference.md) — kept current every session, not left stale. It was split out of `AGENTS.md` specifically because it's frequently-changing data (updated almost every session as tests are added), unlike `AGENTS.md`'s otherwise-stable rules and conventions, and unlike [testing-philosophy.md](testing-philosophy.md)'s stable quality principles. Update the table and baseline below immediately whenever a test count changes.
 
-**Current baseline: 712 tests.**
+**Current baseline: 717 tests.**
 
 Run each batch individually. Never chain with `&&`. Never use glob patterns. Never run all tests at once with `npx vitest run`.
 
@@ -16,7 +16,7 @@ Run each batch individually. Never chain with `&&`. Never use glob patterns. Nev
 | 4 | `src/server/__tests__` + `src/__tests__` | 9 |
 | 5A | ActiveEncounterTab hooks (`.test.ts`) | 48 |
 | 5B | ActiveEncounterTab components (`.test.tsx`) | 26 |
-| 6A | `src/components/PartyTab/__tests__` | 46 |
+| 6A | `src/components/PartyTab/__tests__` | 51 |
 | 6B | `src/components/EncountersTab/__tests__` | 20 |
 | 6C | `src/components/NpcLibraryTab/__tests__` | 14 |
 | 7B-1 | Audio + main dashboard top-level components | 13 |
@@ -42,7 +42,7 @@ npx vitest run src/components/ActiveEncounterTab/__tests__/useBatchActions.test.
 # BATCH 5B — 26 tests
 npx vitest run src/components/ActiveEncounterTab/__tests__/AddNpcCollision.test.tsx src/components/ActiveEncounterTab/__tests__/CasterAttributionDialog.test.tsx src/components/ActiveEncounterTab/__tests__/CombatHeader.test.tsx src/components/ActiveEncounterTab/__tests__/AddCombatantDialog.test.tsx src/components/ActiveEncounterTab/__tests__/CombatantCard.test.tsx src/components/ActiveEncounterTab/__tests__/KeyboardShortcuts.test.tsx src/components/ActiveEncounterTab/__tests__/MultiTargetActionPanel.test.tsx src/components/ActiveEncounterTab/__tests__/NpcReferencePanel.test.tsx src/components/ActiveEncounterTab/__tests__/ShortcutCheatSheet.test.tsx src/components/ActiveEncounterTab/__tests__/combatStarted.test.tsx src/components/ActiveEncounterTab/__tests__/index.test.tsx
 
-# BATCH 6A — 46 tests
+# BATCH 6A — 51 tests
 npx vitest run src/components/PartyTab/__tests__
 
 # BATCH 6B — 20 tests
@@ -66,6 +66,8 @@ npx vitest run src/components/ui/__tests__
 *Note: Batch 3 corrected from 41 → 44 tests (discovered during the useDeathSaves.ts stabilization-counter fix). This was pre-existing staleness — 3 tests were added to `src/hooks/__tests__` in an untracked prior session and never reflected here. No source of the discrepancy beyond "not this session's change" could be confirmed (no git history available in the working copy).*
 
 *Note: Batch 2 corrected from 34 → 33 tests (discovered during the Badge System Audit's Phase 1-4 verification). `npcs.test.ts` was independently confirmed (direct file inspection) to hold exactly 10 tests. A prior AI Studio claim that it "was documented as 11" is not supported by anything in this file — no per-file counts have ever been recorded here, only batch totals — and was not accepted as fact. The real cause of the batch-total drop from 34 to 33 could not be traced (no git history available); nothing in the Badge Audit's actual file changes (`irvOptions.ts`, `conditionDefinitions.ts`, `resourcePools.ts`, `CombatantCardBadges.tsx`, `CombatantCardHeader.tsx`) touches `src/services/`.*
+
+*Note: Batch 6A corrected from 46 → 51 tests in one update, covering two separate missed updates from the bug-fix queue. The Jack of All Trades multiclass fix added 2 tests to `LevelUpDialog.test.tsx` (17→19) that were verified at the time but never reflected here (46→48 was missed). The short-rest HP cap fix immediately after added 3 more to `usePartyRest.test.ts` (15→18, 48→51), and that's when the earlier miss was caught and both corrected together. This was Claude's own tracking gap, not a data-integrity issue with the tests themselves — both sets of new tests were independently verified against the actual production math before being accepted.*
 
 ## Where new test files go
 

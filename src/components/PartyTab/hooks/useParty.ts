@@ -57,9 +57,10 @@ function calculateShortRestUpdates(
   hpToAdd: number, 
   newHitDiceUsed: string
 ): Partial<Character> {
+  const maxHpCeiling = effectiveMaxHp(character.maxHp, character.tempHpMax);
   const newHp = Math.min(
     character.currentHp + hpToAdd,
-    character.maxHp + (character.tempHp ?? 0)
+    maxHpCeiling
   );
 
   const currentPools = parseResourcePools(character.resourcePools || '[]');

@@ -251,6 +251,94 @@ describe('useParty - REST and Recovery', () => {
       const nextState = stateUpdater(mockState);
       expect(nextState.characters[0].currentHp).toBe(100);
     });
+
+    describe('Short Rest HP Recovery Caps', () => {
+      it('caps short rest healing at the active exhaustion-halved max HP', async () => {
+        const updateStateSpy = vi.fn();
+        const char = { 
+          id: 'pc-1', 
+          currentHp: 10, 
+          maxHp: 40, 
+          tempHpMax: 20, 
+          resourcePools: '[]' 
+        };
+        const mockState = { characters: [char] };
+
+        vi.mocked(useAppState).mockReturnValue({
+          state: mockState as any,
+          updateState: updateStateSpy,
+          getSnapshot: vi.fn(),
+        } as any);
+        vi.mocked(getSnapshot).mockReturnValue(mockState as any);
+
+        const { result } = renderHook(() => useParty());
+
+        await act(async () => {
+          await result.current.handleShortRest([{ characterId: 'pc-1', hpToAdd: 30, newHitDiceUsed: '{}' }]);
+        });
+
+        const stateUpdater = updateStateSpy.mock.calls[0][0];
+        const nextState = stateUpdater(mockState);
+        expect(nextState.characters[0].currentHp).toBe(20);
+      });
+
+      it('does NOT inflate the healing ceiling when tempHp is set', async () => {
+        const updateStateSpy = vi.fn();
+        const char = { 
+          id: 'pc-1', 
+          currentHp: 35, 
+          maxHp: 40, 
+          tempHp: 5, 
+          resourcePools: '[]' 
+        };
+        const mockState = { characters: [char] };
+
+        vi.mocked(useAppState).mockReturnValue({
+          state: mockState as any,
+          updateState: updateStateSpy,
+          getSnapshot: vi.fn(),
+        } as any);
+        vi.mocked(getSnapshot).mockReturnValue(mockState as any);
+
+        const { result } = renderHook(() => useParty());
+
+        await act(async () => {
+          await result.current.handleShortRest([{ characterId: 'pc-1', hpToAdd: 10, newHitDiceUsed: '{}' }]);
+        });
+
+        const stateUpdater = updateStateSpy.mock.calls[0][0];
+        const nextState = stateUpdater(mockState);
+        expect(nextState.characters[0].currentHp).toBe(40);
+      });
+
+      it('heals normally up to full maxHp when there is no exhaustion and no tempHp', async () => {
+        const updateStateSpy = vi.fn();
+        const char = { 
+          id: 'pc-1', 
+          currentHp: 25, 
+          maxHp: 40, 
+          resourcePools: '[]' 
+        };
+        const mockState = { characters: [char] };
+
+        vi.mocked(useAppState).mockReturnValue({
+          state: mockState as any,
+          updateState: updateStateSpy,
+          getSnapshot: vi.fn(),
+        } as any);
+        vi.mocked(getSnapshot).mockReturnValue(mockState as any);
+
+        const { result } = renderHook(() => useParty());
+
+        await act(async () => {
+          await result.current.handleShortRest([{ characterId: 'pc-1', hpToAdd: 10, newHitDiceUsed: '{}' }]);
+        });
+
+        const stateUpdater = updateStateSpy.mock.calls[0][0];
+        const nextState = stateUpdater(mockState);
+        expect(nextState.characters[0].currentHp).toBe(35);
+      });
+    });
   });
 
   describe('Workflows - Database Integrity', () => {
