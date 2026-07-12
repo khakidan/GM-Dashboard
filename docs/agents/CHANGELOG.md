@@ -6,6 +6,20 @@ Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed fr
 
 ---
 
+## `useEncounters.ts` Full-State Rollback (Completed — 1 of 3)
+
+The first of three known instances of the same pattern (`useParty.ts` and `useNpcLibrary.ts` are the other two, still open). All 3 handlers (`handleCreateEncounter`, `handleDelete`, `handleUpdateEncounter`) captured `previousState = state` — the entire app store — and rolled back everything on a failed write, discarding any unrelated concurrent updates elsewhere in the app (e.g. HP changes in an active encounter) that happened during the async write window.
+
+**Investigation-first, same discipline as other fixes**: before writing the fix, a read-only prompt confirmed the exact current text of all 3 handlers and — critically — exactly which state slice(s) each one's own optimistic update actually touches, since a correct partial rollback needs to restore only what each handler itself modified, not a one-size-fits-all guess. Confirmed: `handleCreateEncounter` and `handleUpdateEncounter` only ever touch `encounters`; `handleDelete` touches both `encounters` and `encounterCombatants` (it optimistically cleans up the deleted encounter's junction rows too, mirroring the real cascade delete that happens server-side).
+
+**Fix**: each handler's rollback now reconstructs state as `prev => ({ ...prev, <only the slice(s) that handler touches>: previousState.<slice> })` instead of replacing the whole state tree.
+
+**Test fix**: only one existing test needed updating — it had asserted `updateStateSpy` was called with the raw `initialState` object directly, which no longer holds now that the rollback passes an updater function instead of a plain object. Updated to extract and invoke the function against `initialState` before comparing. A second existing rollback test needed no changes at all, since it was already written in a flexible style that handles both a function and a plain object. Verified by hand that both fixed rollback closures, applied to their respective test's `initialState`, genuinely reconstruct a deep-equal copy of the original state — not just passing by coincidence.
+
+Verified: diff checked against the real uploaded file, raw Batch 6B output confirmed 20/20 passing, matching the documented baseline exactly.
+
+---
+
 ## 4 Systemic Invalid-Tailwind-Class Patterns (Completed)
 
 Fixed as one coordinated pass across 6 files, since each was a genuine cross-file recurring pattern rather than an isolated typo — grouped by pattern, not by file, to avoid treating the same root mistake as several unrelated bugs.

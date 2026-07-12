@@ -51,7 +51,7 @@ export function useEncounters({ onSelectEncounter, onSyncRequested }: UseEncount
       onSyncRequested?.()?.catch(console.error);
     } catch (error) {
       // 4a. Roll back to snapshot on failure
-      updateState(previousState);
+      updateState(prev => ({ ...prev, encounters: previousState.encounters }));
       
       // 4b. Set local error state
       setGlobalError('Unable to create a new encounter at this time. Please try again.');
@@ -87,7 +87,7 @@ export function useEncounters({ onSelectEncounter, onSyncRequested }: UseEncount
       onSyncRequested?.()?.catch(console.error);
     } catch (error) {
       // 4a. Roll back to snapshot on failure
-      updateState(previousState);
+      updateState(prev => ({ ...prev, encounters: previousState.encounters, encounterCombatants: previousState.encounterCombatants }));
       
       // 4b. Set local error state
       setGlobalError(`Failed to delete "${enc.name}". It might be heavily linked to combatants.`);
@@ -127,7 +127,7 @@ export function useEncounters({ onSelectEncounter, onSyncRequested }: UseEncount
         difficultyId
       );
     } catch (err) {
-      updateState(previous);
+      updateState(prev => ({ ...prev, encounters: previous.encounters }));
       toast.error(
         'Failed to update encounter.'
       );

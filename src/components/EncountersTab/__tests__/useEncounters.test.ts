@@ -164,7 +164,9 @@ describe('useEncounters', () => {
 
     // Optimistic update + rollback
     expect(updateStateSpy).toHaveBeenCalledTimes(2);
-    expect(updateStateSpy).toHaveBeenLastCalledWith(initialState);
+    const lastCall = updateStateSpy.mock.calls[1][0];
+    const restoredState = typeof lastCall === 'function' ? lastCall(initialState) : lastCall;
+    expect(restoredState).toEqual(initialState);
   });
 
   it('handleUpdateEncounter updates encounter in state and calls the DB', async () => {
