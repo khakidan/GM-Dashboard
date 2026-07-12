@@ -1,0 +1,44 @@
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.7 [39m[90m/app/applet[39m
+
+ [32m✓[39m src/components/PartyTab/__tests__/LevelUpDialog.test.tsx [2m([22m[2m19 tests[22m[2m)[22m[33m 1091[2mms[22m[39m
+ [32m✓[39m src/components/PartyTab/__tests__/NewPlayerDialog.test.tsx [2m([22m[2m5 tests[22m[2m)[22m[33m 308[2mms[22m[39m
+ [32m✓[39m src/components/PartyTab/__tests__/ShortRestDialog.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 261[2mms[22m[39m
+ [32m✓[39m src/components/PartyTab/__tests__/LongRestDialog.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 230[2mms[22m[39m
+ [32m✓[39m src/components/PartyTab/__tests__/CharacterCardExpanded.test.tsx [2m([22m[2m2 tests[22m[2m)[22m[32m 142[2mms[22m[39m
+ [32m✓[39m src/components/PartyTab/__tests__/CharacterCard.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 71[2mms[22m[39m
+ [32m✓[39m src/components/PartyTab/__tests__/usePartyRest.test.ts [2m([22m[2m19 tests[22m[2m)[22m[32m 60[2mms[22m[39m
+ [32m✓[39m src/components/PartyTab/__tests__/PartyTab.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 117[2mms[22m[39m
+[90mstderr[2m | src/components/PartyTab/__tests__/usePartyCharacterCrud.test.ts[2m > [22m[2museParty - Character CRUD[2m > [22m[2mhandleUpdate rolls back state when the DB write fails
+[22m[39m[DB Error] Error: Fail
+    at [90m/app/applet/[39msrc/components/PartyTab/__tests__/usePartyCharacterCrud.test.ts:50:52
+    at [90mfile:///app/applet/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+    at [90mfile:///app/applet/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+    at [90mfile:///app/applet/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel [90m(file:///app/applet/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+    at [90mfile:///app/applet/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+    at new Promise (<anonymous>)
+    at runWithTimeout [90m(file:///app/applet/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+    at [90mfile:///app/applet/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+
+[90mstderr[2m | src/components/PartyTab/__tests__/usePartyCharacterCrud.test.ts[2m > [22m[2museParty - Character CRUD[2m > [22m[2mLevel Up Flow[2m > [22m[2mhandleUpdate includes level-up fields
+[22m[39m[DB Error] Error: Fail
+    at [90m/app/applet/[39msrc/components/PartyTab/__tests__/usePartyCharacterCrud.test.ts:50:52
+    at [90mfile:///app/applet/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+    at [90mfile:///app/applet/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+    at [90mfile:///app/applet/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel [90m(file:///app/applet/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+    at [90mfile:///app/applet/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+    at new Promise (<anonymous>)
+    at runWithTimeout [90m(file:///app/applet/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+    at [90mfile:///app/applet/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+
+ [32m✓[39m src/components/PartyTab/__tests__/usePartyCharacterCrud.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 43[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m9 passed[39m[22m[90m (9)[39m
+[2m      Tests [22m [1m[32m53 passed[39m[22m[90m (53)[39m
+[2m   Start at [22m 19:16:47
+[2m   Duration [22m 22.63s[2m (transform 1.19s, setup 0ms, import 6.50s, tests 2.32s, environment 11.62s)[22m
+

@@ -14,6 +14,7 @@ import { CharacterCardExpanded } from './CharacterCardExpanded';
 
 export interface CharacterCardProps {
   character: Character; 
+  statuses: Record<string, string>;
   isSyncing: boolean;
   isExpanded: boolean;
   onToggleExpand: () => void;
@@ -24,6 +25,7 @@ export interface CharacterCardProps {
 
 export const CharacterCard: React.FC<CharacterCardProps> = ({ 
   character, 
+  statuses,
   isSyncing,
   isExpanded,
   onToggleExpand,
@@ -87,6 +89,7 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({
       <CharacterCardHeader
         characterName={character.characterName}
         playerName={character.playerName}
+        statuses={statuses}
         className={""}
         healthStatus={healthStatus}
         isActive={character.statusId === 1}

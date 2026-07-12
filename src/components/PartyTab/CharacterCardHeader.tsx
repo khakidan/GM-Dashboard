@@ -19,6 +19,7 @@ const healthStatusMap: Record<string, 'emerald' | 'green' | 'yellow' | 'red' | '
 export interface CharacterCardHeaderProps {
   characterName: string;
   playerName: string;
+  statuses: Record<string, string>;
   className?: string; // Character's D&D class badge or other styling class
   healthStatus: { label: string; color: string };
   isActive: boolean;
@@ -41,6 +42,7 @@ export interface CharacterCardHeaderProps {
 export const CharacterCardHeader: React.FC<CharacterCardHeaderProps> = ({
   characterName,
   playerName,
+  statuses,
   className,
   healthStatus,
   isActive,
@@ -97,18 +99,19 @@ export const CharacterCardHeader: React.FC<CharacterCardHeaderProps> = ({
                 value={statusId}
                 onChange={(e) => {
                   const id = parseInt(e.target.value, 10);
-                  let statusName = "Unknown";
-                  if (id === 1) statusName = "Active";
-                  if (id === 2) statusName = "Absent";
-                  if (id === 3) statusName = "Dead";
+                  const statusName = statuses[e.target.value] ?? "Unknown";
                   onStatusChange(id, statusName);
                 }}
                 disabled={isSyncing}
                 className="text-xs uppercase tracking-widest font-bold pl-3 pr-8 py-1.5 bg-transparent border-none outline-none cursor-pointer appearance-none disabled:opacity-50 text-inherit"
               >
-                <option value={1}>Active</option>
-                <option value={2}>Absent</option>
-                <option value={3}>Dead</option>
+                {Object.entries(statuses)
+                  .sort(([a], [b]) => Number(a) - Number(b))
+                  .map(([id, label]) => (
+                    <option key={id} value={Number(id)}>
+                      {label}
+                    </option>
+                  ))}
               </select>
             </Badge>
             <div className="absolute right-2.5 pointer-events-none text-xs font-bold opacity-40">

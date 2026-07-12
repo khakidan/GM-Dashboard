@@ -6,7 +6,7 @@ Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed fr
 
 ---
 
-## Status Labeling Consistency — Part 1 of 2 (`IdentityTab.tsx`/`NewPlayerDialog.tsx`) (Completed)
+## Status Labeling Consistency (Completed)
 
 Originally flagged as a simple 2-file label mismatch (`IdentityTab.tsx` vs. `CharacterCardHeader.tsx`), investigation before fixing surfaced something more significant: a third drifting spot (`NewPlayerDialog.tsx`, independently hardcoding yet another version), and — more importantly — confirmation that **all three completely ignore the app's actual source of truth for this data**. This app already fetches a real `statuses` mapping from the GM's own `Status` sheet via `parseStatuses` during sync, meant to be authoritative per the app's whole "Google Sheets is source of truth" design, but every UI dropdown hardcoded its own static strings instead of reading from it.
 
@@ -18,9 +18,13 @@ Originally flagged as a simple 2-file label mismatch (`IdentityTab.tsx` vs. `Cha
 
 **Process note**: two follow-up responses in this fix skipped providing the raw test output I'd explicitly asked for, offering summary claims instead ("tests passing," "ready for next step"). Both times, this was caught and the actual raw output was requested and obtained before proceeding — consistent with not accepting summary claims as verification anywhere else in this process.
 
-**Part 2 (`CharacterCardHeader.tsx`) remains open** — logged in `ROADMAP.md`, not yet prompted. That component needs the same `statuses` data threaded down two levels (`PartyTab.tsx` → `CharacterCard.tsx` → `CharacterCardHeader.tsx`) to stay consistent with it being a prop-driven component rather than importing `useAppState()` directly.
+**Part 2 (`CharacterCardHeader.tsx`) — completed.** Threaded `statuses` through the full chain: `PartyTab.tsx` (which already had `useAppState()` access, computed the same `DEFAULT_STATUSES`-fallback pattern as `NewPlayerDialog.tsx`) → `CharacterCard.tsx` (pure pass-through, no logic of its own) → `CharacterCardHeader.tsx` (replaced the hardcoded `if (id === 1) statusName = "Active"` chain and the 3 hardcoded `<option>` elements with the same dynamic-lookup-and-map pattern already established in `IdentityTab.tsx`). Each of the three files' diffs was independently verified against real uploaded files before proceeding to the next — including requesting `CharacterCard.tsx` specifically, since it wasn't included in the first upload of this round and is the middle link in the chain.
 
-Verified: all diffs checked against real uploaded files across every round. Raw Batch 6A output confirmed 53/53 passing throughout, matching the documented baseline exactly (no test count change expected or seen, since additions were either required mock updates or an assertion added to an existing test, not new test cases).
+One existing test (`CharacterCard.test.tsx`) broke as expected once the new required `statuses` prop was introduced — correctly left unfixed and shown as a genuine raw failure first, per instructions, rather than silently patched in the same turn. Fixed as a separate, explicitly-approved step: added the same `statuses` mock object already used in the sibling test files to this one's `defaultProps`.
+
+**This closes out the status labeling consistency fix in its entirety** — all three components (`IdentityTab.tsx`, `NewPlayerDialog.tsx`, `CharacterCardHeader.tsx`) now correctly read from the app's real, sheet-sourced `statuses` data with a consistent fallback, rather than three independently hardcoded and drifting string lists.
+
+Verified: all diffs across both parts checked against real uploaded files. Raw Batch 6A output confirmed the expected single failure after the prop-threading change, then a full 53/53 pass after the test fix, matching the documented baseline exactly throughout.
 
 ---
 

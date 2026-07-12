@@ -11,9 +11,11 @@ import { LongRestDialog } from './PartyTab/LongRestDialog';
 import { ShortRestDialog } from './PartyTab/ShortRestDialog';
 import { cn } from '../lib/utils';
 import { DashboardLayout } from './ui/DashboardLayout';
+import { DEFAULT_STATUSES } from '../lib/constants';
 
 export function PartyTab() {
   const { state: appState, updateState } = useAppState();
+  const statuses = Object.keys(appState.statuses).length > 0 ? appState.statuses : DEFAULT_STATUSES;
   const {
     state,
     syncingId,
@@ -105,6 +107,7 @@ export function PartyTab() {
             <CharacterCard 
               key={char.id} 
               character={char} 
+              statuses={statuses}
               isSyncing={syncingId === char.id}
               isExpanded={expandedIds.has(char.id)}
               onToggleExpand={() => toggleExpand(char.id)}

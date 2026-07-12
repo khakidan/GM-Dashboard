@@ -32,6 +32,7 @@ describe('CharacterCard', () => {
 
   const defaultProps = {
     character: mockCharacter,
+    statuses: { '1': 'Active', '2': 'Inactive', '3': 'Deceased' },
     isSyncing: false,
     isExpanded: false,
     onToggleExpand: vi.fn(),
