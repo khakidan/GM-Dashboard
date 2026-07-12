@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Copy, Check } from 'lucide-react';
+import { toast } from 'sonner';
 import { EncounterLog, CombatEvent } from '../../lib/combatLog';
 import { CombatEventRow } from './CombatEventRow';
 import { Button } from '../ui/Button';
@@ -18,6 +19,9 @@ export function EncounterLogDetails({ log }: EncounterLogDetailsProps) {
     navigator.clipboard.writeText(log.transcript || '').then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    }).catch(err => {
+      console.error('Failed to copy transcript:', err);
+      toast.error('Failed to copy transcript to clipboard');
     });
   };
 

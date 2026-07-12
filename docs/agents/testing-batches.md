@@ -4,7 +4,7 @@ Referenced from the root [AGENTS.md](../../AGENTS.md) (Rule 9: report all 12 bat
 
 This file is maintained with the same discipline as [ROADMAP.md](ROADMAP.md)/[CHANGELOG.md](CHANGELOG.md)/[file-reference.md](file-reference.md) — kept current every session, not left stale. It was split out of `AGENTS.md` specifically because it's frequently-changing data (updated almost every session as tests are added), unlike `AGENTS.md`'s otherwise-stable rules and conventions, and unlike [testing-philosophy.md](testing-philosophy.md)'s stable quality principles. Update the table and baseline below immediately whenever a test count changes.
 
-**Current baseline: 727 tests.**
+**Current baseline: 728 tests.**
 
 Run each batch individually. Never chain with `&&`. Never use glob patterns. Never run all tests at once with `npx vitest run`.
 
@@ -17,7 +17,7 @@ Run each batch individually. Never chain with `&&`. Never use glob patterns. Nev
 | 5A | ActiveEncounterTab hooks (`.test.ts`) | 49 |
 | 5B | ActiveEncounterTab components (`.test.tsx`) | 26 |
 | 6A | `src/components/PartyTab/__tests__` | 54 |
-| 6B | `src/components/EncountersTab/__tests__` | 22 |
+| 6B | `src/components/EncountersTab/__tests__` | 23 |
 | 6C | `src/components/NpcLibraryTab/__tests__` | 14 |
 | 7B-1 | Audio + main dashboard top-level components | 13 |
 | 7B-2 | Other top-level components | 4 |
@@ -45,7 +45,7 @@ npx vitest run src/components/ActiveEncounterTab/__tests__/AddNpcCollision.test.
 # BATCH 6A — 54 tests
 npx vitest run src/components/PartyTab/__tests__
 
-# BATCH 6B — 22 tests
+# BATCH 6B — 23 tests
 npx vitest run src/components/EncountersTab/__tests__
 
 # BATCH 6C — 14 tests

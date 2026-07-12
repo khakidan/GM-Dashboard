@@ -6,6 +6,34 @@ Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed fr
 
 ---
 
+## `EncounterCard.tsx` `name`/`location` Reset Effect (Completed, Narrower Scope Than Originally Described)
+
+`useEffect(() => { setName(...); setLocation(...); setDifficultyId(...) }, [enc])` depended on the whole `enc` object reference — since `parseEncounters` rebuilds fresh encounter objects on every background sheet sync, this effect re-fired on every sync cycle regardless of whether anything relevant to this specific card actually changed.
+
+**Fix**: narrowed the dependency array to the specific fields the effect actually needs — `[enc.name, enc.location, enc.difficultyId]` — so it only re-runs when one of those values genuinely changes, not whenever an unrelated field changes or the object simply gets rebuilt with identical data.
+
+**Important correction to the original finding's framing, surfaced while verifying the added test**: the original finding described this as silently wiping a GM's in-progress typing on every background sync. Tracing through the actual mechanics revealed this isn't quite right. `DebouncedInput`'s uncommitted local text is decoupled from `EncounterCard`'s own `name`/`location` state until blur; and React's built-in optimization skips re-rendering when a state setter is called with a value identical to the current one. That means the specific "reference changed but the underlying value didn't" case — the common, everyday background-sync scenario — likely wasn't causing observable data loss even before this fix, since the redundant `setName(enc.name)` call would already have been a no-op. **What this fix does NOT solve**: a genuinely concurrent edit to the same field (e.g. renaming an encounter directly in the sheet, or from another device/tab, while actively mid-typing a different value into the same field on this device) would still cause a real reset under the fixed code too, since the field's value did actually change in that case — that's a fundamentally harder problem (the effect would need to know the field is currently focused) that wasn't in scope here.
+
+**Discussed directly and accepted as sufficient**: given this is a solo-GM application, and the sheet isn't typically edited directly except when there's a specific need to, the residual "concurrent edit while typing" scenario is low-probability enough not to warrant further work right now.
+
+**Test coverage added** confirming the object-reference-only case no longer triggers a reset, though it's worth noting for the record that this specific test likely wouldn't have distinguished old vs. new behavior on its own (the same React same-value bailout that likely already protected this scenario pre-fix would have made the test pass either way) — it documents the intended behavior correctly, even if it isn't a strict regression-proof for this particular narrow case.
+
+Verified: diff checked against the real uploaded file. Raw Batch 6B output confirmed 23/23 passing (22→23).
+
+---
+
+## `EncounterLogDetails.tsx` Clipboard Error Handling (Completed)
+
+`handleCopy`'s `navigator.clipboard.writeText(...)` had no `.catch()` — a rejected clipboard write (e.g. restricted permissions in an embedded/iframe context) became an unhandled promise rejection with no user-facing feedback.
+
+**Fix**: added a `.catch()` that logs the error and shows `toast.error(...)`, consistent with the `sonner`-based error feedback pattern already used elsewhere in this directory.
+
+No test coverage added — discussed and agreed to skip, given this is a defensive-only fix for a rare browser-permission edge case, not data loss or core game mechanics.
+
+Verified: diff checked against the real uploaded file. Raw Batch 6B output confirmed 22/22 passing, matching the documented baseline exactly (no test count change, correctly, since no new tests were added).
+
+---
+
 ## `CombatEventRow.tsx` Missing `'death-save'` Render Case (Completed)
 
 `'death-save'` had no case in `CombatEventRow.tsx`'s render switch, falling to `default: return null` — death-save events were genuinely logged (`useDeathSaves.ts` calls `addCombatEvent({ type: 'death-save', ... })`) but completely invisible in the structured encounter log view.

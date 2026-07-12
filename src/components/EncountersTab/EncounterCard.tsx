@@ -50,7 +50,7 @@ export const EncounterCard: React.FC<EncounterCardProps> = ({
     setName(enc.name || '');
     setLocation(enc.location || '');
     setDifficultyId(enc.difficultyId);
-  }, [enc]);
+  }, [enc.name, enc.location, enc.difficultyId]);
 
   const handleUpdate = async (newDifficultyId?: number) => {
     const trimmedName = name.trim();

@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom/vitest';
 import React from 'react';
-import { render, screen, cleanup } from '@testing-library/react';
+import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { EncounterCard } from '../EncounterCard';
 
@@ -52,5 +52,22 @@ describe('EncounterCard', () => {
 
     rerender(<EncounterCard {...defaultProps} isCompleted={false} />);
     expect(screen.getByTitle('View Past Encounter Logs')).not.toBeDisabled();
+  });
+
+  it('persists uncommitted input text when enc reference changes but values stay same', () => {
+    const { rerender } = render(<EncounterCard {...defaultProps} />);
+    
+    const nameInput = screen.getByPlaceholderText('Encounter Name') as HTMLInputElement;
+    
+    // 1. Simulate typing without blurring
+    fireEvent.change(nameInput, { target: { value: 'New Typed Name' } });
+    expect(nameInput.value).toBe('New Typed Name');
+    
+    // 2. Re-render with new object reference but same data
+    const newEnc = { ...mockEnc };
+    rerender(<EncounterCard {...defaultProps} enc={newEnc} />);
+    
+    // 3. Assert value is preserved (not reset to 'Goblin Ambush')
+    expect(nameInput.value).toBe('New Typed Name');
   });
 });
