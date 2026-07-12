@@ -6,6 +6,18 @@ Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed fr
 
 ---
 
+## `NewPlayerDialog.tsx` Hit-Dice Validation (Completed)
+
+`NewPlayerDialog.tsx`'s `isHitDiceValid` used its own regex (`/^\d+d\d+(\+\d+d\d+)*$/`), accepting any die size, while the actual parser used everywhere this data is later read (`parseHitDiceConfig` in `hitDice.ts`) is strict — only d6/8/10/12. A GM could create a new character with a hit dice config this dialog said was valid, which then silently failed to parse anywhere it was actually used.
+
+**Fix**: replaced the dialog's own regex with a direct call to the real parser — `parseHitDiceConfig(formData.hitDiceConfig).length > 0` — rather than writing a second, corrected regex that could drift out of sync again later. No dedicated boolean validator existed in `hitDice.ts`; reusing the actual parsing function directly, rather than introducing a third slightly-different implementation of the same rule, was confirmed as the right call before implementing.
+
+**Process note**: the first response to this fix's prompt skipped every verification step that had been explicitly requested (the "before" confirmation, the reasoning for the chosen approach, the diff, the test run, and the raw output) despite all of them being asked for directly in the original prompt. Caught and required before proceeding — all 5 were then provided and verified. No test coverage was added for this one specifically, by choice, after weighing it the same way as several recent fixes.
+
+Verified: diff checked against the real uploaded file (already matched what was independently observed before the correction was even requested). Confirmed no existing test relies on the old, looser regex accepting an invalid die size — the one form-submission test in this file leaves `hitDiceConfig` empty, correctly short-circuited by the `.trim() === ''` check regardless of the stricter validation. Raw Batch 6A output confirmed 53/53 passing, matching the documented baseline exactly.
+
+---
+
 ## Status Labeling Consistency (Completed)
 
 Originally flagged as a simple 2-file label mismatch (`IdentityTab.tsx` vs. `CharacterCardHeader.tsx`), investigation before fixing surfaced something more significant: a third drifting spot (`NewPlayerDialog.tsx`, independently hardcoding yet another version), and — more importantly — confirmation that **all three completely ignore the app's actual source of truth for this data**. This app already fetches a real `statuses` mapping from the GM's own `Status` sheet via `parseStatuses` during sync, meant to be authoritative per the app's whole "Google Sheets is source of truth" design, but every UI dropdown hardcoded its own static strings instead of reading from it.

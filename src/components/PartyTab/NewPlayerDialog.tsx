@@ -20,6 +20,7 @@ import {
   ResourcePool,
   serializeResourcePools,
 } from '../../lib/resourcePools';
+import { parseHitDiceConfig } from '../../lib/hitDice';
 import { ResourcePoolManager } from '../ui/ResourcePoolManager';
 import { usePlayerFormAutomation } from '../../hooks/usePlayerFormAutomation';
 import { DialogShell } from '../ui/DialogShell';
@@ -84,7 +85,7 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
   });
 
   const isTab1Valid = formData.playerName.trim() !== '' && formData.characterName.trim() !== '';
-  const isHitDiceValid = formData.hitDiceConfig.trim() === '' || /^\d+d\d+(\+\d+d\d+)*$/.test(formData.hitDiceConfig.trim());
+  const isHitDiceValid = formData.hitDiceConfig.trim() === '' || parseHitDiceConfig(formData.hitDiceConfig).length > 0;
   const isFormValid = isTab1Valid && isHitDiceValid;
 
   const handleSubmit = (e: React.FormEvent) => {
