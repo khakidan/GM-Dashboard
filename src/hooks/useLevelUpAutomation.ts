@@ -8,6 +8,7 @@ export function useLevelUpAutomation(
   isOpen: boolean,
   newLevel: number,
   character: Character,
+  inProgressClass: string,
   hasManuallyToggledJack: boolean,
   setPoolEdits: React.Dispatch<React.SetStateAction<PoolEdit[]>>,
   setHasJackOfAllTrades: React.Dispatch<React.SetStateAction<boolean>>
@@ -16,7 +17,7 @@ export function useLevelUpAutomation(
     if (isOpen) {
       const currentPools = parseResourcePools(character.resourcePools || '[]');
       const suggestions = getResourcePoolSuggestions(
-        character.class ?? '',
+        inProgressClass,
         newLevel,
         currentPools
       );
@@ -32,16 +33,33 @@ export function useLevelUpAutomation(
     } else {
       setPoolEdits([]);
     }
-  }, [isOpen, newLevel, character.class, character.resourcePools]);
+  }, [isOpen, newLevel, inProgressClass, character.resourcePools]);
 
   useEffect(() => {
     if (isOpen && !hasManuallyToggledJack) {
-      const isBard = parseClassString(character.class || '').some(c => 
-        c.toLowerCase().trim() === 'bard'
-      );
-      if (character.level === 1 && newLevel === 2 && isBard) {
+      const isBardClass = (className: string) => className.toLowerCase().trim().startsWith('bard');
+
+      const classesBefore = parseClassString(character.class || '');
+      const bardIndexBefore = classesBefore.findIndex(c => isBardClass(c));
+      let bardLevelBefore = 0;
+      if (bardIndexBefore !== -1) {
+        const perClass = Math.floor(character.level / classesBefore.length);
+        const remainder = character.level % classesBefore.length;
+        bardLevelBefore = perClass + (bardIndexBefore < remainder ? 1 : 0);
+      }
+
+      const classesAfter = parseClassString(inProgressClass);
+      const bardIndexAfter = classesAfter.findIndex(c => isBardClass(c));
+      let bardLevelAfter = 0;
+      if (bardIndexAfter !== -1) {
+        const perClass = Math.floor(newLevel / classesAfter.length);
+        const remainder = newLevel % classesAfter.length;
+        bardLevelAfter = perClass + (bardIndexAfter < remainder ? 1 : 0);
+      }
+
+      if (bardLevelBefore < 2 && bardLevelAfter >= 2) {
         setHasJackOfAllTrades(true);
       }
     }
-  }, [isOpen, newLevel, character.level, character.class, hasManuallyToggledJack]);
+  }, [isOpen, newLevel, character.level, character.class, inProgressClass, hasManuallyToggledJack]);
 }

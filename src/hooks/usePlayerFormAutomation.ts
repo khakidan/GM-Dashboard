@@ -1,5 +1,5 @@
 import { useEffect, MutableRefObject } from 'react';
-import { suggestHitDiceConfig } from '../lib/hitDice';
+import { suggestHitDiceConfig, parseClassString } from '../lib/hitDice';
 import {
   calculateModifier,
   proficiencyBonusFromLevel,
@@ -65,7 +65,8 @@ export function usePlayerFormAutomation({
 
   // Update Bardic Inspiration based on CHA modifier
   useEffect(() => {
-    if (formData.class !== 'Bard') return;
+    const isBard = parseClassString(formData.class || '').some(c => c.toLowerCase().trim().startsWith('bard'));
+    if (!isBard) return;
     if (poolsCustomized.current) return;
 
     const chaScore = typeof formData.abilityScores?.CHA === 'number'

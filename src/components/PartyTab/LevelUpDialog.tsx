@@ -100,10 +100,15 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
     }
   }, [character, isOpen]);
 
+  const inProgressClass = levelUpOption === 'newClass'
+    ? (character.class ? `${character.class}/${newClassName.trim()}` : newClassName.trim())
+    : (character.class || '');
+
   useLevelUpAutomation(
     isOpen,
     newLevel,
     character,
+    inProgressClass,
     hasManuallyToggledJack,
     setPoolEdits,
     setHasJackOfAllTrades

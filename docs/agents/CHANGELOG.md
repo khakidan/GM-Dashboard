@@ -6,6 +6,24 @@ Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed fr
 
 ---
 
+## Jack of All Trades & Bardic Inspiration Multiclass Automation (Completed)
+
+Two related automation bugs, fixed together since the fix for one already existed correctly in the other (`parseClassString`).
+
+**Jack of All Trades (`useLevelUpAutomation.ts`)** — the original check (`character.level === 1 && newLevel === 2 && isBard`) missed multi-level jumps and any multiclass character whose overall level wasn't exactly 1. This needed real investigation, not a simple patch, since this app derives per-class levels dynamically from a single `/`-separated class string and total level (even distribution with remainder going to earlier classes) — there's no stored "Bard level" field to check directly.
+
+**Investigation surfaced a deeper problem than the original finding described**: the correct trigger is "the character's derived Bard level crosses from below 2 to at-or-above 2" — but `useLevelUpAutomation.ts` only ever had access to `character.class` (the class string from *before* the level-up dialog opened), with no visibility into an in-progress multiclass selection happening in the same dialog session (`LevelUpDialog.tsx`'s separate `levelUpOption`/`newClassName` state). This meant even a correctly-written "derived Bard level" check would still fail to fire for a character multiclassing into Bard for the first time and reaching Bard level 2 in that same transaction (e.g. Fighter 3 → Fighter 3/Bard 2) — confirmed as a real, reachable UI path before writing any fix.
+
+**Fix**: threaded a new `inProgressClass` parameter from `LevelUpDialog.tsx` (computed using the same logic already used there for `finalClass`) into `useLevelUpAutomation.ts`, used consistently in *both* effects in that file — not just Jack of All Trades. The resource-pool-suggestion effect had the identical blind spot and would have kept lagging behind an in-progress multiclass selection had it been left on `character.class` while only the other effect was fixed. The Jack of All Trades trigger itself now computes Bard's derived level before (using `character.class`) and after (using `inProgressClass`) the transaction, using the same even-distribution-with-remainder math already established elsewhere in `LevelUpDialog.tsx`.
+
+**Bardic Inspiration (`usePlayerFormAutomation.ts`)** — straightforward once the pattern was established: `formData.class !== 'Bard'` (exact match) replaced with a `parseClassString`-based check consistent with the Jack of All Trades fix.
+
+**Test coverage added deliberately, not as padding** — discussed directly before adding: the existing 17 `LevelUpDialog.test.tsx` tests passed unchanged after the fix, meaning nothing in the suite actually exercised the specific edge case that was broken. Two new tests added: multiclassing Fighter 1 into Bard while leveling to a total that distributes to Fighter 2/Bard 2 (crosses the threshold, `jackOfAllTrades` should be `true`) and the same scenario landing at Fighter 2/Bard 1 instead (doesn't cross, should stay `false`). Verified by hand, not just by trusting the assertions, that both tests' expected level distributions are mathematically correct against the app's actual even-distribution formula.
+
+Verified throughout: diffs checked against real uploaded files at each round. `LevelUpDialog.test.tsx` went from 17→19 tests, Batch 6A overall from 46→48, both confirmed via raw output.
+
+---
+
 ## `useMoodPresets.ts` Memoization — Completes the `GMDashboard.tsx` Compounding Chain (Completed)
 
 The second link in the compounding performance chain rooted in `GMDashboard.tsx` (the first, `useAppState.ts`'s selector, was already fixed). `useDashboardShortcuts.ts`'s second `useEffect` depends on the whole `moodPresets` object returned by `useMoodPresets()`; that object was reconstructed fresh on every render, tearing down and re-adding the effect's global `keydown`/`open-command-palette` window listeners every time.

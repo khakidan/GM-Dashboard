@@ -613,5 +613,109 @@ describe('LevelUpDialog', () => {
       const profs = JSON.parse(call.proficiencies);
       expect(profs.jackOfAllTrades).toBe(false);
     });
+
+    it('auto-checks jackOfAllTrades when multiclassing into Bard and reaching Bard level 2', () => {
+      const onConfirmMock = vi.fn();
+      const fighterChar: Character = {
+        ...mockCharacter,
+        class: 'Fighter',
+        level: 1,
+        proficiencies: JSON.stringify({
+          proficiencyBonus: 2,
+          jackOfAllTrades: false,
+          savingThrows: [],
+          skills: {},
+          passiveBonuses: { perception: 0, insight: 0, investigation: 0 }
+        })
+      };
+
+      const { container } = render(
+        <LevelUpDialog
+          {...defaultProps}
+          character={fighterChar}
+          isOpen={true}
+          onConfirm={onConfirmMock}
+        />
+      );
+
+      // Select multiclass radio button
+      const multiclassRadio = container.querySelector('#multiclass-radio-btn') as HTMLInputElement;
+      expect(multiclassRadio).not.toBeNull();
+      fireEvent.click(multiclassRadio);
+
+      // Set new class name to Bard
+      const classNameInput = container.querySelector('#new-class-name') as HTMLInputElement;
+      expect(classNameInput).not.toBeNull();
+      fireEvent.change(classNameInput, { target: { value: 'Bard' } });
+
+      // Change level to 4 (distributes Fighter 2, Bard 2)
+      const levelInput = container.querySelector('#new-level-input') as HTMLInputElement;
+      expect(levelInput).not.toBeNull();
+      fireEvent.change(levelInput, { target: { value: '4' } });
+
+      // Checkbox for Jack of All Trades should now be checked
+      const checkbox = screen.getByRole('checkbox', { name: /Jack of All Trades/i }) as HTMLInputElement;
+      expect(checkbox).toBeChecked();
+
+      const confirmBtn = container.querySelector('#confirm-level-up-btn') as HTMLButtonElement;
+      fireEvent.click(confirmBtn);
+
+      expect(onConfirmMock).toHaveBeenCalledTimes(1);
+      const call = onConfirmMock.mock.calls[0][0];
+      const profs = JSON.parse(call.proficiencies);
+      expect(profs.jackOfAllTrades).toBe(true);
+    });
+
+    it('does NOT auto-check jackOfAllTrades when multiclassing into Bard but only reaching Bard level 1', () => {
+      const onConfirmMock = vi.fn();
+      const fighterChar: Character = {
+        ...mockCharacter,
+        class: 'Fighter',
+        level: 1,
+        proficiencies: JSON.stringify({
+          proficiencyBonus: 2,
+          jackOfAllTrades: false,
+          savingThrows: [],
+          skills: {},
+          passiveBonuses: { perception: 0, insight: 0, investigation: 0 }
+        })
+      };
+
+      const { container } = render(
+        <LevelUpDialog
+          {...defaultProps}
+          character={fighterChar}
+          isOpen={true}
+          onConfirm={onConfirmMock}
+        />
+      );
+
+      // Select multiclass radio button
+      const multiclassRadio = container.querySelector('#multiclass-radio-btn') as HTMLInputElement;
+      expect(multiclassRadio).not.toBeNull();
+      fireEvent.click(multiclassRadio);
+
+      // Set new class name to Bard
+      const classNameInput = container.querySelector('#new-class-name') as HTMLInputElement;
+      expect(classNameInput).not.toBeNull();
+      fireEvent.change(classNameInput, { target: { value: 'Bard' } });
+
+      // Change level to 3 (distributes Fighter 2, Bard 1)
+      const levelInput = container.querySelector('#new-level-input') as HTMLInputElement;
+      expect(levelInput).not.toBeNull();
+      fireEvent.change(levelInput, { target: { value: '3' } });
+
+      // Checkbox for Jack of All Trades should NOT be checked
+      const checkbox = screen.getByRole('checkbox', { name: /Jack of All Trades/i }) as HTMLInputElement;
+      expect(checkbox).not.toBeChecked();
+
+      const confirmBtn = container.querySelector('#confirm-level-up-btn') as HTMLButtonElement;
+      fireEvent.click(confirmBtn);
+
+      expect(onConfirmMock).toHaveBeenCalledTimes(1);
+      const call = onConfirmMock.mock.calls[0][0];
+      const profs = JSON.parse(call.proficiencies);
+      expect(profs.jackOfAllTrades).toBe(false);
+    });
   });
 });
