@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useAppState } from './useAppState';
 import {
   fetchSheetData,
-  initializeDatabaseSchema,
   getSpreadsheetId,
   resolveActiveSpreadsheetId,
 } from '../services/sheetsService';
@@ -56,8 +55,6 @@ export function useSheetSync({ setIsGoogleConnected, onActiveTabChange }: UseShe
 
     try {
       addLog('Step 1: Validating authentication...');
-      await initializeDatabaseSchema(sid);
-      addLog('Authentication valid. Schema verified.');
 
       // 1. Fetch Statuses
       addLog('Step 2: Fetching status definitions...');

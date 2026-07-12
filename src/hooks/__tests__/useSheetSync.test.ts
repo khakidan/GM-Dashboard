@@ -10,7 +10,6 @@ vi.mock('../../services/writeQueue', () => ({
 
 vi.mock('../../services/sheetsService', () => ({
   fetchSheetData: vi.fn(),
-  initializeDatabaseSchema: vi.fn(),
   getSpreadsheetId: vi.fn().mockReturnValue('mock-id'),
   resolveActiveSpreadsheetId: vi.fn().mockReturnValue('mock-id'),
 }));
@@ -35,7 +34,6 @@ describe('useSheetSync State Transition Tests', () => {
       }
     } as any);
 
-    vi.mocked(sheetsService.initializeDatabaseSchema).mockResolvedValue(undefined);
     vi.mocked(sheetsService.fetchSheetData).mockResolvedValue({ values: [['1', 'Goblin']] });
 
     const { result } = renderHook(() => useSheetSync({ setIsGoogleConnected }));
@@ -60,7 +58,6 @@ describe('useSheetSync State Transition Tests', () => {
       }
     } as any);
 
-    vi.mocked(sheetsService.initializeDatabaseSchema).mockResolvedValue(undefined);
     vi.mocked(sheetsService.fetchSheetData).mockResolvedValue({ values: [['1', 'data']] });
 
     const { result } = renderHook(() => useSheetSync({ setIsGoogleConnected }));
@@ -81,7 +78,7 @@ describe('useSheetSync State Transition Tests', () => {
       }
     } as any);
 
-    vi.mocked(sheetsService.initializeDatabaseSchema).mockRejectedValue(new Error('API failure'));
+    vi.mocked(sheetsService.fetchSheetData).mockRejectedValue(new Error('API failure'));
 
     const { result } = renderHook(() => useSheetSync({ setIsGoogleConnected }));
 
@@ -119,8 +116,6 @@ describe('useSheetSync State Transition Tests', () => {
       }
     } as any);
 
-    vi.mocked(sheetsService.initializeDatabaseSchema)
-      .mockResolvedValue(undefined);
     vi.mocked(sheetsService.fetchSheetData)
       .mockResolvedValue({ values: [] });
 
