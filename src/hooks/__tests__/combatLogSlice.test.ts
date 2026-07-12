@@ -45,7 +45,8 @@ describe('combatLogSlice', () => {
       'Goblin Ambush',
       'Forest',
       [{ id: 'pc-1', name: 'Aria', type: 'pc', startingHp: 30, maxHp: 30 }],
-      [{ combatantId: 'pc-1', name: 'Aria', initiative: 15, type: 'pc' }]
+      [{ combatantId: 'pc-1', name: 'Aria', initiative: 15, type: 'pc' }],
+      1
     );
 
     const log = useDashboardStore.getState().activeCombatLog;
@@ -59,7 +60,7 @@ describe('combatLogSlice', () => {
 
   it('TEST 2.2 — addCombatEvent appends with generated id and timestamp', () => {
     useDashboardStore.getState().initCombatLog(
-      'enc-1', 'Test', 'Test', [], []
+      'enc-1', 'Test', 'Test', [], [], 1
     );
 
     useDashboardStore.getState().addCombatEvent({
@@ -100,7 +101,7 @@ describe('combatLogSlice', () => {
 
   it('TEST 2.4 — advanceCombatLogRound increments currentRound', () => {
     useDashboardStore.getState().initCombatLog(
-      'enc-1', 'Test', 'Test', [], []
+      'enc-1', 'Test', 'Test', [], [], 1
     );
     expect(useDashboardStore.getState().activeCombatLog?.currentRound).toBe(1);
 
@@ -112,7 +113,7 @@ describe('combatLogSlice', () => {
 
   it('TEST 2.5 — clearCombatLog resets to null', () => {
     useDashboardStore.getState().initCombatLog(
-      'enc-1', 'Test', 'Test', [], []
+      'enc-1', 'Test', 'Test', [], [], 1
     );
     expect(useDashboardStore.getState().activeCombatLog).not.toBeNull();
 

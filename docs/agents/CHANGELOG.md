@@ -6,6 +6,32 @@ Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed fr
 
 ---
 
+## Round-Counter Desync (Completed)
+
+`initCombatLog` (`dashboardStore.ts`) always hardcoded `currentRound: 1`, but it's only called from `handleCallInitiative` (`useCombatLifecycle.ts`) — a separate, manually-triggered action, not something automatically tied to combat starting. Meanwhile `combatState.round` advances independently on every `nextTurn()`, regardless of whether `activeCombatLog` exists yet. If "Call for Initiative" was clicked late, the log's round tracking reset to 1 while the real round counter was already ahead. Confirmed worse via `useEncounterResume.ts`: resuming an in-progress encounter restores `combatState.round` from the sheet, but never touches `activeCombatLog` (only ever persisted to `localStorage`, not the sheet) — so any cross-device resume of a multi-round encounter hit this desync as a matter of course, not as a narrow edge case.
+
+**Decision made earlier in the audit**: stop treating `activeCombatLog.currentRound` as an independent counter — sync it to `combatState.round` rather than pursuing the heavier alternative (persisting `activeCombatLog` to the sheet).
+
+**Fix, done in two rounds.** Round 1: changed `initCombatLog`'s signature to take a `startingRound` parameter instead of hardcoding `1`, updated its one call site (confirmed via an explicit search-first step — only the one production call site existed, plus 4 test call sites) to pass the current `combatState.round`. Round 2: caught during review that a directly adjacent `addCombatEvent({ round: 1, type: 'combat-start', ... })` call — logging the actual start-of-combat event — still hardcoded `round: 1`, the exact same root-cause bug one line away from the fix just made. Corrected to use `startingRound` there too.
+
+Test coverage updated alongside: 4 tests in `combatLogSlice.test.ts` that called `initCombatLog` with only 5 arguments (pre-dating the new required parameter) updated to pass `1` explicitly as `startingRound`, preserving each test's original intent.
+
+Verified throughout: diffs checked against real files at each round, confirmed the `addCombatEvent` fix was scoped to only that one field. Raw output confirmed the expected intermediate failure (2 of 4 tests asserting `currentRound` directly failed after round 1's signature change, before the test fix — the other 2 tests calling `initCombatLog` incompletely didn't fail only because they don't assert on that field) and a full pass afterward: Batch 3 44/44, Batch 5A 48/48, both matching documented baselines exactly.
+
+---
+
+## `initializeDatabaseSchema` Removal (Completed)
+
+`sheetsService.ts`'s `initializeDatabaseSchema` overwrote live sheet headers with a stale, drastically incomplete schema on every sync it ran during (12 columns for Characters vs. the real 26; 8 for NPCs vs. 22; 5 for Encounter_Combatants vs. 14; missing the Conditions/Spells/EncounterLogs sheets entirely) — confirmed called from `useSheetSync.ts`, and confirmed *not* called anywhere in the real campaign-creation route (`src/server/routes/campaigns.ts`), which already defines its own correct headers independently and matches `schema.md`. Decision made earlier in the audit: remove the function entirely rather than fix its header lists, to avoid maintaining two schema definitions that had already drifted once.
+
+**Investigation-first approach**: before any removal, a read-only prompt confirmed the exact current text of the function, every reference to it across the codebase (including test files), and — critically — whether anything else in `sheetsService.ts` existed only to support it. `SheetMetadataEntry` sits directly next to the function and is used inside it, but was independently confirmed (via direct read of `shared.ts`) to also be genuinely used elsewhere (`getSheetIds`, for cascade deletes) — so it correctly stayed untouched.
+
+**Removal, split into two prompts deliberately**: first, remove the function (both overload declarations and the implementation) from `sheetsService.ts`, and its import/call site from `useSheetSync.ts` — with an explicit instruction that `useSheetSync.test.ts` was expected to break and should not be worked around. Confirmed via raw test output: exactly one test failed, for exactly the right reason (a test mocking `initializeDatabaseSchema` to reject, expecting the sync to fail early — now that nothing calls it, the sync proceeded past that point and populated real state instead, proving the removal was real and complete, not a no-op). Second prompt fixed the test: removed the dead mock, and moved the simulated failure to the first real network call in the sync sequence (`fetchSheetData` for the Status fetch) instead, preserving the test's original intent — verifying `handleSyncWithSheets` fails early and `updateState` never gets called with populated data — without needing the removed function to exist as the failure trigger.
+
+Verified throughout: both file diffs checked against re-uploaded copies at the end (after a stale, incorrectly-reused diff snippet in an intermediate response showed context lines that didn't match the already-verified file — checked directly rather than assumed, and confirmed the actual files were untouched, not re-edited). Raw Batch 3 output confirmed the expected single failure after round 1, and a full 44/44 pass after round 2.
+
+---
+
 ## `useSheetSync.ts` Truncated Fetch Range (Completed)
 
 **The critical correction to an already-"fixed" bug**, discovered during the `src/server/routes/` audit pass. `useSheetSync.ts` fetched `Encounter_Combatants` via a hardcoded `'Encounter_Combatants!A2:K'` — only 11 columns, but the sheet has 14 (A–N) per this file's own record of the schema expansion. This meant the earlier `sheetAdapters.ts` fix (destructuring all 14 columns in `mapEncounterCombatantRowToEC`) was necessary but not sufficient: the parser correctly read all 14 positions, but the raw fetch never delivered columns L–N in the first place, so `npcLegendaryActionsRemaining`/`npcLegendaryResistancesRemaining`/`npcRechargeState` continued silently defaulting to `0`/`{}` on every resync.

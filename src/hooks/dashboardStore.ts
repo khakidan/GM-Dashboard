@@ -84,7 +84,8 @@ export interface DashboardStore extends Omit<AppState, 'combatState'> {
     encounterName: string,
     location: string,
     partySnapshot: PartySnapshot[],
-    initiativeOrder: InitiativeEntry[]
+    initiativeOrder: InitiativeEntry[],
+    startingRound: number
   ) => void;
   addCombatEvent: (event: Omit<CombatEvent, 'id' | 'timestamp'>) => void;
   advanceCombatLogRound: () => void;
@@ -146,14 +147,14 @@ export const useDashboardStore =
           };
         },
 
-        initCombatLog: (encounterId, encounterName, location, partySnapshot, initiativeOrder) => {
+        initCombatLog: (encounterId, encounterName, location, partySnapshot, initiativeOrder, startingRound) => {
           set(() => ({
             activeCombatLog: {
               encounterId,
               encounterName,
               location,
               startedAt: new Date().toISOString(),
-              currentRound: 1,
+              currentRound: startingRound,
               partySnapshot,
               initiativeOrder,
               events: [],

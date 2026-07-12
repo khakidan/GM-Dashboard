@@ -204,6 +204,7 @@ export function useCombatLifecycle() {
     const combatants = latestState.combatState.combatants;
     const encounterId = latestState.combatState.activeEncounterId || '';
     const encounters = latestState.encounters;
+    const startingRound = latestState.combatState.round;
 
     const { initCombatLog, addCombatEvent }
       = useDashboardStore.getState()
@@ -235,10 +236,11 @@ export function useCombatLifecycle() {
       location,
       snapshot,
       [],
+      startingRound,
     )
 
     addCombatEvent({
-      round: 1,
+      round: startingRound,
       type: 'combat-start',
       actorId: null,
       actorName: null,
