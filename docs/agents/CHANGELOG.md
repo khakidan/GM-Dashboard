@@ -6,6 +6,20 @@ Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed fr
 
 ---
 
+## `useMoodPresets.ts` Memoization — Completes the `GMDashboard.tsx` Compounding Chain (Completed)
+
+The second link in the compounding performance chain rooted in `GMDashboard.tsx` (the first, `useAppState.ts`'s selector, was already fixed). `useDashboardShortcuts.ts`'s second `useEffect` depends on the whole `moodPresets` object returned by `useMoodPresets()`; that object was reconstructed fresh on every render, tearing down and re-adding the effect's global `keydown`/`open-command-palette` window listeners every time.
+
+**Fix, done in two rounds.** Round 1: wrapped all 5 functions the hook exposes (`assignTrackToMood`, `unassignTrack`, `getMoodForTrack`, `activateMood`, `resetAllMoods`) in `useCallback`, with dependency arrays reasoned individually per function rather than copy-pasted uniformly — 3 correctly use `[]` (they only read state via the functional-updater form or call stable setters directly), 2 correctly include `[assignments]` (they read that state directly). Round 2: caught during review that memoizing the individual functions alone doesn't fix the actual bug — the hook's *return object itself* was still a fresh literal every render, which is what `useDashboardShortcuts.ts` actually depends on, not the individual functions. Two possible fixes existed here with different tradeoffs (memoize the whole return object in `useMoodPresets.ts` via `useMemo`, vs. change the consuming effect in `useDashboardShortcuts.ts` to destructure and depend on specific values instead) — asked for reasoning on both before choosing, and picked memoizing the source hook's return object: fixes the anti-pattern once at the source rather than pushing destructuring discipline onto every current and future consumer of this hook.
+
+Confirmed as a direct consequence: no changes needed in `useDashboardShortcuts.ts` at all — with the return object itself now correctly memoized, that file's existing effect (which depends on the whole `moodPresets` object) behaves correctly as-is.
+
+Verified: diffs checked against the real uploaded file at each round. Raw output confirmed Batch 3 (44/44) and Batch 7B-1 (13/13, including `AudioLibrary.test.tsx` — one of this hook's other consumers, confirming the fix doesn't break it), both matching documented baselines. Note: a full 12-batch count listing appeared in the final response citing "Rule 9," but only Batch 3 and 7B-1 were actually executed that round — the rest of that list was just a restatement of `testing-batches.md`'s existing static baseline, not fresh verification, and was treated as such rather than accepted as confirmation of all 12 batches passing.
+
+**This fully resolves the `GMDashboard.tsx` compounding performance chain** — both links (the root shell's own re-render frequency, and the listener-thrashing on whatever renders do legitimately occur) are now fixed.
+
+---
+
 ## `useAppState.ts` Selector — App-Wide Re-render Fix (Completed)
 
 **The single highest-impact finding of the entire audit, in terms of scale** — not a correctness bug, but a real, classic Zustand anti-pattern affecting the whole app rather than one feature. `useAppState()`'s main selector reconstructed a brand-new object literal on every call (`useDashboardStore((s): AppState => ({ characters: s.characters, ... }))`), with no equality function. Since Zustand's default comparison is `Object.is`, a freshly-constructed object is never equal to the previous one — so every component using `useAppState()` (pervasive throughout the app) re-rendered on *every single store update*, including updates to store fields this selector doesn't even return (like `activeCombatLog`, which lives in the same store but isn't part of `AppState`).

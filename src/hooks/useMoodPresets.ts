@@ -1,6 +1,6 @@
 // src/hooks/useMoodPresets.ts
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { STORAGE_KEYS, MOODS, MoodId, campaignKey } from '../lib/constants';
 import { toast } from 'sonner';
 
@@ -53,7 +53,7 @@ export function useMoodPresets(campaignId: string = 'default') {
     localStorage.setItem(key, JSON.stringify(assignments));
   }, [assignments, campaignId]);
 
-  const assignTrackToMood = (fileId: string, moodId: MoodId) => {
+  const assignTrackToMood = useCallback((fileId: string, moodId: MoodId) => {
     setAssignments(prev => {
       const updated = { ...prev };
       // Remove fileId from any existing mood assignment
@@ -66,9 +66,9 @@ export function useMoodPresets(campaignId: string = 'default') {
       updated[moodId] = fileId;
       return updated;
     });
-  };
+  }, []);
 
-  const unassignTrack = (fileId: string) => {
+  const unassignTrack = useCallback((fileId: string) => {
     setAssignments(prev => {
       const updated = { ...prev };
       for (const key of MOODS) {
@@ -78,18 +78,18 @@ export function useMoodPresets(campaignId: string = 'default') {
       }
       return updated;
     });
-  };
+  }, []);
 
-  const getMoodForTrack = (fileId: string): MoodId | null => {
+  const getMoodForTrack = useCallback((fileId: string): MoodId | null => {
     for (const key of MOODS) {
       if (assignments[key.id] === fileId) {
         return key.id;
       }
     }
     return null;
-  };
+  }, [assignments]);
 
-  const activateMood = (moodId: MoodId, playAmbient: (fileId: string) => void) => {
+  const activateMood = useCallback((moodId: MoodId, playAmbient: (fileId: string) => void) => {
     const track = assignments[moodId];
     if (!track) {
       const moodLabel = MOODS.find(m => m.id === moodId)?.label || moodId;
@@ -99,14 +99,14 @@ export function useMoodPresets(campaignId: string = 'default') {
     // Activate a mood — plays its assigned track via playAmbient
     playAmbient(track);
     setActiveMood(moodId);
-  };
+  }, [assignments]);
 
-  const resetAllMoods = () => {
+  const resetAllMoods = useCallback(() => {
     setAssignments({ ...DEFAULT_ASSIGNMENTS });
     setActiveMood(null);
-  };
+  }, []);
 
-  return {
+  return useMemo(() => ({
     assignments,
     activeMood,
     setActiveMood, // expose to synchronize active mood visually when clicked
@@ -115,5 +115,14 @@ export function useMoodPresets(campaignId: string = 'default') {
     getMoodForTrack,
     activateMood,
     resetAllMoods,
-  };
+  }), [
+    assignments,
+    activeMood,
+    setActiveMood,
+    assignTrackToMood,
+    unassignTrack,
+    getMoodForTrack,
+    activateMood,
+    resetAllMoods,
+  ]);
 }
