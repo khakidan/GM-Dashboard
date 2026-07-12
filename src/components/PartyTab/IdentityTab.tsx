@@ -6,6 +6,7 @@ interface IdentityTabProps {
   characterClass: string;
   level: number;
   statusId: number;
+  statuses: Record<string, string>;
   onChange: (key: string, value: any) => void;
 }
 
@@ -15,6 +16,7 @@ export function IdentityTab({
   characterClass,
   level,
   statusId,
+  statuses,
   onChange,
 }: IdentityTabProps) {
   return (
@@ -88,9 +90,13 @@ export function IdentityTab({
             onChange={e => onChange('statusId', parseInt(e.target.value))}
             className="w-full bg-white border border-stone-200 rounded-lg px-4 py-2 text-sm text-stone-800 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all appearance-none cursor-pointer shadow-sm"
           >
-            <option value={1}>Active</option>
-            <option value={2}>Inactive</option>
-            <option value={3}>Deceased</option>
+            {Object.entries(statuses)
+              .sort(([a], [b]) => Number(a) - Number(b))
+              .map(([id, label]) => (
+                <option key={id} value={Number(id)}>
+                  {label}
+                </option>
+              ))}
           </select>
         </div>
       </div>

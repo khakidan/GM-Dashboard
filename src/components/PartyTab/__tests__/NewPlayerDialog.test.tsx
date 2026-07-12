@@ -5,6 +5,12 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import { NewPlayerDialog } from '../NewPlayerDialog';
 import { getResourcePoolSuggestions } from '../../../lib/resourcePoolScaling';
 
+vi.mock('../../../hooks/useAppState', () => ({
+  useAppState: () => ({
+    state: { statuses: { '1': 'Active', '2': 'Inactive', '3': 'Deceased' } }
+  })
+}));
+
 // Mock ResizeObserver
 const MockResizeObserver = vi.fn(() => ({
   observe: vi.fn(),
@@ -119,5 +125,6 @@ describe('NewPlayerDialog', () => {
       .toContain('STR');
     expect(profs.savingThrows)
       .toContain('CON');
+    expect(payload.statusName).toBe('Active');
   });
 });

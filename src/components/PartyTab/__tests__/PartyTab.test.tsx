@@ -35,7 +35,7 @@ describe('PartyTab', () => {
     } as any);
 
     vi.mocked(useAppState).mockReturnValue({
-      state: { openDialog: null } as any,
+      state: { openDialog: null, statuses: { '1': 'Active', '2': 'Inactive', '3': 'Deceased' } } as any,
       updateState: vi.fn(),
       getSnapshot: vi.fn(),
     });

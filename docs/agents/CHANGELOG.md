@@ -6,6 +6,24 @@ Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed fr
 
 ---
 
+## Status Labeling Consistency — Part 1 of 2 (`IdentityTab.tsx`/`NewPlayerDialog.tsx`) (Completed)
+
+Originally flagged as a simple 2-file label mismatch (`IdentityTab.tsx` vs. `CharacterCardHeader.tsx`), investigation before fixing surfaced something more significant: a third drifting spot (`NewPlayerDialog.tsx`, independently hardcoding yet another version), and — more importantly — confirmation that **all three completely ignore the app's actual source of truth for this data**. This app already fetches a real `statuses` mapping from the GM's own `Status` sheet via `parseStatuses` during sync, meant to be authoritative per the app's whole "Google Sheets is source of truth" design, but every UI dropdown hardcoded its own static strings instead of reading from it.
+
+**Decision made to fix this properly rather than just making the hardcoded strings match** — investigated thoroughly before committing to that scope: confirmed the real shape of `parseStatuses`'s output (`Record<string, string>`), confirmed none of the three components had existing access to global state, confirmed the one place in the app that matches against the status *label string* (`AddCombatantDialog.tsx`) does so via a loose `||` condition alongside the numeric `statusId` check, so dynamic labels can't break it, and confirmed the numeric IDs themselves (1/2/3) are hardcoded as stable semantic pillars everywhere else in the app (`isActive` derivation, death-save/rest-blocking logic) — only the *display labels* were being made dynamic, not the underlying meaning.
+
+**Fix, this part**: added a `DEFAULT_STATUSES` fallback constant to `lib/constants.ts` for when `state.statuses` is empty (e.g. before a first sync completes). `NewPlayerDialog.tsx` now reads `state.statuses` (falling back to the default) and passes it down to `IdentityTab.tsx`, which now maps its dropdown options from that real data instead of 3 hardcoded `<option>` elements. Also fixed `NewPlayerDialog.tsx`'s persisted `statusName` value (previously an independent hardcoded ternary) to resolve from the same `statuses` lookup — this was the more consequential half, since it's what actually gets saved to the new character's sheet row, not just what's displayed.
+
+**Test coverage**: existing tests updated to supply the now-required `statuses` mock data (`NewPlayerDialog.test.tsx`, `PartyTab.test.tsx`) rather than left broken by the new dependency. One new assertion added to the existing form-submission test — `expect(payload.statusName).toBe('Active')` — confirming the dynamic lookup actually resolves correctly for the default status, not just that a previously-hardcoded string happened to still be right.
+
+**Process note**: two follow-up responses in this fix skipped providing the raw test output I'd explicitly asked for, offering summary claims instead ("tests passing," "ready for next step"). Both times, this was caught and the actual raw output was requested and obtained before proceeding — consistent with not accepting summary claims as verification anywhere else in this process.
+
+**Part 2 (`CharacterCardHeader.tsx`) remains open** — logged in `ROADMAP.md`, not yet prompted. That component needs the same `statuses` data threaded down two levels (`PartyTab.tsx` → `CharacterCard.tsx` → `CharacterCardHeader.tsx`) to stay consistent with it being a prop-driven component rather than importing `useAppState()` directly.
+
+Verified: all diffs checked against real uploaded files across every round. Raw Batch 6A output confirmed 53/53 passing throughout, matching the documented baseline exactly (no test count change expected or seen, since additions were either required mock updates or an assertion added to an existing test, not new test cases).
+
+---
+
 ## `CharacterCardExpanded.tsx` Current HP Ceiling (Completed)
 
 Unlike the "Max HP" field (bounded via `min={1}`), the manual "HP" (current HP) input had no `max` at all — a GM could type a current HP above the character's actual max, with nothing preventing it. Decision made earlier in the audit: current HP shouldn't be usable as an ad hoc overflow buffer, since that's exactly what the separate Temp HP field exists for.

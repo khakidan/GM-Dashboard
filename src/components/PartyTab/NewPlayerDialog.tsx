@@ -3,6 +3,7 @@ import { UserPlus } from 'lucide-react';
 import { Character } from '../../types';
 import { cn } from '../../lib/utils';
 import { useFormState } from '../../hooks/useFormState';
+import { useAppState } from '../../hooks/useAppState';
 import { StatBlock } from '../ui/StatBlock';
 import { IdentityTab } from './IdentityTab';
 import { CombatTab } from './CombatTab';
@@ -14,6 +15,7 @@ import {
   getPassiveScore,
   proficiencyBonusFromLevel,
 } from '../../lib/abilityScores';
+import { DEFAULT_STATUSES } from '../../lib/constants';
 import {
   ResourcePool,
   serializeResourcePools,
@@ -40,6 +42,9 @@ const TABS: { id: TabId; label: string; optional?: boolean }[] = [
 ];
 
 export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogProps) {
+  const { state } = useAppState();
+  const statuses = Object.keys(state.statuses).length > 0 ? state.statuses : DEFAULT_STATUSES;
+
   const [activeTab, setActiveTab] = useState<TabId>('identity');
 
   const { values: formData, handleChange, reset } = useFormState({
@@ -92,7 +97,7 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
       level: formData.level,
       class: formData.class,
       statusId: formData.statusId,
-      statusName: formData.statusId === 1 ? 'Active' : formData.statusId === 2 ? 'Inactive' : 'Deceased',
+      statusName: statuses[String(formData.statusId)] ?? 'Unknown',
       ac: formData.ac,
       maxHp: formData.maxHp,
       currentHp: formData.maxHp, // starts at max
@@ -220,6 +225,7 @@ export function NewPlayerDialog({ isOpen, onClose, onConfirm }: NewPlayerDialogP
               characterClass={formData.class}
               level={formData.level}
               statusId={formData.statusId}
+              statuses={statuses}
               onChange={handleChange}
             />
           )}

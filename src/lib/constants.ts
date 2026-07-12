@@ -137,3 +137,9 @@ export const AUDIO = {
   ambientDefaultVolume: 0.7,
   effectDefaultVolume: 0.8,
 } as const;
+
+export const DEFAULT_STATUSES: Record<string, string> = {
+  '1': 'Active',
+  '2': 'Absent',
+  '3': 'Dead',
+};
