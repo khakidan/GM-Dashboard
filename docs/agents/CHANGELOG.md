@@ -6,6 +6,20 @@ Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed fr
 
 ---
 
+## Long-Rest Combatant Mirror Missing `tempHpMax` (Completed)
+
+`useParty.ts`'s `calculateLongRestUpdates` correctly clears `tempHpMax` on the character record when exhaustion improves below the HP-halving threshold, but `handleLongRest`'s combatant-mirroring block (syncing changes into the active combat tracker) never copied that field over — only `currentHp`/`tempHp`/`maxHp`/`conditions`/`conditionTimers` — so the character sheet self-corrected while the active combat tracker kept showing a stale, halved max HP.
+
+**Fix**: added `tempHpMax: updatedChar.tempHpMax` to the mirrored combatant object, sourced from the same already-updated character object the other fields are already copied from.
+
+**Test coverage required building new scaffolding**, since — confirmed directly before writing anything — no test in this file exercised combatant-mirroring at all, for either rest type. Given the real value (a GM seeing stale HP data on an active combatant card mid-session is a genuine live-play confusion source), this was worth the bigger lift rather than skipping it. One test added: a character at exhaustion level 4 (active HP-halving) with a linked active PC combatant; after a long rest reduces exhaustion to level 3 (crossing below the halving threshold), both the character record and the mirrored combatant are asserted to reflect the cleared `tempHpMax`, full HP, and reduced exhaustion condition. Verified by hand that the test genuinely exercises the fix — the combatant's `tempHpMax` in the test's own initial mock is deliberately set to the stale value (`20`), so if the fix were reverted, the object spread would preserve that stale value and the assertion would correctly fail, rather than passing regardless.
+
+Short-rest combatant-mirroring coverage remains a separate, not-yet-added gap — deliberately deferred to its own follow-up rather than folded into this fix.
+
+Verified: diff checked against the real uploaded file, raw Batch 6A output confirmed 52/52 passing. `testing-batches.md` updated in the same turn this time (`usePartyRest.test.ts` 18→19, Batch 6A 51→52, baseline 717→718) — no repeat of the earlier missed-update gap.
+
+---
+
 ## Short-Rest HP Cap (Completed)
 
 Fixed the same underlying mistake in two layers: the actual healing calculation (`useParty.ts`'s `calculateShortRestUpdates`) and the UI's displayed recoverable-HP cap (`ShortRestDialog.tsx`), both of which capped healing at `character.maxHp + tempHp` instead of `effectiveMaxHp(maxHp, tempHpMax)`. Two distinct problems in the old cap: adding `tempHp` to a current-HP ceiling doesn't make sense (temp HP is a separate buffer, not part of the real HP cap), and ignoring `tempHpMax` entirely meant an exhaustion-halved character could be healed straight back to their full, un-halved max during a short rest — a real rules violation, not just cosmetic, and one that would come up in nearly every session given how common short rests are.

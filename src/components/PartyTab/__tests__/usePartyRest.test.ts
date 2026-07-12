@@ -252,6 +252,59 @@ describe('useParty - REST and Recovery', () => {
       expect(nextState.characters[0].currentHp).toBe(100);
     });
 
+    it('mirrors long rest exhaustion recovery and HP updates (including tempHpMax) to active PC combatant', async () => {
+      const updateStateSpy = vi.fn();
+      const char = { 
+        id: 'pc-1', 
+        currentHp: 10, 
+        maxHp: 40, 
+        tempHpMax: 20, 
+        conditions: 'exhaustion 4' 
+      };
+      const pcCombatant = {
+        id: 'combat-pc-1',
+        type: 'pc',
+        characterId: 'pc-1',
+        currentHp: 10,
+        tempHp: 0,
+        maxHp: 40,
+        tempHpMax: 20,
+        conditions: 'exhaustion 4',
+        conditionTimers: {},
+      };
+      const mockState = { 
+        characters: [char],
+        combatState: { combatants: [pcCombatant] }
+      };
+
+      vi.mocked(useAppState).mockReturnValue({
+        state: mockState as any,
+        updateState: updateStateSpy,
+        getSnapshot: vi.fn(),
+      } as any);
+      vi.mocked(getSnapshot).mockReturnValue(mockState as any);
+
+      const { result } = renderHook(() => useParty());
+
+      await act(async () => {
+        await result.current.handleLongRest(['pc-1']);
+      });
+
+      const stateUpdater = updateStateSpy.mock.calls[0][0];
+      const nextState = stateUpdater(mockState);
+      
+      // Verify character sheet has been updated and tempHpMax cleared
+      expect(nextState.characters[0].tempHpMax).toBe(0);
+      expect(nextState.characters[0].currentHp).toBe(40);
+      expect(nextState.characters[0].conditions).toBe('exhaustion 3');
+
+      // Verify active combatant has mirrored the changes, including the tempHpMax fix
+      const updatedCombatant = nextState.combatState.combatants[0];
+      expect(updatedCombatant.tempHpMax).toBe(0);
+      expect(updatedCombatant.currentHp).toBe(40);
+      expect(updatedCombatant.conditions).toBe('exhaustion 3');
+    });
+
     describe('Short Rest HP Recovery Caps', () => {
       it('caps short rest healing at the active exhaustion-halved max HP', async () => {
         const updateStateSpy = vi.fn();

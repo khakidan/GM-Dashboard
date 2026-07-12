@@ -285,6 +285,7 @@ export function useParty() {
             currentHp: updatedChar.currentHp,
             tempHp: updatedChar.tempHp ?? 0,
             maxHp: updatedChar.maxHp,
+            tempHpMax: updatedChar.tempHpMax,
             conditions: updatedChar.conditions || '',
             conditionTimers: {},
           };
