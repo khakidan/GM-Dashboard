@@ -309,7 +309,7 @@ export function AudioLibrary({
                         unassignTrack(file.id);
                         setActivePickerFileId(null);
                       }}
-                      className="w-full mt-1 flex items-center gap-2 px-2 py-1.5 rounded hover:bg-red-50 text-red-550 cursor-pointer text-xs font-medium"
+                      className="w-full mt-1 flex items-center gap-2 px-2 py-1.5 rounded hover:bg-red-50 text-red-600 cursor-pointer text-xs font-medium"
                       title="Remove Assignment"
                     >
                       <X className="w-3.5 h-3.5" />
@@ -397,7 +397,7 @@ export function AudioLibrary({
         {currentFiles.length > 0 && !showClearConfirm && (
           <button
             onClick={() => setShowClearConfirm(true)}
-            className="pb-2 flex items-center gap-1 text-[10px] text-stone-400 hover:text-red-550 font-sans font-medium uppercase tracking-wider transition-colors"
+            className="pb-2 flex items-center gap-1 text-[10px] text-stone-400 hover:text-red-600 font-sans font-medium uppercase tracking-wider transition-colors"
             title={`Clear all ${activeSubTab === 'ambient' ? 'ambient tracks' : 'sound effects'}`}
           >
             <Trash2 className="w-3.5 h-3.5" />
@@ -439,7 +439,7 @@ export function AudioLibrary({
           onClick={() => triggerFileInput(activeSubTab)}
           className={`border-2 border-dashed rounded-xl p-4 flex flex-col items-center justify-center text-center cursor-pointer transition-all h-24 mb-4 shrink-0 ${
             dragOverCategory === activeSubTab
-              ? 'bg-[#f9f8ff]0/5 border-[#2563eb] scale-[0.98]'
+              ? 'bg-[#f9f8ff]/5 border-[#2563eb] scale-[0.98]'
               : 'bg-[#f9f8ff]/40 border-stone-200 hover:border-stone-350 hover:bg-stone-50/20'
           }`}
         >

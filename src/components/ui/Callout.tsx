@@ -20,8 +20,8 @@ export function Callout({ severity, children, className, ...props }: CalloutProp
 
   const iconSizeMap = {
     error: "w-5 h-5",
-    warning: "w-4.5 h-4.5",
-    info: "w-4.5 h-4.5",
+    warning: "w-5 h-5",
+    info: "w-5 h-5",
   };
 
   const iconColorMap = {

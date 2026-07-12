@@ -32,7 +32,7 @@ const getMoodButtonStyles = (moodId: MoodId, isActive: boolean, hasTracks: boole
 
   if (isActive) {
     if (isSweet) return 'bg-pink-500 text-white border-pink-500';
-    if (isAdventuring) return 'bg-[#f9f8ff]0 text-white border-[#2563eb]';
+    if (isAdventuring) return 'bg-[#f9f8ff] text-white border-[#2563eb]';
     if (isTense) return 'bg-orange-500 text-white border-orange-500';
     if (isScary) return 'bg-purple-600 text-white border-purple-600';
     if (isCombat) return 'bg-red-600 text-white border-red-600';

@@ -328,7 +328,7 @@ export function CampaignSelector({
                     placeholder="e.g. Curse of Strahd"
                     value={createName}
                     onChange={(e) => setCreateName(e.target.value)}
-                    className="w-full px-3 py-2 border.5 border-[#e2e8f0] rounded-lg font-sans focus:outline-none focus:ring-2 focus:ring-[#2563eb]/40 focus:border-[#2563eb] disabled:opacity-50"
+                    className="w-full px-3 py-2 border border-[#e2e8f0] rounded-lg font-sans focus:outline-none focus:ring-2 focus:ring-[#2563eb]/40 focus:border-[#2563eb] disabled:opacity-50"
                   />
                 </div>
 
@@ -390,7 +390,7 @@ export function CampaignSelector({
                     placeholder="e.g. Curse of Strahd"
                     value={connectName}
                     onChange={(e) => setConnectName(e.target.value)}
-                    className="w-full px-3 py-2 border.5 border-[#e2e8f0] rounded-lg font-sans focus:outline-none focus:ring-2 focus:ring-[#2563eb]/40 focus:border-[#2563eb] disabled:opacity-50"
+                    className="w-full px-3 py-2 border border-[#e2e8f0] rounded-lg font-sans focus:outline-none focus:ring-2 focus:ring-[#2563eb]/40 focus:border-[#2563eb] disabled:opacity-50"
                   />
                 </div>
 
@@ -405,7 +405,7 @@ export function CampaignSelector({
                     placeholder="Paste spreadsheet ID or full Google Sheets URL"
                     value={spreadsheetInput}
                     onChange={(e) => setSpreadsheetInput(e.target.value)}
-                    className="w-full px-3 py-2 border.5 border-[#e2e8f0] rounded-lg font-sans focus:outline-none focus:ring-2 focus:ring-[#2563eb]/40 focus:border-[#2563eb] disabled:opacity-50"
+                    className="w-full px-3 py-2 border border-[#e2e8f0] rounded-lg font-sans focus:outline-none focus:ring-2 focus:ring-[#2563eb]/40 focus:border-[#2563eb] disabled:opacity-50"
                   />
                   <span className="block text-[11px] text-[#8d8db9]/70 font-sans leading-tight mt-1">
                     The ID is the long string in your sheet's URL between /d/ and /edit

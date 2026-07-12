@@ -35,7 +35,7 @@ export function AuthPortalSettings({
             Connection State
           </div>
           <div className="flex items-center gap-2">
-            <div className={`w-3 h-3 rounded-full ${isGoogleConnected ? 'bg-green-500 animate-pulse' : 'bg-[#f9f8ff]0'}`} />
+            <div className={`w-3 h-3 rounded-full ${isGoogleConnected ? 'bg-green-500 animate-pulse' : 'bg-[#8d8db9]'}`} />
             <span className="text-sm font-bold font-sans">
               {isGoogleConnected ? 'Connected to Google' : 'Offline / Local-Only'}
             </span>

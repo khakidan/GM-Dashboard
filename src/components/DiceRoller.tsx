@@ -161,7 +161,7 @@ export function DiceRoller() {
                   initial={{ opacity: 0, y: -5 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
-                  className="flex items-center gap-1.5 text-xs text-red-650 bg-red-50 border border-red-100 rounded p-1.5"
+                  className="flex items-center gap-1.5 text-xs text-red-600 bg-red-50 border border-red-100 rounded p-1.5"
                 >
                   <AlertCircle className="w-3.5 h-3.5 text-red-500 shrink-0" />
                   <span className="font-sans leading-none">{errorMsg}</span>
