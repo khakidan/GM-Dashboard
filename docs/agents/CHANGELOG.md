@@ -6,6 +6,33 @@ Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed fr
 
 ---
 
+## `useParty.ts` Full-State Rollback (Completed — 2 of 3)
+
+The second of three known instances of the same pattern (`useEncounters.ts` fixed previously; `useNpcLibrary.ts` still open). Unlike `useEncounters.ts`, this file's version of the bug was never given its own detailed `ROADMAP.md` entry — only referenced in passing from the other two files' findings — so the investigation step here had more to establish than last time.
+
+**Investigation confirmed 6 affected handlers**, not initially known in detail: `handleLevelUpConfirm`, `handleCreateCharacter`, `handleLongRest`, `handleShortRest`, `handleDeletePlayer`, `handleUpdate`. Two (`handleCreateCharacter`, `handleDeletePlayer`) touch only `characters`. The other four also mirror changes into `combatState.combatants` (via `mirrorCharacterFieldsToCombatants` or equivalent inline logic) for any active PC combatants.
+
+**A distinction that mattered more here than in the `useEncounters.ts` fix**: `combatState` is a single object holding far more than just `combatants` — `activeTurnId`, `round`, etc. For the four handlers that touch it, restoring the *whole* `combatState` object from the snapshot would have reverted any concurrent changes to those other fields too (e.g. another tab advancing the turn during the async write) — reintroducing a narrower version of the exact bug this fix exists to remove. The correct pattern, used for all four:
+
+```ts
+updateState(prev => ({
+  ...prev,
+  characters: previousState.characters,
+  combatState: {
+    ...prev.combatState,
+    combatants: previousState.combatState.combatants,
+  },
+}))
+```
+
+— restoring `combatants` specifically while leaving everything else in the live `combatState` untouched.
+
+**No test changes needed**: neither `usePartyRest.test.ts` (no rollback-path tests at all — only success paths for long rest, short rest, and level-up) nor `usePartyCharacterCrud.test.ts` (its one rollback test only asserted `updateStateSpy` was called twice, `toHaveBeenCalledTimes(2)`, with no assertion on the exact object/arguments passed) needed updating, confirmed by direct inspection of both files rather than assumed.
+
+Verified: diff checked against the real uploaded file — confirmed all 6 catch blocks match exactly, correctly split between the 2 `characters`-only handlers and the 4 `characters` + `combatState.combatants`-only handlers, with `combatState`'s other fields correctly preserved via `...prev.combatState`. Raw Batch 6A output confirmed 46/46 passing, matching the documented baseline exactly.
+
+---
+
 ## `useEncounters.ts` Full-State Rollback (Completed — 1 of 3)
 
 The first of three known instances of the same pattern (`useParty.ts` and `useNpcLibrary.ts` are the other two, still open). All 3 handlers (`handleCreateEncounter`, `handleDelete`, `handleUpdateEncounter`) captured `previousState = state` — the entire app store — and rolled back everything on a failed write, discarding any unrelated concurrent updates elsewhere in the app (e.g. HP changes in an active encounter) that happened during the async write window.

@@ -160,7 +160,14 @@ export function useParty() {
       await updateCharacterDB(updates, latestChar);
     } catch (error) {
       // 4a. Roll back to snapshot on failure
-      updateState(previousState);
+      updateState(prev => ({
+        ...prev,
+        characters: previousState.characters,
+        combatState: {
+          ...prev.combatState,
+          combatants: previousState.combatState.combatants,
+        },
+      }));
       
       // 4b. Set local error state for UI/Tests
       setGlobalError(`Failed to update details for "${levelUpCharacter.characterName}".`);
@@ -217,7 +224,7 @@ export function useParty() {
       toast.success(`${newCharData.characterName} added to the roster`);
     } catch (error) {
       // 4a. Roll back to snapshot on failure
-      updateState(previousState);
+      updateState(prev => ({ ...prev, characters: previousState.characters }));
       
       // 4b. Set local error state
       setGlobalError('Failed to add player. Please try again.');
@@ -321,7 +328,14 @@ export function useParty() {
 
     } catch (error) {
       // 4a. Roll back to snapshot on failure
-      updateState(previousState);
+      updateState(prev => ({
+        ...prev,
+        characters: previousState.characters,
+        combatState: {
+          ...prev.combatState,
+          combatants: previousState.combatState.combatants,
+        },
+      }));
       
       // 4b. Show error toast
       toast.error('Failed to save changes. Please try again.', {
@@ -416,7 +430,14 @@ export function useParty() {
 
     } catch (error) {
       // 4a. Roll back to snapshot on failure
-      updateState(previousState);
+      updateState(prev => ({
+        ...prev,
+        characters: previousState.characters,
+        combatState: {
+          ...prev.combatState,
+          combatants: previousState.combatState.combatants,
+        },
+      }));
       
       // 4b. Set local error state
       setGlobalError('Failed to save short rest. Please try again.');
@@ -450,7 +471,7 @@ export function useParty() {
       await deleteCharacterFully(id);
     } catch (error) {
       // 4a. Roll back to snapshot on failure
-      updateState(previousState);
+      updateState(prev => ({ ...prev, characters: previousState.characters }));
       
       // 4b. Set local error state
       setGlobalError(`Failed to delete "${char.characterName}".`);
@@ -551,7 +572,14 @@ export function useParty() {
       await updateCharacterDB(sanitizedUpdates, char);
     } catch (error) {
       // 4a. Roll back to snapshot on failure
-      updateState(previousState);
+      updateState(prev => ({
+        ...prev,
+        characters: previousState.characters,
+        combatState: {
+          ...prev.combatState,
+          combatants: previousState.combatState.combatants,
+        },
+      }));
       
       // 4b. Set local error state
       setGlobalError(`Failed to update details for "${char.characterName}".`);
