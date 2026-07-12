@@ -212,7 +212,7 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
     onConfirm(updates);
   };
 
-  const isConfirmDisabled = levelUpOption === 'newClass' && !!character.class && !newClassName.trim();
+  const isConfirmDisabled = levelUpOption === 'newClass' && !newClassName.trim();
 
   return (
     <DialogShell

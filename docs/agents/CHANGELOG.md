@@ -6,6 +6,20 @@ Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed fr
 
 ---
 
+## `LevelUpDialog.tsx` `isConfirmDisabled` Empty-Class Gap (Completed)
+
+`isConfirmDisabled` (`levelUpOption === 'newClass' && !!character.class && !newClassName.trim()`) short-circuited to `false` whenever `character.class` was empty, regardless of whether `newClassName` was ever filled in — so confirm was never disabled for a character with no existing class multiclassing with a blank new-class name.
+
+**Fix**: removed the `!!character.class` condition entirely — `levelUpOption === 'newClass' && !newClassName.trim()`. Confirmed the "existing class" path (where `levelUpOption` is set to an actual class name, not `'newClass'`) is unaffected, since the whole check is gated on `levelUpOption === 'newClass'` first.
+
+**Process note**: while working on this fix, an out-of-scope, unrequested change was made to `LongRestDialog.tsx` — a preemptive attempt to also fix that file's separate, still-open `selectedIds` bug (finding #4), noticed while reading files for this task. Self-caught and reverted before the turn was finalized, and independently confirmed: the file was genuinely back to its original, unmodified state, with no lingering trace of the attempted change. Asked directly what happened and got an honest, direct answer rather than it going unaddressed.
+
+No test coverage added — discussed and agreed to skip, given this is a narrow UI validation gate rather than a data-loss, security, or core-rules-math issue like several recent fixes.
+
+Verified: diff checked against the real uploaded file, both the "before" state and the fix confirmed exactly as expected. Raw Batch 6A output confirmed 53/53 passing, matching the documented baseline exactly.
+
+---
+
 ## `calculateHpGain` Minimum-1 HP Floor (Completed)
 
 `calculateHpGain` (`combatLogic.ts`) had no floor — per 5e RAW, a level-up always grants at least 1 HP regardless of Constitution modifier, but a character with a strongly negative Con modifier and a low roll could previously receive 0 or negative HP gain.
