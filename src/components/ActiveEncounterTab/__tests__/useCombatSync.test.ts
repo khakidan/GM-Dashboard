@@ -532,6 +532,51 @@ describe('useCombatSync', () => {
     );
   });
 
+  it('rolls 0 or negative initiative for NPC with low DEX score and does not clamp to 1', () => {
+    // Mock Math.random to return 0, making d20 roll deterministically 1
+    const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
+
+    act(() => {
+      useDashboardStore.setState(prev => ({
+        ...prev,
+        npcs: [
+          {
+            id: 'npc-negative-dex',
+            name: 'Slow Snail',
+            abilityScores: JSON.stringify({ DEX: 1 }),
+          } as any
+        ],
+        combatState: {
+          ...prev.combatState,
+          combatants: prev.combatState.combatants.map(c =>
+            c.id === 'c2'
+              ? {
+                  ...c,
+                  npcId: 'npc-negative-dex',
+                  encounterCombatantId: 'ec-npc-2',
+                }
+              : c
+          ),
+        },
+      }));
+    });
+
+    const { result } = renderHook(() => useCombatSync());
+
+    act(() => {
+      result.current.rollInitForNPCs();
+    });
+
+    const state = getSnapshot();
+    const updatedNpc = state.combatState.combatants.find(c => c.id === 'c2');
+    
+    // d20 roll (1) + DEX modifier (-5 for score of 1) = -4
+    expect(updatedNpc?.initiative).toBe(-4);
+    expect(vi.mocked(updateInitiativeDB)).toHaveBeenCalledWith('ec-npc-2', -4);
+
+    randomSpy.mockRestore();
+  });
+
   it('resetCombat calls updateInitiativeDB with 0 for each combatant', () => {
     act(() => {
       useDashboardStore.setState(prev => ({

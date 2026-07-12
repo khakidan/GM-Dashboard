@@ -27,7 +27,7 @@ export function useCombatLifecycle() {
           dexMod = calculateModifier(scores.DEX);
         }
 
-        const total = Math.max(1, d20Roll + dexMod);
+        const total = d20Roll + dexMod;
         
         // Show notification with breakdown if modifier exists
         if (dexMod !== 0) {

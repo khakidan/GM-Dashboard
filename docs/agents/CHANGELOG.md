@@ -6,6 +6,30 @@ Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed fr
 
 ---
 
+## `AudioLibrary.tsx` File Name Display (Completed)
+
+**Correction to the original finding's severity, worth recording accurately**: this was originally flagged as `renderFileRow` "almost certainly displaying `undefined`" for every file's name, based on 4 other files (`AmbientPlayer.tsx` ×2, `AudioPanel.tsx`, `CommandPalette.tsx`) all consistently using `.name` on the same `StoredAudioFile` type. Confirmed directly against the real type definition before fixing: `StoredAudioFile` actually has *both* `.name` (clean display name, extension stripped) and `.fileName` (original filename, extension included) as legitimate, distinct fields. So the bug was real, but its actual effect was showing raw filenames like `13_Cave_of_Time.mp3` instead of the intended clean `13_Cave_of_Time` — not rendering `undefined`. Worth being precise about this rather than letting the more severe original description stand uncorrected.
+
+**Fix**: both uses of `file.fileName` in `renderFileRow` (the displayed text and the `title` attribute) changed to `file.name`, for consistency with how every other consumer of this type displays it.
+
+**No test coverage added** — discussed directly and agreed to skip, unlike several recent fixes. Confirmed the bug had zero test coverage before or after (`AudioLibrary.test.tsx` only ever renders with `storedFiles={[]}`, so `renderFileRow` is never exercised at all), but this fix is purely cosmetic (a display-formatting difference, not data loss, security, or D&D-rules accuracy), which doesn't clear the bar that justified building new test scaffolding for recent, more consequential fixes (e.g. the long-rest combatant-mirroring test).
+
+Verified: diff checked against the real uploaded file — confirmed both instances fixed and no other stray `.fileName` references remain in the render logic (the separate `.name` usages on raw browser `File` objects elsewhere in this file, for drag-and-drop handling, are unrelated and correctly untouched). Raw Batch 7B-1 output confirmed 13/13 passing, matching the documented baseline exactly.
+
+---
+
+## NPC Initiative Floor (Completed)
+
+`useCombatLifecycle.ts`'s `rollInitForNPCs` clamped NPC initiative to a minimum of 1 (`Math.max(1, d20Roll + dexMod)`) — not correct 5e RAW, which has no such floor; a creature with a strongly negative DEX modifier can legitimately roll 0 or negative initiative. This was originally mislabeled by AI Studio's own audit as evidence of a *correct* RAW implementation, backwards from reality. The clamp also caused a compounding display bug: the toast notification showed the clamped total alongside the unclamped `d20Roll`/`dexMod` breakdown, so the displayed arithmetic wouldn't add up whenever the clamp actually changed the result.
+
+**Fix**: removed the clamp entirely — `total = d20Roll + dexMod`, no floor. Confirmed as part of the same change that the toast's breakdown text is now always mathematically consistent, since there's no longer a clamp to create a mismatch. Checked downstream consumers before finalizing: the turn-order sort (`b.initiative - a.initiative`), the database write (`updateInitiativeDB`), and manual initiative input all handle negative/zero values correctly with no assumptions requiring a positive floor.
+
+**Test coverage added**: one new test in `useCombatSync.test.ts`, mocking `Math.random()` to deterministically force a d20 roll of 1, combined with a DEX score of 1 (modifier −5), asserting the resulting initiative is exactly −4 — both in the updated combatant state and in the `updateInitiativeDB` call. Verified by hand that the math is correct and that the test's target combatant is genuinely set up as an NPC in the file's baseline state, so it actually exercises the real roll logic rather than being a no-op.
+
+Verified: diff checked against the real uploaded file, raw Batch 5A output confirmed 49/49 passing (48→49). The pre-existing `useEncounterLifecycle.test.ts` assertion (`toBeGreaterThanOrEqual(1)`) was correctly left unchanged — confirmed it was only passing coincidentally because that fixture's DEX+2 modifier happens to always produce a non-negative result, not because it was actually testing the old clamp.
+
+---
+
 ## Long-Rest Combatant Mirror Missing `tempHpMax` (Completed)
 
 `useParty.ts`'s `calculateLongRestUpdates` correctly clears `tempHpMax` on the character record when exhaustion improves below the HP-halving threshold, but `handleLongRest`'s combatant-mirroring block (syncing changes into the active combat tracker) never copied that field over — only `currentHp`/`tempHp`/`maxHp`/`conditions`/`conditionTimers` — so the character sheet self-corrected while the active combat tracker kept showing a stale, halved max HP.

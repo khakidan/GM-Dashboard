@@ -323,8 +323,8 @@ export function AudioLibrary({
         </div>
 
         <div className="flex-grow min-w-0 px-2 overflow-hidden">
-          <p className="font-sans font-medium text-stone-700 leading-tight break-words" title={file.fileName}>
-            {file.fileName}
+          <p className="font-sans font-medium text-stone-700 leading-tight break-words" title={file.name}>
+            {file.name}
           </p>
         </div>
 
