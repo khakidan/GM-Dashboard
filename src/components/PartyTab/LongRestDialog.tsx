@@ -19,7 +19,7 @@ export function LongRestDialog({ isOpen, characters, onConfirm, onClose }: LongR
     if (isOpen) {
       setSelectedIds(characters.filter(c => c.statusId !== 3).map(c => c.id));
     }
-  }, [isOpen, characters]);
+  }, [isOpen]);
 
   const toggleSelect = (id: string) => {
     const char = characters.find(c => c.id === id);

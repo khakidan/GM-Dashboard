@@ -6,6 +6,20 @@ Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed fr
 
 ---
 
+## `LongRestDialog.tsx` `selectedIds` Reset — Closes Out `PartyTab/` Entirely (Completed)
+
+The last remaining confirmed bug in `PartyTab/`. `useEffect(() => { if (isOpen) setSelectedIds(...) }, [isOpen, characters])` re-fired and reset the selection to "all non-dead characters" any time the `characters` array reference changed — which happens on any unrelated state update elsewhere in the app while this dialog happens to be open — silently wiping a GM's manual deselections mid-dialog.
+
+**Fix**: removed `characters` from the dependency array — `[isOpen]` only. The effect's only real job is initializing the selection when the dialog transitions from closed to open; `characters` is read inside the effect body but isn't something the effect needs to *react* to changing.
+
+**Test coverage added**: renders the dialog open with two characters, deselects one via a row click (confirmed this correctly triggers the row's `onClick` handler, not the checkbox's no-op `onChange`), then re-renders with a fresh `characters` array reference containing the same data while `isOpen` stays `true` — simulating an unrelated background update rather than a genuine reopen — and asserts the deselection persists. Traced by hand that this genuinely exercises the fix: under the old dependency array, the second render would have re-fired the effect and reset the deselected character back to checked.
+
+Verified: diff and test checked against the real uploaded files. Raw Batch 6A output confirmed 54/54 passing (53→54).
+
+**This closes out `PartyTab/` in its entirety** — all 8 confirmed real bugs found across this directory (short-rest HP cap ×2, long-rest `tempHpMax` mirror, this `selectedIds` reset, `calculateHpGain`'s minimum-1 HP floor, `isConfirmDisabled`'s empty-class gap, status labeling consistency across 3 components, and the hit-dice validation regex) are now fixed and tested.
+
+---
+
 ## `LevelUpDialog.tsx` `isConfirmDisabled` Empty-Class Gap (Completed)
 
 `isConfirmDisabled` (`levelUpOption === 'newClass' && !!character.class && !newClassName.trim()`) short-circuited to `false` whenever `character.class` was empty, regardless of whether `newClassName` was ever filled in — so confirm was never disabled for a character with no existing class multiclassing with a blank new-class name.
