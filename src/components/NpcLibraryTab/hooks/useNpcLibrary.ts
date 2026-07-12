@@ -11,7 +11,7 @@ import {
 } from '../../../lib/abilityScores';
 
 export function useNpcLibrary() {
-  const { state, updateState } = useAppState();
+  const { state, updateState, getSnapshot } = useAppState();
   const [syncingId, setSyncingId] = useState<string | null>(null);
   const [globalError, setGlobalError] = useState<string | null>(null);
 
@@ -177,8 +177,8 @@ export function useNpcLibrary() {
     setSyncingId(npcId);
 
     try {
-      // Re-fetch the latest NPC from the global store to ensure we're not using stale closure data
-      const npc = state.npcs.find(n => n.id === npcId);
+      // Fetch the latest NPC from the global store using getSnapshot() to avoid stale closure data
+      const npc = getSnapshot().npcs.find(n => n.id === npcId);
       if (!npc) return;
 
       await updateNpcFullDB(npc);

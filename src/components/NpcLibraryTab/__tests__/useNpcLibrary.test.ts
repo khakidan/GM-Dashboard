@@ -26,13 +26,17 @@ describe('useNpcLibrary', () => {
   it('handleUpdateNpc updates the state and calls the DB', async () => {
     const updateStateSpy = vi.fn();
     const mockState = { npcs: [{ id: 'npc-1', name: 'Goblin' }], encounterCombatants: [], combatState: { combatants: [] } };
+    const mockGetSnapshot = vi.fn().mockReturnValue({
+      npcs: [{ id: 'npc-1', name: 'Goblin', maxHp: 30 }],
+      encounterCombatants: [],
+      combatState: { combatants: [] }
+    });
     
     vi.mocked(useAppState).mockReturnValue({
       state: mockState as any,
       updateState: updateStateSpy,
-      getSnapshot: vi.fn(),
+      getSnapshot: mockGetSnapshot,
     } as any);
-    vi.mocked(getSnapshot).mockReturnValue(mockState as any);
 
     const { result } = renderHook(() => useNpcLibrary());
     
@@ -40,7 +44,32 @@ describe('useNpcLibrary', () => {
       await result.current.handleUpdateNpc('npc-1', { maxHp: 30 });
     });
 
-    expect(updateNpcFullDB).toHaveBeenCalled();
+    expect(updateNpcFullDB).toHaveBeenCalledWith(expect.objectContaining({ id: 'npc-1', maxHp: 30 }));
+    expect(updateStateSpy).toHaveBeenCalled();
+  });
+
+  it('handleUpdateNpc sends the merged update to updateNpcFullDB even when the update includes multiple fields', async () => {
+    const updateStateSpy = vi.fn();
+    const mockState = { npcs: [{ id: 'npc-1', name: 'Goblin', maxHp: 10, ac: 15 }], encounterCombatants: [], combatState: { combatants: [] } };
+    const mockGetSnapshot = vi.fn().mockReturnValue({
+      npcs: [{ id: 'npc-1', name: 'Goblin', maxHp: 30, ac: 18 }],
+      encounterCombatants: [],
+      combatState: { combatants: [] }
+    });
+    
+    vi.mocked(useAppState).mockReturnValue({
+      state: mockState as any,
+      updateState: updateStateSpy,
+      getSnapshot: mockGetSnapshot,
+    } as any);
+
+    const { result } = renderHook(() => useNpcLibrary());
+    
+    await act(async () => {
+      await result.current.handleUpdateNpc('npc-1', { maxHp: 30, ac: 18 });
+    });
+
+    expect(updateNpcFullDB).toHaveBeenCalledWith(expect.objectContaining({ id: 'npc-1', maxHp: 30, ac: 18 }));
     expect(updateStateSpy).toHaveBeenCalled();
   });
 
