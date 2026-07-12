@@ -6,6 +6,18 @@ Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed fr
 
 ---
 
+## `calculateHpGain` Minimum-1 HP Floor (Completed)
+
+`calculateHpGain` (`combatLogic.ts`) had no floor — per 5e RAW, a level-up always grants at least 1 HP regardless of Constitution modifier, but a character with a strongly negative Con modifier and a low roll could previously receive 0 or negative HP gain.
+
+**Fix**: wrapped the return value in `Math.max(1, ...)`.
+
+**Test coverage added**, since this function had zero existing tests at all, not just for this edge case. Three tests added: the specific bug just fixed (roll of 1, Con score 1 → modifier −5, floored to 1 instead of −4), a normal unaffected case confirming the floor doesn't interfere when the natural total is already above 1, and a check that the floor applies to the *final* combined total including the Tough feat's +2 bonus, not just the base roll-plus-modifier before the feat is factored in. Modifier values (−5 for Con 1, +2 for Con 14) confirmed directly against `calculateModifier`'s actual formula before writing the assertions, not assumed.
+
+Verified: diff and test additions both checked against real uploaded files. Raw Batch 1 output confirmed 453/453 passing (450→453, matching the 3 new tests exactly).
+
+---
+
 ## `NewPlayerDialog.tsx` Hit-Dice Validation (Completed)
 
 `NewPlayerDialog.tsx`'s `isHitDiceValid` used its own regex (`/^\d+d\d+(\+\d+d\d+)*$/`), accepting any die size, while the actual parser used everywhere this data is later read (`parseHitDiceConfig` in `hitDice.ts`) is strict — only d6/8/10/12. A GM could create a new character with a hit dice config this dialog said was valid, which then silently failed to parse anywhere it was actually used.

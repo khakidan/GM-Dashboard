@@ -8,7 +8,7 @@ import { getHealthStatus, getEffectiveResistances, effectiveMaxHp, effectiveAc }
 // ────────────────────────────────────────────────────
 
 import { describe, it, expect } from 'vitest';
-import { applyHealthChange, nextTurnIndex, isNewRound, rollD20, checkIrvMatch, computeDamageWithIrv, getExpiredConditions, calculateConditionAcModifier, calculateExhaustionHpCap, getNextActiveTurnIndex } from '../combatLogic';
+import { applyHealthChange, nextTurnIndex, isNewRound, rollD20, checkIrvMatch, computeDamageWithIrv, getExpiredConditions, calculateConditionAcModifier, calculateExhaustionHpCap, getNextActiveTurnIndex, calculateHpGain } from '../combatLogic';
 import { concentrationCheckDc } from '../concentrationCheck';
 import type { Combatant } from '../../types';
 
@@ -697,6 +697,27 @@ describe('getNextActiveTurnIndex', () => {
       { id: '3', type: 'npc', currentHp: 15 } as Combatant,
     ];
     expect(getNextActiveTurnIndex(combatantsDead, '1')).toBe('3');
+  });
+});
+
+// ─── calculateHpGain ────────────────────────────────────────────────────────
+describe('calculateHpGain', () => {
+  it('returns at least 1 HP gain even with a strongly negative Constitution modifier', () => {
+    // hpRoll: 1, Con Score: 1 (modifier -5)
+    // 1 + (-5) = -4, should be floored to 1
+    expect(calculateHpGain(1, 1, false)).toBe(1);
+  });
+
+  it('does not interfere with positive HP gains above 1', () => {
+    // hpRoll: 6, Con Score: 14 (modifier +2)
+    // 6 + 2 = 8, stays 8
+    expect(calculateHpGain(6, 14, false)).toBe(8);
+  });
+
+  it('applies the floor after adding the Tough feat bonus', () => {
+    // hpRoll: 1, Con Score: 1 (modifier -5), Tough Feat (+2)
+    // 1 + (-5) + 2 = -2, should still be floored to 1
+    expect(calculateHpGain(1, 1, true)).toBe(1);
   });
 });
 

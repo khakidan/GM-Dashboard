@@ -354,6 +354,6 @@ export function calculateExhaustionHpCap(
 
 export function calculateHpGain(hpRoll: number, conScore: number, hasToughFeat: boolean): number {
   const conModifier = calculateModifier(conScore);
-  return hpRoll + conModifier + (hasToughFeat ? 2 : 0);
+  return Math.max(1, hpRoll + conModifier + (hasToughFeat ? 2 : 0));
 }
 
