@@ -20,6 +20,7 @@ import { SpellcastingStatsRow } from '../ui/SpellcastingStatsRow';
 import { serializeSpellcastingAbility } from '../../lib/spellcasting';
 import { Button } from '../ui/Button';
 import { ConfirmationDialog } from '../ui/ConfirmationDialog';
+import { effectiveMaxHp } from '../../lib/conditions';
 
 export interface CharacterCardExpandedProps {
   character: Character;
@@ -93,6 +94,7 @@ export const CharacterCardExpanded: React.FC<CharacterCardExpandedProps> = ({
             value={character.currentHp ?? 0}
             onChange={v => onUpdate({ currentHp: v })}
             fallback={0}
+            max={effectiveMaxHp(character.maxHp, character.tempHpMax)}
             className="text-lg font-bold text-[#0f172a] w-full text-center bg-transparent border border-transparent outline-none focus:bg-white focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] rounded transition-all disabled:opacity-50"
             disabled={isSyncing}
           />

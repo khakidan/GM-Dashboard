@@ -6,6 +6,18 @@ Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed fr
 
 ---
 
+## `CharacterCardExpanded.tsx` Current HP Ceiling (Completed)
+
+Unlike the "Max HP" field (bounded via `min={1}`), the manual "HP" (current HP) input had no `max` at all — a GM could type a current HP above the character's actual max, with nothing preventing it. Decision made earlier in the audit: current HP shouldn't be usable as an ad hoc overflow buffer, since that's exactly what the separate Temp HP field exists for.
+
+**Fix**: added `max={effectiveMaxHp(character.maxHp, character.tempHpMax)}` to the current HP `CardNumberInput`, consistent with the same `effectiveMaxHp`-based ceiling already used in the short-rest fixes — so an exhaustion-halved character's manual HP entry is correctly capped at their halved max, not their base max.
+
+**Test coverage added**, deliberately checked against `CardNumberInput`'s actual commit logic rather than just the DOM's `max` attribute: `CardNumberInput` clamps via its own `commit()` function on blur, not native HTML validation, so the test renders the component, types a value above the effective max, blurs the input, and asserts `onUpdate` was called with the clamped value. Used an exhaustion-halved test character (`maxHp: 40`, `tempHpMax: 20`) specifically so the test exercises `effectiveMaxHp`'s halved-max branch, not just the simpler unaffected case. Verified by hand: since only `max` (not `min`) is passed for this field, `CardNumberInput`'s commit logic reduces to `Math.min(max, parsed)` = `Math.min(20, 35) = 20`, matching the test's assertion exactly.
+
+Verified: diff checked against the real uploaded files for both the production code and the test. Raw Batch 6A output confirmed 53/53 passing (52→53). `testing-batches.md` updated in the same turn.
+
+---
+
 ## `AudioLibrary.tsx` File Name Display (Completed)
 
 **Correction to the original finding's severity, worth recording accurately**: this was originally flagged as `renderFileRow` "almost certainly displaying `undefined`" for every file's name, based on 4 other files (`AmbientPlayer.tsx` ×2, `AudioPanel.tsx`, `CommandPalette.tsx`) all consistently using `.name` on the same `StoredAudioFile` type. Confirmed directly against the real type definition before fixing: `StoredAudioFile` actually has *both* `.name` (clean display name, extension stripped) and `.fileName` (original filename, extension included) as legitimate, distinct fields. So the bug was real, but its actual effect was showing raw filenames like `13_Cave_of_Time.mp3` instead of the intended clean `13_Cave_of_Time` — not rendering `undefined`. Worth being precise about this rather than letting the more severe original description stand uncorrected.

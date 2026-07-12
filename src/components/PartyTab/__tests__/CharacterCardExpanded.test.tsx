@@ -43,4 +43,33 @@ describe('CharacterCardExpanded', () => {
     const { container } = render(<CharacterCardExpanded {...defaultProps} />);
     expect(container).toBeInTheDocument();
   });
+
+  it('clamps current HP to effective max HP (exhaustion-halved scenario) on blur', () => {
+    const onUpdateMock = vi.fn();
+    const testCharacter = {
+      ...defaultCharacter,
+      maxHp: 40,
+      tempHpMax: 20, // effectiveMaxHp is 20
+      currentHp: 17,
+    };
+
+    render(
+      <CharacterCardExpanded
+        {...defaultProps}
+        character={testCharacter}
+        onUpdate={onUpdateMock}
+      />
+    );
+
+    const hpInput = screen.getByDisplayValue('17');
+    expect(hpInput).toBeInTheDocument();
+
+    // Type a value above the effective max HP (20)
+    fireEvent.change(hpInput, { target: { value: '35' } });
+    
+    // Trigger blur to commit the value
+    fireEvent.blur(hpInput);
+
+    expect(onUpdateMock).toHaveBeenCalledWith({ currentHp: 20 });
+  });
 });
