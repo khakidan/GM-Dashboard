@@ -6,6 +6,23 @@ Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed fr
 
 ---
 
+## 4 Dead-Code Cleanups in `components/ui/` (Completed)
+
+Four small, independent dead-code findings from the original `ui/` audit, fixed together in one batch since each was a mechanical, zero-risk removal with no design decisions needed.
+
+1. **`ConditionChips.tsx`** — `let debounceTimer: ReturnType<typeof setTimeout>;` declared inside a scroll-handling `useEffect`, never referenced again anywhere in the file. Removed.
+2. **`NpcFormFields.tsx`** — `useEffect` imported from `react`, never called anywhere in the file. Removed from the import statement.
+3. **`StatBlockSaves.tsx`** — `column: 1`/`column: 2` set on each ability object in the render array, but the `.map(({ ability }) => ...)` only ever destructures `ability` — dead metadata, kept only alongside an explanatory comment about column layout that the actual grid CSS handles on its own. Removed the `column` key from all 6 entries.
+4. **`IrvMultiSelect.tsx`** — a stray standalone `;` sitting on its own line after the imports. Harmless syntax noise, removed.
+
+**Process note**: the first response to this batch skipped the requested diff entirely (a bullet-point summary instead) and was missing the actual content for one of the four files despite listing it as uploaded. Both gaps were caught and required before accepting — the real diffs for all four files, and the genuine full content of `ConditionChips.tsx`, confirming `debounceTimer` was truly unreferenced anywhere in the file, not just in the specific `useEffect` it was removed from.
+
+No test coverage question applicable — these are pure dead-code removals with zero behavioral change, nothing to test.
+
+Verified: all 4 diffs checked against real file content (3 directly, the 4th via the file's full contents). Raw Batch 8 output confirmed 2/2 passing, matching the documented baseline exactly.
+
+---
+
 ## `server/routes/` — 5 Fixes, 1 Correctly Rejected (Completed)
 
 All 6 findings from the `server/routes/` audit pass, resolved in one coordinated round across `campaigns.ts` and `auth.ts`.

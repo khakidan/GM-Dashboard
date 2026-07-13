@@ -27,12 +27,12 @@ export const StatBlockSaves: React.FC<StatBlockSavesProps> = ({
             Interleaving order for grid wrapping:
             STR, INT, DEX, WIS, CON, CHA */}
         {[
-          { ability: 'STR' as AbilityName, column: 1 },
-          { ability: 'INT' as AbilityName, column: 2 },
-          { ability: 'DEX' as AbilityName, column: 1 },
-          { ability: 'WIS' as AbilityName, column: 2 },
-          { ability: 'CON' as AbilityName, column: 1 },
-          { ability: 'CHA' as AbilityName, column: 2 },
+          { ability: 'STR' as AbilityName },
+          { ability: 'INT' as AbilityName },
+          { ability: 'DEX' as AbilityName },
+          { ability: 'WIS' as AbilityName },
+          { ability: 'CON' as AbilityName },
+          { ability: 'CHA' as AbilityName },
         ].map(({ ability }) => {
           const isProficient = savingThrows.includes(ability);
           const score = abilityScores[ability];

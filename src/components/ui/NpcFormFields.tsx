@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { cn } from '../../lib/utils';
 import { StatBlock } from '../ui/StatBlock';
 import { Tabs } from './Tabs';

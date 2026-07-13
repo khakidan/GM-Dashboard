@@ -3,7 +3,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { X, Search, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
-;
 
 interface IrvMultiSelectProps {
   label: string;

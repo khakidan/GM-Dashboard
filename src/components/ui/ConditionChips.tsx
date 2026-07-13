@@ -110,7 +110,6 @@ export function ConditionChips({
   useEffect(() => {
     if (!open) return;
     
-    let debounceTimer: ReturnType<typeof setTimeout>;
     const handleScroll = (e: Event) => {
       // Close on scroll to prevent detached dropdowns
       const portalEl = document.getElementById('condition-chips-dropdown');
