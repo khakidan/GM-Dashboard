@@ -25,9 +25,15 @@ router.get('/config', (req, res) => {
 // POST /api/auth/google-token
 router.post('/google-token', authLimiter, async (req, res) => {
   try {
+    if (!req.body) {
+      return res.status(400).json({ error: 'BAD_REQUEST', message: 'Request body is required.' });
+    }
     const { code, redirect_uri, refresh_token } = req.body;
     if (!code && !refresh_token) {
       return res.status(400).json({ error: 'Code or refresh_token is required' });
+    }
+    if (code && !redirect_uri) {
+      return res.status(400).json({ error: 'redirect_uri is required when using authorization code' });
     }
     const clientId =
       process.env.VITE_GOOGLE_CLIENT_ID ||
@@ -67,12 +73,19 @@ router.post('/google-token', authLimiter, async (req, res) => {
       body: params.toString(),
     });
 
-    const data = await googleRes.json();
     if (!googleRes.ok) {
-      console.error('❌ [Server] Google Token API Error:', data);
-      return res.status(googleRes.status).json(data);
+      const errorText = await googleRes.text();
+      let errorData;
+      try {
+        errorData = JSON.parse(errorText);
+      } catch (e) {
+        errorData = { error: 'GOOGLE_API_ERROR', message: errorText };
+      }
+      console.error('❌ [Server] Google Token API Error:', errorData);
+      return res.status(googleRes.status).json(errorData);
     }
 
+    const data = await googleRes.json();
     res.json(data);
   } catch (error: unknown) {
     console.error('❌ [Server] Token exchange exception', error);

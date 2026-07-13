@@ -6,6 +6,27 @@ Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed fr
 
 ---
 
+## `server/routes/` — 5 Fixes, 1 Correctly Rejected (Completed)
+
+All 6 findings from the `server/routes/` audit pass, resolved in one coordinated round across `campaigns.ts` and `auth.ts`.
+
+**Investigated before fixing #6 specifically**: the Spells/Conditions provisioning gap was initially assumed to need a fix, but tracing the actual code first revealed it wasn't a bug at all. `ReferenceDataSeeder.tsx`'s "Seed SRD Reference Data" feature (Settings page) already checks whether the `Conditions`/`Spells` sheet tabs exist and creates them itself if missing, before writing headers and fetching real SRD data from the Open5e API — a genuine, working self-healing mechanism, confirmed by reading the actual component (not the thin `useReferenceDataSeeder.ts` re-export wrapper, which was checked first and turned out to contain none of the real logic). Rejected as not a bug; no fix needed.
+
+**The other 5 fixed together**:
+1. **`campaigns.ts` title validation** — `if (!title)` → `if (!title || !title.trim())`, rejecting whitespace-only titles.
+2. **`campaigns.ts` rate limiter** — added `campaignCreateLimiter`, matching `auth.ts`'s `authLimiter` configuration exactly (15-minute window, max 20), with its own appropriate message.
+3. **JSON-parsed-before-status-check, both files** — both fixed to check `res.ok` first, then read the error body via `.text()` (with a `JSON.parse` fallback) before responding — matching the pattern `campaigns.ts` itself already used correctly in its own later error-handling blocks (the `sheetsUpdateRes`/`headersRes` checks), rather than inventing a new pattern.
+4. **`req.body` existence guards, both files** — added before destructuring in each route handler.
+5. **`auth.ts` `redirect_uri` check** — added a check that `redirect_uri` is present specifically when `code` is being used (the authorization_code grant path), returning a clear 400 instead of silently sending the literal string `"undefined"` to Google.
+
+**Two test failures surfaced as a direct, expected consequence of the real fixes** — not signs anything was wrong: `campaigns.test.ts`'s Google-API-failure test mock lacked a `.text()` method (the fixed error path now reads via `.text()` first, matching the established pattern, instead of blind `.json()`); `auth.test.ts`'s success test was missing `redirect_uri` entirely — it had been implicitly relying on the exact bug just fixed (a request without `redirect_uri` previously still succeeded, silently sending `"undefined"` to Google). Both fixed: the campaigns mock given a working `.text()`, the auth test given a real `redirect_uri` value.
+
+Verified: all diffs checked against real uploaded files across all rounds. Raw Batch 4 output confirmed 9/9 passing, matching the documented baseline exactly.
+
+**This closes out `server/routes/` in its entirety.**
+
+---
+
 ## `ConditionPopover.tsx` — DOM ID Regex Typo + `aid (boosted)` Categorization Drift (Completed)
 
 Two independent issues in the same file, fixed together.

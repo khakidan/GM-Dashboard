@@ -2,14 +2,29 @@
 
 import { Router } from 'express';
 import { sheets_v4 } from 'googleapis';
+import rateLimit from 'express-rate-limit';
 
 const router = Router();
 
-router.post('/create', async (req, res) => {
+const campaignCreateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    error: 'TOO_MANY_REQUESTS',
+    message: 'Too many campaign creation attempts. Please try again in 15 minutes.'
+  }
+});
+
+router.post('/create', campaignCreateLimiter, async (req, res) => {
   try {
+    if (!req.body) {
+      return res.status(400).json({ error: 'BAD_REQUEST', message: 'Request body is required.' });
+    }
     const { title } = req.body;
     const authHeader = req.headers.authorization;
-    if (!title) {
+    if (!title || !title.trim()) {
       return res.status(400).json({ error: 'BAD_REQUEST', message: 'Spreadsheet title is required.' });
     }
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -31,15 +46,23 @@ router.post('/create', async (req, res) => {
       })
     });
 
-    const createData = await createRes.json() as any;
     if (!createRes.ok) {
-      console.error('[Server] Failed to create spreadsheet:', createData);
+      const errorText = await createRes.text();
+      let createData;
+      try {
+        createData = JSON.parse(errorText);
+      } catch (e) {
+        createData = { error: { message: errorText } };
+      }
+      console.error('[Server] Failed to create spreadsheet:', errorText);
       return res.status(createRes.status).json({
         error: 'GOOGLE_API_ERROR',
         message: createData?.error?.message || 'Google Sheets API rejected the request.',
         details: createData
       });
     }
+
+    const createData = await createRes.json() as any;
 
     const { spreadsheetId, spreadsheetUrl } = createData;
 

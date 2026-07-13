@@ -116,6 +116,7 @@ describe('Campaigns Router', () => {
     vi.mocked(fetch).mockResolvedValueOnce({
       ok: false,
       status: 403,
+      text: async () => JSON.stringify({ error: { message: 'The caller does not have permission' } }),
       json: async () => ({ error: { message: 'The caller does not have permission' } }),
     } as Response);
 

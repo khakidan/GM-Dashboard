@@ -30,7 +30,10 @@ describe('Auth Router', () => {
       json: async () => mockSuccessResponse,
     } as Response);
     
-    const response = await request(app).post('/api/auth/google-token').send({ code: 'test' });
+    const response = await request(app).post('/api/auth/google-token').send({ 
+      code: 'test',
+      redirect_uri: 'http://localhost:3000'
+    });
     expect(response.status).toBe(200);
     expect(response.body).toEqual(mockSuccessResponse);
   });
