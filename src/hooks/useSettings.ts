@@ -17,6 +17,7 @@ import {
 } from './useCombatOverlayEvents';
 
 import { CampaignBackupSchema } from '../lib/objectSchemas';
+import { Character, NPC, Encounter, EncounterCombatant } from '../types';
 
 interface UseSettingsProps {
   isGoogleConnected: boolean;
@@ -97,13 +98,16 @@ export function useSettings({
         
         // Merge only the specific fields produced by handleExportJSON that are present in the backup
         // This prevents metadata like 'version' or 'exportDate' from being merged into AppState
+        // We use explicit narrow type assertions through 'unknown' because CampaignBackupSchema uses
+        // .passthrough() for array elements to be lenient and validate only structural shapes,
+        // resulting in loose inferred types that do not match the full AppState type definitions.
         updateState((prev) => ({
           ...prev,
           ...(data.campaignName !== undefined && { campaignName: data.campaignName }),
-          ...(data.characters !== undefined && { characters: data.characters }),
-          ...(data.npcs !== undefined && { npcs: data.npcs }),
-          ...(data.encounters !== undefined && { encounters: data.encounters }),
-          ...(data.encounterCombatants !== undefined && { encounterCombatants: data.encounterCombatants }),
+          ...(data.characters !== undefined && { characters: data.characters as unknown as Character[] }),
+          ...(data.npcs !== undefined && { npcs: data.npcs as unknown as NPC[] }),
+          ...(data.encounters !== undefined && { encounters: data.encounters as unknown as Encounter[] }),
+          ...(data.encounterCombatants !== undefined && { encounterCombatants: data.encounterCombatants as unknown as EncounterCombatant[] }),
         }));
 
         toast.success('Campaign data imported successfully');

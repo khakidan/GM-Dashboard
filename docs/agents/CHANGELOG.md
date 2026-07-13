@@ -6,6 +6,52 @@ Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed fr
 
 ---
 
+## `useSettings.ts` Type-Safety Gap (Completed)
+
+`importCampaignDataJson`'s `updateState` call failed `npx tsc -p tsconfig.build.json --noEmit`: `CampaignBackupSchema`'s Zod schema deliberately uses `.passthrough()` on array items (validate structure — arrays are arrays, each item has a non-empty `id` — without exhaustively validating every field, a decision already made when this schema was built), so Zod infers its output as a loosely-typed `{ [x: string]: unknown; id: string }[]`, not the real `Character[]`/`NPC[]`/`Encounter[]`/`EncounterCombatant[]` interfaces. A compile-time-only gap, not a runtime bug — surfaced while verifying an unrelated fix (`createOverlayEvent.ts`), where a blanket `as any` was proposed as a shortcut and correctly rejected, then logged as its own separate finding rather than left unresolved.
+
+**Fix, deliberately not a blanket `any`**: searched for existing precedent first — found `dashboardStore.ts` already uses the same category of bridge (`updater(state as unknown as AppState) as unknown as Partial<DashboardStore>`) for structurally-compatible-but-not-identically-typed values, confirming this wasn't a new pattern being invented for this fix. Applied the same shape here: `data.characters as unknown as Character[]` (and the equivalent for `npcs`/`encounters`/`encounterCombatants`), with an explanatory code comment recording *why* this is safe — the schema deliberately validates structure only, so the cast trusts what's already been checked rather than papering over an actual gap.
+
+Confirmed `Character`/`NPC`/`Encounter`/`EncounterCombatant` needed a new import into `useSettings.ts`, added matching this file's existing import grouping/style rather than a new pattern.
+
+**Process note**: while verifying this fix, a re-quoted "verbatim" snippet of `objectSchemas.ts` (a file this task never touched) didn't match its real content, already independently confirmed twice earlier in this project — a different structure, a nonexistent `import { z } from 'z'`, missing constraints (`.min(1)`, `.nullable()`) that are genuinely present in the real file. Didn't affect the actual fix (which only ever touched `useSettings.ts`, verified directly), but named directly as the same recurring "quoted content doesn't match an already-verified file" pattern seen more than once this session.
+
+Verified: diff checked against the real uploaded file. `npx tsc -p tsconfig.build.json --noEmit` confirmed passing with exit code 0. Raw Batch 3 output confirmed 50/50 passing, matching the documented baseline exactly.
+
+---
+
+## `createOverlayEvent.ts` Race Condition (Completed)
+
+`fire` started a new `setTimeout` on every call with nothing storing or clearing the previous timer — a second rapid `fire` call could have its overlay cleared early when the first call's delayed clear eventually fired.
+
+**Investigation revealed the initially-proposed fix (a per-instance `useRef`) had a real architectural gap.** All 6 concrete overlay hooks built from this shared factory (`useDeathEvent`, `useDamageEvent`, `useHealEvent`, `useUnconsciousEvent`, `useRageEvent`, `useInitiativeEvent`) are each called from *multiple, independent locations* — e.g. `useDeathEvent()` is called separately in `useSettings.ts`, `useDeathSaves.ts`, `useCombatSync.ts`, and `CommandPalette.tsx`. Since `useRef` is scoped per hook-instance but the actual state being raced over (`combatState[eventKey]`) is global and shared, a `useRef`-based fix would only have solved the race *within* a single instance — two separate instances of the same hook firing close together (e.g. one from `useCombatSync.ts`, one from `CommandPalette.tsx`) would still race exactly as before.
+
+**Fix**: a module-level `Map<keyof CombatState, ReturnType<typeof setTimeout>>`, declared once outside the hook function and shared across every instance and call site. `fire` and `clear` both check and clear any existing timeout for that specific `eventKey` before proceeding — different event keys remain fully independent (a `damageEvent` and a `rageEvent` can still display concurrently), but rapid same-key fires from any instance now correctly cancel and reset each other's timer.
+
+**Two things caught and corrected mid-fix, unrelated to the core logic**: an unrequested, unrelated change to `useSettings.ts` (an `as any` cast added to work around a pre-existing TypeScript compile error) was rejected and reverted — confirmed the type error is real and genuinely pre-existing (a consequence of `objectSchemas.ts`'s `CampaignBackupSchema` using Zod's `.passthrough()`, which types its output as a loose `{ [x: string]: unknown; id: string }[]` rather than the real `Character[]`/`NPC[]`/etc.), not introduced by this session, and not something to paper over with an unsafe cast — logged as its own separate, new finding in `ROADMAP.md` instead. Separately, an initial test verification round ran only a hand-picked subset of files within each relevant batch rather than the full batches as defined in `testing-batches.md` — required and obtained the complete batches before accepting.
+
+Confirmed via search: no existing test mocks or asserts on the precise timing/duration behavior of these timers, so no test changes were needed.
+
+Verified: diff checked against the real uploaded file. Raw output confirmed for the full versions of all three relevant batches: Batch 3 (50/50), Batch 5A (49/49), Batch 7B-1 (13/13) — all matching documented baselines exactly.
+
+---
+
+## `StatBlockScores.tsx` Proficiency-Bonus Override Debounce (Completed)
+
+Both proficiency-bonus override inputs (leveled-character branch and NPC branch) fired `onChange` on every keystroke rather than committing on blur/Enter — inconsistent with `AbilityScoreInput` in the same file, and meaning a two-digit override like "10" fired the update twice, first with the incomplete "1". Investigated first whether this was deliberate (a rare, one-off adjustment field vs. something typed frequently) — assessed as likely an oversight given the direct pattern mismatch with `AbilityScoreInput` in the same file, not a deliberate design choice.
+
+**Fix**: new `ProficiencyOverrideInput` component, modeled on `AbilityScoreInput`'s local-state-plus-commit-on-blur/Enter pattern but with its own appropriate range (0–20, chosen deliberately — covers standard 5e progression with headroom for homebrew/epic-tier NPCs, while allowing 0 as an explicit "no override" state) rather than reusing `AbilityScoreInput`'s ability-score-specific 1–30 clamp. Both original inputs' distinct NaN fallbacks (`0` for "no override, use calculated"; `2` for the NPC baseline) preserved as the new component's `placeholder` prop.
+
+**One behavioral detail corrected before accepting the implementation**: the first draft's `commit()` called `onUpdate(placeholder)` on invalid/empty input — actively pushing the fallback value to the parent as if deliberately chosen. This diverged from `AbilityScoreInput`'s actual behavior, which reverts the local display and never calls `onChange` at all on invalid input. Flagged directly as a real UX question, not just a pattern-matching detail — a GM clearing the field to retype and accidentally blurring early would have had their existing override silently overwritten by the fallback under the first draft. Corrected to match `AbilityScoreInput` exactly: revert local display, no `onUpdate` call, on invalid input.
+
+**Side benefit, not separately requested**: the two original inputs also had inconsistent ranges (`max="10"` on one, `min="1"` with no explicit max-consistency on the other) — both now uniformly `0–20` simply by sharing the same component.
+
+**Process note**: a response claimed "no tests needed modification" and "no tests relied on the old behavior" without actually running any test batch, despite this file being rendered indirectly via `StatBlock.tsx` across several tested components (`CharacterCardExpanded.tsx`, `LevelUpDialog.tsx`, `NpcCard.tsx`, `NewNpcDialog.tsx`, and others). Rejected — required the actual batches covering those indirect consumers be run and their real raw output shown, not just asserted.
+
+Verified: diff checked against the real uploaded file. Raw output confirmed for both relevant batches: Batch 6A (PartyTab, covering `CharacterCardExpanded.tsx`/`LevelUpDialog.tsx`) 54/54, Batch 6C (NpcLibraryTab, covering `NpcCard.tsx`/`NewNpcDialog.tsx`) 15/15 — both matching documented baselines exactly.
+
+---
+
 ## `NpcCard.tsx`/`NpcFormFields.tsx` Missing `Array.isArray()` Checks — Closes Out `NpcLibraryTab/` Entirely (Completed)
 
 `JSON.parse(npc.traits || '[]') as NpcTrait[]` (and the same pattern for `actions`/`reactions`/`legendaryActionsList`) had no runtime check that the parsed result was actually an array — if a sheet cell were corrupted into a non-array JSON value (e.g. `"{}"`), `JSON.parse` would succeed and the type assertion would lie to TypeScript; a later `.map()`/`.length` call on it would throw at runtime.

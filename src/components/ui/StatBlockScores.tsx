@@ -56,6 +56,56 @@ function AbilityScoreInput({
   );
 }
 
+function ProficiencyOverrideInput({
+  value,
+  onUpdate,
+  placeholder,
+  id,
+  className,
+}: {
+  value: number | undefined;
+  onUpdate: (val: number | undefined) => void;
+  placeholder: number;
+  id?: string;
+  className?: string;
+}) {
+  const [local, setLocal] = React.useState(value !== undefined ? String(value) : '');
+
+  React.useEffect(() => {
+    setLocal(value !== undefined ? String(value) : '');
+  }, [value]);
+
+  const commit = () => {
+    const parsed = parseInt(local, 10);
+    if (!isNaN(parsed) && parsed >= 0 && parsed <= 20) {
+      onUpdate(parsed);
+    } else {
+      setLocal(value !== undefined ? String(value) : '');
+    }
+  };
+
+  return (
+    <input
+      type="number"
+      min="0"
+      max="20"
+      placeholder={String(placeholder)}
+      value={local}
+      onChange={e => setLocal(e.target.value)}
+      onBlur={commit}
+      onKeyDown={e => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          commit();
+        }
+      }}
+      onFocus={e => e.target.select()}
+      className={className || "w-12 text-[10px] bg-white border border-[#e2e8f0] rounded text-[#0f172a] text-center py-0.5 mt-0.5 outline-none focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]/30"}
+      id={id}
+    />
+  );
+}
+
 export interface StatBlockScoresProps {
   abilityScores: AbilityScores;
   effectiveProfBonus: number;
@@ -128,18 +178,10 @@ export const StatBlockScores: React.FC<StatBlockScoresProps> = ({
                 {formatBonus(effectiveProfBonus)}
               </span>
               {!readOnly && (
-                <input
-                  type="number"
-                  min="0"
-                  max="10"
-                  placeholder="calc"
-                  value={proficiencyBonusOverride === 0 ? '' : proficiencyBonusOverride}
-                  onChange={(e) => {
-                    const val = parseInt(e.target.value, 10);
-                    onProfBonusOverrideChange(isNaN(val) ? 0 : val);
-                  }}
-                  onFocus={(e) => e.target.select()}
-                  className="w-12 text-[10px] bg-white border border-[#e2e8f0] rounded text-[#0f172a] text-center py-0.5 mt-0.5 outline-none focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]/30"
+                <ProficiencyOverrideInput
+                  value={proficiencyBonusOverride === 0 ? undefined : proficiencyBonusOverride}
+                  onUpdate={onProfBonusOverrideChange}
+                  placeholder={0}
                   id="proficiency-bonus-override"
                 />
               )}
@@ -151,18 +193,12 @@ export const StatBlockScores: React.FC<StatBlockScoresProps> = ({
                   {formatBonus(effectiveProfBonus)}
                 </span>
               ) : (
-                <input
-                  type="number"
-                  min="1"
-                  max="10"
+                <ProficiencyOverrideInput
                   value={proficiencyBonusOverride}
-                  onChange={(e) => {
-                    const val = parseInt(e.target.value, 10);
-                    onProfBonusOverrideChange(isNaN(val) ? 2 : val);
-                  }}
-                  onFocus={(e) => e.target.select()}
-                  className="w-12 text-sm bg-white border border-[#e2e8f0] rounded text-[#0f172a] text-center py-0.5 outline-none focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]/30"
+                  onUpdate={onProfBonusOverrideChange}
+                  placeholder={2}
                   id="proficiency-bonus-input"
+                  className="w-12 text-sm bg-white border border-[#e2e8f0] rounded text-[#0f172a] text-center py-0.5 outline-none focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]/30"
                 />
               )}
             </>
