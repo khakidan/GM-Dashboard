@@ -122,4 +122,116 @@ describe('useSettings State Transition Tests', () => {
     mockRevokeObjectURL.mockRestore();
     mockClick.mockRestore();
   });
+
+  describe('importCampaignDataJson', () => {
+    it('accepts a valid well-formed backup and updates state', async () => {
+      const { result } = renderHook(() => useSettings(mockProps));
+      const validBackup = JSON.stringify({
+        campaignName: 'New Campaign',
+        characters: [{ id: 'c1', name: 'Char 1' }],
+        npcs: [{ id: 'n1', name: 'NPC 1' }],
+        encounters: [{ id: 'e1', name: 'Enc 1' }],
+        encounterCombatants: [{ id: 'ec1', name: 'Comb 1' }]
+      });
+
+      const success = await act(async () => {
+        return await result.current.importCampaignDataJson(validBackup);
+      });
+
+      expect(success).toBe(true);
+      expect(mockUpdateState).toHaveBeenCalled();
+      const stateUpdateFn = mockUpdateState.mock.calls[0][0];
+      const newState = stateUpdateFn({});
+      expect(newState.campaignName).toBe('New Campaign');
+      expect(newState.characters).toEqual([{ id: 'c1', name: 'Char 1' }]);
+      expect(toast.success).toHaveBeenCalledWith('Campaign data imported successfully');
+    });
+
+    it('rejects backup if an array item is missing its id field', async () => {
+      const { result } = renderHook(() => useSettings(mockProps));
+      const invalidBackup = JSON.stringify({
+        characters: [{ name: 'Missing ID' }]
+      });
+
+      await act(async () => {
+        await expect(result.current.importCampaignDataJson(invalidBackup)).rejects.toThrow();
+      });
+
+      expect(mockUpdateState).not.toHaveBeenCalled();
+      expect(toast.error).toHaveBeenCalledWith(
+        'Import Failed: Malformed campaign JSON',
+        expect.objectContaining({ description: expect.stringContaining('Invalid backup schema at characters.0.id') })
+      );
+    });
+
+    it('rejects backup if an array item has an empty-string id', async () => {
+      const { result } = renderHook(() => useSettings(mockProps));
+      const invalidBackup = JSON.stringify({
+        npcs: [{ id: '', name: 'Empty ID' }]
+      });
+
+      await act(async () => {
+        await expect(result.current.importCampaignDataJson(invalidBackup)).rejects.toThrow();
+      });
+
+      expect(toast.error).toHaveBeenCalledWith(
+        'Import Failed: Malformed campaign JSON',
+        expect.objectContaining({ description: expect.stringContaining('Too small: expected string to have >=1 characters') })
+      );
+    });
+
+    it('rejects backup if a top-level field is wrong type', async () => {
+      const { result } = renderHook(() => useSettings(mockProps));
+      const invalidBackup = JSON.stringify({
+        encounters: "not an array"
+      });
+
+      await act(async () => {
+        await expect(result.current.importCampaignDataJson(invalidBackup)).rejects.toThrow();
+      });
+
+      expect(toast.error).toHaveBeenCalledWith(
+        'Import Failed: Malformed campaign JSON',
+        expect.objectContaining({ description: expect.stringContaining('expected array, received string') })
+      );
+    });
+
+    it('filters out extra keys from state update', async () => {
+      const { result } = renderHook(() => useSettings(mockProps));
+      const backupWithExtras = JSON.stringify({
+        campaignName: 'Clean Import',
+        version: '1.0.0',
+        exportDate: '2024-01-01',
+        extraField: 'should be ignored',
+        characters: [{ id: 'c2' }]
+      });
+
+      await act(async () => {
+        await result.current.importCampaignDataJson(backupWithExtras);
+      });
+
+      const stateUpdateFn = mockUpdateState.mock.calls[0][0];
+      const newState = stateUpdateFn({});
+      expect(newState.campaignName).toBe('Clean Import');
+      expect(newState.characters).toEqual([{ id: 'c2' }]);
+      // @ts-expect-error - testing exclusion of extra keys
+      expect(newState.version).toBeUndefined();
+      // @ts-expect-error - testing exclusion of extra keys
+      expect(newState.extraField).toBeUndefined();
+    });
+
+    it('handles malformed JSON syntax errors', async () => {
+      const { result } = renderHook(() => useSettings(mockProps));
+      const malformedJson = '{ invalid json ';
+
+      await act(async () => {
+        await expect(result.current.importCampaignDataJson(malformedJson)).rejects.toThrow();
+      });
+
+      expect(toast.error).toHaveBeenCalledWith(
+        'Import Failed: Malformed campaign JSON',
+        expect.objectContaining({ description: expect.any(String) })
+      );
+    });
+  });
 });

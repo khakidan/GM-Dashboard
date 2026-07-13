@@ -16,6 +16,8 @@ import {
   useInitiativeEvent,
 } from './useCombatOverlayEvents';
 
+import { CampaignBackupSchema } from '../lib/objectSchemas';
+
 interface UseSettingsProps {
   isGoogleConnected: boolean;
   handleSignIn: () => void;
@@ -88,19 +90,28 @@ export function useSettings({
   const importCampaignDataJson = async (jsonString: string) => {
     try {
       const parsed = JSON.parse(jsonString);
-      if (
-        parsed &&
-        typeof parsed === 'object' &&
-        ('characters' in parsed || 'encounters' in parsed || 'npcs' in parsed || 'campaignName' in parsed)
-      ) {
+      const validation = CampaignBackupSchema.safeParse(parsed);
+
+      if (validation.success) {
+        const { data } = validation;
+        
+        // Merge only the specific fields produced by handleExportJSON that are present in the backup
+        // This prevents metadata like 'version' or 'exportDate' from being merged into AppState
         updateState((prev) => ({
           ...prev,
-          ...parsed,
+          ...(data.campaignName !== undefined && { campaignName: data.campaignName }),
+          ...(data.characters !== undefined && { characters: data.characters }),
+          ...(data.npcs !== undefined && { npcs: data.npcs }),
+          ...(data.encounters !== undefined && { encounters: data.encounters }),
+          ...(data.encounterCombatants !== undefined && { encounterCombatants: data.encounterCombatants }),
         }));
+
         toast.success('Campaign data imported successfully');
         return true;
       } else {
-        throw new Error('Invalid campaign backup schema');
+        const firstError = validation.error.issues[0];
+        const fieldPath = firstError.path.join('.');
+        throw new Error(`Invalid backup schema at ${fieldPath}: ${firstError.message}`);
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Invalid JSON content';

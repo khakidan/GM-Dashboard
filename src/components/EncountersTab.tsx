@@ -41,7 +41,7 @@ export function EncountersTab({
       }
     }
     loadLogs();
-  }, [state.encounters]);
+  }, []);
 
   const [isNewDialogOpen, setIsNewDialogOpen] = useState(false);
 
