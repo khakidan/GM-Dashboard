@@ -6,6 +6,20 @@ Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed fr
 
 ---
 
+## `characterFixtures.ts` Wrong `hitDiceConfig` Format (Completed)
+
+`mockCharacter.hitDiceConfig` was set to `'{"d10":5}'` — a JSON-object string, which is actually `hitDiceUsed`'s format, not `hitDiceConfig`'s. `parseHitDiceConfig` matches against `/^(\d+)d(6|8|10|12)$/i` per `+`-separated part — a JSON object fails that regex entirely and silently returns `[]` (empty hit dice pool) instead of the intended "5d10 for a level-5 Fighter."
+
+**Fix**: changed to `hitDiceConfig: '5d10'`. `hitDiceUsed` (already correctly `'{}'`) left untouched.
+
+**Worth recording accurately**: the original finding's framing implied active tests were being masked by this bug ("any test exercising hit dice logic via this fixture gets an empty pool"). A direct codebase search found this isn't currently true — `mockCharacter`/`makeCharacter` have zero actual test consumers right now; several test files (`dashboardStore.test.ts`, `CharacterCard.test.tsx`, `LevelUpDialog.test.tsx`, `useCombatantExpanded.test.ts`) each define their own separate, local `mockCharacter` object instead of importing this shared fixture. So this corrected a latent bug in currently-dormant fixture code, not one actively producing false-passing tests — still worth fixing, since the fixture exists specifically to be used later, but the real-world impact claim in the original finding didn't hold up under direct verification.
+
+Verified: diff checked against the real uploaded file. Raw output confirmed Batch 1 (453/453) and Batch 3 (50/50) both passing, matching documented baselines exactly with zero change — consistent with the fixture genuinely having no current consumers.
+
+**This closes out `src/test-utils/fixtures/` in its entirety** — the only finding in that directory is now fixed.
+
+---
+
 ## `useSettings.ts` Campaign Backup Import Validation (Completed)
 
 `importCampaignDataJson` validated only that an expected key *existed* in an imported backup file, not that its value had the right shape — any key present got merged directly into live state via `updateState(prev => ({ ...prev, ...parsed }))`. Given how many places in this app assume `characters`/`npcs`/`encounters` are always arrays and call `.map()`/`.filter()` on them without additional guards, a malformed, corrupted, or version-mismatched backup import could have injected wrong-shaped data straight into the store and caused runtime crashes elsewhere.

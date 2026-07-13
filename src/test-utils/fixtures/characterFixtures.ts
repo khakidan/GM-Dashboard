@@ -23,7 +23,7 @@ export const mockCharacter: Character = {
   deathSavesFails: 0,
   deathSavesSuccesses: 0,
   class: 'Fighter',
-  hitDiceConfig: '{"d10":5}',
+  hitDiceConfig: '5d10',
   hitDiceUsed: '{}',
   resourcePools: '[]',
   abilityScores: '{}',
