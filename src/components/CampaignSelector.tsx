@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { Campaign } from '../hooks/useCampaign';
 import { useGoogleAuth } from '../hooks/useGoogleAuth';
+import { STORAGE_KEYS } from '../lib/constants';
 
 interface CampaignSelectorProps {
   campaigns: Campaign[];
@@ -66,7 +67,7 @@ export function CampaignSelector({
   useEffect(() => {
     const fetchEmail = async () => {
       try {
-        const token = localStorage.getItem('GM_GOOGLE_ACCESS_TOKEN');
+        const token = localStorage.getItem(STORAGE_KEYS.googleAccessToken);
         if (token) {
           const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
             headers: { Authorization: `Bearer ${token}` }
@@ -198,7 +199,7 @@ export function CampaignSelector({
                         target="_blank"
                         rel="noreferrer referrer"
                         id={`open-sheet-link-${camp.id}`}
-                        className="text-[#2563eb] hover:text-[#a09040] flex items-center gap-1 hover:underline cursor-pointer"
+                        className="text-[#2563eb] hover:text-[#567eff] flex items-center gap-1 hover:underline cursor-pointer"
                         title="Open external spreadsheet in Google Sheets"
                       >
                         ↗ Open Sheet
@@ -238,7 +239,7 @@ export function CampaignSelector({
                         <button
                           id={`open-campaign-btn-${camp.id}`}
                           onClick={() => onOpenCampaign(camp)}
-                          className="px-4 py-2 bg-[#2563eb] hover:bg-[#b0a048] text-white font-sans font-bold rounded-lg text-sm flex items-center gap-1.5 transition-colors cursor-pointer"
+                          className="px-4 py-2 bg-[#2563eb] hover:bg-[#567eff] text-white font-sans font-bold rounded-lg text-sm flex items-center gap-1.5 transition-colors cursor-pointer"
                         >
                           Open <ArrowRight className="w-4 h-4" />
                         </button>
@@ -355,7 +356,7 @@ export function CampaignSelector({
                     type="submit"
                     id="submit-create-btn"
                     disabled={submitting || isLoading}
-                    className="px-4 py-2 bg-[#2563eb] hover:bg-[#b0a048] font-bold text-white rounded-lg text-sm flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-60"
+                    className="px-4 py-2 bg-[#2563eb] hover:bg-[#567eff] font-bold text-white rounded-lg text-sm flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-60"
                   >
                     {(submitting || isLoading) ? (
                       <>
@@ -435,7 +436,7 @@ export function CampaignSelector({
                     type="submit"
                     id="submit-connect-btn"
                     disabled={submitting || isLoading}
-                    className="px-4 py-2 bg-[#2563eb] hover:bg-[#b0a048] font-bold text-white rounded-lg text-sm flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-60"
+                    className="px-4 py-2 bg-[#2563eb] hover:bg-[#567eff] font-bold text-white rounded-lg text-sm flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-60"
                   >
                     {(submitting || isLoading) ? (
                       <>
@@ -462,7 +463,7 @@ export function CampaignSelector({
           href="#signout"
           id="google-sign-out-link"
           onClick={handleSignOutClick}
-          className="text-[#2563eb] hover:text-[#a09040] font-bold hover:underline py-1 px-2.5 rounded hover:bg-stone-100 transition-colors flex items-center gap-1.5 cursor-pointer"
+          className="text-[#2563eb] hover:text-[#567eff] font-bold hover:underline py-1 px-2.5 rounded hover:bg-stone-100 transition-colors flex items-center gap-1.5 cursor-pointer"
         >
           <LogOut className="w-3.5 h-3.5" /> Sign out
         </a>

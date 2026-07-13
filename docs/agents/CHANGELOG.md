@@ -6,6 +6,20 @@ Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed fr
 
 ---
 
+## `CampaignSelector.tsx` — Token Constant + Parchment-Theme Hover Colors (Completed)
+
+Two independent findings, fixed together.
+
+**Hardcoded token literal**: `localStorage.getItem('GM_GOOGLE_ACCESS_TOKEN')` used a raw string literal instead of the shared `STORAGE_KEYS.googleAccessToken` constant used everywhere else — confirmed not actively bug-causing (the constant's real value matches the literal exactly), but worth fixing to avoid future drift if that constant's value ever changes. Fixed to reference the constant, importing `STORAGE_KEYS` from `../lib/constants`.
+
+**Leftover parchment-theme hover colors**: replaced with this app's established blue-theme convention (`hover:bg-[#567eff]` for backgrounds, `hover:text-[#567eff]` for text/links), matching the pattern already used consistently elsewhere in this file and across the app. **Genuinely more instances existed than the original finding described** — the original logged only 2 (both form submit buttons' `hover:bg-[#b0a048]`, the sign-out link's `hover:text-[#a09040]`), but a real search of the file turned up 5: the same 2 form submit buttons, a third button ("Open Campaign"), and 2 separate links ("Open Sheet" and "Sign out"). All 5 found and fixed, confirmed via a clean zero-result search for either old color anywhere in the file afterward.
+
+No test coverage question applicable — a color/constant-reference change with no behavioral impact.
+
+Verified: diff checked against the real uploaded file, confirmed via direct search that zero instances of either old color or the hardcoded literal remain anywhere in the file. Raw Batch 7B-2 output confirmed 4/4 passing, matching the documented baseline exactly.
+
+---
+
 ## 3 Small `ui/` Fixes — Closes Out Both Remaining Spot-Check Batches (Completed)
 
 Three small, independent findings, fixed together since each was a contained, low-risk change with no design decisions needed beyond one wording call.
