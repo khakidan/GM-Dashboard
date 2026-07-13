@@ -114,7 +114,6 @@ export const ResourcePoolsSection: React.FC<ResourcePoolsSectionProps> = ({
   };
 
   const handleResetPool = (name: string, max: number) => {
-    const updated = updateResourcePool(pools, name, { max }); // resets current to max if was spent
     // Let's force reset by spending/recovering back to max:
     const tempUpdated = pools.map(p => {
       if (p.name.toLowerCase() === name.toLowerCase()) {

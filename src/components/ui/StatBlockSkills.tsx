@@ -197,7 +197,7 @@ export const StatBlockSkills: React.FC<StatBlockSkillsProps> = ({
                 id="jack-of-all-trades-chk"
                 checked={jackOfAllTrades}
                 onChange={onJackOfAllTradesToggle}
-                className="rounded border-stone-400 text-[#2563eb] focus:ring-[#2563eb]/30 bg-stone-800"
+                className="rounded border-stone-400 text-[#2563eb] focus:ring-[#2563eb]/30 w-4 h-4"
               />
               <label
                 htmlFor="jack-of-all-trades-chk"

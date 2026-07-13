@@ -95,9 +95,15 @@ export function ResourcePoolManager({
           Suggested pools for {characterClass}. Adjust max values to match your character.
         </p>
       ) : (pools.length === 0 && !isAddingResource) ? (
-        <p className="text-xs text-stone-500 italic mb-3">
-          No class entered. Add resource pools manually below.
-        </p>
+        !characterClass ? (
+          <p className="text-xs text-stone-500 italic mb-3">
+            No class entered. Add resource pools manually below.
+          </p>
+        ) : (
+          <p className="text-xs text-stone-500 italic mb-3">
+            No suggested resource pools for '{characterClass}'. Add resource pools manually below.
+          </p>
+        )
       ) : null}
 
       <div className="space-y-2">

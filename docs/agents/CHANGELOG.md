@@ -6,6 +6,24 @@ Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed fr
 
 ---
 
+## 3 Small `ui/` Fixes — Closes Out Both Remaining Spot-Check Batches (Completed)
+
+Three small, independent findings, fixed together since each was a contained, low-risk change with no design decisions needed beyond one wording call.
+
+1. **`ResourcePoolManager.tsx`** — the "No class entered" message fired whenever `characterClass && CLASS_RESOURCE_SUGGESTIONS[characterClass]?.length > 0` was false, conflating two different scenarios: no class entered at all, versus a genuinely-entered class simply having zero suggested pools. Explicitly decided (rather than defaulted) to use two distinct messages: "No class entered. Add resource pools manually below." (unchanged, for the genuinely-empty case) and "No suggested resource pools for '{characterClass}'. Add resource pools manually below." (new, accurate wording for an entered-but-unrecognized class).
+2. **`StatBlockSkills.tsx`** — the Jack of All Trades checkbox's `bg-stone-800` (a near-black background inconsistent with every other checkbox in the app) removed, matching this app's established light-theme checkbox convention (checked directly against other real checkboxes elsewhere in this codebase before finalizing).
+3. **`ResourcePoolsSection.tsx`** — `handleResetPool`'s dead `updated` variable and its misleading comment (describing behavior `updateResourcePool` doesn't actually have — it only ever clamps `current` down, never raises it) removed entirely. The actual, correct applied behavior via the separately-computed `tempUpdated` was left completely untouched.
+
+**Process notes, both caught and resolved**: `ResourcePoolsSection.tsx` was listed as uploaded in an initial response without its actual content coming through — the same recurring gap as two earlier incidents this session (`ConditionChips.tsx`, `NpcCard.tsx`) — caught and the real file obtained before accepting the diff. Separately, a first verification round gave a 12-batch summary table reciting known baseline numbers with only a few marked as genuinely re-run — rejected in favor of running only the batches that actually cover these 3 files (confirmed `ResourcePoolsSection.tsx` is rendered in both `PartyTab/` via `CharacterCardExpanded.tsx` and `ActiveEncounterTab/` via `CombatantCard.tsx`, so both needed real verification, not just `StatBlockSkills.tsx`/`ResourcePoolManager.tsx`'s more obvious `ui/` batch).
+
+No test coverage question applicable — a wording change and two dead-code/styling removals with no behavioral change to verify.
+
+Verified: all 3 diffs checked against real uploaded files. Raw output confirmed genuinely for all 3 relevant batches: Batch 8 (2/2), Batch 6A (54/54), Batch 5B (26/26) — all matching documented baselines exactly.
+
+**This closes out both remaining `ui/` spot-check batches from the Full Codebase Audit** — every file across all 40 in `src/components/ui/`, and every finding surfaced across all 4 audit rounds, is now either fixed or correctly confirmed clean.
+
+---
+
 ## `useCampaign.ts` Missing `popstate` Listener — Closes Out `hooks/` Entirely (Completed)
 
 `activeCampaign` state was only ever set once from the URL's `campaign` query param at mount, with no listener for subsequent URL changes — while the file itself calls `window.history.pushState` twice elsewhere (`openCampaign` sets the param, `closeCampaign` clears it), meaning browser Back/Forward genuinely landed on history entries this hook never resynced to.

@@ -81,17 +81,11 @@ Confirmed genuinely clean, minor observations not escalated as bugs: `useNpcCrAu
 
 Confirmed genuinely clean via direct read: `CommandPalette.tsx` (one trivial, non-functional CSS redundancy — duplicate `data-[selected=...]` rules, quoted and unquoted variants of the same 3 styles — not a bug), `ErrorBoundary.tsx` (textbook-correct Error Boundary implementation), `AudioPanel.tsx` (aside from corroborating finding #1 above).
 
-**`ui/` spot-check batch (10 files) — 3 confirmed real findings, 7 genuinely clean.** Requested specifically because these carry actual logic/interactive state rather than being pure visual shells.
-
-1. **`ResourcePoolManager.tsx` — misleading "No class entered" message.** The `else` branch showing "No class entered. Add resource pools manually below." fires whenever `characterClass && CLASS_RESOURCE_SUGGESTIONS[characterClass]?.length > 0` is false — which happens both when no class was entered *and* when a genuinely-entered class simply has zero suggested resource pools (e.g. any class not present in `CLASS_RESOURCE_SUGGESTIONS`). Confirmed via direct read: two different scenarios conflated into one misleading message.
-2. **`StatBlockScores.tsx` — proficiency-bonus override inputs bypass debounce, now fixed — see `CHANGELOG.md`.**
-3. **`StatBlockSkills.tsx` — Jack of All Trades checkbox has a jarring, near-black background inconsistent with the rest of the app's light theme.** `className="rounded border-stone-400 text-[#2563eb] focus:ring-[#2563eb]/30 bg-stone-800"` — `bg-stone-800` doesn't match any other input/checkbox styling seen across dozens of files in this entire audit. Confirmed via direct read.
+**`ui/` spot-check batch (10 files) — all 3 confirmed real findings now fixed, see `CHANGELOG.md`.** Requested specifically because these carry actual logic/interactive state rather than being pure visual shells.
 
 Confirmed genuinely clean via direct read: `CardNumberInput.tsx`, `PipTracker.tsx` (correct click-to-set pip semantics), `SpellcastingStatsRow.tsx`, `StatBlock.tsx` (correctly wires PC/NPC proficiency-bonus logic, correct passive-bonus clamping, correct 3-state skill cycling), `DebouncedTextarea.tsx`, `DebouncedInput.tsx` (one very minor, low-risk type-coercion quirk not escalated — `localValue !== value` can spuriously be `true` for numeric `value` props after any keystroke, since native input values are always strings; harmless in practice).
 
-**`ui/` spot-check batch 2 (10 files) — 1 confirmed real finding remaining (1 other, `ConditionPopover.tsx`, is now fixed — see `CHANGELOG.md`), 8 genuinely clean.**
-
-1. **`ResourcePoolsSection.tsx`'s `handleResetPool` computes a value it never uses, with a comment describing behavior that doesn't actually exist.** `const updated = updateResourcePool(pools, name, { max }); // resets current to max if was spent` — `updated` is discarded; the actual save uses a separately-computed `tempUpdated`. The comment is also simply wrong: `updateResourcePool` (verified in the `lib/` audit) only clamps `current` down on a lower max, never raises it — so even if `updated` had been used, it wouldn't do what the comment claims. Not user-facing (the real applied behavior via `tempUpdated` is correct), but dead code with a misleading comment worth cleaning up.
+**`ui/` spot-check batch 2 (10 files) — complete, all confirmed findings now fixed, see `CHANGELOG.md`.**
 
 Confirmed genuinely clean via direct read: `CardShell.tsx`, `ConfirmationDialog.tsx`, `DialogShell.tsx`, `NpcCombatActionFields.tsx`, `NpcCombatTab.tsx`, `NpcStatBlockSection.tsx` (correct attack/damage/save meta formatting), `SearchInput.tsx` (correctly forces `immediate=true` for live-search), `Tabs.tsx` (correct modular arrow-key wraparound — independently reconfirmed, matches the original ui/ audit's finding for this file).
 
