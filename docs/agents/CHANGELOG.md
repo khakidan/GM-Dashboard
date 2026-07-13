@@ -6,6 +6,24 @@ Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed fr
 
 ---
 
+## `useCampaign.ts` Missing `popstate` Listener — Closes Out `hooks/` Entirely (Completed)
+
+`activeCampaign` state was only ever set once from the URL's `campaign` query param at mount, with no listener for subsequent URL changes — while the file itself calls `window.history.pushState` twice elsewhere (`openCampaign` sets the param, `closeCampaign` clears it), meaning browser Back/Forward genuinely landed on history entries this hook never resynced to.
+
+**Investigated before assuming the same multi-instance complexity from the two prior race-condition fixes (`createOverlayEvent.ts`, `useAudioEngine.ts`) would apply here** — confirmed via direct search that `useCampaign()` is a genuine singleton, called from exactly one place (`App.tsx`'s `AppContent`), so a plain `useEffect` with a single `popstate` listener is the right level of complexity; no module-level coordination across instances was needed.
+
+**Fix**: a `useEffect` (empty dependency array, cleaned up on unmount) adding a `popstate` listener that calls the existing `getActiveCampaignFromUrl()` helper and updates `activeCampaign` — reusing the same logic already used for the initial mount read, rather than duplicating it.
+
+**Test coverage added**, 2 new tests in the existing `useCampaign.test.ts`: one mounts with a campaign already active via the URL, simulates a real Back/Forward navigation (`window.history.pushState` + a genuine dispatched `popstate` event, not a synthetic callback invocation) to a different campaign, and confirms `activeCampaign` correctly resyncs — then does the same again removing the param entirely, confirming it resets to `null`. A second test confirms proper cleanup: unmounting the hook, then dispatching another `popstate` event, and confirming no React "state update on unmounted component" warning occurs. **Concretely proven, not just asserted**: the first test was actually run against the unfixed code and genuinely failed (`expected 'camp-123' to be 'camp-456'`) before the fix was applied, then passed once the listener was added.
+
+**Process note**: a re-quoted "verbatim original file" shown while explaining the diff didn't match the file's real prior content (already established earlier in the same investigation) — a different `extractSpreadsheetId` implementation entirely, different error-handling shapes, a missing safety guard in `deleteCampaign` that genuinely exists. Didn't affect the actual fix, which was verified directly against the real uploaded file and matched the genuine prior state exactly — but named directly as the same recurring "quoted content doesn't match an already-verified file" pattern seen more than once this session.
+
+Verified: diff checked against the real uploaded file (confirmed as exactly the approved 10-line addition, nothing else touched). Raw output confirmed the single new test file run (6/6) and the full Batch 3 (53/53, 51→53, matching the 2 new tests exactly).
+
+**This closes out the entire `hooks/` bug-hunt audit pass** — all 5 originally confirmed findings (`useNpcLibrary.ts`'s silent NPC save failure, the OAuth CSRF gap, `createOverlayEvent.ts`, `useAudioEngine.ts`, and this `useCampaign.ts` fix) are now fixed.
+
+---
+
 ## `useAudioEngine.ts` Crossfade Race Condition (Completed)
 
 `deckA`/`deckB`/`activeDeck` are module-level singletons, and each `playAmbient` call scheduled a deferred cleanup `setTimeout` for the outgoing deck with no tracking or cancellation of a previous call's still-pending timer. A third rapid `playAmbient` call could target a deck a second call had already put back into active use — the first call's stale, uncancelled timer would then fire later and pause/wipe whatever track was *actually* playing by that point, not the track it was originally scheduled to clean up.

@@ -66,6 +66,16 @@ export function useCampaign() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    const handlePopState = () => {
+      setActiveCampaign(getActiveCampaignFromUrl());
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
+
   const openCampaign = (campaign: Campaign): void => {
     const updatedList = loadCampaigns().map(c => {
       if (c.id === campaign.id) {

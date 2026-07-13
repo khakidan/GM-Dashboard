@@ -85,4 +85,91 @@ describe('useCampaign Tests', () => {
     const bareId = '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms';
     expect(extractSpreadsheetId(bareId)).toBe(bareId);
   });
+
+  it('correctly updates activeCampaign when window popstate fires with a different campaign parameter', () => {
+    const mockCampaigns = [
+      {
+        id: 'camp-123',
+        name: 'Curse of Strahd',
+        spreadsheetId: 'sheet-123',
+        spreadsheetUrl: 'url-123',
+        createdAt: new Date().toISOString(),
+        lastOpenedAt: new Date().toISOString(),
+      },
+      {
+        id: 'camp-456',
+        name: 'Out of the Abyss',
+        spreadsheetId: 'sheet-456',
+        spreadsheetUrl: 'url-456',
+        createdAt: new Date().toISOString(),
+        lastOpenedAt: new Date().toISOString(),
+      }
+    ];
+    localStorage.setItem(STORAGE_KEYS.campaigns, JSON.stringify(mockCampaigns));
+
+    // 1. Initial mount with 'camp-123' in query param
+    window.history.pushState(null, '', '/?campaign=camp-123');
+    const { result } = renderHook(() => useCampaign());
+    expect(result.current.activeCampaign?.id).toBe('camp-123');
+
+    // 2. Simulate back/forward navigation to 'camp-456'
+    act(() => {
+      window.history.pushState(null, '', '/?campaign=camp-456');
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    });
+
+    // Expect activeCampaign to update to camp-456
+    expect(result.current.activeCampaign?.id).toBe('camp-456');
+
+    // 3. Simulate removal of 'campaign' query parameter
+    act(() => {
+      window.history.pushState(null, '', '/');
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    });
+
+    // Expect activeCampaign to be null
+    expect(result.current.activeCampaign).toBeNull();
+  });
+
+  it('cleans up the popstate listener on unmount so no state updates are triggered', () => {
+    const mockCampaigns = [
+      {
+        id: 'camp-123',
+        name: 'Curse of Strahd',
+        spreadsheetId: 'sheet-123',
+        spreadsheetUrl: 'url-123',
+        createdAt: new Date().toISOString(),
+        lastOpenedAt: new Date().toISOString(),
+      },
+      {
+        id: 'camp-456',
+        name: 'Out of the Abyss',
+        spreadsheetId: 'sheet-456',
+        spreadsheetUrl: 'url-456',
+        createdAt: new Date().toISOString(),
+        lastOpenedAt: new Date().toISOString(),
+      }
+    ];
+    localStorage.setItem(STORAGE_KEYS.campaigns, JSON.stringify(mockCampaigns));
+
+    window.history.pushState(null, '', '/?campaign=camp-123');
+    const { result, unmount } = renderHook(() => useCampaign());
+    expect(result.current.activeCampaign?.id).toBe('camp-123');
+
+    // Spy on console.error to ensure no React memory leak/unmounted state update warnings
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    // Unmount the hook
+    unmount();
+
+    // Trigger popstate event after unmount
+    act(() => {
+      window.history.pushState(null, '', '/?campaign=camp-456');
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    });
+
+    // Confirm console.error was not called (no React unmounted warnings, etc.)
+    expect(consoleErrorSpy).not.toHaveBeenCalled();
+    consoleErrorSpy.mockRestore();
+  });
 });
