@@ -11,7 +11,7 @@ import { isConcentrating, fireConcentrationAlert } from '../../../lib/concentrat
 
 export function useHealthChange(
   syncingIds: Set<string>,
-  updateCombatant: (id: string, updates: Partial<Combatant>) => void
+  updateCombatant: (id: string, updates: Partial<Combatant>) => Promise<void>
 ) {
   const { state, updateState } = useAppState();
   const { characters = [], npcs = [] } = state;
@@ -24,7 +24,7 @@ export function useHealthChange(
 
   const { applyDamageToUnconscious } = useDeathSaves();
 
-  const removeConcentration = (id: string, currentConditions: string, currentTimers: Record<string, number> = {}) => {
+  const removeConcentration = async (id: string, currentConditions: string, currentTimers: Record<string, number> = {}) => {
     const conEffectsArray = Array.from(CONCENTRATION_EFFECTS);
     const updatedConditions = currentConditions.split(',')
       .map(s => s.trim())
@@ -39,13 +39,13 @@ export function useHealthChange(
       }
     });
 
-    updateCombatant(id, {
+    await updateCombatant(id, {
       conditions: updatedConditions,
       conditionTimers: updatedTimers
     });
   };
 
-  const handleHealthChange = (
+  const handleHealthChange = async (
     id: string,
     c: Combatant,
     isDamage: boolean,
@@ -64,7 +64,7 @@ export function useHealthChange(
 
       if (isDamage && isUnconscious) {
         // Damage on unconscious PC = failed death save
-        applyDamageToUnconscious(id, isCritical);
+        await applyDamageToUnconscious(id, isCritical);
 
         if (isDamage) {
           setDamageInputs(prev => ({ ...prev, [id]: '' }));
@@ -114,7 +114,7 @@ export function useHealthChange(
         const conditionsList = (c.conditions || '').split(',').map(s => s.trim()).filter(Boolean);
         const updatedConditions = conditionsList.filter(cond => cond.toLowerCase() !== 'unconscious').join(', ');
         
-        updateCombatant(id, {
+        await updateCombatant(id, {
           currentHp: newCurrentHp,
           tempHp: newTempHp,
           conditions: updatedConditions,
@@ -135,7 +135,7 @@ export function useHealthChange(
             conditionsList.push('Unconscious');
           }
           updatedConditions = conditionsList.join(', ');
-          updateCombatant(id, {
+          await updateCombatant(id, {
             currentHp: newCurrentHp,
             tempHp: newTempHp,
             conditions: updatedConditions,
@@ -144,7 +144,7 @@ export function useHealthChange(
             isStable: false,
           });
         } else {
-          updateCombatant(id, {
+          await updateCombatant(id, {
             currentHp: newCurrentHp,
             tempHp: newTempHp,
           });

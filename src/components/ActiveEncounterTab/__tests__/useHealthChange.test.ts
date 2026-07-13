@@ -68,7 +68,7 @@ describe('useHealthChange', () => {
     conditions: '',
   };
 
-  it('applying damage reduces currentHp by the correct amount', () => {
+  it('applying damage reduces currentHp by the correct amount', async () => {
     const updateSpy = vi.fn();
     const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
 
@@ -76,15 +76,15 @@ describe('useHealthChange', () => {
       result.current.setDamageInputs({ c1: '10' });
     });
 
-    act(() => {
+    await act(async () => {
       // 10 damage: 5 is absorbed by tempHp, remaining 5 reduces currentHp to 25
-      result.current.handleHealthChange('c1', baseCombatant, true);
+      await result.current.handleHealthChange('c1', baseCombatant, true);
     });
 
     expect(updateSpy).toHaveBeenCalledWith('c1', { currentHp: 25, tempHp: 0 });
   });
 
-  it('applying damage respects resistance and halves the value', () => {
+  it('applying damage respects resistance and halves the value', async () => {
     const updateSpy = vi.fn();
     const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
     const resistantCombatant = { ...baseCombatant, resistances: 'fire', tempHp: 0 };
@@ -93,15 +93,15 @@ describe('useHealthChange', () => {
       result.current.setDamageInputs({ c1: '10' });
     });
 
-    act(() => {
-      result.current.handleHealthChange('c1', resistantCombatant, true, 'fire');
+    await act(async () => {
+      await result.current.handleHealthChange('c1', resistantCombatant, true, 'fire');
     });
 
     // 10 damage halved = 5 damage. 30 - 5 = 25
     expect(updateSpy).toHaveBeenCalledWith('c1', { currentHp: 25, tempHp: 0 });
   });
 
-  it('applying damage respects immunity and reduces damage to zero', () => {
+  it('applying damage respects immunity and reduces damage to zero', async () => {
     const updateSpy = vi.fn();
     const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
     const immuneCombatant = { ...baseCombatant, immunities: 'fire', tempHp: 0 };
@@ -110,15 +110,15 @@ describe('useHealthChange', () => {
       result.current.setDamageInputs({ c1: '10' });
     });
 
-    act(() => {
-      result.current.handleHealthChange('c1', immuneCombatant, true, 'fire');
+    await act(async () => {
+      await result.current.handleHealthChange('c1', immuneCombatant, true, 'fire');
     });
 
     // 10 damage immune = 0 damage. 30 - 0 = 30
     expect(updateSpy).toHaveBeenCalledWith('c1', { currentHp: 30, tempHp: 0 });
   });
 
-  it('applying damage respects vulnerability and doubles the value', () => {
+  it('applying damage respects vulnerability and doubles the value', async () => {
     const updateSpy = vi.fn();
     const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
     const vulnerableCombatant = { ...baseCombatant, vulnerabilities: 'fire', tempHp: 0 };
@@ -127,15 +127,15 @@ describe('useHealthChange', () => {
       result.current.setDamageInputs({ c1: '10' });
     });
 
-    act(() => {
-      result.current.handleHealthChange('c1', vulnerableCombatant, true, 'fire');
+    await act(async () => {
+      await result.current.handleHealthChange('c1', vulnerableCombatant, true, 'fire');
     });
 
     // 10 damage doubled = 20 damage. 30 - 20 = 10
     expect(updateSpy).toHaveBeenCalledWith('c1', { currentHp: 10, tempHp: 0 });
   });
 
-  it('healing cannot exceed maxHp', () => {
+  it('healing cannot exceed maxHp', async () => {
     const updateSpy = vi.fn();
     const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
     const woundedCombatant = { ...baseCombatant, currentHp: 25, tempHp: 0 };
@@ -144,15 +144,15 @@ describe('useHealthChange', () => {
       result.current.setHealInputs({ c1: '10' });
     });
 
-    act(() => {
-      result.current.handleHealthChange('c1', woundedCombatant, false);
+    await act(async () => {
+      await result.current.handleHealthChange('c1', woundedCombatant, false);
     });
 
     // Cannot exceed max HP (30)
     expect(updateSpy).toHaveBeenCalledWith('c1', { currentHp: 30, tempHp: 0 });
   });
 
-  it('damage that reduces HP to 0 or below sets currentHp to 0, not negative', () => {
+  it('damage that reduces HP to 0 or below sets currentHp to 0, not negative', async () => {
     const updateSpy = vi.fn();
     const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
 
@@ -160,14 +160,14 @@ describe('useHealthChange', () => {
       result.current.setDamageInputs({ c1: '50' });
     });
 
-    act(() => {
-      result.current.handleHealthChange('c1', baseCombatant, true);
+    await act(async () => {
+      await result.current.handleHealthChange('c1', baseCombatant, true);
     });
 
     expect(updateSpy).toHaveBeenCalledWith('c1', expect.objectContaining({ currentHp: 0 }));
   });
 
-  it('damage to a concentrating combatant fires a concentration alert', () => {
+  it('damage to a concentrating combatant fires a concentration alert', async () => {
     const updateSpy = vi.fn();
     const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
     const concentratingCombatant = { ...baseCombatant, conditions: 'concentrating' };
@@ -176,14 +176,14 @@ describe('useHealthChange', () => {
       result.current.setDamageInputs({ c1: '10' });
     });
 
-    act(() => {
-      result.current.handleHealthChange('c1', concentratingCombatant, true);
+    await act(async () => {
+      await result.current.handleHealthChange('c1', concentratingCombatant, true);
     });
 
     expect(mockFireConcentrationAlert).toHaveBeenCalledWith(expect.any(String), 10);
   });
 
-  it('damage to a non-concentrating combatant does not fire a concentration alert', () => {
+  it('damage to a non-concentrating combatant does not fire a concentration alert', async () => {
     const updateSpy = vi.fn();
     const { result } = renderHook(() => useHealthChange(syncingIds, updateSpy));
 
@@ -191,8 +191,8 @@ describe('useHealthChange', () => {
       result.current.setDamageInputs({ c1: '10' });
     });
 
-    act(() => {
-      result.current.handleHealthChange('c1', baseCombatant, true);
+    await act(async () => {
+      await result.current.handleHealthChange('c1', baseCombatant, true);
     });
 
     expect(mockFireConcentrationAlert).not.toHaveBeenCalled();

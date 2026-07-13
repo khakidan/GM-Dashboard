@@ -62,7 +62,15 @@ export function useCombatantMutations() {
           ),
         }));
       } catch (error) {
-        updateState(() => previousState);
+        updateState(prev => ({
+          ...prev,
+          encounterCombatants: previousState.encounterCombatants,
+          combatState: {
+            ...prev.combatState,
+            combatants: previousState.combatState.combatants,
+            activeTurnId: previousState.combatState.activeTurnId,
+          }
+        }));
         toast.error('Failed to save changes. Please try again.', {
           description: error instanceof Error ? error.message : 'Unknown error',
           duration: 5000,
@@ -268,7 +276,15 @@ export function useCombatantMutations() {
         return next;
       });
     } catch (error) {
-      updateState(() => snapshot);
+      updateState(prev => ({
+        ...prev,
+        characters: snapshot.characters,
+        encounterCombatants: snapshot.encounterCombatants,
+        combatState: {
+          ...prev.combatState,
+          combatants: snapshot.combatState.combatants,
+        }
+      }));
       toast.error('Failed to save changes. Please try again.');
       setSyncingIds(prev => {
         const next = new Set(prev);

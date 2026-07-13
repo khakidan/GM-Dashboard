@@ -1,6 +1,7 @@
 import { renderHook, act, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { useBatchActions } from '../hooks/useBatchActions';
+import { useDashboardStore } from '../../../hooks/dashboardStore';
 import { toast } from 'sonner';
 import { 
   deleteEncounterCombatantDB, 
@@ -29,6 +30,7 @@ const mockAppState = {
   combatState: {
     combatants: [] as any[],
     activeTurnId: null as string | null,
+    syncingIds: [] as string[],
   },
   encounterCombatants: [] as any[],
   characters: [] as any[],
@@ -54,15 +56,13 @@ const mockUpdateState = vi.fn((updater) => {
 vi.mock('../../../hooks/useAppState', () => ({
   useAppState: () => ({
     updateState: mockUpdateState,
-    state: {
-      characters: [],
-      npcs: [],
-    },
+    state: mockAppState,
   }),
   getSnapshot: () => ({
     combatState: {
       combatants: [...mockAppState.combatState.combatants],
       activeTurnId: mockAppState.combatState.activeTurnId,
+      syncingIds: [...(mockAppState.combatState.syncingIds || [])],
     },
     encounterCombatants: [...mockAppState.encounterCombatants],
     characters: [...mockAppState.characters],
@@ -74,6 +74,7 @@ vi.mock('../../../hooks/useCombatOverlayEvents', () => ({
   useDamageEvent: () => ({ fire: vi.fn() }),
   useHealEvent: () => ({ fire: vi.fn() }),
   useUnconsciousEvent: () => ({ fire: mockFireUnconscious }),
+  useRageEvent: () => ({ fire: vi.fn() }),
 }));
 
 vi.mock('../../../hooks/useDeathSaves', () => ({
@@ -88,6 +89,9 @@ describe('useBatchActions', () => {
     mockAppState.encounterCombatants = [];
     mockAppState.characters = [];
     mockAppState.combatState.activeTurnId = null;
+    act(() => {
+      useDashboardStore.setState({ activeCombatLog: null });
+    });
   });
 
   const c1: Combatant = {
@@ -233,7 +237,7 @@ describe('useBatchActions', () => {
   });
 
   it('rolls back state when batch damage DB write fails', async () => {
-    // Intercept unhandled promise rejection because handleHealthChange runs synchronously
+    // Intercept unhandled promise rejection because handleHealthChange runs asynchronously
     // without awaiting the async updateCombatant under the hood.
     const handleRejection = (e: Event) => {
       e.preventDefault();
@@ -339,5 +343,52 @@ describe('useBatchActions', () => {
     );
 
     consoleWarnSpy.mockRestore();
+  });
+
+  it('prevents double-logging when applying conditions to multiple targets', async () => {
+    const selectedIds = new Set(['c1']);
+    const combatants = [c1];
+    
+    // Initialize real combat log
+    act(() => {
+      useDashboardStore.getState().initCombatLog(
+        'enc-1',
+        'Test Encounter',
+        'Test Location',
+        [], // partySnapshot
+        [], // initiativeOrder
+        1   // startingRound
+      );
+      
+      // Also ensure the combatant exists in the real store's combatState for the canonical updateCombatant to find it
+      useDashboardStore.getState().updateState(prev => ({
+        ...prev,
+        combatState: {
+          ...prev.combatState,
+          combatants: [c1]
+        }
+      }));
+
+      // Mock State (for useAppState logic in useCombatantMutations)
+      mockAppState.combatState.combatants = [c1];
+    });
+
+    const { result } = renderHook(() => useBatchActions({ selectedIds, combatants }));
+
+    await act(async () => {
+      await result.current.handleApplyMultiCondition('blinded');
+    });
+
+    const log = useDashboardStore.getState().activeCombatLog;
+    expect(log).toBeDefined();
+    
+    // Filter events for this combatant and condition
+    const conditionEvents = log!.events.filter(e => 
+      e.type === 'condition-applied' && 
+      e.targetId === 'c1' && 
+      (e as any).condition === 'blinded'
+    );
+
+    expect(conditionEvents).toHaveLength(1);
   });
 });
