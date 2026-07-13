@@ -18,7 +18,7 @@ Features and bugs that have been discussed and approved but not yet implemented.
 
 **`hooks/` bug-hunt audit findings — verified, 2 remaining, queued for sequential fixes (1 other is now fixed — see `CHANGELOG.md`).** Second directory pass of the Full Codebase Audit (see 🟡 below). AI Studio audited `src/hooks/` read-only (22 files) per the same concrete, evidence-required prompt used for `lib/`; all 5 reported findings were independently verified against the real files — no fabrications this round, all 5 confirmed accurate. Order not yet decided:
 
-1. **`useAudioEngine.ts` — race condition, worse than initially described.** `deckA`/`deckB`/`activeDeck` are module-level singletons (not per-instance refs), and `activeDeck.current` flips synchronously right after scheduling the cleanup `setTimeout`, before the crossfade completes. A third rapid `playAmbient` call can target a deck a second call already put back into active use, so the first call's delayed cleanup can pause/revoke a currently-playing track.
+1. **`useAudioEngine.ts` — race condition, now fixed — see `CHANGELOG.md`.**
 2. **`useCampaign.ts` — no `popstate` listener, confirmed live (not theoretical).** `activeCampaign` state is only set once from the URL at mount; the file calls `window.history.pushState` twice elsewhere (setting/clearing the `campaign` URL param), so browser Back/Forward genuinely lands on history entries this hook never resyncs to.
 
 

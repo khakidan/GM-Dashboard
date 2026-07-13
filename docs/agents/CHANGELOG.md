@@ -6,6 +6,22 @@ Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed fr
 
 ---
 
+## `useAudioEngine.ts` Crossfade Race Condition (Completed)
+
+`deckA`/`deckB`/`activeDeck` are module-level singletons, and each `playAmbient` call scheduled a deferred cleanup `setTimeout` for the outgoing deck with no tracking or cancellation of a previous call's still-pending timer. A third rapid `playAmbient` call could target a deck a second call had already put back into active use — the first call's stale, uncancelled timer would then fire later and pause/wipe whatever track was *actually* playing by that point, not the track it was originally scheduled to clean up.
+
+**Investigated and traced concretely before implementing**, using the real crossfade duration constant (`AUDIO.crossfadeDurationSec`, confirmed as `5` via direct read after two earlier inconsistent values had been given in the same investigation) against an explicit 3-call timeline — confirmed reachable in completely ordinary GM use (rapid ambient-track browsing, double-clicks), not a contrived edge case.
+
+**Two candidate fix designs were traced and compared before choosing one**: a timer-cancellation approach (track each deck's pending cleanup timer in a module-level map, cancel it whenever that deck is about to be reused as the new incoming deck) versus an identity-check approach (capture the specific deck object reference at schedule time, only clean up if it's still identically assigned to that slot when the timer fires). The identity-check approach was confirmed non-functional for this specific codebase: `AudioDeck` objects are mutated in place and never reassigned to new instances, so an identity/reference check would always evaluate `true` regardless of whether the deck had since been reused for a different track — it wouldn't actually detect anything. Timer-cancellation was the only viable approach and was implemented alone.
+
+**Fix**: a module-level `cleanupTimers = { A: null, B: null }`, with `playAmbient` cancelling any pending timer for the deck about to become the new incoming deck (before that deck's track gets overwritten) and for the deck about to become the new outgoing deck (before scheduling its own new cleanup timer). The same treatment was correctly extended to `stopAmbient()` (which schedules the identical category of deferred cleanup) and `resetAudioEngineState()` (now also clears both pending timers on reset, preventing a stale timer from corrupting a freshly-initialized deck) — neither was explicitly requested, but both are the same underlying bug and would have left it half-fixed otherwise.
+
+**Test coverage added**, requiring real Web Audio API mocking (`AudioContext`, `GainNode`, `MediaElementAudioSourceNode`) and `vi.useFakeTimers()` for precise timing control, since none existed for this file before. The test computes every timing assertion from the actual `AUDIO.crossfadeDurationSec` constant rather than a hardcoded value, so it won't silently drift out of sync if that constant changes later. **Concretely proven to catch the regression, not just asserted**: the fix was temporarily reverted, the test was run and shown to genuinely fail (`expected '' to be 'blob:mock-url-2'` — the exact deck that should still be playing was wiped, precisely matching the original bug trace), then the fix was reapplied and the test confirmed passing again.
+
+Verified: diff and test file both checked against real uploaded content. Raw output confirmed the full Batch 3 (51/51, 50→51, matching the one new test) and the earlier `playAmbient`/`stopAmbient`/`resetAudioEngineState` fix's own full-batch verification (Batch 3: 50/50, Batch 7B-1: 13/13) prior to this test being added.
+
+---
+
 ## `useSettings.ts` Type-Safety Gap (Completed)
 
 `importCampaignDataJson`'s `updateState` call failed `npx tsc -p tsconfig.build.json --noEmit`: `CampaignBackupSchema`'s Zod schema deliberately uses `.passthrough()` on array items (validate structure — arrays are arrays, each item has a non-empty `id` — without exhaustively validating every field, a decision already made when this schema was built), so Zod infers its output as a loosely-typed `{ [x: string]: unknown; id: string }[]`, not the real `Character[]`/`NPC[]`/`Encounter[]`/`EncounterCombatant[]` interfaces. A compile-time-only gap, not a runtime bug — surfaced while verifying an unrelated fix (`createOverlayEvent.ts`), where a blanket `as any` was proposed as a shortcut and correctly rejected, then logged as its own separate finding rather than left unresolved.

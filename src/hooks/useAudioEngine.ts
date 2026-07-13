@@ -21,6 +21,10 @@ let globalAudioContext: AudioContext | null = null;
 const deckA = { current: null as AudioDeck | null };
 const deckB = { current: null as AudioDeck | null };
 const activeDeck = { current: 'A' as 'A' | 'B' };
+const cleanupTimers = {
+  A: null as ReturnType<typeof setTimeout> | null,
+  B: null as ReturnType<typeof setTimeout> | null,
+};
 
 const globalEffectCache = new Map<string, AudioBuffer>();
 
@@ -131,6 +135,11 @@ export function resetAudioEngineState() {
   cleanupDeck(deckA);
   cleanupDeck(deckB);
   
+  if (cleanupTimers.A) clearTimeout(cleanupTimers.A);
+  if (cleanupTimers.B) clearTimeout(cleanupTimers.B);
+  cleanupTimers.A = null;
+  cleanupTimers.B = null;
+
   activeDeck.current = 'A';
   globalAudioContext = null;
 }
@@ -171,10 +180,18 @@ export function useAudioEngine(campaignId: string = 'default') {
       return;
     }
 
-    const incomingDeck = activeDeck.current === 'A' ? deckB : deckA;
-    const outgoingDeck = activeDeck.current === 'A' ? deckA : deckB;
+    const incomingDeckName = activeDeck.current === 'A' ? 'B' : 'A';
+    const outgoingDeckName = activeDeck.current === 'A' ? 'A' : 'B';
+    const incomingDeck = incomingDeckName === 'A' ? deckA : deckB;
+    const outgoingDeck = outgoingDeckName === 'A' ? deckA : deckB;
     const now = globalAudioContext.currentTime;
     const fadeDuration = AUDIO.crossfadeDurationSec;
+
+    // Cancel any pending cleanup timer for the incoming deck to prevent it being cleared
+    if (cleanupTimers[incomingDeckName]) {
+      clearTimeout(cleanupTimers[incomingDeckName]!);
+      cleanupTimers[incomingDeckName] = null;
+    }
 
     // Load new track onto incoming deck
     const url = URL.createObjectURL(file.blob);
@@ -217,8 +234,14 @@ export function useAudioEngine(campaignId: string = 'default') {
       );
     }
 
+    // Cancel any existing timer for the outgoing deck to prevent multiple timers racing
+    if (cleanupTimers[outgoingDeckName]) {
+      clearTimeout(cleanupTimers[outgoingDeckName]!);
+    }
+
     // After crossfade completes, stop and clean up outgoing deck
-    setTimeout(() => {
+    cleanupTimers[outgoingDeckName] = setTimeout(() => {
+      cleanupTimers[outgoingDeckName] = null;
       if (outgoingDeck.current && outgoingDeck.current.audio) {
         outgoingDeck.current.audio.pause();
         outgoingDeck.current.audio.src = '';
@@ -245,7 +268,8 @@ export function useAudioEngine(campaignId: string = 'default') {
       return;
     }
 
-    const outgoing = activeDeck.current === 'A' ? deckA : deckB;
+    const outgoingName = activeDeck.current === 'A' ? 'A' : 'B';
+    const outgoing = outgoingName === 'A' ? deckA : deckB;
     const now = globalAudioContext.currentTime;
     
     if (outgoing.current) {
@@ -264,7 +288,13 @@ export function useAudioEngine(campaignId: string = 'default') {
     globalIsAmbientPlaying = false;
     notifyListeners();
 
-    setTimeout(() => {
+    // Cancel any existing timer for the outgoing deck to avoid multiple timers running
+    if (cleanupTimers[outgoingName]) {
+      clearTimeout(cleanupTimers[outgoingName]!);
+    }
+
+    cleanupTimers[outgoingName] = setTimeout(() => {
+      cleanupTimers[outgoingName] = null;
       if (outgoing.current) {
         outgoing.current.audio.pause();
         outgoing.current.audio.src = '';
