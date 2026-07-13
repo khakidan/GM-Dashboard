@@ -42,7 +42,8 @@ export const NpcCard: React.FC<NpcCardProps> = ({
 
   const traits = React.useMemo(() => {
     try {
-      return JSON.parse(npc.traits || '[]') as NpcTrait[];
+      const parsed = JSON.parse(npc.traits || '[]');
+      return Array.isArray(parsed) ? (parsed as NpcTrait[]) : [];
     } catch {
       return [] as NpcTrait[];
     }
@@ -50,7 +51,8 @@ export const NpcCard: React.FC<NpcCardProps> = ({
 
   const actions = React.useMemo(() => {
     try {
-      return JSON.parse(npc.actions || '[]') as NpcAction[];
+      const parsed = JSON.parse(npc.actions || '[]');
+      return Array.isArray(parsed) ? (parsed as NpcAction[]) : [];
     } catch {
       return [] as NpcAction[];
     }
@@ -58,7 +60,8 @@ export const NpcCard: React.FC<NpcCardProps> = ({
 
   const reactions = React.useMemo(() => {
     try {
-      return JSON.parse(npc.reactions || '[]') as NpcReaction[];
+      const parsed = JSON.parse(npc.reactions || '[]');
+      return Array.isArray(parsed) ? (parsed as NpcReaction[]) : [];
     } catch {
       return [] as NpcReaction[];
     }
@@ -66,7 +69,8 @@ export const NpcCard: React.FC<NpcCardProps> = ({
 
   const legendaryActions = React.useMemo(() => {
     try {
-      return JSON.parse(npc.legendaryActionsList || '[]') as NpcLegendaryAction[];
+      const parsed = JSON.parse(npc.legendaryActionsList || '[]');
+      return Array.isArray(parsed) ? (parsed as NpcLegendaryAction[]) : [];
     } catch {
       return [] as NpcLegendaryAction[];
     }

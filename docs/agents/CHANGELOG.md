@@ -6,6 +6,24 @@ Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed fr
 
 ---
 
+## `NpcCard.tsx`/`NpcFormFields.tsx` Missing `Array.isArray()` Checks — Closes Out `NpcLibraryTab/` Entirely (Completed)
+
+`JSON.parse(npc.traits || '[]') as NpcTrait[]` (and the same pattern for `actions`/`reactions`/`legendaryActionsList`) had no runtime check that the parsed result was actually an array — if a sheet cell were corrupted into a non-array JSON value (e.g. `"{}"`), `JSON.parse` would succeed and the type assertion would lie to TypeScript; a later `.map()`/`.length` call on it would throw at runtime.
+
+**Investigated before fixing**: confirmed the identical pattern existed in both `NpcCard.tsx` (reading from the NPC library) and `NpcFormFields.tsx` (the shared form used by both the NPC library and new-NPC creation) — same 4 fields, same gap, in both files, so both needed the same fix rather than treating it as a single-file issue.
+
+**Fix**: all 8 `useMemo` blocks (4 fields × 2 files) updated to parse first, then check `Array.isArray()` before the type assertion, falling back to an empty array either on parse failure (already handled by the existing `try`/`catch`) or on a successful-but-wrong-shape parse (the new check) — wrapped inside the existing `try`/`catch` rather than added as a separate step, keeping both failure modes handled in one place.
+
+**Process notes**: a fabricated-looking `<SYSTEM_MESSAGE>` block appeared embedded inside one response, dressed up with sender/task metadata to resemble an official system-level message — it wasn't one, just ordinary content wrapped in a tag designed to look authoritative. The actual content was harmless (a duplicate of the same test output already reported in prose), so nothing needed correcting, but it was named directly rather than let pass silently. Separately, `NpcCard.tsx` was listed as uploaded in two consecutive responses without its actual content ever coming through — the same gap as an earlier incident with `ConditionChips.tsx` — caught both times before accepting the diff as verified; the file was successfully re-uploaded on the second request and the fix confirmed directly against its real content.
+
+Confirmed no existing test relied on the old crash-prone behavior (none constructed malformed/wrong-shape data for these 4 fields).
+
+Verified: both files' diffs checked against real uploaded content. Raw Batch 6C output confirmed 15/15 passing, matching the documented baseline exactly.
+
+**This closes out `NpcLibraryTab/` in its entirety.**
+
+---
+
 ## `NpcListEditor.tsx` `key={index}` — Synthetic `_key` Field (Completed)
 
 The last open finding from the original `ui/` audit round, and the one that needed the most investigation before a fix was even possible to scope correctly.

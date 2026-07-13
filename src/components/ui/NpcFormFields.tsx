@@ -117,7 +117,8 @@ export function NpcFormFields({ data, onChange, errors = {}, compact = false }: 
 
   const traits = React.useMemo(() => {
     try {
-      return JSON.parse(data.traits || '[]') as NpcTrait[];
+      const parsed = JSON.parse(data.traits || '[]');
+      return Array.isArray(parsed) ? (parsed as NpcTrait[]) : [];
     } catch {
       return [] as NpcTrait[];
     }
@@ -125,7 +126,8 @@ export function NpcFormFields({ data, onChange, errors = {}, compact = false }: 
 
   const actions = React.useMemo(() => {
     try {
-      return JSON.parse(data.actions || '[]') as NpcAction[];
+      const parsed = JSON.parse(data.actions || '[]');
+      return Array.isArray(parsed) ? (parsed as NpcAction[]) : [];
     } catch {
       return [] as NpcAction[];
     }
@@ -133,7 +135,8 @@ export function NpcFormFields({ data, onChange, errors = {}, compact = false }: 
 
   const reactions = React.useMemo(() => {
     try {
-      return JSON.parse(data.reactions || '[]') as NpcReaction[];
+      const parsed = JSON.parse(data.reactions || '[]');
+      return Array.isArray(parsed) ? (parsed as NpcReaction[]) : [];
     } catch {
       return [] as NpcReaction[];
     }
@@ -141,7 +144,8 @@ export function NpcFormFields({ data, onChange, errors = {}, compact = false }: 
 
   const legendaryActionsList = React.useMemo(() => {
     try {
-      return JSON.parse(data.legendaryActionsList || '[]') as NpcLegendaryAction[];
+      const parsed = JSON.parse(data.legendaryActionsList || '[]');
+      return Array.isArray(parsed) ? (parsed as NpcLegendaryAction[]) : [];
     } catch {
       return [] as NpcLegendaryAction[];
     }
