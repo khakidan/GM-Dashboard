@@ -68,6 +68,12 @@ export async function addCharacterDB(
     const nextIdVal = await getNextId(resolvedId, 'Characters');
     const finalId = `pc-${nextIdVal}`;
 
+    const finalSpellcastingAbility = getSpellcastingAbilityToSave(character, {});
+    const finalProficiencies = injectSpellcastingAbility(
+      sanitizeString(character.proficiencies || '{}'),
+      finalSpellcastingAbility
+    );
+
     const rowData = [
       finalId,
       sanitizeString(character.playerName),
@@ -93,11 +99,8 @@ export async function addCharacterDB(
       sanitizeString(character.hitDiceUsed || '{}'),
       sanitizeString(character.resourcePools || '[]'),
       sanitizeString(character.abilityScores || '{}'),
-      injectSpellcastingAbility(
-        sanitizeString(character.proficiencies || '{}'),
-        getSpellcastingAbilityToSave(character, {})
-      ),
-      getSpellcastingAbilityToSave(character, {}),
+      finalProficiencies,
+      finalSpellcastingAbility,
     ];
 
     await appendSheetData(resolvedId, 'Characters!A:Z', [rowData]);
@@ -113,8 +116,8 @@ export async function addCharacterDB(
       hitDiceUsed: character.hitDiceUsed ?? '{}',
       resourcePools: character.resourcePools ?? '[]',
       abilityScores: character.abilityScores ?? '{}',
-      proficiencies: character.proficiencies ?? '{}',
-      spellcastingAbility: character.spellcastingAbility ?? getSpellcastingAbilityToSave(character, {}),
+      proficiencies: finalProficiencies,
+      spellcastingAbility: character.spellcastingAbility ?? finalSpellcastingAbility,
     };
   } catch (err) {
     console.error('[DB] addCharacterDB failed:', err);

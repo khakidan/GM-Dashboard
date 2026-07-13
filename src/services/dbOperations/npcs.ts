@@ -44,6 +44,12 @@ export async function addNpcDB(
     const nextIdVal = await getNextId(resolvedId, 'NPCs');
     const finalId = nextIdVal.toString();
 
+    const finalSpellcastingAbility = getSpellcastingAbilityToSave(npcData, npcData);
+    const finalProficiencies = injectSpellcastingAbility(
+      sanitizeString(npcData.proficiencies ?? '{}'),
+      finalSpellcastingAbility
+    );
+
     const rowData = [
       finalId,
       sanitizeString(npcData.name),
@@ -57,10 +63,7 @@ export async function addNpcDB(
       castInt(npcData.legendaryResistances ?? 0, 0),
       JSON.stringify(npcData.rechargeAbilities ?? []),
       sanitizeString(npcData.abilityScores ?? '{}'),
-      injectSpellcastingAbility(
-        sanitizeString(npcData.proficiencies ?? '{}'),
-        getSpellcastingAbilityToSave(npcData, npcData)
-      ),
+      finalProficiencies,
       sanitizeString(npcData.speed ?? ''),
       sanitizeString(npcData.senses ?? ''),
       sanitizeString(npcData.languages ?? ''),
@@ -69,7 +72,7 @@ export async function addNpcDB(
       sanitizeString(npcData.actions ?? '[]'),
       sanitizeString(npcData.reactions ?? '[]'),
       sanitizeString(npcData.legendaryActionsList ?? '[]'),
-      getSpellcastingAbilityToSave(npcData, npcData),
+      finalSpellcastingAbility,
     ];
 
     await appendSheetData(resolvedId, 'NPCs!A:V', [rowData]);
@@ -86,7 +89,7 @@ export async function addNpcDB(
       legendaryResistances: npcData.legendaryResistances ?? 0,
       rechargeAbilities: npcData.rechargeAbilities ?? [],
       abilityScores: npcData.abilityScores ?? '{}',
-      proficiencies: npcData.proficiencies ?? '{}',
+      proficiencies: finalProficiencies,
       speed: npcData.speed ?? '',
       senses: npcData.senses ?? '',
       languages: npcData.languages ?? '',
@@ -95,7 +98,7 @@ export async function addNpcDB(
       actions: npcData.actions ?? '[]',
       reactions: npcData.reactions ?? '[]',
       legendaryActionsList: npcData.legendaryActionsList ?? '[]',
-      spellcastingAbility: npcData.spellcastingAbility ?? '',
+      spellcastingAbility: npcData.spellcastingAbility ?? finalSpellcastingAbility,
     };
   } catch (err) {
     console.error('[DB] addNpcDB failed:', err);

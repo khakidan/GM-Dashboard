@@ -6,6 +6,29 @@ Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed fr
 
 ---
 
+## Full Codebase Audit Bug-Hunting Phase — Residual Non-Bug Notes (Reference Only)
+
+A few observations surfaced during the audit that were correctly never queued as bugs, but are worth preserving as institutional memory now that `ROADMAP.md`'s bug list has been fully collapsed:
+
+- **`src/services/dbOperations/shared.ts` (line 211)** fetches `'Encounter_Combatants!A2:Z'` via a hardcoded literal, wider than the sheet's real 14 columns (A–N). Not bug-causing (over-fetching a nonexistent range doesn't lose data), but worth using `SHEET_RANGES.encounterCombatants` instead for consistency, whenever this file is next touched.
+- **`src/context/ThemeContext.tsx`**: `VisualStyle` currently has only one possible value (`'sleek-modern'`), so `setTheme`/`isVisualStyle` exist but have nothing to actually switch between yet — likely intentional forward-looking infrastructure. Separately, `data-theme` is set independently in two places (`App.tsx`'s `AppContent` hardcodes it on a wrapper div; this file's `useEffect` sets it dynamically on `document.documentElement`) — both hold the same value today, but only the second would actually update if a second theme is ever built. Worth consolidating to one mechanism at that point.
+- **`CombatTab.tsx`**'s AC field fallback (`parseInt(e.target.value) || 10`) silently overrides a legitimately-typed `"0"` back to `10` — a narrow edge case, not queued.
+- **`DebouncedInput.tsx`**'s `localValue !== value` check can spuriously evaluate `true` for numeric `value` props after any keystroke, since native input values are always strings — harmless in practice, not escalated.
+
+## `addCharacterDB`/`addNpcDB` Pre-Injection `proficiencies` Return — Closes Out the Entire Bug-Hunting Phase (Completed)
+
+The last remaining open item from the Full Codebase Audit. Both `characters.ts`'s `addCharacterDB` and `npcs.ts`'s `addNpcDB` wrote `injectSpellcastingAbility(sanitizeString(...proficiencies...), ...)` to the sheet, but returned the original, un-injected `proficiencies` value to the caller — creating a temporary client/sheet inconsistency for that field until the next full resync.
+
+**Fix**: both functions already computed the injected value once, for the sheet write (`finalProficiencies`/`finalSpellcastingAbility`, held in a local variable) — the fix was simply referencing that same variable in the returned optimistic object instead of the original, pre-injection value, so no new computation was needed and the two code paths can't drift apart again.
+
+No test coverage question needed — confirmed via direct search that no existing test asserts on the specific returned `proficiencies` value (the one related assertion checks the sheet row itself, not the optimistic return object), so nothing needed updating.
+
+Verified: both diffs checked against the real uploaded files (the actual current state of both functions, not just a recalled description) — both correctly return `finalProficiencies` now. Raw Batch 2 output confirmed 37/37 passing, matching the documented baseline exactly.
+
+**This closes out the entire bug-hunting phase of the Full Codebase Audit, in full.** Every directory in the codebase — `lib/`, `hooks/`, `services/`, all of `components/` (`ui/`, `PartyTab/`, `EncountersTab/`, `NpcLibraryTab/`, `ActiveEncounterTab/`, top-level files), `src/server/routes/`, `src/context/`, top-level `src/` files, and `src/test-utils/fixtures/` — has now been audited, with every real finding independently verified against actual code rather than accepted on report alone, and every confirmed bug fixed. `ROADMAP.md`'s `🔴 Bugs to Fix` section is now empty for the first time since this audit began.
+
+---
+
 ## `CampaignSelector.tsx` — Token Constant + Parchment-Theme Hover Colors (Completed)
 
 Two independent findings, fixed together.
