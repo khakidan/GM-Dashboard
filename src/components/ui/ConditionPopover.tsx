@@ -136,7 +136,7 @@ export const ConditionPopover: React.FC<ConditionPopoverProps> = ({
       'stoneskin',
       'fire shield',
       'mirror image',
-      'aid',
+      'aid (boosted)',
       'enlarged',
       'reduced',
       'mage armor',
@@ -168,7 +168,7 @@ export const ConditionPopover: React.FC<ConditionPopoverProps> = ({
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onClick={handleClick}
-      id={`popover-container-${conditionName.toLowerCase().replace(/[^a-z0-0]/g, '-')}`}
+      id={`popover-container-${conditionName.toLowerCase().replace(/[^a-z0-9]/g, '-')}`}
     >
       {children}
 

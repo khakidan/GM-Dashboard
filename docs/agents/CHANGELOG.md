@@ -6,6 +6,22 @@ Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed fr
 
 ---
 
+## `ConditionPopover.tsx` — DOM ID Regex Typo + `aid (boosted)` Categorization Drift (Completed)
+
+Two independent issues in the same file, fixed together.
+
+**DOM id generator regex typo**: `replace(/[^a-z0-0]/g, '-')` — `0-0` is a trivial character range containing only `'0'`, not the intended `0-9`. As written, every digit 1–6 got replaced with `-` while `0` was preserved, so all six exhaustion levels ("exhaustion 1" through "exhaustion 6") generated the *identical* malformed id (`popover-container-exhaustion--`), violating HTML id-uniqueness and breaking any DOM lookup or test selector targeting a specific level.
+
+**Fix**: single-character correction, `0-0` → `0-9`. Verified concretely rather than just asserted — generated the actual id strings for all six exhaustion levels under both the old and new regex and confirmed by hand: old regex collapses all six to the same `"exhaustion--"`; new regex correctly preserves each distinguishing digit (`"exhaustion-1"` through `"exhaustion-6"`).
+
+**Categorization drift**: `spellEffects` still listed `'aid'`, not `'aid (boosted)'` — drift from an earlier fix elsewhere in this project (renaming `conditionDescriptions.ts`'s key to match the real `EFFECT_OPTIONS` string) that never propagated to this separate hardcoded list. Hovering "Aid (Boosted)" showed category "Effect" instead of "Spell." Fixed to match.
+
+No test coverage added — confirmed via direct search that no existing test asserts on a specific generated id from this function, and none exercises `ConditionPopover` at all currently.
+
+Verified: diff checked against the real uploaded file. Raw Batch 8 output confirmed 2/2 passing, matching the documented baseline exactly.
+
+---
+
 ## `characterFixtures.ts` Wrong `hitDiceConfig` Format (Completed)
 
 `mockCharacter.hitDiceConfig` was set to `'{"d10":5}'` — a JSON-object string, which is actually `hitDiceUsed`'s format, not `hitDiceConfig`'s. `parseHitDiceConfig` matches against `/^(\d+)d(6|8|10|12)$/i` per `+`-separated part — a JSON object fails that regex entirely and silently returns `[]` (empty hit dice pool) instead of the intended "5d10 for a level-5 Fighter."
