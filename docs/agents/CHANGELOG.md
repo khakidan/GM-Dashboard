@@ -6,6 +6,28 @@ Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed fr
 
 ---
 
+## `NpcListEditor.tsx` `key={index}` — Synthetic `_key` Field (Completed)
+
+The last open finding from the original `ui/` audit round, and the one that needed the most investigation before a fix was even possible to scope correctly.
+
+**Confirmed as a real, reproducible bug, not just a best-practice violation**: `key={index}` on a removable list, where the rendered children (`NpcSimpleFieldEditor`/`NpcCombatActionFields`, used for Traits/Actions/Reactions/Legendary Actions) contain `DebouncedTextarea`, which holds its own local, uncommitted-edit state. Traced through concretely: with a GM mid-typing an uncommitted edit into one item's description while deleting a *different* item earlier in the list, React's positional-key reconciliation reuses the wrong component instance for the shifted position, silently discarding the in-progress edit rather than the deleted item's own (already-committed) content.
+
+**The fix required more investigation than initially scoped, in layers**:
+1. The obvious fix (`key={item.id}`) wasn't available — none of `NpcTrait`/`NpcAction`/`NpcReaction`/`NpcLegendaryAction` has ever had an `id` field.
+2. A client-side-only synthetic key (generated and held in local component state, never persisted) was considered first, but confirmed unsafe: `NpcCard.tsx`'s `items` prop is a live reference to global state, not a snapshot — a background sync updating the same NPC while its editor stays mounted could replace the array externally, desyncing any local-only key tracking from the real data.
+3. Settled on a **minimal persisted `_key?: string` field** added directly to all four types — purely a rendering aid, no semantic meaning, generated once at item creation and carried through with the data itself from then on, avoiding the local-state desync problem entirely.
+4. Migration for already-saved NPCs (which have no `_key` on any existing item) was initially planned as a backfill effect, but dropped per explicit decision — existing NPCs will simply be recreated after this ships, so a migration path added unnecessary complexity for data that won't exist post-deployment.
+
+**Fix**: `_key?: string` added to all 4 types in `types.ts`. `NpcListEditor.tsx` generates a real key via `crypto.randomUUID()` (with the same fallback pattern already established in `googleAuth.ts`'s `generateAndStoreOAuthState`, confirmed matching by direct recall of that earlier-verified code) whenever a new item is added, and renders using `key={item._key ?? index}` — new items get full protection; pre-existing items without `_key` fall back to the old (accepted, disclosed) behavior until recreated.
+
+**Process notes, both caught and resolved**: an intermediate response re-litigated the already-settled client-side-vs-persisted design decision instead of answering the direct investigation question it was asked — rejected and redirected back to the actual task. The generic type constraint on `NpcListEditorProps` (`T extends { name: string }`) needed to widen to include `_key?: string` — technically a deviation from an explicit "don't change this" instruction, but accepted as a genuine, necessary consequence (TypeScript can't allow reading/writing `_key` on a bare unconstrained generic) rather than an unsafe type-cast workaround.
+
+**Test coverage added in two rounds**: first for `NpcFormFields.tsx` (asserting `handleAddItem` genuinely produces a real, non-empty `_key`), then — after directly confirming no test at all previously exercised `NpcCard.tsx`'s identical use of `NpcListEditor` — a second, new `NpcCard.test.tsx`. That test's first draft used a `mockNpc` object with several fields that don't exist on the real `NPC` interface at all (`armorClass`, `hitPoints`, `type`, `alignment`, `damageImmunities`, `conditionImmunities`, `image`, `isFavorite`) — caught by comparing directly against the real interface (independently confirmed from an earlier direct read in this same session) and corrected to use only real fields with correct names (`ac`, `maxHp`, etc.) before being accepted.
+
+Verified: every diff checked against real uploaded files across all rounds, including the corrected mock. Raw Batch 6C output confirmed 15/15 passing (14→15, matching the one new test).
+
+---
+
 ## 4 Dead-Code Cleanups in `components/ui/` (Completed)
 
 Four small, independent dead-code findings from the original `ui/` audit, fixed together in one batch since each was a mechanical, zero-risk removal with no design decisions needed.

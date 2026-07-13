@@ -2,7 +2,7 @@ import React from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { IconButton } from './IconButton';
 
-interface NpcListEditorProps<T extends { name: string }> {
+interface NpcListEditorProps<T extends { name: string; _key?: string }> {
   title: string;           // section header e.g. "Traits"
   items: T[];              // current parsed list
   emptyItem: T;            // template for a new blank entry
@@ -14,7 +14,7 @@ interface NpcListEditorProps<T extends { name: string }> {
   onChange: (updated: T[]) => void; // fires with full updated list
 }
 
-export function NpcListEditor<T extends { name: string }>({
+export function NpcListEditor<T extends { name: string; _key?: string }>({
   title,
   items,
   emptyItem,
@@ -23,9 +23,16 @@ export function NpcListEditor<T extends { name: string }>({
 }: NpcListEditorProps<T>) {
   const singularTitle = title.endsWith('s') ? title.slice(0, -1) : title;
 
+  function generateKey(): string {
+    return typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+      ? crypto.randomUUID()
+      : Math.random().toString(36).substring(2) + Date.now().toString(36);
+  }
+
   const handleAddItem = () => {
     // Deep copy emptyItem to avoid accidental references
     const newItem = JSON.parse(JSON.stringify(emptyItem)) as T;
+    newItem._key = generateKey();
     onChange([...items, newItem]);
   };
 
@@ -57,7 +64,7 @@ export function NpcListEditor<T extends { name: string }>({
         <div className="space-y-3">
           {items.map((item, index) => (
             <div
-              key={index}
+              key={item._key ?? index}
               className="bg-[#ffffff] rounded border border-[#e2e8f0] p-3 relative"
             >
               <IconButton

@@ -35,6 +35,7 @@ export interface Character {
 export interface NpcTrait {
   name: string;
   description: string;
+  _key?: string;
 }
 
 export interface NpcAction {
@@ -46,11 +47,13 @@ export interface NpcAction {
   saveType?: string;
   range?: string;
   recharge?: string;
+  _key?: string;
 }
 
 export interface NpcReaction {
   name: string;
   description: string;
+  _key?: string;
 }
 
 export interface NpcLegendaryAction {
@@ -61,6 +64,7 @@ export interface NpcLegendaryAction {
   damage?: string;
   saveDC?: number;
   saveType?: string;
+  _key?: string;
 }
 
 export interface NPC {
