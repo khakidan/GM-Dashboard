@@ -6,6 +6,20 @@ Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed fr
 
 ---
 
+## `handleExhaustionDeath` Combatant-Mirroring Gap (Completed)
+
+`handleExhaustionDeath` (`useCombatantExpanded.ts`) marked a PC deceased in `characters` but never mirrored this to `combatState.combatants` — found incidentally while investigating that same function's separate rollback fix. `CombatantCardHeader.tsx`'s "Dead" skull badge is driven by fields on the `Combatant` object, not `characters`, so a PC who died from exhaustion at level 6 was correctly marked deceased in the database and on their character sheet, but their Combatant Card kept showing them as alive until some unrelated action happened to resync the list.
+
+**A real design tension surfaced before implementing, and was resolved by explicit choice, not a shortcut.** The obvious reference pattern — `useDeathSaves.ts`'s `checkDeathSaveOutcome`, which already correctly mirrors PC death for the failed-death-saves case — sets `statusId`, `isStable`, and `conditions` on the Combatant, matching `CombatantCardHeader.tsx`'s existing `isPcDead` check (`(deathSavesFails || 0) >= 3 && !isStable`). But an exhaustion death doesn't necessarily involve any failed death saves at all — mirroring the same shape verbatim would have required artificially setting `deathSavesFails: 3` purely to satisfy an unrelated display condition, for a PC who never actually rolled any. Checked directly whether this would have caused real, visible harm elsewhere (not just theoretical risk): confirmed `deathSavesFails` also drives `DeathSaveTrackerDisplay.tsx`'s interactive pip tracker, meaning faking this field would have shown a PC as having failed 3 death-save rolls they never made.
+
+**Resolved by widening scope to a second file rather than faking data to stay narrowly scoped**: `CombatantCardHeader.tsx`'s `isPcDead` condition was widened to `((deathSavesFails || 0) >= 3 || statusId === 3) && !isStable` — checking the real, authoritative source of "this PC is dead" (`statusId`, confirmed against `schema.md` to be used for no other purpose) directly, rather than working around a narrower condition with fabricated data. `handleExhaustionDeath` then mirrors `statusId: 3`, `isStable: false`, and `conditions` (stripped of `'unconscious'`) into the matching Combatant — matching `checkDeathSaveOutcome`'s real shape for everything except the death-save-specific field, which genuinely doesn't apply here. The function's existing scoped rollback (from the earlier fix) was extended to also cover `combatState.combatants`, alongside the already-covered `characters`.
+
+**Process note**: two rounds of "raw test output" in this fix were rejected as not genuine — one recited a stale-looking table missing an entire test file, the second was a percentage-style summary (`"100% | 8 passed"`) rather than real Vitest output. Both were caught by comparing against the actual, consistent format every other genuine raw output in this project has used, and a third attempt finally produced real, verifiable output — every file individually listed, including the real stderr trace from an intentionally-simulated DB failure in an unrelated test, confirming it was genuine.
+
+Verified: both diffs checked against real uploaded files. Raw Batch 5A output confirmed 54/54 passing, all 8 real files individually listed, matching the documented baseline exactly.
+
+---
+
 ## The Full-App-State-Rollback Pattern — All 5 Remaining Files (Completed)
 
 The largest, most involved fix of this entire session. Earlier work fixed this exact bug in `useEncounters.ts`/`useParty.ts`/`useNpcLibrary.ts`; a systematic audit for repeated hook patterns confirmed the same bug present in 11 more handler functions across 4 additional files (`useBatchActions.ts` ×5, `useDeathSaves.ts` ×2, `useEncounterPresetLoader.ts` ×2, `useCombatantMutations.ts` ×2), plus a worse variant — rollback missing entirely — in a 5th (`useCombatantExpanded.ts` ×2).

@@ -65,7 +65,7 @@ export function CombatantCardHeader({
   const { name, ac, tempAcModifier, initiative, type } = c;
 
   const maxHpCeiling = effectiveMaxHp(c.maxHp, c.tempHpMax || 0);
-  const isPcDead = type === 'pc' && (c.deathSavesFails || 0) >= 3 && !c.isStable;
+  const isPcDead = type === 'pc' && ((c.deathSavesFails || 0) >= 3 || c.statusId === 3) && !c.isStable;
 
   // Spellcasting stats computation for Row 1
   let spellcastingStatsElement: React.ReactNode = null;

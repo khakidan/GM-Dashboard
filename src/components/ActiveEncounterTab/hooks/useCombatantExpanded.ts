@@ -171,6 +171,23 @@ export function useCombatantExpanded(c: Combatant) {
       characters: prev.characters.map((charItem) =>
         charItem.id === charId ? { ...charItem, statusId: 3 } : charItem
       ),
+      combatState: {
+        ...prev.combatState,
+        combatants: prev.combatState.combatants.map((combatant) =>
+          combatant.id === c.id
+            ? {
+                ...combatant,
+                statusId: 3,
+                isStable: false,
+                conditions: (combatant.conditions || '')
+                  .split(',')
+                  .map((s) => s.trim())
+                  .filter((cond) => cond && cond.toLowerCase() !== 'unconscious')
+                  .join(', '),
+              }
+            : combatant
+        ),
+      },
     }));
 
     // 2. Persist
@@ -178,9 +195,13 @@ export function useCombatantExpanded(c: Combatant) {
       await updateCharacterDB({ statusId: 3 }, char);
       toast.info(`Character marked as Deceased: ${char.characterName}`);
     } catch (err) {
-      updateState(prev => ({
+      updateState((prev) => ({
         ...prev,
         characters: snapshot.characters,
+        combatState: {
+          ...prev.combatState,
+          combatants: snapshot.combatState.combatants,
+        },
       }));
       console.error("Failed to mark character as Deceased: ", err);
       toast.error(`Failed to sync death status for ${char.characterName}`);
