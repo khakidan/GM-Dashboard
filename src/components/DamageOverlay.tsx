@@ -1,5 +1,6 @@
 import { ANIMATION_TIMING } from '../lib/constants';
-import React, { useRef, useEffect } from 'react';
+import React from 'react';
+import { useCinematicVideo } from './ActiveEncounterTab/hooks/useCinematicVideo';
 
 interface DamageOverlayProps {
   combatantNames: string[];
@@ -77,14 +78,7 @@ export function DamageOverlay({
   damageAmount,
   damageType 
 }: DamageOverlayProps) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.currentTime = 0;
-      videoRef.current.play().catch(() => {});
-    }
-  }, [combatantNames, damageAmount, damageType]);
+  const videoRef = useCinematicVideo([combatantNames, damageAmount, damageType]);
 
   return (
     <div

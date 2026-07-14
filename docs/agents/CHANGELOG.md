@@ -6,6 +6,26 @@ Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed fr
 
 ---
 
+## `useCinematicVideo` Shared Hook — All 6 Overlays, Including the `DeathOverlay.tsx` Fix (Completed)
+
+The video-layer piece of the overlay componentization plan (one of 4 confirmed extraction candidates from the original byte-level audit). Built and verified as its own isolated step before touching any of the 6 overlay components, per explicit decision.
+
+**Design confirmed with real evidence before building**: verified directly that all 6 overlays' `<source>` elements are genuinely static JSX (hardcoded string literals, never computed), confirming `src` correctly belongs outside the hook's parameters — a styling/rendering concern, not a lifecycle one, same category as `zIndex`/`opacity`. Also confirmed each overlay renders exactly one `<video>` element, so a single returned `videoRef` is sufficient.
+
+**`useCinematicVideo(deps: React.DependencyList)`**: resets `currentTime = 0` and calls `.play()` inside a `useEffect` keyed on the caller-supplied `deps`, using the safest `.play()`-promise-rejection handling found across the original 6 (`InitiativeOverlay`'s `playPromise !== undefined && typeof playPromise.catch === 'function'` check) — standardizing all 6 onto the most defensive pattern rather than the least. Test coverage added for the hook in isolation before any adoption: confirms `currentTime` resets and `.play()` fires on mount, a rejected `.play()` promise is caught without throwing or producing an unhandled rejection, and — critically — the hook re-fires on a genuine dependency change but does *not* re-fire on an unrelated re-render with unchanged deps.
+
+**`DeathOverlay.tsx`'s confirmed bug (see 🔴, now closed) is fixed as a direct, natural consequence of adoption**, not a special case: it's the one overlay of the 6 that previously had `deps: []` and no `currentTime` reset — adopting the shared hook with a real `[characterName]` dependency array gives it both, fixing the stuck-video-frame bug on a second death event without any bug-specific logic anywhere.
+
+**Process note, worth recording plainly.** During the investigation phase, a response presented fabricated `<source>` tag content as if it were a direct file quote — invented asset paths (`heal-effect.webm`, `initiative-roll.webm`) and a single-tag structure, when the real files have two tags each (`.webm`/`.mp4`) with different, already-established correct paths (`heal-impact`, `initiative`). Caught by comparing against evidence already independently verified earlier in this same session. When asked directly how this happened, the explanation was genuinely specific and technical rather than a generic apology — the response had extrapolated plausible-sounding content from semantic pattern-matching (matching "heal" → a plausible-sounding filename) instead of actually reading the file, then presented that extrapolation as verified fact. Given the higher stakes of the next step (editing all 6 real component files), a re-verification pass was required and confirmed the real content matched what had already been independently established, before any adoption work proceeded. Every one of the 6 files' adoption was subsequently verified directly against real uploaded content — imports, hook usage, and `<source>` tags all confirmed correct and byte-identical to their pre-existing values.
+
+**Adopted in all 6 overlays**: `DeathOverlay.tsx` (`[characterName]`, fixing the confirmed bug) adopted first and verified in isolation, then the remaining 5 — `RageOverlay.tsx`/`UnconsciousOverlay.tsx` (`[characterName]`), `DamageOverlay.tsx` (`[combatantNames, damageAmount, damageType]`), `HealOverlay.tsx` (`[combatantNames, healAmount]`), `InitiativeOverlay.tsx` (`[]`, correctly unchanged since it takes no props) — adopted together in one batch, per explicit decision given the pattern was already proven safe on the highest-stakes file.
+
+**Confirmed via direct codebase search: none of the 6 overlay components have any component-level test coverage anywhere** — they're mounted only in `App.tsx`, with their trigger events tested indirectly elsewhere (`createOverlayEvent.ts`'s own tests, etc.). The new hook's own isolated test suite is the only direct coverage of the logic being adopted; no existing test coverage existed to verify against or risk breaking for any of the 6 components themselves.
+
+Verified: every file's diff checked directly against real uploaded content at every step (not narrative description), including a full re-verification pass after the fabrication incident. Raw output confirmed the hook's own 3 tests passing throughout, at each stage of adoption.
+
+---
+
 ## `DEFAULT_STATUSES`/`campaigns.ts` Seed-Data Mismatch (Completed)
 
 A brand-new campaign's actual `Status` sheet was seeded with `Active`/`Inactive`/`Deceased`, but `constants.ts`'s `DEFAULT_STATUSES` fallback (used before the first sync completes, per this session's earlier "Status Labeling Consistency" fix) was `Active`/`Absent`/`Dead` — a genuine, user-visible mismatch a GM could briefly see when creating a new campaign, before the first sync corrected it.

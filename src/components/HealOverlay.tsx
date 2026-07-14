@@ -1,5 +1,6 @@
 import { ANIMATION_TIMING } from '../lib/constants';
-  import React, { useRef, useEffect } from 'react';
+  import React from 'react';
+  import { useCinematicVideo } from './ActiveEncounterTab/hooks/useCinematicVideo';
 
   interface HealOverlayProps {
     combatantNames: string[];
@@ -88,14 +89,7 @@ import { ANIMATION_TIMING } from '../lib/constants';
     combatantNames, 
     healAmount 
   }: HealOverlayProps) {
-    const videoRef = useRef<HTMLVideoElement>(null);
-
-    useEffect(() => {
-      if (videoRef.current) {
-        videoRef.current.currentTime = 0;
-        videoRef.current.play().catch(() => {});
-      }
-    }, [combatantNames, healAmount]);
+    const videoRef = useCinematicVideo([combatantNames, healAmount]);
 
     return (
       <div

@@ -1,5 +1,6 @@
 import { ANIMATION_TIMING } from '../lib/constants';
-import React, { useRef, useEffect } from 'react';
+import React from 'react';
+import { useCinematicVideo } from './ActiveEncounterTab/hooks/useCinematicVideo';
 
 const STYLES = `
   @keyframes init-overlayIn {
@@ -71,17 +72,7 @@ const STYLES = `
 `;
 
 export function InitiativeOverlay() {
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.currentTime = 0;
-      const playPromise = videoRef.current.play();
-      if (playPromise !== undefined && typeof playPromise.catch === 'function') {
-        playPromise.catch(() => {});
-      }
-    }
-  }, []);
+  const videoRef = useCinematicVideo([]);
 
   return (
     <div

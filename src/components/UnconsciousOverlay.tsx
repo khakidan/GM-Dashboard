@@ -1,5 +1,6 @@
 import { ANIMATION_TIMING } from '../lib/constants';
-  import React, { useRef, useEffect } from 'react';
+  import React from 'react';
+  import { useCinematicVideo } from './ActiveEncounterTab/hooks/useCinematicVideo';
 
   interface UnconsciousOverlayProps {
     characterName: string;
@@ -87,14 +88,7 @@ import { ANIMATION_TIMING } from '../lib/constants';
   export function UnconsciousOverlay({ 
     characterName 
   }: UnconsciousOverlayProps) {
-    const videoRef = useRef<HTMLVideoElement>(null);
-
-    useEffect(() => {
-      if (videoRef.current) {
-        videoRef.current.currentTime = 0;
-        videoRef.current.play().catch(() => {});
-      }
-    }, [characterName]);
+    const videoRef = useCinematicVideo([characterName]);
 
     return (
       <div

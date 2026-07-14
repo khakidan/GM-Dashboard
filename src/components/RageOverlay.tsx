@@ -1,5 +1,6 @@
 import { ANIMATION_TIMING } from '../lib/constants';
-  import React, { useRef, useEffect } from 'react';
+  import React from 'react';
+  import { useCinematicVideo } from './ActiveEncounterTab/hooks/useCinematicVideo';
 
   interface RageOverlayProps {
     characterName: string;
@@ -97,17 +98,7 @@ import { ANIMATION_TIMING } from '../lib/constants';
   export function RageOverlay({ 
     characterName 
   }: RageOverlayProps) {
-    const videoRef = useRef<HTMLVideoElement>(null);
-
-    useEffect(() => {
-      if (videoRef.current) {
-        videoRef.current.currentTime = 0;
-        const playPromise = videoRef.current.play();
-        if (playPromise !== undefined) {
-          playPromise.catch(() => {});
-        }
-      }
-    }, [characterName]);
+    const videoRef = useCinematicVideo([characterName]);
 
     return (
       <div

@@ -1,5 +1,6 @@
 import { ANIMATION_TIMING } from '../lib/constants';
-import React, { useRef, useEffect } from 'react';
+import React from 'react';
+import { useCinematicVideo } from './ActiveEncounterTab/hooks/useCinematicVideo';
 
 interface DeathOverlayProps {
   characterName: string;
@@ -65,18 +66,7 @@ const STYLES = `
 `;
 
 export function DeathOverlay({ characterName }: DeathOverlayProps) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  useEffect(() => {
-    if (videoRef.current) {
-      const playPromise = videoRef.current.play();
-      if (playPromise !== undefined) {
-        playPromise.catch(() => {
-          // Autoplay blocked — fine, the CSS effects still run
-        });
-      }
-    }
-  }, []);
+  const videoRef = useCinematicVideo([characterName]);
 
   return (
     <div
