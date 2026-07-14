@@ -1,20 +1,12 @@
 import { ANIMATION_TIMING } from '../lib/constants';
 import React from 'react';
 import { useCinematicVideo } from './ActiveEncounterTab/hooks/useCinematicVideo';
+import { formatNames } from '../lib/stringUtils';
 
 interface DamageOverlayProps {
   combatantNames: string[];
   damageAmount: number;
   damageType?: string;
-}
-
-function formatNames(names: string[]): string {
-  if (names.length === 1) return names[0];
-  if (names.length === 2) 
-    return `${names[0]} and ${names[1]}`;
-  const last = names[names.length - 1];
-  const rest = names.slice(0, -1).join(', ');
-  return `${rest}, and ${last}`;
 }
 
 const STYLES = `

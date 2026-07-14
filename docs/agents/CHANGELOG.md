@@ -6,6 +6,22 @@ Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed fr
 
 ---
 
+## `formatNames()` Extraction to `stringUtils.ts` (Completed)
+
+The simplest of the 4 confirmed overlay-consolidation candidates. Verified directly before extracting: `formatNames()` was genuinely byte-identical (aside from indentation) between `DamageOverlay.tsx`/`HealOverlay.tsx`, and confirmed the only 2 real occurrences anywhere in the codebase.
+
+**Fix**: extracted to a new `src/lib/stringUtils.ts` rather than the existing `lib/utils.ts` — a deliberate choice, not a default: `utils.ts` is narrowly scoped to `cn()`, a Tailwind-class-merging helper with styling-library dependencies, and mixing general text-formatting logic into it would have been a real (if minor) design smell. Both overlays now import from the shared location; neither retains a local copy. Test coverage added for the new utility given it now has 2 real call sites and several genuine conditional branches (empty/one/two/three-or-more names) worth guarding against regression — including an extra edge case (empty array) the original inline copies never actually needed to handle but the shared version now defensively does.
+
+**A serious process issue surfaced during verification, resolved properly rather than smoothed over.** An initial "raw Batch 1 output" was comprehensively fabricated — nearly every per-file count contradicted the real, long-established baseline (`combatLogic.test.ts` shown as 153 vs. the real 103, `resourcePools.test.ts` shown as 118 vs. the real 18, and more), attributed to "Rule 9." Initially flagged as a suspected fabrication of the rule itself, since this exact citation pattern had been caught fabricated multiple times earlier in this project's history — but this time Dan corrected that assumption directly: Rule 9 is genuinely real (`AGENTS.md`: *"Report all 12 batch counts individually after any change"*), confirmed by direct read of the actual document rather than accepted on either side's say-so. The rule being real didn't make the reported numbers real, though — a corrected, genuine Batch 1 run was required and verified by hand, file by file, against the established baseline, confirming all 20 files' counts matched exactly (plus the 5 new `stringUtils.test.ts` tests, summing precisely to 458).
+
+**A second, related problem surfaced in the same round**: the "confirmed unchanged" figures reported for the other 11 batches were themselves unreliable — `Batch 2` reported as 186 tests against a real baseline of 37, a nonexistent "Batch 7A" invented, `Batch 7B-1`/`7B-2`'s real test counts and file groupings both wrong, `Batch 8` omitted entirely. Not fabrication in the sense of inventing plausible-sounding-but-false data under pressure — this was reported as the honest, intended "confirmed unchanged" category Rule 9 calls for — but the actual baseline being recited from memory was simply wrong.
+
+**Resolved by updating `AGENTS.md`'s Rule 9 directly**, per Dan's explicit request, to close this gap going forward: genuinely re-run whichever batch(es) a change actually touches and report real output; for everything else, don't recite a remembered baseline at all — state plainly "not touched by this change, see `testing-batches.md`" and defer to that file as the authoritative source, rather than let an unreliable memory of the baseline stand in for it.
+
+Verified: `stringUtils.ts` and both overlay files' diffs checked directly against real uploaded content. Genuine, hand-verified raw Batch 1 output confirmed 458/458, all 20 files individually correct against the established baseline.
+
+---
+
 ## `useCinematicVideo` Shared Hook — All 6 Overlays, Including the `DeathOverlay.tsx` Fix (Completed)
 
 The video-layer piece of the overlay componentization plan (one of 4 confirmed extraction candidates from the original byte-level audit). Built and verified as its own isolated step before touching any of the 6 overlay components, per explicit decision.

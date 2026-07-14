@@ -4,13 +4,13 @@ Referenced from the root [AGENTS.md](../../AGENTS.md) (Rule 9: report all 12 bat
 
 This file is maintained with the same discipline as [ROADMAP.md](ROADMAP.md)/[CHANGELOG.md](CHANGELOG.md)/[file-reference.md](file-reference.md) — kept current every session, not left stale. It was split out of `AGENTS.md` specifically because it's frequently-changing data (updated almost every session as tests are added), unlike `AGENTS.md`'s otherwise-stable rules and conventions, and unlike [testing-philosophy.md](testing-philosophy.md)'s stable quality principles. Update the table and baseline below immediately whenever a test count changes.
 
-**Current baseline: 744 tests.**
+**Current baseline: 749 tests.**
 
 Run each batch individually. Never chain with `&&`. Never use glob patterns. Never run all tests at once with `npx vitest run`.
 
 | Batch | Description | Test Count |
 |-------|-------------|------------|
-| 1 | `src/lib/__tests__` | 453 |
+| 1 | `src/lib/__tests__` | 458 |
 | 2 | `src/services/__tests__` | 37 |
 | 3 | `src/hooks/__tests__` | 53 |
 | 4 | `src/server/__tests__` + `src/__tests__` | 9 |
@@ -24,7 +24,7 @@ Run each batch individually. Never chain with `&&`. Never use glob patterns. Nev
 | 8 | `src/components/ui/__tests__` | 2 |
 
 ```bash
-# BATCH 1 — 453 tests
+# BATCH 1 — 458 tests
 npx vitest run src/lib/__tests__
 
 # BATCH 2 — 37 tests

@@ -46,7 +46,7 @@ A full-stack web application for Dungeons & Dragons 5e Game Masters. The GM uses
 
 8. **Campaign creation must stay synchronized.** Whenever a sheet column is added, update `POST /api/campaigns/create` so newly created campaigns receive the correct schema.
 
-9. **Report all 12 batch counts individually** after any change. Never report only a combined total.
+9. **Report all 12 batch counts individually after any change. Never report only a combined total.** For whichever batch(es) actually cover the files touched by the current change, genuinely re-run them and report real, fresh terminal output. For every other batch, do not re-run it and do not recite a count from memory — memory of the current baseline has proven unreliable. Instead, state plainly "not touched by this change — see docs/agents/testing-batches.md for the current baseline" and defer to that file as the authoritative source.
 
 10. **Never re-report findings from previous prompts in the same session.** Only document changes made in the current prompt. If verifying earlier work, simply state **"confirmed unchanged."** Each response should address only what the current prompt asked.
 
