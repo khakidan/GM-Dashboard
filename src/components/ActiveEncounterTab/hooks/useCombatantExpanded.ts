@@ -55,6 +55,7 @@ export function useCombatantExpanded(c: Combatant) {
       }
     }
 
+    const snapshot = getSnapshot();
     // 1. Optimistic local state update in Zustand
     updateState((prev) => ({
       ...prev,
@@ -67,6 +68,10 @@ export function useCombatantExpanded(c: Combatant) {
     try {
       await updateCharacterDB(updates, char);
     } catch (err) {
+      updateState(prev => ({
+        ...prev,
+        characters: snapshot.characters,
+      }));
       console.error("Failed to update character resource pools: ", err);
       toast.error(`Failed to sync resource update for ${char.characterName}`);
     }
@@ -159,6 +164,7 @@ export function useCombatantExpanded(c: Combatant) {
     const char = characters.find(charItem => charItem.id === charId);
     if (!char) return;
 
+    const snapshot = getSnapshot();
     // 1. Optimistic update
     updateState((prev) => ({
       ...prev,
@@ -172,6 +178,10 @@ export function useCombatantExpanded(c: Combatant) {
       await updateCharacterDB({ statusId: 3 }, char);
       toast.info(`Character marked as Deceased: ${char.characterName}`);
     } catch (err) {
+      updateState(prev => ({
+        ...prev,
+        characters: snapshot.characters,
+      }));
       console.error("Failed to mark character as Deceased: ", err);
       toast.error(`Failed to sync death status for ${char.characterName}`);
     }

@@ -183,7 +183,14 @@ export function useDeathSaves() {
         console.error('[DeathSaves] Failed to record death save', error);
         toast.error('Failed to update death saves.');
         // Rollback
-        updateState(() => currentState);
+        updateState(prev => ({
+          ...prev,
+          characters: currentState.characters,
+          combatState: {
+            ...prev.combatState,
+            combatants: currentState.combatState.combatants,
+          }
+        }));
       }
     },
     [updateState, checkDeathSaveOutcome]
@@ -250,7 +257,14 @@ export function useDeathSaves() {
       } catch (error) {
         console.error('[DeathSaves] Failed to apply damage to unconscious', error);
         toast.error('Failed to update death saves.');
-        updateState(() => currentState);
+        updateState(prev => ({
+          ...prev,
+          characters: currentState.characters,
+          combatState: {
+            ...prev.combatState,
+            combatants: currentState.combatState.combatants,
+          }
+        }));
       }
     },
     [updateState, checkDeathSaveOutcome]

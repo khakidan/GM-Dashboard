@@ -134,7 +134,14 @@ export function useEncounterPresetLoader(
         };
       });
     } catch (error: any) {
-      updateState(() => preUpdateSnapshot);
+      updateState(prev => ({
+        ...prev,
+        encounterCombatants: preUpdateSnapshot.encounterCombatants,
+        combatState: {
+          ...prev.combatState,
+          combatants: preUpdateSnapshot.combatState.combatants,
+        }
+      }));
       toast.error(`Failed to add ${targetName} to the encounter. Please try again.`, {
         description: error instanceof Error ? error.message : 'Unknown error',
         duration: 5000,
@@ -221,7 +228,15 @@ export function useEncounterPresetLoader(
         },
       }));
     } catch (error: any) {
-      updateState(() => preUpdateSnapshot);
+      updateState(prev => ({
+        ...prev,
+        npcs: preUpdateSnapshot.npcs,
+        encounterCombatants: preUpdateSnapshot.encounterCombatants,
+        combatState: {
+          ...prev.combatState,
+          combatants: preUpdateSnapshot.combatState.combatants,
+        }
+      }));
       toast.error(`Failed to add ${npcData.name} to the encounter. Please try again.`, {
         description: error instanceof Error ? error.message : 'Unknown error',
         duration: 5000,
