@@ -12,7 +12,7 @@ Features and bugs that have been discussed and approved but not yet implemented.
 
 ### 🔴 Bugs to Fix
 
-None currently open.
+**`googleAuth.ts`'s `postMessage` origin check is broader than it should be.** Found while investigating an unrelated auth outage. `!origin.endsWith('.run.app') && !origin.includes('localhost') && origin !== window.location.origin` — `.endsWith('.run.app')` accepts a message from any Cloud Run service, not just this app's own deployment; `.includes('localhost')` is a substring check, not an exact match. Worth tightening to a real allowlist of this app's actual expected origins.
 
 ### 🟡 Features to Add
 

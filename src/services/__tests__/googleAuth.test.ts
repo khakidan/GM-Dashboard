@@ -7,7 +7,7 @@ import { STORAGE_KEYS } from '../../lib/constants';
 describe('googleAuth token management tests', () => {
   beforeEach(() => {
     localStorage.clear();
-    sessionStorage.clear();
+    localStorage.clear();
     clearTokens();
   });
 
@@ -61,7 +61,7 @@ describe('googleAuth token management tests', () => {
 describe('checkAndCaptureToken state validation', () => {
   beforeEach(() => {
     localStorage.clear();
-    sessionStorage.clear();
+    localStorage.clear();
     clearTokens();
   });
 
@@ -72,7 +72,7 @@ describe('checkAndCaptureToken state validation', () => {
 
   it('accepts valid matching state and stores the token (Hash & Code flow)', async () => {
     // 1. Hash/Implicit Flow
-    sessionStorage.setItem(STORAGE_KEYS.oauthState, 'matching-state-123');
+    localStorage.setItem(STORAGE_KEYS.oauthState, 'matching-state-123');
     vi.stubGlobal('location', {
       href: 'http://localhost/callback#access_token=hash-token-abc&state=matching-state-123',
       pathname: '/callback',
@@ -90,11 +90,11 @@ describe('checkAndCaptureToken state validation', () => {
 
     // Reset storage & token for the next part
     localStorage.clear();
-    sessionStorage.clear();
+    localStorage.clear();
     clearTokens();
 
     // 2. Code Flow
-    sessionStorage.setItem(STORAGE_KEYS.oauthState, 'matching-state-456');
+    localStorage.setItem(STORAGE_KEYS.oauthState, 'matching-state-456');
     vi.stubGlobal('location', {
       href: 'http://localhost/callback?code=code-123&state=matching-state-456',
       pathname: '/callback',
@@ -120,7 +120,7 @@ describe('checkAndCaptureToken state validation', () => {
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     // 1. Hash Flow
-    sessionStorage.setItem(STORAGE_KEYS.oauthState, 'stored-state');
+    localStorage.setItem(STORAGE_KEYS.oauthState, 'stored-state');
     vi.stubGlobal('location', {
       href: 'http://localhost/callback#access_token=hash-token-abc&state=attacker-state',
       pathname: '/callback',
@@ -138,11 +138,11 @@ describe('checkAndCaptureToken state validation', () => {
 
     // Reset storage & token for the next part
     localStorage.clear();
-    sessionStorage.clear();
+    localStorage.clear();
     clearTokens();
 
     // 2. Code Flow
-    sessionStorage.setItem(STORAGE_KEYS.oauthState, 'stored-state');
+    localStorage.setItem(STORAGE_KEYS.oauthState, 'stored-state');
     vi.stubGlobal('location', {
       href: 'http://localhost/callback?code=code-123&state=attacker-state',
       pathname: '/callback',
@@ -165,7 +165,7 @@ describe('checkAndCaptureToken state validation', () => {
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     // 1. Hash Flow
-    // sessionStorage has no oauthState
+    // localStorage has no oauthState
     vi.stubGlobal('location', {
       href: 'http://localhost/callback#access_token=hash-token-abc&state=some-state',
       pathname: '/callback',
@@ -182,11 +182,11 @@ describe('checkAndCaptureToken state validation', () => {
 
     // Reset storage & token for the next part
     localStorage.clear();
-    sessionStorage.clear();
+    localStorage.clear();
     clearTokens();
 
     // 2. Code Flow
-    // sessionStorage has no oauthState
+    // localStorage has no oauthState
     vi.stubGlobal('location', {
       href: 'http://localhost/callback?code=code-123&state=some-state',
       pathname: '/callback',
@@ -205,9 +205,9 @@ describe('checkAndCaptureToken state validation', () => {
     consoleErrorSpy.mockRestore();
   });
 
-  it('removes stored state from sessionStorage after checkAndCaptureToken runs once (regardless of match or mismatch)', async () => {
+  it('removes stored state from localStorage after checkAndCaptureToken runs once (regardless of match or mismatch)', async () => {
     // 1. Matching case
-    sessionStorage.setItem(STORAGE_KEYS.oauthState, 'matching-state');
+    localStorage.setItem(STORAGE_KEYS.oauthState, 'matching-state');
     vi.stubGlobal('location', {
       href: 'http://localhost/callback#access_token=hash-token-abc&state=matching-state',
       pathname: '/callback',
@@ -218,16 +218,16 @@ describe('checkAndCaptureToken state validation', () => {
     vi.stubGlobal('history', { replaceState: vi.fn() });
 
     await checkAndCaptureToken();
-    expect(sessionStorage.getItem(STORAGE_KEYS.oauthState)).toBeNull();
+    expect(localStorage.getItem(STORAGE_KEYS.oauthState)).toBeNull();
 
     // Reset storage & token for the next part
     localStorage.clear();
-    sessionStorage.clear();
+    localStorage.clear();
     clearTokens();
 
     // 2. Mismatch case
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    sessionStorage.setItem(STORAGE_KEYS.oauthState, 'mismatched-state');
+    localStorage.setItem(STORAGE_KEYS.oauthState, 'mismatched-state');
     vi.stubGlobal('location', {
       href: 'http://localhost/callback#access_token=hash-token-abc&state=attacker-state',
       pathname: '/callback',
@@ -238,7 +238,7 @@ describe('checkAndCaptureToken state validation', () => {
     vi.stubGlobal('history', { replaceState: vi.fn() });
 
     await checkAndCaptureToken();
-    expect(sessionStorage.getItem(STORAGE_KEYS.oauthState)).toBeNull();
+    expect(localStorage.getItem(STORAGE_KEYS.oauthState)).toBeNull();
 
     consoleErrorSpy.mockRestore();
   });

@@ -62,7 +62,7 @@ export function CampaignSelector({
   const [email, setEmail] = useState<string>('Google User');
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const { clearTokens } = useGoogleAuth();
+  const { isGoogleConnected, handleSignIn, clearTokens } = useGoogleAuth();
 
   useEffect(() => {
     const fetchEmail = async () => {
@@ -168,12 +168,33 @@ export function CampaignSelector({
             GM Encounter Dashboard
           </h1>
           <p id="selector-header-subtitle" className="mt-2 text-sm md:text-base text-[#8d8db9] font-sans">
-            Select or create a campaign to get started.
+            {isGoogleConnected ? 'Select or create a campaign to get started.' : 'Connect your Google account to access your D&D campaigns.'}
           </p>
         </div>
 
-        {/* Saved Campaigns list */}
-        <div className="bg-white/50 backdrop-blur-md rounded-2xl border border-[#e2e8f0] p-6 shadow-sm mb-8">
+        {!isGoogleConnected ? (
+          <div className="bg-white border border-[#e2e8f0] rounded-2xl p-8 shadow-sm text-center mb-8">
+            <div className="mb-6 flex justify-center">
+              <div className="w-16 h-16 bg-[#2563eb]/10 rounded-full flex items-center justify-center">
+                <span role="img" aria-label="google-drive" className="text-3xl">📁</span>
+              </div>
+            </div>
+            <h3 className="text-lg font-bold text-[#0f172a] mb-2 font-serif">Google Connection Required</h3>
+            <p className="text-sm text-[#8d8db9] font-sans mb-6 max-w-sm mx-auto leading-relaxed">
+              All character stats, NPC details, and encounter records live in Google Sheets. Connect your Google account to access your campaigns.
+            </p>
+            <button
+              id="google-sign-in-btn"
+              onClick={handleSignIn}
+              className="px-6 py-3.5 bg-[#2563eb] hover:bg-[#567eff] text-white font-sans font-bold uppercase tracking-widest text-xs rounded-xl transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2 cursor-pointer mx-auto"
+            >
+              Connect with Google
+            </button>
+          </div>
+        ) : (
+          <>
+            {/* Saved Campaigns list */}
+            <div className="bg-white/50 backdrop-blur-md rounded-2xl border border-[#e2e8f0] p-6 shadow-sm mb-8">
           <h3 className="text-xs uppercase tracking-widest font-sans font-bold text-[#8d8db9] mb-4 flex items-center gap-2">
             <FolderOpen className="w-4 h-4 text-[#2563eb]" />
             Your Campaigns ({campaigns.length})
@@ -452,22 +473,26 @@ export function CampaignSelector({
             )}
           </AnimatePresence>
         </div>
+        </>
+        )}
       </div>
 
       {/* Footer Details */}
-      <footer className="text-center text-xs text-[#8d8db9]/60 font-sans pt-6 border-t border-[#e2e8f0]/60 flex flex-col sm:flex-row items-center justify-between gap-2 w-full max-w-[640px] mt-6">
-        <div>
-          Signed in as: <span className="font-semibold text-[#0f172a]">{email}</span>
-        </div>
-        <a
-          href="#signout"
-          id="google-sign-out-link"
-          onClick={handleSignOutClick}
-          className="text-[#2563eb] hover:text-[#567eff] font-bold hover:underline py-1 px-2.5 rounded hover:bg-stone-100 transition-colors flex items-center gap-1.5 cursor-pointer"
-        >
-          <LogOut className="w-3.5 h-3.5" /> Sign out
-        </a>
-      </footer>
+      {isGoogleConnected && (
+        <footer className="text-center text-xs text-[#8d8db9]/60 font-sans pt-6 border-t border-[#e2e8f0]/60 flex flex-col sm:flex-row items-center justify-between gap-2 w-full max-w-[640px] mt-6">
+          <div>
+            Signed in as: <span className="font-semibold text-[#0f172a]">{email}</span>
+          </div>
+          <a
+            href="#signout"
+            id="google-sign-out-link"
+            onClick={handleSignOutClick}
+            className="text-[#2563eb] hover:text-[#567eff] font-bold hover:underline py-1 px-2.5 rounded hover:bg-stone-100 transition-colors flex items-center gap-1.5 cursor-pointer"
+          >
+            <LogOut className="w-3.5 h-3.5" /> Sign out
+          </a>
+        </footer>
+      )}
     </div>
   );
 }

@@ -67,8 +67,26 @@ export function useCampaign() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Sync on initial mount in case the URL has a campaign parameter
+    // but the local storage hasn't caught up, e.g., if a bookmark was opened.
+    const initialActive = getActiveCampaignFromUrl();
+    if (initialActive) {
+      localStorage.setItem(STORAGE_KEYS.activeCampaignId, initialActive.id);
+      localStorage.setItem(STORAGE_KEYS.activeCampaignSpreadsheetId, initialActive.spreadsheetId);
+      setSpreadsheetId(initialActive.spreadsheetId);
+    }
+
     const handlePopState = () => {
-      setActiveCampaign(getActiveCampaignFromUrl());
+      const active = getActiveCampaignFromUrl();
+      setActiveCampaign(active);
+      if (active) {
+        localStorage.setItem(STORAGE_KEYS.activeCampaignId, active.id);
+        localStorage.setItem(STORAGE_KEYS.activeCampaignSpreadsheetId, active.spreadsheetId);
+        setSpreadsheetId(active.spreadsheetId);
+      } else {
+        localStorage.removeItem(STORAGE_KEYS.activeCampaignId);
+        localStorage.removeItem(STORAGE_KEYS.activeCampaignSpreadsheetId);
+      }
     };
     window.addEventListener('popstate', handlePopState);
     return () => {

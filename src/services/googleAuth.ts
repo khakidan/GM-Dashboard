@@ -91,13 +91,13 @@ export async function getGoogleClientId(): Promise<string> {
 }
 
 /**
- * Generates a cryptographically secure random string and stores it in sessionStorage.
+ * Generates a cryptographically secure random string and stores it in localStorage.
  */
 function generateAndStoreOAuthState(): string {
   const state = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
     ? crypto.randomUUID()
     : Math.random().toString(36).substring(2) + Date.now().toString(36);
-  sessionStorage.setItem(STORAGE_KEYS.oauthState, state);
+  localStorage.setItem(STORAGE_KEYS.oauthState, state);
   return state;
 }
 
@@ -112,7 +112,7 @@ export async function signInWithRedirect() {
     return;
   }
   const redirectUri = window.location.origin;
-  const scope = 'https://www.googleapis.com/auth/spreadsheets';
+  const scope = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/userinfo.email';
 
   // Clear any stale tokens before starting a fresh flow
   clearTokens();
@@ -131,7 +131,7 @@ export async function signInWithRedirect() {
     `&prompt=consent select_account`; // Force consent to ensure we get a fresh refresh token
 
   // Open in a new tab so the OAuth flow is not inside an iframe
-  window.open(authUrl, '_blank', 'noopener');
+  window.open(authUrl, '_blank');
 }
 
 /**
@@ -144,7 +144,7 @@ export async function signInWithToken() {
     return;
   }
   const redirectUri = window.location.origin;
-  const scope = 'https://www.googleapis.com/auth/spreadsheets';
+  const scope = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/userinfo.email';
 
   clearTokens();
 
@@ -193,42 +193,55 @@ export function setManualRefreshToken(token: string) {
   refreshToken = token;
 }
 
-export async function checkAndCaptureToken() {
-  const url = new URL(window.location.href);
+export async function checkAndCaptureToken(urlString: string = window.location.href) {
+  const url = new URL(urlString);
   const code = url.searchParams.get('code');
+  
+  let hashString = url.hash;
+  if (hashString.startsWith('#')) {
+    hashString = hashString.substring(1);
+  }
   const hashParams = new URLSearchParams(
-    window.location.hash.includes('?')
-      ? window.location.hash.split('?')[1]
-      : window.location.hash.substring(1)
+    hashString.includes('?') ? hashString.split('?')[1] : hashString
   );
   const hashToken = hashParams.get('access_token');
+  const errorParam = url.searchParams.get('error') || hashParams.get('error');
+
+  // If this is a popup that received the OAuth redirect, post to opener and close
+  if (window.opener && window.opener !== window && (code || hashToken || errorParam)) {
+    window.opener.postMessage({ type: 'OAUTH_REDIRECT_PAYLOAD', url: urlString }, '*');
+    window.close();
+    return false;
+  }
+
+  const isCurrentWindow = urlString === window.location.href;
 
   if (hashToken) {
     const incomingState = hashParams.get('state');
-    const storedState = sessionStorage.getItem(STORAGE_KEYS.oauthState);
-    sessionStorage.removeItem(STORAGE_KEYS.oauthState);
+    const storedState = localStorage.getItem(STORAGE_KEYS.oauthState);
+    localStorage.removeItem(STORAGE_KEYS.oauthState);
 
     if (!storedState || !incomingState || storedState !== incomingState) {
       console.error('❌ [Sheets] OAuth State Validation Failed (CSRF Warning). Hash token rejected.');
-      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+      if (isCurrentWindow) window.history.replaceState(null, '', window.location.pathname + window.location.search);
       return false;
     }
 
     localStorage.setItem(STORAGE_KEYS.googleAccessToken, hashToken);
     accessToken = hashToken;
     // Clean up hash
-    window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    if (isCurrentWindow) window.history.replaceState(null, '', window.location.pathname + window.location.search);
     return true;
   }
 
   if (code) {
     const incomingState = url.searchParams.get('state');
-    const storedState = sessionStorage.getItem(STORAGE_KEYS.oauthState);
-    sessionStorage.removeItem(STORAGE_KEYS.oauthState);
+    const storedState = localStorage.getItem(STORAGE_KEYS.oauthState);
+    localStorage.removeItem(STORAGE_KEYS.oauthState);
 
     if (!storedState || !incomingState || storedState !== incomingState) {
       console.error('❌ [Sheets] OAuth State Validation Failed (CSRF Warning). Authorization code exchange aborted.');
-      window.history.replaceState(null, '', window.location.pathname);
+      if (isCurrentWindow) window.history.replaceState(null, '', window.location.pathname);
       return false;
     }
 
@@ -244,7 +257,7 @@ export async function checkAndCaptureToken() {
         const errorData = await res.json().catch(() => ({}));
         console.error('❌ [Sheets] Token exchange FAILED:', errorData);
         // Clear code to prevent loops
-        window.history.replaceState(null, '', window.location.pathname);
+        if (isCurrentWindow) window.history.replaceState(null, '', window.location.pathname);
         throw new Error(errorData.error || 'Token exchange failed');
       }
 
@@ -268,11 +281,11 @@ export async function checkAndCaptureToken() {
       }
 
       // Clean up URL
-      window.history.replaceState(null, '', window.location.pathname);
+      if (isCurrentWindow) window.history.replaceState(null, '', window.location.pathname);
       return true;
     } catch (err) {
       console.error('[Sheets] CRITICAL: Failed to exchange code:', err);
-      window.history.replaceState(null, '', window.location.pathname);
+      if (isCurrentWindow) window.history.replaceState(null, '', window.location.pathname);
     }
   }
   return false;
@@ -317,6 +330,22 @@ export async function refreshAccessToken(): Promise<string | null> {
   return null;
 }
 
+if (typeof window !== 'undefined') {
+  window.addEventListener('message', async (event) => {
+    const origin = event.origin;
+    if (!origin.endsWith('.run.app') && !origin.includes('localhost') && origin !== window.location.origin) {
+      return;
+    }
+    if (event.data?.type === 'OAUTH_REDIRECT_PAYLOAD' && event.data.url) {
+      const success = await checkAndCaptureToken(event.data.url);
+      if (success) {
+        // We received the token from the popup, reload so the rest of the app detects it
+        window.location.reload();
+      }
+    }
+  });
+}
+
 export async function initGoogleAuth(): Promise<void> {
   refreshLocalTokens();
 
@@ -352,7 +381,7 @@ async function setupClient(resolve: () => void, reject: (err: Error) => void) {
 
     tokenClient = googleApis.accounts.oauth2.initTokenClient({
       client_id: clientId,
-      scope: 'https://www.googleapis.com/auth/spreadsheets',
+      scope: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/userinfo.email',
       callback: (tokenResponse: { access_token?: string; error?: string }) => {
         if (tokenResponse.error !== undefined) {
           reject(new Error(tokenResponse.error));

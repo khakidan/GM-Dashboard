@@ -4,6 +4,16 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import { CampaignSelector } from '../CampaignSelector';
 import { Campaign } from '../../hooks/useCampaign';
 
+let mockIsGoogleConnected = true;
+
+vi.mock('../../hooks/useGoogleAuth', () => ({
+  useGoogleAuth: () => ({
+    isGoogleConnected: mockIsGoogleConnected,
+    handleSignIn: vi.fn(),
+    clearTokens: vi.fn(),
+  }),
+}));
+
 describe('CampaignSelector Component Tests', () => {
   const defaultProps = {
     campaigns: [] as Campaign[],
@@ -18,6 +28,7 @@ describe('CampaignSelector Component Tests', () => {
 
   afterEach(() => {
     cleanup();
+    mockIsGoogleConnected = true;
   });
 
   it('renders empty state correctly when campaigns list is empty', () => {
@@ -25,5 +36,13 @@ describe('CampaignSelector Component Tests', () => {
     expect(screen.getByText('No campaigns yet.')).toBeInTheDocument();
     expect(screen.getByText('Create New Campaign')).toBeInTheDocument();
     expect(screen.getByText('Connect Existing Spreadsheet')).toBeInTheDocument();
+  });
+
+  it('renders Google Connection Required screen when not connected', () => {
+    mockIsGoogleConnected = false;
+    render(<CampaignSelector {...defaultProps} />);
+    expect(screen.getByText('Google Connection Required')).toBeInTheDocument();
+    expect(screen.getByText('Connect with Google')).toBeInTheDocument();
+    expect(screen.queryByText('No campaigns yet.')).not.toBeInTheDocument();
   });
 });
