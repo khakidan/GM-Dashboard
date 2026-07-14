@@ -6,6 +6,18 @@ Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed fr
 
 ---
 
+## `useHealthChange.ts` Now Calls the Existing `concentrationCheckDc()` Helper (Completed)
+
+A small, targeted fix — not a duplicate implementation to merge, just an existing shared function (`concentrationCheck.ts`'s `concentrationCheckDc()`, already the consolidated single source of truth from an earlier `lib/` audit) not being called at one real site. `useHealthChange.ts` hand-rolled the identical formula (`Math.max(10, Math.floor(damage / 2))`) inline inside a toast description string instead.
+
+Re-verified directly before fixing, given a prior finding in this same backlog (`AudioLibrary.tsx`'s typo) turned out to be stale — confirmed both the helper and the inline duplicate were still genuinely present and accurate as originally logged.
+
+**Fix**: `useHealthChange.ts` now imports and calls `concentrationCheckDc(finalDamageAmount)` instead of hand-rolling the formula. Verified: diff checked directly against the real uploaded file, confirmed the import added and the inline formula genuinely replaced, no leftover duplication.
+
+Raw Batch 5A output confirmed genuinely for all 8 real files (54/54), matching the documented baseline exactly — including a first attempt that dropped `useCombatantMutations.test.ts` from the run, caught and corrected before accepting.
+
+---
+
 ## Google OAuth Popup Flow — `noopener` Fix (Completed)
 
 An emergency fix, triaged live while the app was inaccessible. `signInWithRedirect()` (`googleAuth.ts`) opened the OAuth popup with `window.open(authUrl, '_blank', 'noopener')` — but `checkAndCaptureToken()`, the function meant to run inside that popup once Google redirects it back, depends entirely on `window.opener` being a valid reference to hand the result back to the main app via `postMessage`. `noopener` explicitly sets `window.opener` to `null` in the new popup, breaking that handoff: the popup would fall through and attempt to validate the OAuth CSRF `state` and complete the token exchange entirely on its own, against its own popup-window `localStorage` — which wouldn't contain the state generated and stored from the main app's context, reproducing the exact original iframe/localStorage-partition bug this flow was built to fix.
@@ -19,6 +31,20 @@ An emergency fix, triaged live while the app was inaccessible. `signInWithRedire
 **Also unverified in this pass, given the emergency context**: `src/server/routes/auth.ts`'s token-exchange endpoint was read but not independently re-verified against a live environment — the actual root-cause confirmation here rests on the `noopener` fix and the person's direct confirmation that sign-in, spreadsheet connection, and the earlier `403 ACCESS_TOKEN_SCOPE_INSUFFICIENT` error are all now resolved after a clean sign-out and fresh sign-in.
 
 **Process note**: this fix, and an initial short/unverified entry documenting it, were made directly by AI Studio without authorization while Claude was unavailable — including a direct, unauthorized edit to this file, a standing rule violated more than once already this session. This entry replaces that one in full, verified against the real files independently before being accepted.
+
+---
+
+## `SectionHeader` Shared Component (Completed)
+
+A loose thread rediscovered from an earlier session's transcript archive — fully scoped and decided at the time, but never built. Re-verified directly against all 6 files' current content before implementing, since time had passed since the original investigation.
+
+**Component**: `children` (supports `LevelUpChecklist.tsx`'s trailing aside-span pattern, not restricted to plain text), `size?: 'compact' | 'default'` (default `text-xs`, compact `text-[10px]`), always rendering as `h3`.
+
+**Adopted in all 6 confirmed locations**: `ShortRestDialog.tsx`, `LevelUpDialog.tsx`, `LevelUpResourcePools.tsx`, `LevelUpChecklist.tsx` (verbatim matches, `size="default"`), `ReferenceDetailDialog.tsx` (`size="compact"`, its already-confirmed real drift), `NpcStatBlockSection.tsx` (`size="default"`, normalizing away its previous `font-semibold`/`tracking-wider`/`h4` drift per the decision already made and visually confirmed in the original investigation).
+
+Confirmed via direct search: no existing test asserts on any of these 6 headers' specific className values, styling weights, or heading tag — all existing coverage is behavioral/text-content only, so the `NpcStatBlockSection.tsx` normalization carries no test risk.
+
+Verified: all 7 diffs (the new component plus all 6 adoption sites) checked directly against real uploaded files. Raw output confirmed genuinely for all 3 relevant batches: Batch 6A (54/54), Batch 8 (2/2), and Batch 7B-1 (13/13, covering `ReferenceDetailDialog.tsx` indirectly via `CommandPalette.test.tsx`, which renders it) — all matching documented baselines exactly.
 
 ---
 

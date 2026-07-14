@@ -7,7 +7,7 @@ import { useAppState } from '../../../hooks/useAppState';
 import { useDashboardStore } from '../../../hooks/dashboardStore';
 import { useDamageEvent, useHealEvent, useUnconsciousEvent } from '../../../hooks/useCombatOverlayEvents';
 import { useDeathSaves } from '../../../hooks/useDeathSaves';
-import { isConcentrating, fireConcentrationAlert } from '../../../lib/concentrationCheck';
+import { isConcentrating, fireConcentrationAlert, concentrationCheckDc } from '../../../lib/concentrationCheck';
 
 export function useHealthChange(
   syncingIds: Set<string>,
@@ -243,7 +243,7 @@ export function useHealthChange(
           fireConcentrationAlert(name, finalDamageAmount);
           
           toast('Concentration check required', {
-            description: `${name} took ${finalDamageAmount} damage. CON save DC: ${Math.max(10, Math.floor(finalDamageAmount / 2))}`,
+            description: `${name} took ${finalDamageAmount} damage. CON save DC: ${concentrationCheckDc(finalDamageAmount)}`,
             duration: 10000,
             action: {
               label: 'Failed — End Concentration',
