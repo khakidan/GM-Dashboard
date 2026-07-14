@@ -1,6 +1,7 @@
 import { ANIMATION_TIMING } from '../lib/constants';
   import React from 'react';
   import { useCinematicVideo } from './ActiveEncounterTab/hooks/useCinematicVideo';
+  import { FilmGrainLayer } from './FilmGrainLayer';
 
   interface UnconsciousOverlayProps {
     characterName: string;
@@ -47,12 +48,7 @@ import { ANIMATION_TIMING } from '../lib/constants';
       8%   { opacity: 0.7; }
       100% { opacity: 0; }
     }
-    @keyframes unc-grainScroll {
-      0%   { transform: translate(0, 0); }
-      33%  { transform: translate(-2%, -2%); }
-      66%  { transform: translate(2%, 1%); }
-      100% { transform: translate(0, 0); }
-    }
+
     @keyframes unc-heartbeat {
       0%, 100% { opacity: 0.0; transform: scaleX(1.0); }
       5%        { opacity: 1.0; transform: scaleX(1.0); }
@@ -180,34 +176,7 @@ import { ANIMATION_TIMING } from '../lib/constants';
         </video>
 
         {/* Film grain */}
-        <div
-          aria-hidden
-          style={{
-            position: 'absolute',
-            inset: '-10%',
-            zIndex: 5,
-            opacity: 0.07,
-            pointerEvents: 'none',
-            animation: 
-              'unc-grainScroll 0.15s steps(1) infinite',
-            backgroundImage: [
-              'url("data:image/svg+xml,%3Csvg',
-              " viewBox='0 0 256 256'",
-              " xmlns='http://www.w3.org/2000/svg'%3E",
-              '%3Cfilter id=\'u\'%3E',
-              '%3CfeTurbulence type=\'fractalNoise\'',
-              " baseFrequency='0.9'",
-              " numOctaves='4'",
-              " stitchTiles='stitch'/%3E",
-              '%3C/filter%3E',
-              '%3Crect width=\'100%25\' height=\'100%25\'',
-              " filter='url(%23u)'/%3E",
-              '%3C/svg%3E")',
-            ].join(''),
-            backgroundRepeat: 'repeat',
-            backgroundSize: '256px 256px',
-          }}
-        />
+        <FilmGrainLayer zIndex={5} opacity={0.07} scrollDuration={0.15} variant="normal" />
 
         {/* Text content */}
         <div

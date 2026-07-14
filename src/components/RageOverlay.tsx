@@ -1,6 +1,7 @@
 import { ANIMATION_TIMING } from '../lib/constants';
   import React from 'react';
   import { useCinematicVideo } from './ActiveEncounterTab/hooks/useCinematicVideo';
+  import { FilmGrainLayer } from './FilmGrainLayer';
 
   interface RageOverlayProps {
     characterName: string;
@@ -64,12 +65,7 @@ import { ANIMATION_TIMING } from '../lib/constants';
       50%  { transform: scaleX(1.08) scaleY(0.95); }
       100% { opacity: 1; transform: scaleX(1.0) scaleY(1.0); }
     }
-    @keyframes rage-grainScroll {
-      0%   { transform: translate(0,0); }
-      33%  { transform: translate(-3%,-3%); }
-      66%  { transform: translate(3%,2%); }
-      100% { transform: translate(0,0); }
-    }
+
 
     /* Specific overrides to prevent global theme stylesheet rules from overriding cinematic headings */
     #rage-overlay h1#rage-overlay-name {
@@ -197,34 +193,7 @@ import { ANIMATION_TIMING } from '../lib/constants';
           />
 
           {/* Film grain — faster cycle for frantic feel */}
-          <div
-            aria-hidden
-            style={{
-              position: 'absolute',
-              inset: '-10%',
-              zIndex: 3,
-              opacity: 0.09,
-              pointerEvents: 'none',
-              animation: 
-                'rage-grainScroll 0.12s steps(1) infinite',
-              backgroundImage: [
-                'url("data:image/svg+xml,%3Csvg',
-                " viewBox='0 0 256 256'",
-                " xmlns='http://www.w3.org/2000/svg'%3E",
-                '%3Cfilter id=\'r\'%3E',
-                '%3CfeTurbulence type=\'fractalNoise\'',
-                " baseFrequency='0.9'",
-                " numOctaves='4'",
-                " stitchTiles='stitch'/%3E",
-                '%3C/filter%3E',
-                '%3Crect width=\'100%25\' height=\'100%25\'',
-                " filter='url(%23r)'/%3E",
-                '%3C/svg%3E")',
-              ].join(''),
-              backgroundRepeat: 'repeat',
-              backgroundSize: '256px 256px',
-            }}
-          />
+          <FilmGrainLayer zIndex={3} opacity={0.09} scrollDuration={0.12} variant="rage" />
 
           {/* Text — name slams in with violent scale */}
           <div

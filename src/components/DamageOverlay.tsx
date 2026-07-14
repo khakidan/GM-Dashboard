@@ -2,6 +2,7 @@ import { ANIMATION_TIMING } from '../lib/constants';
 import React from 'react';
 import { useCinematicVideo } from './ActiveEncounterTab/hooks/useCinematicVideo';
 import { formatNames } from '../lib/stringUtils';
+import { FilmGrainLayer } from './FilmGrainLayer';
 
 interface DamageOverlayProps {
   combatantNames: string[];
@@ -49,12 +50,7 @@ const STYLES = `
     20%  { opacity: 0.45; }
     100% { opacity: 0; }
   }
-  @keyframes dmg-grainScroll {
-    0%   { transform: translate(0, 0); }
-    33%  { transform: translate(-2%, -2%); }
-    66%  { transform: translate(2%, 1%); }
-    100% { transform: translate(0, 0); }
-  }
+
 `;
 
 export function DamageOverlay({ 
@@ -166,34 +162,7 @@ export function DamageOverlay({
         />
 
         {/* Film grain */}
-        <div
-          aria-hidden
-          style={{
-            position: 'absolute',
-            inset: '-10%',
-            zIndex: 4,
-            opacity: 0.06,
-            pointerEvents: 'none',
-            animation: 
-              'dmg-grainScroll 0.15s steps(1) infinite',
-            backgroundImage: [
-              'url("data:image/svg+xml,%3Csvg',
-              " viewBox='0 0 256 256'",
-              " xmlns='http://www.w3.org/2000/svg'%3E",
-              '%3Cfilter id=\'g\'%3E',
-              '%3CfeTurbulence type=\'fractalNoise\'',
-              " baseFrequency='0.9'",
-              " numOctaves='4'",
-              " stitchTiles='stitch'/%3E",
-              '%3C/filter%3E',
-              '%3Crect width=\'100%25\' height=\'100%25\'',
-              " filter='url(%23g)'/%3E",
-              '%3C/svg%3E")',
-            ].join(''),
-            backgroundRepeat: 'repeat',
-            backgroundSize: '256px 256px',
-          }}
-        />
+        <FilmGrainLayer zIndex={4} opacity={0.06} scrollDuration={0.15} variant="normal" />
 
         {/* Damage number + name */}
         <div

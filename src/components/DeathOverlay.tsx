@@ -1,6 +1,7 @@
 import { ANIMATION_TIMING } from '../lib/constants';
 import React from 'react';
 import { useCinematicVideo } from './ActiveEncounterTab/hooks/useCinematicVideo';
+import { FilmGrainLayer } from './FilmGrainLayer';
 
 interface DeathOverlayProps {
   characterName: string;
@@ -31,13 +32,7 @@ const STYLES = `
     0%   { opacity: 0; transform: scaleX(0.3); }
     100% { opacity: 1; transform: scaleX(1); }
   }
-  @keyframes dof-grainScroll {
-    0%   { transform: translate(0, 0); }
-    25%  { transform: translate(-2%, -3%); }
-    50%  { transform: translate(1%, 2%); }
-    75%  { transform: translate(3%, -1%); }
-    100% { transform: translate(0, 0); }
-  }
+
 
   /* Specific overrides to prevent global theme stylesheet rules from overriding cinematic headings */
   #death-overlay h1#death-overlay-character-name {
@@ -154,33 +149,7 @@ export function DeathOverlay({ characterName }: DeathOverlayProps) {
         {/* === FILM GRAIN LAYER ===
             SVG feTurbulence noise animated — adds the 
             cinematic grain texture that games bake in */}
-        <div
-          aria-hidden
-          style={{
-            position: 'absolute',
-            inset: '-10%',
-            zIndex: 3,
-            opacity: 0.08,
-            pointerEvents: 'none',
-            animation: 'dof-grainScroll 0.18s steps(1) infinite',
-            backgroundImage: [
-              'url("data:image/svg+xml,%3Csvg',
-              ' viewBox=\'0 0 256 256\'',
-              ' xmlns=\'http://www.w3.org/2000/svg\'%3E',
-              '%3Cfilter id=\'n\'%3E',
-              '%3CfeTurbulence type=\'fractalNoise\'',
-              ' baseFrequency=\'0.9\'',
-              ' numOctaves=\'4\'',
-              ' stitchTiles=\'stitch\'/%3E',
-              '%3C/filter%3E',
-              '%3Crect width=\'100%25\' height=\'100%25\'',
-              ' filter=\'url(%23n)\'/%3E',
-              '%3C/svg%3E")',
-            ].join(''),
-            backgroundRepeat: 'repeat',
-            backgroundSize: '256px 256px',
-          }}
-        />
+        <FilmGrainLayer zIndex={3} opacity={0.08} scrollDuration={0.18} variant="death" />
 
         {/* === CHARACTER NAME ===
             Fades in at 600ms. Heavy serif typography,
