@@ -10,14 +10,6 @@ interface DamageOverlayProps {
 }
 
 const STYLES = `
-  @keyframes dmg-overlayIn {
-    from { opacity: 0; }
-    to   { opacity: 1; }
-  }
-  @keyframes dmg-overlayOut {
-    from { opacity: 1; }
-    to   { opacity: 0; pointer-events: none; }
-  }
   @keyframes dmg-impactShake {
     0%   { transform: translate(0, 0) scale(1.0); }
     6%   { transform: translate(-8px, -4px) scale(1.02); }
@@ -82,8 +74,8 @@ export function DamageOverlay({
         overflow: 'hidden',
         pointerEvents: 'none',
         animation: [
-          'dmg-overlayIn 80ms ease-out forwards',
-          `dmg-overlayOut ${ANIMATION_TIMING.damageExitDuration}ms ease-in ${ANIMATION_TIMING.damageExit}ms forwards`,
+          'cinematic-overlayIn 80ms ease-out forwards',
+          `cinematic-overlayOut ${ANIMATION_TIMING.damageExitDuration}ms ease-in ${ANIMATION_TIMING.damageExit}ms forwards`,
         ].join(', '),
       }}
     >

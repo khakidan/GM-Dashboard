@@ -7,14 +7,6 @@ interface DeathOverlayProps {
 }
 
 const STYLES = `
-  @keyframes dof-overlayFadeIn {
-    from { opacity: 0; }
-    to   { opacity: 1; }
-  }
-  @keyframes dof-overlayFadeOut {
-    from { opacity: 1; }
-    to   { opacity: 0; pointer-events: none; }
-  }
   @keyframes dof-screenTilt {
     0%   { transform: rotate(0deg) scale(1.0); }
     100% { transform: rotate(-2.5deg) scale(1.06); }
@@ -77,8 +69,8 @@ export function DeathOverlay({ characterName }: DeathOverlayProps) {
         zIndex: 9999,
         overflow: 'hidden',
         animation: [
-          'dof-overlayFadeIn 120ms ease-out forwards',
-          `dof-overlayFadeOut ${ANIMATION_TIMING.deathExitDuration}ms ease-in ${ANIMATION_TIMING.deathExit}ms forwards`,
+          'cinematic-overlayIn 120ms ease-out forwards',
+          `cinematic-overlayOut ${ANIMATION_TIMING.deathExitDuration}ms ease-in ${ANIMATION_TIMING.deathExit}ms forwards`,
         ].join(', '),
       }}
     >

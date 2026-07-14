@@ -3,14 +3,6 @@ import React from 'react';
 import { useCinematicVideo } from './ActiveEncounterTab/hooks/useCinematicVideo';
 
 const STYLES = `
-  @keyframes init-overlayIn {
-    from { opacity: 0; }
-    to   { opacity: 1; }
-  }
-  @keyframes init-overlayOut {
-    from { opacity: 1; }
-    to   { opacity: 0; pointer-events: none; }
-  }
   @keyframes init-epicPulse {
     0%, 100% { 
       opacity: 0.65; 
@@ -84,8 +76,8 @@ export function InitiativeOverlay() {
         overflow: 'hidden',
         pointerEvents: 'none',
         animation: [
-          'init-overlayIn 150ms ease-out forwards',
-          `init-overlayOut ${ANIMATION_TIMING.initiativeExitDuration}ms ease-in ${ANIMATION_TIMING.initiativeExit}ms forwards`,
+          'cinematic-overlayIn 150ms ease-out forwards',
+          `cinematic-overlayOut ${ANIMATION_TIMING.initiativeExitDuration}ms ease-in ${ANIMATION_TIMING.initiativeExit}ms forwards`,
         ].join(', '),
       }}
     >

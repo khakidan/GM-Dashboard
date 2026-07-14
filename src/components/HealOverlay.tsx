@@ -9,14 +9,6 @@ import { ANIMATION_TIMING } from '../lib/constants';
   }
 
   const STYLES = `
-    @keyframes heal-overlayIn {
-      from { opacity: 0; }
-      to   { opacity: 1; }
-    }
-    @keyframes heal-overlayOut {
-      from { opacity: 1; }
-      to   { opacity: 0; pointer-events: none; }
-    }
     @keyframes heal-bloom {
       0%   { 
         opacity: 0;
@@ -93,7 +85,7 @@ import { ANIMATION_TIMING } from '../lib/constants';
           overflow: 'hidden',
           pointerEvents: 'none',
           animation: [
-            'heal-overlayIn 120ms ease-out forwards',
+            'cinematic-overlayIn 120ms ease-out forwards',
             `heal-overlayOut ${ANIMATION_TIMING.healExitDuration}ms ease-in ${ANIMATION_TIMING.healExit}ms forwards`,
           ].join(', '),
         }}

@@ -7,14 +7,6 @@ import { ANIMATION_TIMING } from '../lib/constants';
   }
 
   const STYLES = `
-    @keyframes unc-overlayIn {
-      from { opacity: 0; }
-      to   { opacity: 1; }
-    }
-    @keyframes unc-overlayOut {
-      from { opacity: 1; }
-      to   { opacity: 0; pointer-events: none; }
-    }
     @keyframes unc-worldBlur {
       0%   { 
         filter: blur(0px) brightness(1.0);
@@ -100,8 +92,8 @@ import { ANIMATION_TIMING } from '../lib/constants';
           overflow: 'hidden',
           pointerEvents: 'none',
           animation: [
-            'unc-overlayIn 100ms ease-out forwards',
-            `unc-overlayOut ${ANIMATION_TIMING.unconsciousExitDuration}ms ease-in ${ANIMATION_TIMING.unconsciousExit}ms forwards`,
+            'cinematic-overlayIn 100ms ease-out forwards',
+            `cinematic-overlayOut ${ANIMATION_TIMING.unconsciousExitDuration}ms ease-in ${ANIMATION_TIMING.unconsciousExit}ms forwards`,
           ].join(', '),
         }}
       >

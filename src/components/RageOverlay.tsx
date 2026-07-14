@@ -7,14 +7,6 @@ import { ANIMATION_TIMING } from '../lib/constants';
   }
 
   const STYLES = `
-    @keyframes rage-overlayIn {
-      from { opacity: 0; }
-      to   { opacity: 1; }
-    }
-    @keyframes rage-overlayOut {
-      from { opacity: 1; }
-      to   { opacity: 0; pointer-events: none; }
-    }
     @keyframes rage-violentShake {
       0%   { transform: translate(0,0) rotate(0deg); }
       4%   { transform: translate(-14px,-8px) rotate(-1.2deg); }
@@ -110,8 +102,8 @@ import { ANIMATION_TIMING } from '../lib/constants';
           overflow: 'hidden',
           pointerEvents: 'none',
           animation: [
-            'rage-overlayIn 60ms ease-out forwards',
-            `rage-overlayOut ${ANIMATION_TIMING.rageExitDuration}ms ease-in ${ANIMATION_TIMING.rageExit}ms forwards`,
+            'cinematic-overlayIn 60ms ease-out forwards',
+            `cinematic-overlayOut ${ANIMATION_TIMING.rageExitDuration}ms ease-in ${ANIMATION_TIMING.rageExit}ms forwards`,
           ].join(', '),
         }}
       >
