@@ -9,6 +9,7 @@ import { DialogShell } from '../ui/DialogShell';
 import { Button } from '../ui/Button';
 import { Accordion } from '../ui/Accordion';
 import { Callout } from '../ui/Callout';
+import { SectionHeader } from '../ui/SectionHeader';
 import { effectiveMaxHp } from '../../lib/conditions';
 
 interface ShortRestDialogProps {
@@ -324,9 +325,9 @@ export function ShortRestDialog({ isOpen, characters, onConfirm, onClose }: Shor
                         </Callout>
                       ) : (
                         <div className="space-y-3.5">
-                          <h3 className="text-[#8d8db9] text-xs font-bold uppercase tracking-widest border-b border-[#e2e8f0] pb-1 mb-2">
+                          <SectionHeader>
                             Dice Spending & Rolling
-                          </h3>
+                          </SectionHeader>
                           {hdStatus.map(pool => {
                             const poolKey = `d${pool.die}`;
                             const spendCount = charState.spend[poolKey] ?? 0;

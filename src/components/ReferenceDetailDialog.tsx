@@ -4,6 +4,7 @@ import { Sparkles, AlertCircle } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { DialogShell } from './ui/DialogShell';
+import { SectionHeader } from './ui/SectionHeader';
 
 interface ReferenceDetailDialogProps {
   reference:
@@ -104,9 +105,9 @@ export function ReferenceDetailDialog({ reference, onClose }: ReferenceDetailDia
 
             {reference.data.higherLevel && (
               <div className="bg-[#f9f8ff] border border-[#e2e8f0] rounded-lg p-4">
-                <h3 className="text-[#8d8db9] text-[10px] font-bold uppercase tracking-widest border-b border-[#e2e8f0] pb-1 mb-2">
+                <SectionHeader size="compact">
                   At Higher Levels
-                </h3>
+                </SectionHeader>
                 <div className="text-[#0f172a]">
                   <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
                     {reference.data.higherLevel}

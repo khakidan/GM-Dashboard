@@ -1,5 +1,6 @@
 import React from 'react';
 import { CheckSquare, Square } from 'lucide-react';
+import { SectionHeader } from '../ui/SectionHeader';
 
 export interface LevelUpChecklistProps {
   chkHp: boolean;
@@ -28,9 +29,9 @@ export const LevelUpChecklist: React.FC<LevelUpChecklistProps> = ({
 }) => {
   return (
     <div className="space-y-3" id="checklist-section">
-      <h3 className="text-[#8d8db9] text-xs font-bold uppercase tracking-widest border-b border-[#e2e8f0] pb-1 mb-2">
+      <SectionHeader>
         Section A: GM Checklist <span className="text-[9px] font-normal text-[#8d8db9] normal-case tracking-normal">(visual only memory aid)</span>
-      </h3>
+      </SectionHeader>
       
       <div className="space-y-2.5">
         <button

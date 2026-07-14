@@ -11,6 +11,7 @@ import { LevelUpResourcePools } from './LevelUpResourcePools';
 import { useLevelUpAutomation } from '../../hooks/useLevelUpAutomation';
 import { DialogShell } from '../ui/DialogShell';
 import { Button } from '../ui/Button';
+import { SectionHeader } from '../ui/SectionHeader';
 
 
 export interface LevelUpDialogProps {
@@ -259,9 +260,9 @@ export const LevelUpDialog: React.FC<LevelUpDialogProps> = ({
 
         {/* SECTION B: Updated Values */}
         <div className="space-y-4" id="values-section">
-          <h3 className="text-[#8d8db9] text-xs font-bold uppercase tracking-widest border-b border-[#e2e8f0] pb-1 mb-2">
+          <SectionHeader>
             Section B: Updated Values
-          </h3>
+          </SectionHeader>
 
           {/* Class Level Up Selection */}
           <div className="bg-[#f9f8ff] border border-[#e2e8f0] rounded-2xl p-4 space-y-3">

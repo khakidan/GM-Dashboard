@@ -1,5 +1,6 @@
 import React from 'react';
 import { NpcAction, NpcLegendaryAction } from '../../types';
+import { SectionHeader } from './SectionHeader';
 
 export function formatActionMeta(action: NpcAction | NpcLegendaryAction): string {
   const parts: string[] = [];
@@ -56,9 +57,9 @@ export const NpcStatBlockSection: React.FC<NpcStatBlockSectionProps> = ({ title,
 
   return (
     <div className="space-y-2">
-      <h4 className="text-xs font-semibold uppercase tracking-wider text-[#8d8db9] border-b border-[#e2e8f0] pb-1 mb-2">
+      <SectionHeader>
         {title}
-      </h4>
+      </SectionHeader>
       <div className="space-y-2">
         {items.map((item, index) => (
           <div key={index} className="leading-snug">

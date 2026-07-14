@@ -1,5 +1,6 @@
 import React from 'react';
 import { PoolEdit } from '../../types';
+import { SectionHeader } from '../ui/SectionHeader';
 
 export interface LevelUpResourcePoolsProps {
   poolEdits: PoolEdit[];
@@ -14,9 +15,9 @@ export const LevelUpResourcePools: React.FC<LevelUpResourcePoolsProps> = ({
 
   return (
     <div className="space-y-3" id="resource-pools-section">
-      <h3 className="text-[#8d8db9] text-xs font-bold uppercase tracking-widest border-b border-[#e2e8f0] pb-1 mb-2">
+      <SectionHeader>
         Resource Pools
-      </h3>
+      </SectionHeader>
       <div className="border border-[#e2e8f0] rounded-2xl p-4 bg-[#f9f8ff] space-y-3">
         {poolEdits.map((entry, index) => (
           <div
