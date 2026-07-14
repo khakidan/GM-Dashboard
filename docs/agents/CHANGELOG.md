@@ -6,6 +6,22 @@ Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed fr
 
 ---
 
+## `DEFAULT_STATUSES`/`campaigns.ts` Seed-Data Mismatch (Completed)
+
+A brand-new campaign's actual `Status` sheet was seeded with `Active`/`Inactive`/`Deceased`, but `constants.ts`'s `DEFAULT_STATUSES` fallback (used before the first sync completes, per this session's earlier "Status Labeling Consistency" fix) was `Active`/`Absent`/`Dead` — a genuine, user-visible mismatch a GM could briefly see when creating a new campaign, before the first sync corrected it.
+
+**Confirmed the right direction to fix before touching anything**: `Active`/`Inactive`/`Deceased` (the sheet-seeding values) is the intended, correct set — the fallback needed to match the seed data, not the other way around.
+
+**Investigation before implementing caught a real scoping mistake before it happened.** A first pass correctly found `CharacterCard.tsx`'s hardcoded `statusName: 'Dead'` as needing the same fix (genuinely the same concept — a PC's campaign-participation status), but then proposed also touching `CombatantCardHeader.tsx` and `PlayerView.tsx`'s "Dead" labels — which are a **completely different, unrelated concept**: in-combat health status (derived from HP/death saves within a specific encounter), not campaign-level `statusId`. Caught and corrected before implementation: confirmed directly that `CombatantCardHeader.tsx` does reference `c.statusId === 3`, but as a *numeric* comparison against the ID, not a string comparison against the label text — so relabeling `statusId: 3`'s associated string from `'Dead'` to `'Deceased'` has zero effect on it. `PlayerView.tsx`'s "Dead" was confirmed to have no connection to `statusId` at all. Both correctly left untouched.
+
+**Fix, scoped to exactly 2 files**: `DEFAULT_STATUSES` updated to `{ '1': 'Active', '2': 'Inactive', '3': 'Deceased' }`; `CharacterCard.tsx`'s hardcoded `onUpdate({ statusId: 3, statusName: 'Dead' })` updated to `'Deceased'`.
+
+**Process note**: two consecutive responses claimed tests passed without providing any real raw output — one gave only a narrative summary, repeated verbatim; the other gave a percentage-style table rather than genuine Vitest output. Both rejected before a third response finally produced real, verifiable output.
+
+Verified: both diffs checked against real uploaded files. Raw output confirmed Batch 1 (453/453) and Batch 6A (54/54), both matching documented baselines exactly, with every file individually listed.
+
+---
+
 ## `handleExhaustionDeath` Combatant-Mirroring Gap (Completed)
 
 `handleExhaustionDeath` (`useCombatantExpanded.ts`) marked a PC deceased in `characters` but never mirrored this to `combatState.combatants` — found incidentally while investigating that same function's separate rollback fix. `CombatantCardHeader.tsx`'s "Dead" skull badge is driven by fields on the `Combatant` object, not `characters`, so a PC who died from exhaustion at level 6 was correctly marked deceased in the database and on their character sheet, but their Combatant Card kept showing them as alive until some unrelated action happened to resync the list.

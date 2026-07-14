@@ -18,7 +18,7 @@ Features and bugs that have been discussed and approved but not yet implemented.
 
 **`useCombatantExpanded.ts`'s `handleExhaustionDeath` mirroring gap — now fixed, see `CHANGELOG.md`.**
 
-**`campaigns.ts`'s seeded Status sheet values don't match `constants.ts`'s `DEFAULT_STATUSES` fallback.** Found while auditing for duplicated data structures/constants, not assumed from memory. A brand-new campaign's actual `Status` sheet is seeded with `[['1', 'Active'], ['2', 'Inactive'], ['3', 'Deceased']]` — but `DEFAULT_STATUSES` (the fallback this app actually reads from before the first sync completes, per this session's own earlier "Status Labeling Consistency" fix) is `{ '1': 'Active', '2': 'Absent', '3': 'Dead' }`. A GM creating a brand-new campaign would see "Absent"/"Dead" in the UI briefly (via the fallback) before the first sync pulls the real, different seeded values ("Inactive"/"Deceased") from the sheet — a real, confirmed, user-visible inconsistency, not just a code-smell. Needs a decision on which set of labels is actually correct/intended before fixing (align the seed data to the fallback, or the fallback to the seed data).
+**`campaigns.ts`'s seeded Status sheet values vs. `constants.ts`'s `DEFAULT_STATUSES` fallback mismatch — now fixed, see `CHANGELOG.md`.**
 
 ### 🟡 Features to Add
 

@@ -140,6 +140,6 @@ export const AUDIO = {
 
 export const DEFAULT_STATUSES: Record<string, string> = {
   '1': 'Active',
-  '2': 'Absent',
-  '3': 'Dead',
+  '2': 'Inactive',
+  '3': 'Deceased',
 };

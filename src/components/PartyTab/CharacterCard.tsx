@@ -52,7 +52,7 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({
 
   React.useEffect(() => {
     if (isPcDead && character.statusId !== 3) {
-      onUpdate({ statusId: 3, statusName: 'Dead' });
+      onUpdate({ statusId: 3, statusName: 'Deceased' });
     }
   }, [isPcDead, character.statusId, onUpdate]);
 
