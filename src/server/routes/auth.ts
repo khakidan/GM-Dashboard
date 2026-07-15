@@ -1,7 +1,7 @@
 // src/server/routes/auth.ts
 
 import { Router } from 'express';
-import rateLimit from 'express-rate-limit';
+import { createRateLimiter } from '../rateLimiter';
 
 const router = Router();
 
@@ -15,13 +15,7 @@ const GOOGLE_CLIENT_SECRET =
   process.env.CLIENT_SECRET ||
   process.env.GOOGLE_CLIENT_SECRET;
 
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 20,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: 'Too many auth requests, please try again later.',
-});
+const authLimiter = createRateLimiter('Too many auth requests, please try again later.');
 
 // GET /api/auth/config
 router.get('/config', (req, res) => {

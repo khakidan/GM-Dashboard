@@ -6,6 +6,20 @@ Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed fr
 
 ---
 
+## Rate-Limiter Factory — `createRateLimiter()` (Completed)
+
+`campaignCreateLimiter` (`campaigns.ts`) and `authLimiter` (`auth.ts`) shared identical `windowMs`/`max`/`standardHeaders`/`legacyHeaders` values, differing only in their `message` field — and genuinely differing in *type*, not just content (`campaigns.ts` needs an object, `auth.ts` needs a plain string).
+
+**Two rounds of real regressions were caught and corrected before implementing.** A first proposal correctly captured every real detail (the real `max: 20`, the `string | object` typing, the real message text for both routes). A second round, asked only to confirm a file-naming detail, silently regressed on all three: invented `max: 100` (a genuine 5x loosening of the real limit), narrowed the type to `string` only (which would have broken `campaigns.ts`'s real object-shaped message), and replaced both routes' real message text with invented alternatives. Caught by comparing directly against what had already been verified two rounds earlier, not accepted as a plausible-looking update. A third round correctly re-verified all three values against the real files again and restored them.
+
+**Fix**: `src/server/rateLimiter.ts` exporting `createRateLimiter(message: string | object)` with the shared base config; both route files import it and pass their own real, unchanged message. Named specifically (not a generic `middleware.ts`) to avoid becoming a catch-all for unrelated future Express middleware — consistent with this project's established naming convention (the same reasoning behind `stringUtils.ts` instead of dumping things into `utils.ts`).
+
+Verified: all 3 diffs checked directly against real uploaded files. Raw Batch 4 output confirmed genuinely fresh (a distinct timestamp from prior runs) — 9/9, all 4 real files individually listed, matching the documented baseline exactly.
+
+**This closes out 5 of 6 findings in Category 6 (repeated server-side patterns) of the systematic audit.** Only the `req.body` existence check duplication (`campaigns.ts`/`auth.ts`) remains open in this category.
+
+---
+
 ## Random-ID Generation — Shared "Secure Random" Pattern Consolidated (Completed)
 
 7 files originally flagged as hand-rolling their own `Math.random()`/`Date.now()`-based ID strings. Investigated honestly rather than forced into one design: only 4 of the 7 (`useCampaign.ts`, `NpcListEditor.tsx`, `audioFileStore.ts`, `googleAuth.ts`) genuinely shared the identical pattern (attempt `crypto.randomUUID()`, fall back to a Math.random()-based UUID-v4-shaped string). The other 3 (`combatLog.ts`, `useEncounterPresetLoader.ts`, `AudioLibrary.tsx`) are genuinely domain-specific string builders (prefixed event IDs, temporary transient IDs) — correctly left alone rather than forced into a single generic, over-configurable utility.

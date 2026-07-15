@@ -2,7 +2,7 @@
 
 import { Router } from 'express';
 import { sheets_v4 } from 'googleapis';
-import rateLimit from 'express-rate-limit';
+import { createRateLimiter } from '../rateLimiter';
 
 const router = Router();
 
@@ -10,15 +10,9 @@ function getGoogleAuthHeaders(token: string) {
   return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
 }
 
-const campaignCreateLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 20,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: {
-    error: 'TOO_MANY_REQUESTS',
-    message: 'Too many campaign creation attempts. Please try again in 15 minutes.'
-  }
+const campaignCreateLimiter = createRateLimiter({
+  error: 'TOO_MANY_REQUESTS',
+  message: 'Too many campaign creation attempts. Please try again in 15 minutes.'
 });
 
 router.post('/create', campaignCreateLimiter, async (req, res) => {
