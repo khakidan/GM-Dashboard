@@ -11,7 +11,7 @@ export function concentrationCheckDc(damage: number): number {
 
 // Returns true if the conditions string contains the "concentrating" effect.
 // Case-insensitive. Handles comma-separated condition strings.
-export function isConcentrating(conditions: string): boolean {
+export function isConcentrating(conditions: string | undefined | null): boolean {
   if (!conditions?.trim()) return false;
   return conditions
     .toLowerCase()

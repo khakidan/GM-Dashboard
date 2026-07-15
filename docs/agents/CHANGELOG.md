@@ -6,6 +6,18 @@ Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed fr
 
 ---
 
+## `isConcentrating()` Consolidation (Completed)
+
+Two independently-implemented versions (`conditions/index.ts` and `concentrationCheck.ts`), confirmed functionally equivalent for all real inputs including edge cases (null, undefined, whitespace-only, mixed-case) — re-verified directly against real files before consolidating, given a couple of findings in this backlog had recently turned out stale.
+
+**Fix**: `concentrationCheck.ts` chosen as canonical (the thematically correct home, and already proven solid via the adjacent `concentrationCheckDc()` fix) — its type signature widened to `string | undefined | null` to match the other version's broader input handling, with the rest of its implementation (the `!conditions?.trim()` early-return pattern) unchanged. `conditions/index.ts`'s local implementation replaced entirely with a re-export (`export { isConcentrating } from '../concentrationCheck'`), meaning its one real caller (`CasterAttributionDialog.tsx`) needed zero import changes.
+
+**Process note**: an initial verification round gave only claimed summaries ("Result: Passed all 41 tests") with no real terminal output, and left `CasterAttributionDialog.tsx` — one of the 3 real call sites — completely unverified, since none of the batches run covered it. Required and obtained genuine, complete output for all 4 relevant batches before accepting.
+
+Verified: both diffs checked directly against real uploaded files. Raw output confirmed genuinely for all 4 relevant batches, covering both source files and all 3 real call sites: Batch 1 (458/458), Batch 5A (54/54, covers `useHealthChange.ts`), Batch 5B (26/26, covers `CasterAttributionDialog.tsx`), Batch 6A (54/54, covers `useParty.ts`) — all matching documented baselines exactly.
+
+---
+
 ## `useHealthChange.ts` Now Calls the Existing `concentrationCheckDc()` Helper (Completed)
 
 A small, targeted fix — not a duplicate implementation to merge, just an existing shared function (`concentrationCheck.ts`'s `concentrationCheckDc()`, already the consolidated single source of truth from an earlier `lib/` audit) not being called at one real site. `useHealthChange.ts` hand-rolled the identical formula (`Math.max(10, Math.floor(damage / 2))`) inline inside a toast description string instead.
