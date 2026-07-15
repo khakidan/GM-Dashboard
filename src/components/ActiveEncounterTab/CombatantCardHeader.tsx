@@ -17,6 +17,7 @@ import { ToggleBadge } from '../ui/ToggleBadge';
 import { CardHeaderChevron } from '../ui/CardHeaderChevron';
 import { parseAbilityScores, parseProficiencies, proficiencyBonusFromLevel, calculateModifier } from '../../lib/abilityScores';
 import { getEffectiveSpellcastingAbility, calculateSpellSaveDC, calculateSpellAttackBonus } from '../../lib/spellcasting';
+import { formatBonus } from '../../lib/stringUtils';
 
 const healthStatusMap: Record<string, 'emerald' | 'green' | 'yellow' | 'red' | 'gray'> = {
   Full: 'emerald',
@@ -79,7 +80,7 @@ export function CombatantCardHeader({
       const mod = calculateModifier(parsedScores[effectiveAbility]);
       const dc = calculateSpellSaveDC(mod, profBonus);
       const atk = calculateSpellAttackBonus(mod, profBonus);
-      const formattedAtk = atk >= 0 ? `+${atk}` : `\u2212${Math.abs(atk)}`;
+      const formattedAtk = formatBonus(atk);
 
       spellcastingStatsElement = (
         <span className="text-sm text-[#8d8db9] whitespace-nowrap">

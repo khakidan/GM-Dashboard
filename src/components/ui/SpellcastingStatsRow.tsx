@@ -7,6 +7,8 @@ import {
   calculateSpellAttackBonus,
 } from '../../lib/spellcasting';
 
+import { formatBonus } from '../../lib/stringUtils';
+
 export interface SpellcastingStatsRowProps {
   abilityScores: AbilityScores;
   profBonus: number;
@@ -30,12 +32,6 @@ export const SpellcastingStatsRow: React.FC<SpellcastingStatsRowProps> = ({
   if (effective === null && !hasOverride) {
     return null;
   }
-
-  // Helper to format the attack bonus using a true minus sign \u2212
-  const formatSpellAttackBonus = (val: number): string => {
-    if (val >= 0) return `+${val}`;
-    return `\u2212${Math.abs(val)}`;
-  };
 
   // Render the override dropdown
   const renderOverrideDropdown = () => {
@@ -115,7 +111,7 @@ export const SpellcastingStatsRow: React.FC<SpellcastingStatsRowProps> = ({
         <span>
           Spell Atk:{' '}
           <span className="font-mono font-bold text-[#0f172a]">
-            {formatSpellAttackBonus(atk)}
+            {formatBonus(atk)}
           </span>
         </span>
       </div>

@@ -2,12 +2,8 @@ import React from 'react';
 import { abilitiesInOrder, AbilityName, AbilityScores, calculateModifier } from '../../lib/abilityScores';
 import { StatTile } from './StatTile';
 
-// Formatting helper for modifier and bonus values
-export const formatBonus = (val: number): string => {
-  if (val > 0) return `+${val}`;
-  if (val < 0) return `\u2212${Math.abs(val)}`; // True minus sign \u2212
-  return '0';
-};
+export { formatBonus } from '../../lib/stringUtils';
+export { abilitiesInOrder } from '../../lib/abilityScores';
 
 function AbilityScoreInput({
   value,
