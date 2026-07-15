@@ -1,3 +1,5 @@
+import { DAMAGE_TYPE_OPTIONS } from './lib/irvOptions';
+
 export type CombatantType = 'pc' | 'npc';
 
 export interface Character {
@@ -251,12 +253,7 @@ export interface AppState {
   openDialog?: 'newPlayer' | 'newNpc' | 'newEncounter' | 'shortRest' | 'longRest' | null;
 }
 
-export type DamageType =
-  | 'acid' | 'bludgeoning' | 'bludgeoning (magical)'
-  | 'cold' | 'fire' | 'force' | 'lightning' | 'necrotic'
-  | 'piercing' | 'piercing (magical)' | 'poison'
-  | 'psychic' | 'radiant' | 'slashing' | 'slashing (magical)'
-  | 'thunder';
+export type DamageType = typeof DAMAGE_TYPE_OPTIONS[number];
 
 export interface PoolEdit {
   name: string;

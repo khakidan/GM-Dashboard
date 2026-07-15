@@ -1,12 +1,12 @@
 // src/lib/irvOptions.ts
 
-export const DAMAGE_TYPE_OPTIONS: string[] = [
+export const DAMAGE_TYPE_OPTIONS = [
   'bludgeoning', 'bludgeoning (magical)',
   'piercing',    'piercing (magical)',
   'slashing',    'slashing (magical)',
   'acid', 'cold', 'fire', 'force', 'lightning',
   'necrotic', 'poison', 'psychic', 'radiant', 'thunder',
-];
+] as const;
 
 export const CONDITION_OPTIONS: string[] = [
   'blinded', 'charmed', 'deafened',
