@@ -2,6 +2,7 @@ import React from 'react';
 import { AlertCircle } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { IrvSection } from '../ui/IrvSection';
+import { LabeledField } from '../ui/LabeledField';
 
 interface CombatTabProps {
   ac: number;
@@ -29,11 +30,9 @@ export function CombatTab({
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-xs font-bold uppercase tracking-widest text-[#8d8db9] mb-1.5 px-1">
-            Armor Class
-          </label>
+        <LabeledField label="Armor Class" htmlFor="combat-ac" size="default">
           <input
+            id="combat-ac"
             type="number"
             min="1"
             max="30"
@@ -41,26 +40,22 @@ export function CombatTab({
             onChange={e => onChange('ac', parseInt(e.target.value) || 10)}
             className="w-full bg-white border border-stone-200 rounded-lg px-4 py-2 text-sm text-stone-800 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all shadow-sm"
           />
-        </div>
-        <div>
-          <label className="block text-xs font-bold uppercase tracking-widest text-[#8d8db9] mb-1.5 px-1">
-            Max HP
-          </label>
+        </LabeledField>
+        <LabeledField label="Max HP" htmlFor="combat-max-hp" size="default">
           <input
+            id="combat-max-hp"
             type="number"
             min="1"
             value={maxHp}
             onChange={e => onChange('maxHp', parseInt(e.target.value) || 1)}
             className="w-full bg-white border border-stone-200 rounded-lg px-4 py-2 text-sm text-stone-800 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all shadow-sm"
           />
-        </div>
+        </LabeledField>
       </div>
 
-      <div>
-        <label className="block text-xs font-bold uppercase tracking-widest text-[#8d8db9] mb-1.5 px-1">
-          Hit Dice
-        </label>
+      <LabeledField label="Hit Dice" htmlFor="combat-hit-dice" size="default">
         <input
+          id="combat-hit-dice"
           type="text"
           value={hitDiceConfig}
           onChange={e => onChange('hitDiceConfig', e.target.value)}
@@ -81,12 +76,9 @@ export function CombatTab({
         <p className="text-xs text-stone-500 mt-1">
           Auto-suggested from class. Format: [count]d[size] (e.g. 5d10)
         </p>
-      </div>
+      </LabeledField>
 
-      <div>
-        <label className="block text-xs font-bold uppercase tracking-widest text-[#8d8db9] mb-1.5 px-1">
-          RESISTANCES / IMMUNITIES / VULNERABILITIES
-        </label>
+      <LabeledField label="RESISTANCES / IMMUNITIES / VULNERABILITIES" size="default">
         <IrvSection
           resistances={resistances}
           immunities={immunities}
@@ -109,20 +101,18 @@ export function CombatTab({
           gap="gap-3"
           compact
         />
-      </div>
+      </LabeledField>
 
-      <div>
-        <label className="block text-xs font-bold uppercase tracking-widest text-[#8d8db9] mb-1.5 px-1">
-          Notes
-        </label>
+      <LabeledField label="Notes" htmlFor="combat-notes" size="default">
         <textarea
+          id="combat-notes"
           value={notes}
           onChange={e => onChange('notes', e.target.value)}
           placeholder="Special abilities, backstory notes..."
           rows={3}
           className="w-full bg-white border border-stone-200 rounded-lg px-4 py-2 text-sm text-stone-800 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all placeholder:text-stone-400 resize-none shadow-sm"
         />
-      </div>
+      </LabeledField>
     </div>
   );
 }

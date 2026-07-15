@@ -4,6 +4,7 @@ import { DifficultyLevel } from '../../types';
 import { useFormState } from '../../hooks/useFormState';
 import { DialogShell } from '../ui/DialogShell';
 import { Button } from '../ui/Button';
+import { LabeledField } from '../ui/LabeledField';
 
 interface NewEncounterDialogProps {
   isOpen: boolean;
@@ -44,10 +45,11 @@ export function NewEncounterDialog({ isOpen, onClose, onConfirm, difficulties }:
     >
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-4">
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-widest text-[#8d8db9] mb-1.5 px-1">
-              Encounter Name <span className="text-red-500">*</span>
-            </label>
+          <LabeledField 
+            label={<span>Encounter Name <span className="text-red-500">*</span></span>} 
+            htmlFor="new-encounter-name" 
+            size="default"
+          >
             <input
               id="new-encounter-name"
               type="text"
@@ -57,12 +59,9 @@ export function NewEncounterDialog({ isOpen, onClose, onConfirm, difficulties }:
               placeholder="e.g. Goblin Ambush"
               className="w-full bg-white border border-[#e2e8f0] rounded-xl px-4 py-3 text-sm focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] outline-none transition-all font-serif"
             />
-          </div>
+          </LabeledField>
 
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-widest text-[#8d8db9] mb-1.5 px-1">
-              Location
-            </label>
+          <LabeledField label="Location" htmlFor="new-encounter-location" size="default">
             <div className="relative">
               <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8d8db9] opacity-50" />
               <input
@@ -74,12 +73,13 @@ export function NewEncounterDialog({ isOpen, onClose, onConfirm, difficulties }:
                 className="w-full bg-white border border-[#e2e8f0] rounded-xl pl-10 pr-4 py-3 text-sm focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] outline-none transition-all"
               />
             </div>
-          </div>
+          </LabeledField>
 
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-widest text-[#8d8db9] mb-1.5 px-1">
-              Difficulty <span className="text-red-500">*</span>
-            </label>
+          <LabeledField 
+            label={<span>Difficulty <span className="text-red-500">*</span></span>} 
+            htmlFor="new-encounter-difficulty" 
+            size="default"
+          >
             <div className="relative">
               <Trophy className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#2563eb] opacity-50" />
               <select
@@ -93,7 +93,7 @@ export function NewEncounterDialog({ isOpen, onClose, onConfirm, difficulties }:
                 ))}
               </select>
             </div>
-          </div>
+          </LabeledField>
         </div>
 
         <div className="pt-4 flex gap-4">

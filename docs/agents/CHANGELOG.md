@@ -6,6 +6,24 @@ Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed fr
 
 ---
 
+## `LabeledField.tsx` Upgraded and Adopted at 4 New Sites (Completed)
+
+A "Labeled-Field Stacked Form Layout" pattern reported 14 times across `IdentityTab.tsx`/`CombatTab.tsx`/`NewEncounterDialog.tsx`/`ShortRestDialog.tsx` — but this wasn't simply unadopted duplication of an already-solved problem. `LabeledField.tsx` already existed, but couldn't actually serve these 4 real sites as-is: it rendered a plain `<div>` (no `<label htmlFor>` pairing, breaking accessibility these 4 sites already correctly had), typed `label` as a bare `string` (couldn't accept `ShortRestDialog.tsx`'s required trailing dynamic note), and hardcoded a smaller size than these sites actually needed.
+
+**A real regression was caught and corrected mid-design, before implementation.** A proposed upgrade's own written description said the component would fall back to a `<div>` when `htmlFor` isn't provided — but the actual code shown contradicted that, unconditionally rendering a bare `<label>` with no `htmlFor` for all 6 existing consumers. Since those 6 sites wrap plain, non-interactive text (`character.notes`, `npc.speed`, etc.), not form inputs, this would have been a real semantic/accessibility regression, not just an inconsistency — labels exist to describe form controls. Caught by comparing the description against the actual code, not accepting either alone; corrected before any implementation happened.
+
+**Fix**: `label: React.ReactNode`, an optional `htmlFor` (conditionally rendering `<label>` vs. the original `<div>` fallback), and `size?: 'compact' | 'default'` (defaulting to `'compact'`, preserving the exact original behavior for every existing consumer) — matching `SectionHeader.tsx`'s already-established size-variant naming convention from earlier this session, not a new, less clear one. Adopted at all 4 confirmed sites with `size="default"` and real `htmlFor` values matching each input's actual `id`.
+
+Verified: all 5 diffs checked directly against real uploaded files — the corrected conditional fallback confirmed present, all 4 adoption sites confirmed using `size="default"` with correct `htmlFor` values. Raw output confirmed genuinely for all 3 relevant batches, covering both the 4 new adoption sites and the 6 existing consumers: Batch 6A (54/54), Batch 6B (23/23), Batch 6C (15/15) — all matching documented baselines exactly, confirming zero breakage to any existing consumer.
+
+---
+
+## "Sync Local State From a Prop via `useEffect`" — Investigated and Correctly Decided Not Worth Extracting
+
+10 files, 11 instances, originally flagged because of sheer breadth — but breadth alone doesn't make something a real duplication problem. Investigated with real per-file evidence rather than assumed either way: confirmed 10 of the 11 are pure, single-line syncs (`useEffect(() => setState(prop), [prop])`), each supporting a genuine reason for local state (a debounce buffer or blur-to-commit edit buffer, not something that could just read the prop directly) — and 1 (`EncounterCard.tsx`) is a genuinely more complex multi-field sync, correctly distinguished from the other 10 rather than lumped in with a single verdict.
+
+**Decided not worth extracting.** A single-line prop-sync effect is already about as clear as code gets — wrapping it in a shared `useSyncedLocalState(prop)` hook would add a layer of indirection without actually reducing complexity anywhere. This is idiomatic React, correctly and consistently repeated, not an architectural problem. Same category of correct rejection as the "two-column form field grid" and "server-side error-response shaping" findings elsewhere in this backlog — real duplication that's nonetheless not worth componentizing.
+
 ## `requireBody` Middleware — Closes Out Category 6 Entirely (Completed)
 
 `campaigns.ts` and `auth.ts` each independently checked `if (!req.body)` inside their own handler, with an identical response shape.

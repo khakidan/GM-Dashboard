@@ -11,6 +11,7 @@ import { Accordion } from '../ui/Accordion';
 import { Callout } from '../ui/Callout';
 import { SectionHeader } from '../ui/SectionHeader';
 import { effectiveMaxHp } from '../../lib/conditions';
+import { LabeledField } from '../ui/LabeledField';
 
 interface ShortRestDialogProps {
   isOpen: boolean;
@@ -396,19 +397,26 @@ export function ShortRestDialog({ isOpen, characters, onConfirm, onClose }: Shor
 
                           {/* HP Input */}
                           <div className="pt-2">
-                            <label className="block text-xs font-bold uppercase tracking-widest text-[#8d8db9] mb-2 px-1">
-                              HP to recover <span className="text-[10px] lowercase text-[#8d8db9]/60">(max {maxAllowedHP} missing)</span>
-                            </label>
-                            <input
-                              type="number"
-                              min="0"
-                              max={maxAllowedHP}
-                              value={charState.hpToAdd}
-                              onChange={e => updateHpToAdd(char.id, parseInt(e.target.value) || 0, maxAllowedHP)}
-                              className="bg-white border border-[#e2e8f0] rounded-xl text-[#0f172a] placeholder:text-[#8d8db9] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]/50 focus:outline-none w-full px-3 py-2 text-sm transition-all font-mono"
-                              placeholder="Enter total HP recovered..."
-                              id={`hp-recover-input-${char.id}`}
-                            />
+                            <LabeledField
+                              label={
+                                <>
+                                  HP to recover <span className="text-[10px] lowercase text-[#8d8db9]/60">(max {maxAllowedHP} missing)</span>
+                                </>
+                              }
+                              htmlFor={`hp-recover-input-${char.id}`}
+                              size="default"
+                            >
+                              <input
+                                type="number"
+                                min="0"
+                                max={maxAllowedHP}
+                                value={charState.hpToAdd}
+                                onChange={e => updateHpToAdd(char.id, parseInt(e.target.value) || 0, maxAllowedHP)}
+                                className="bg-white border border-[#e2e8f0] rounded-xl text-[#0f172a] placeholder:text-[#8d8db9] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]/50 focus:outline-none w-full px-3 py-2 text-sm transition-all font-mono"
+                                placeholder="Enter total HP recovered..."
+                                id={`hp-recover-input-${char.id}`}
+                              />
+                            </LabeledField>
                           </div>
                         </div>
                       )}

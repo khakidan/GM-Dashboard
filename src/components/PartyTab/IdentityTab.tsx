@@ -1,4 +1,5 @@
 import React from 'react';
+import { LabeledField } from '../ui/LabeledField';
 
 interface IdentityTabProps {
   playerName: string;
@@ -21,10 +22,7 @@ export function IdentityTab({
 }: IdentityTabProps) {
   return (
     <div className="space-y-4">
-      <div>
-        <label htmlFor="player-name" className="block text-xs font-bold uppercase tracking-widest text-[#8d8db9] mb-1.5 px-1">
-          Player Name
-        </label>
+      <LabeledField label="Player Name" htmlFor="player-name" size="default">
         <input
           id="player-name"
           type="text"
@@ -34,11 +32,8 @@ export function IdentityTab({
           required
           className="w-full bg-white border border-stone-200 rounded-lg px-4 py-2 text-sm text-stone-800 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all placeholder:text-stone-400 shadow-sm"
         />
-      </div>
-      <div>
-        <label htmlFor="character-name" className="block text-xs font-bold uppercase tracking-widest text-[#8d8db9] mb-1.5 px-1">
-          Character Name
-        </label>
+      </LabeledField>
+      <LabeledField label="Character Name" htmlFor="character-name" size="default">
         <input
           id="character-name"
           type="text"
@@ -48,11 +43,8 @@ export function IdentityTab({
           required
           className="w-full bg-white border border-stone-200 rounded-lg px-4 py-2 text-sm text-stone-800 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all placeholder:text-stone-400 shadow-sm"
         />
-      </div>
-      <div>
-        <label htmlFor="char-class" className="block text-xs font-bold uppercase tracking-widest text-[#8d8db9] mb-1.5 px-1">
-          Class
-        </label>
+      </LabeledField>
+      <LabeledField label="Class" htmlFor="char-class" size="default">
         <input
           id="char-class"
           type="text"
@@ -64,12 +56,9 @@ export function IdentityTab({
         <p className="text-xs text-stone-500 mt-1">
           Used to suggest starting resources on the Resources tab
         </p>
-      </div>
+      </LabeledField>
       <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label htmlFor="char-level" className="block text-xs font-bold uppercase tracking-widest text-[#8d8db9] mb-1.5 px-1">
-            Level
-          </label>
+        <LabeledField label="Level" htmlFor="char-level" size="default">
           <input
             id="char-level"
             type="number"
@@ -79,11 +68,8 @@ export function IdentityTab({
             onChange={e => onChange('level', parseInt(e.target.value) || 1)}
             className="w-full bg-white border border-stone-200 rounded-lg px-4 py-2 text-sm text-stone-800 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all shadow-sm"
           />
-        </div>
-        <div>
-          <label htmlFor="char-status" className="block text-xs font-bold uppercase tracking-widest text-[#8d8db9] mb-1.5 px-1">
-            Status
-          </label>
+        </LabeledField>
+        <LabeledField label="Status" htmlFor="char-status" size="default">
           <select
             id="char-status"
             value={statusId}
@@ -98,7 +84,7 @@ export function IdentityTab({
                 </option>
               ))}
           </select>
-        </div>
+        </LabeledField>
       </div>
     </div>
   );
