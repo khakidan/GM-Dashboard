@@ -6,6 +6,22 @@ Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed fr
 
 ---
 
+## `requireBody` Middleware — Closes Out Category 6 Entirely (Completed)
+
+`campaigns.ts` and `auth.ts` each independently checked `if (!req.body)` inside their own handler, with an identical response shape.
+
+**A fabricated "verbatim" quote was caught before implementation, using directly-verified prior knowledge, not just suspicion.** An investigation round quoted an expanded, incorrect condition (`!req.body || Object.keys(req.body).length === 0`) and a different message (`'Missing request body'`) — this was caught immediately by comparing against the real content already directly confirmed earlier in this same session (during the rate-limiter fix), not accepted and re-verified from scratch. Asked to check again, a second round correctly retracted the fabrication and confirmed the real, simple `if (!req.body)` condition with the real message (`'Request body is required.'`).
+
+**A file-naming proposal also reversed itself without new justification** — one response correctly argued against a generic `middleware.ts` ("would become a catch-all... violating the specificity principle"), the next proposed exactly that with the opposite reasoning. Held to the already-established convention (`bodyValidation.ts`, matching `stringUtils.ts`/`rateLimiter.ts`'s precedent of specific, purpose-named files over a shared catch-all) rather than accepting the reversal.
+
+**Fix**: `src/server/bodyValidation.ts` exporting `requireBody` as real Express middleware (not a helper function each handler calls manually) — inserted into both route chains after the existing rate limiter and before the handler; each handler's own manual check removed.
+
+Verified: all 3 diffs checked directly against real uploaded files — `requireBody` confirmed correctly positioned in both route chains, both manual checks confirmed removed. Raw Batch 4 output confirmed genuinely fresh (a distinct timestamp from all prior runs) — 9/9, all 4 real files individually listed, matching the documented baseline exactly.
+
+**This closes out Category 6 (repeated server-side patterns) of the systematic audit entirely** — all 6 originally confirmed findings in this category are now fixed.
+
+---
+
 ## Rate-Limiter Factory — `createRateLimiter()` (Completed)
 
 `campaignCreateLimiter` (`campaigns.ts`) and `authLimiter` (`auth.ts`) shared identical `windowMs`/`max`/`standardHeaders`/`legacyHeaders` values, differing only in their `message` field — and genuinely differing in *type*, not just content (`campaigns.ts` needs an object, `auth.ts` needs a plain string).

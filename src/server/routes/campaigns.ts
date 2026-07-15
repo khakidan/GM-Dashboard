@@ -3,6 +3,7 @@
 import { Router } from 'express';
 import { sheets_v4 } from 'googleapis';
 import { createRateLimiter } from '../rateLimiter';
+import { requireBody } from '../bodyValidation';
 
 const router = Router();
 
@@ -15,11 +16,8 @@ const campaignCreateLimiter = createRateLimiter({
   message: 'Too many campaign creation attempts. Please try again in 15 minutes.'
 });
 
-router.post('/create', campaignCreateLimiter, async (req, res) => {
+router.post('/create', campaignCreateLimiter, requireBody, async (req, res) => {
   try {
-    if (!req.body) {
-      return res.status(400).json({ error: 'BAD_REQUEST', message: 'Request body is required.' });
-    }
     const { title } = req.body;
     const authHeader = req.headers.authorization;
     if (!title || !title.trim()) {

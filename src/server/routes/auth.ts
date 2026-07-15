@@ -2,6 +2,7 @@
 
 import { Router } from 'express';
 import { createRateLimiter } from '../rateLimiter';
+import { requireBody } from '../bodyValidation';
 
 const router = Router();
 
@@ -23,11 +24,8 @@ router.get('/config', (req, res) => {
 });
 
 // POST /api/auth/google-token
-router.post('/google-token', authLimiter, async (req, res) => {
+router.post('/google-token', authLimiter, requireBody, async (req, res) => {
   try {
-    if (!req.body) {
-      return res.status(400).json({ error: 'BAD_REQUEST', message: 'Request body is required.' });
-    }
     const { code, redirect_uri, refresh_token } = req.body;
     if (!code && !refresh_token) {
       return res.status(400).json({ error: 'Code or refresh_token is required' });
