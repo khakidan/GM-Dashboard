@@ -6,6 +6,32 @@ Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed fr
 
 ---
 
+## `DamageType` Union Type Derived From `DAMAGE_TYPE_OPTIONS` (Completed)
+
+`irvOptions.ts`'s `DAMAGE_TYPE_OPTIONS` (a runtime string array) and `types.ts`'s `DamageType` union type independently listed the same 16 damage type strings — hand-typed and hand-maintained separately, with no single source of truth.
+
+**Fix**: `DAMAGE_TYPE_OPTIONS` changed from an explicit `string[]` to `as const`, and `DamageType` derived directly from it (`type DamageType = typeof DAMAGE_TYPE_OPTIONS[number]`) instead of a separately hand-typed 16-literal union. The two can no longer silently drift apart.
+
+**A real type-narrowing subtlety was caught and corrected before implementation.** `DAMAGE_TYPE_OPTIONS` was originally typed explicitly as `string[]`; naively deriving `typeof DAMAGE_TYPE_OPTIONS[number]` from that would have resolved to the generic `string` type, not the actual union of 16 literal values — silently destroying the type safety `DamageType` existed to provide. Caught before proposing the fix, not after.
+
+**Verified with real, direct evidence — including a genuine TypeScript compiler check, not just a test run.** Every one of the 16 literal values was independently compared between the old hand-typed union and the newly-derived type, confirmed to match exactly (set comparison, zero missing, zero extra). Beyond that, `npx tsc -p tsconfig.build.json --noEmit` (the project's actual build-scoped type-check config) ran completely clean — zero output, zero errors. A broader `npx tsc --noEmit` (the default config, which also includes test files) surfaced 54 pre-existing errors across 18 files, but every single one was read through directly and confirmed unrelated to `DamageType`, `types.ts`, or `irvOptions.ts` — all were pre-existing test-file type mismatches (mock objects missing properties that real interfaces require, e.g. `Encounter` missing `status`, `Combatant` missing `ac`/`maxHp`, a `deleteDimension` property that doesn't exist on `BatchRequest`) unrelated to any work this session. This is meaningfully stronger evidence than a Vitest run alone would provide, since Vitest's transform typically strips TypeScript types rather than fully type-checking them — a real `tsc` run is the genuine, direct check for whether a type derivation like this is actually valid.
+
+**Separately surfaced, not part of this fix**: the 54 pre-existing type errors found via the broader `tsc --noEmit` run are a real, standalone finding worth triaging at some point — logged as its own note below rather than silently ignored, since fixing them wasn't in scope here and none were introduced by this or any other change this session.
+
+---
+
+## `formatBonus` Consolidated (Completed)
+
+3 near-identical implementations: `StatBlockScores.tsx`'s `formatBonus` (returned bare `'0'` for a zero value), `SpellcastingStatsRow.tsx`'s `formatSpellAttackBonus` and `CombatantCardHeader.tsx`'s inline logic (both returned `'+0'`). Dan decided `'+0'` is the correct display for a zero modifier — a deliberate, real behavior change for `StatBlockScores.tsx` specifically, not just a refactor.
+
+**Fix**: `formatBonus` consolidated into `src/lib/stringUtils.ts` (alongside `formatNames()`, the established home for shared string-formatting helpers). `SpellcastingStatsRow.tsx`'s local `formatSpellAttackBonus` and `CombatantCardHeader.tsx`'s inline ternary both replaced with calls to the shared function. `StatBlockScores.tsx` re-exports `formatBonus` and `abilitiesInOrder` for backward compatibility, rather than requiring every consumer to update its import — verified this correctly preserves `StatBlockSaves.tsx`, `StatBlockSkills.tsx`, and `StatTile.tsx`'s existing imports, all 3 confirmed unaffected once Dan proactively surfaced them before implementation. That same proactive check also caught a real, separate bug in the already-applied `abilitiesInOrder` fix (a missing re-export breaking `StatBlockSkills.tsx`) — fixed alongside this one.
+
+**A real, genuine bug was introduced by Claude's own instruction, caught by an experiment running vitest locally on Dan's machine while AI Studio's editing tooling was down** (its command-execution capability turned out to still work, even though file-reading/editing didn't). The original instruction had `StatBlockScores.tsx` re-export `formatBonus` via `export { formatBonus } from '../../lib/stringUtils';` alone — but a bare re-export doesn't create a usable local binding for the file's own internal code to call. `StatBlockScores.tsx`'s own 2 internal `{formatBonus(effectiveProfBonus)}` calls threw `ReferenceError: formatBonus is not defined` at runtime, confirmed by a real local test failure (`CharacterCardExpanded.test.tsx`, which renders `StatBlockScores`). Fixed by adding a genuine `import` alongside the re-export: `import { formatBonus } from '../../lib/stringUtils'; export { formatBonus };`.
+
+**Verified with real, direct evidence, not just partial/indirect signal.** Re-ran `CharacterCardExpanded.test.tsx` locally after the fix and confirmed 2/2 passing — direct confirmation of the exact broken symptom, now resolved. `SpellcastingStatsRow.test.tsx` (2/2) also passed, directly exercising that file's own `formatBonus` call. A full local suite run produced 97 failures, but every one of them traced to pre-existing local environment differences unrelated to this change (missing `localStorage` Node flag, missing `GOOGLE_CLIENT_SECRET`) — confirmed by comparing failure counts before and after this fix: exactly a 2-test swing (99→97 failed, 653→655 passed), matching precisely the 2 tests in `CharacterCardExpanded.test.tsx` that flipped from failing to passing, with nothing else moving.
+
+---
+
 ## `LabeledField.tsx` Upgraded and Adopted at 4 New Sites (Completed)
 
 A "Labeled-Field Stacked Form Layout" pattern reported 14 times across `IdentityTab.tsx`/`CombatTab.tsx`/`NewEncounterDialog.tsx`/`ShortRestDialog.tsx` — but this wasn't simply unadopted duplication of an already-solved problem. `LabeledField.tsx` already existed, but couldn't actually serve these 4 real sites as-is: it rendered a plain `<div>` (no `<label htmlFor>` pairing, breaking accessibility these 4 sites already correctly had), typed `label` as a bare `string` (couldn't accept `ShortRestDialog.tsx`'s required trailing dynamic note), and hardcoded a smaller size than these sites actually needed.

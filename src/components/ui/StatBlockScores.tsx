@@ -1,8 +1,8 @@
 import React from 'react';
 import { abilitiesInOrder, AbilityName, AbilityScores, calculateModifier } from '../../lib/abilityScores';
 import { StatTile } from './StatTile';
-
-export { formatBonus } from '../../lib/stringUtils';
+import { formatBonus } from '../../lib/stringUtils';
+export { formatBonus };
 export { abilitiesInOrder } from '../../lib/abilityScores';
 
 function AbilityScoreInput({
