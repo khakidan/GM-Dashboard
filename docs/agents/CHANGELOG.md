@@ -6,6 +6,28 @@ Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed fr
 
 ---
 
+## `campaigns.ts` Fetch Headers Consolidation (Completed)
+
+3 separate `fetch()` calls (spreadsheet creation, sheet-structure batch update, values batch update) each constructed the identical `{ 'Content-Type': 'application/json', 'Authorization': 'Bearer ${token}' }` headers object inline. Confirmed all 3 genuinely identical and `token` consistently in scope under the same name at all 3 sites before implementing.
+
+**Fix**: a small local `getGoogleAuthHeaders(token: string)` helper, called at all 3 sites instead of hand-rolling the object each time.
+
+**Process note**: a verification round reused the exact same Batch 4 output from an earlier, unrelated fix in this same session (identical timestamp down to the millisecond durations) rather than genuinely re-running it — caught by comparing timestamps across responses, not assumed. A second, genuinely fresh run was required and obtained, confirmed by a real, different timestamp and real per-file timing variance.
+
+Verified: diff checked directly against the real uploaded file — helper confirmed defined once, all 3 real call sites confirmed using it. Raw Batch 4 output confirmed genuinely fresh (9/9), matching the documented baseline exactly, all 4 real files individually listed.
+
+---
+
+## `auth.ts` Env-Var Fallback Chain Consolidation (Completed)
+
+`GET /config` and `POST /google-token` independently resolved the same `process.env.VITE_GOOGLE_CLIENT_ID || process.env.CLIENT_ID || process.env.GOOGLE_CLIENT_ID` chain. Went straight to implementation given this file had already been directly, recently reviewed during the same session's emergency OAuth fix — also caught, while at it, that `POST /google-token`'s `clientSecret` resolution had the identical duplication pattern for a different env var, not called out in the original finding but fixed the same way.
+
+**Fix**: two module-level constants (`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`) declared once near the top of the file; both handlers now reference them instead of re-resolving the chains inline.
+
+Verified: diff checked directly against the real uploaded file — both constants confirmed added, both handlers confirmed referencing them, zero leftover inline chains anywhere in the file. Raw Batch 4 output confirmed 9/9, matching the documented baseline exactly, all 4 real files individually listed.
+
+---
+
 ## `isConcentrating()` Consolidation (Completed)
 
 Two independently-implemented versions (`conditions/index.ts` and `concentrationCheck.ts`), confirmed functionally equivalent for all real inputs including edge cases (null, undefined, whitespace-only, mixed-case) — re-verified directly against real files before consolidating, given a couple of findings in this backlog had recently turned out stale.

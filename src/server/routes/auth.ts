@@ -5,6 +5,16 @@ import rateLimit from 'express-rate-limit';
 
 const router = Router();
 
+const GOOGLE_CLIENT_ID =
+  process.env.VITE_GOOGLE_CLIENT_ID ||
+  process.env.CLIENT_ID ||
+  process.env.GOOGLE_CLIENT_ID;
+
+const GOOGLE_CLIENT_SECRET =
+  process.env.VITE_GOOGLE_CLIENT_SECRET ||
+  process.env.CLIENT_SECRET ||
+  process.env.GOOGLE_CLIENT_SECRET;
+
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 20,
@@ -15,11 +25,7 @@ const authLimiter = rateLimit({
 
 // GET /api/auth/config
 router.get('/config', (req, res) => {
-  const clientId =
-    process.env.VITE_GOOGLE_CLIENT_ID ||
-    process.env.CLIENT_ID ||
-    process.env.GOOGLE_CLIENT_ID;
-  res.json({ clientId: clientId || null });
+  res.json({ clientId: GOOGLE_CLIENT_ID || null });
 });
 
 // POST /api/auth/google-token
@@ -35,14 +41,8 @@ router.post('/google-token', authLimiter, async (req, res) => {
     if (code && !redirect_uri) {
       return res.status(400).json({ error: 'redirect_uri is required when using authorization code' });
     }
-    const clientId =
-      process.env.VITE_GOOGLE_CLIENT_ID ||
-      process.env.CLIENT_ID ||
-      process.env.GOOGLE_CLIENT_ID;
-    const clientSecret =
-      process.env.VITE_GOOGLE_CLIENT_SECRET ||
-      process.env.CLIENT_SECRET ||
-      process.env.GOOGLE_CLIENT_SECRET;
+    const clientId = GOOGLE_CLIENT_ID;
+    const clientSecret = GOOGLE_CLIENT_SECRET;
 
     if (!clientId || !clientSecret) {
       console.warn('⚠️ [Server] Persistent Sync Disabled: Missing Google Client Secret or ID.');

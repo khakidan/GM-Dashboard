@@ -6,6 +6,10 @@ import rateLimit from 'express-rate-limit';
 
 const router = Router();
 
+function getGoogleAuthHeaders(token: string) {
+  return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+}
+
 const campaignCreateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 20,
@@ -35,10 +39,7 @@ router.post('/create', campaignCreateLimiter, async (req, res) => {
     // 1. Create Spreadsheet with title
     const createRes = await fetch('https://sheets.googleapis.com/v4/spreadsheets', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
+      headers: getGoogleAuthHeaders(token),
       body: JSON.stringify({
         properties: {
           title
@@ -167,10 +168,7 @@ router.post('/create', campaignCreateLimiter, async (req, res) => {
 
     const sheetsUpdateRes = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}:batchUpdate`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
+      headers: getGoogleAuthHeaders(token),
       body: JSON.stringify({ requests: batchRequests })
     });
 
@@ -204,10 +202,7 @@ router.post('/create', campaignCreateLimiter, async (req, res) => {
 
     const headersRes = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values:batchUpdate`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
+      headers: getGoogleAuthHeaders(token),
       body: JSON.stringify({
         valueInputOption: 'USER_ENTERED',
         data: valueData
