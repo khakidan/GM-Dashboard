@@ -1,6 +1,7 @@
 import React from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { IconButton } from './IconButton';
+import { generateUuid } from '../../lib/uuid';
 
 interface NpcListEditorProps<T extends { name: string; _key?: string }> {
   title: string;           // section header e.g. "Traits"
@@ -23,16 +24,10 @@ export function NpcListEditor<T extends { name: string; _key?: string }>({
 }: NpcListEditorProps<T>) {
   const singularTitle = title.endsWith('s') ? title.slice(0, -1) : title;
 
-  function generateKey(): string {
-    return typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
-      ? crypto.randomUUID()
-      : Math.random().toString(36).substring(2) + Date.now().toString(36);
-  }
-
   const handleAddItem = () => {
     // Deep copy emptyItem to avoid accidental references
     const newItem = JSON.parse(JSON.stringify(emptyItem)) as T;
-    newItem._key = generateKey();
+    newItem._key = generateUuid();
     onChange([...items, newItem]);
   };
 

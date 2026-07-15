@@ -6,6 +6,34 @@ Per root AGENTS.md rule 12: when work in `ROADMAP.md` completes, it's removed fr
 
 ---
 
+## Random-ID Generation — Shared "Secure Random" Pattern Consolidated (Completed)
+
+7 files originally flagged as hand-rolling their own `Math.random()`/`Date.now()`-based ID strings. Investigated honestly rather than forced into one design: only 4 of the 7 (`useCampaign.ts`, `NpcListEditor.tsx`, `audioFileStore.ts`, `googleAuth.ts`) genuinely shared the identical pattern (attempt `crypto.randomUUID()`, fall back to a Math.random()-based UUID-v4-shaped string). The other 3 (`combatLog.ts`, `useEncounterPresetLoader.ts`, `AudioLibrary.tsx`) are genuinely domain-specific string builders (prefixed event IDs, temporary transient IDs) — correctly left alone rather than forced into a single generic, over-configurable utility.
+
+**Fix**: a new `src/lib/uuid.ts` exporting `generateUuid()`, adopted at all 4 confirmed sites, each file's own local duplicate implementation removed. `useCampaign.ts` keeps a thin one-line `uuid()` alias delegating to `generateUuid()` rather than renaming every internal call site — a reasonable, harmless simplification, not a remaining duplicate.
+
+**Process note**: verification claimed "the failing test in `googleAuth.test.ts` was confirmed pre-existing and unchanged," but the actual raw output showed no failing test at all — the referenced stderr trace was expected console logging from a deliberately-simulated failure *scenario* inside a test that itself passed (`✓`, 7/7). Corrected directly rather than accepted at face value.
+
+**Also, a broader process note worth recording plainly**: this session's `ROADMAP.md` cleanup discipline slipped repeatedly today — completed items were left as one-line "see `CHANGELOG.md`" placeholders (including this one, initially) instead of being removed entirely as the file's own stated rule requires, on at least 3 separate occasions, and one cleanup pass introduced real content duplication and a numbering collision that required a full corrective pass to resolve. Recorded honestly here rather than smoothed over, consistent with how this project has always documented its own process failures alongside AI Studio's.
+
+Verified: all 5 diffs checked directly against real uploaded files — `generateUuid()` confirmed correctly used at all 4 sites, no leftover local implementations. Raw output confirmed genuinely for all 3 relevant test files (`googleAuth.test.ts`: 7/7, `useCampaign.test.ts`: 6/6, `audioFileStore.test.ts`: 9/9, summing to 22/22), all genuinely passing.
+
+---
+
+## `googleAuth.ts` `postMessage` Origin Check Tightened (Completed)
+
+Found during the emergency OAuth investigation, deliberately deferred and logged separately at the time. The listener's origin check (`!origin.endsWith('.run.app') && !origin.includes('localhost') && origin !== window.location.origin`) was too broad — `.endsWith('.run.app')` would accept a message from *any* Cloud Run service, not just this app's own deployment, and `.includes('localhost')` was a substring check rather than an exact match.
+
+**A claimed value was independently verified, and found to be wrong.** Before implementing, the real production and development origins were needed. The production origin was given directly. For the two "AI Studio session metadata" dev/preview origins offered, one (a "Shared App URL") was checked directly against a real browser and returned a genuine `Page not found` — confirmed non-functional, correctly excluded from the allowlist entirely rather than trusted on the claim alone.
+
+**Fix**: a strict `ALLOWED_ORIGINS` Set containing only the 2 confirmed-real origins (production, and the one dev URL that was independently verified to actually work), plus the existing dynamic `window.location.origin` same-origin check (unchanged, still computed fresh) and a genuinely tightened `localhost` allowance (`origin.startsWith('http://localhost:')`, an exact protocol+host prefix match instead of the original's loose substring check anywhere in the string).
+
+**Minor, non-blocking observation left for later**: `ALLOWED_ORIGINS` is currently declared fresh inside the message listener callback, meaning it's recreated on every single incoming message rather than once at module load — not a correctness issue, just a small inefficiency worth hoisting to a module-level constant next time this file is touched.
+
+Verified: diff checked directly against the real uploaded file. Raw Batch 2 output confirmed 37/37, matching the documented baseline exactly, all 8 real files individually listed.
+
+---
+
 ## `campaigns.ts` Fetch Headers Consolidation (Completed)
 
 3 separate `fetch()` calls (spreadsheet creation, sheet-structure batch update, values batch update) each constructed the identical `{ 'Content-Type': 'application/json', 'Authorization': 'Bearer ${token}' }` headers object inline. Confirmed all 3 genuinely identical and `token` consistently in scope under the same name at all 3 sites before implementing.

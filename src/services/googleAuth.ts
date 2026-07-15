@@ -43,6 +43,7 @@ declare global {
 }
 
 import { toast } from 'sonner';
+import { generateUuid } from '../lib/uuid';
 
 export interface Notifier {
   loading: (message: string) => string | number;
@@ -94,9 +95,7 @@ export async function getGoogleClientId(): Promise<string> {
  * Generates a cryptographically secure random string and stores it in localStorage.
  */
 function generateAndStoreOAuthState(): string {
-  const state = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
-    ? crypto.randomUUID()
-    : Math.random().toString(36).substring(2) + Date.now().toString(36);
+  const state = generateUuid();
   localStorage.setItem(STORAGE_KEYS.oauthState, state);
   return state;
 }
@@ -332,8 +331,15 @@ export async function refreshAccessToken(): Promise<string | null> {
 
 if (typeof window !== 'undefined') {
   window.addEventListener('message', async (event) => {
-    const origin = event.origin;
-    if (!origin.endsWith('.run.app') && !origin.includes('localhost') && origin !== window.location.origin) {
+    const ALLOWED_ORIGINS = new Set([
+      'https://dnd-gm-dashboard-541768011837.us-west2.run.app',
+      'https://ais-dev-xcoad5fmqkhpdotz7jjxwb-517220469539.us-east1.run.app',
+    ]);
+    const isAllowed = origin === window.location.origin ||
+                      ALLOWED_ORIGINS.has(origin) ||
+                      origin.startsWith('http://localhost:');
+
+    if (!isAllowed) {
       return;
     }
     if (event.data?.type === 'OAUTH_REDIRECT_PAYLOAD' && event.data.url) {

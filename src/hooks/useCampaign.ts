@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { STORAGE_KEYS } from '../lib/constants';
 import { requestAccessToken } from '../services/googleAuth';
 import { fetchSheetData, setSpreadsheetId } from '../services/sheetsService';
+import { generateUuid } from '../lib/uuid';
 
 export interface Campaign {
   id: string;           // uuid v4
@@ -12,16 +13,7 @@ export interface Campaign {
   lastOpenedAt: string; // ISO date string
 }
 
-const uuid = () => {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return crypto.randomUUID();
-  }
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0;
-    const v = c === 'x' ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
-};
+const uuid = () => generateUuid();
 
 export function extractSpreadsheetId(input: string): string {
   if (!input) return '';

@@ -1,4 +1,5 @@
 // src/lib/audioFileStore.ts
+import { generateUuid } from './uuid';
 
 export interface StoredAudioFile {
   id: string;         // UUID, generated on add
@@ -81,9 +82,7 @@ export async function saveAudioFile(
   category: 'ambient' | 'effect'
 ): Promise<StoredAudioFile> {
   const db = await getDB(campaignId);
-  const id = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
-    ? crypto.randomUUID()
-    : Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+  const id = generateUuid();
 
   const name = file.name.replace(/\.[^/.]+$/, '');
   const storedFile: StoredAudioFile = {
