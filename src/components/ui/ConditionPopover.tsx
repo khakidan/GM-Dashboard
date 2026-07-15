@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { getConditionDescription } from '../../lib/conditions';
+import { CONDITION_OPTIONS, SPELL_EFFECT_OPTIONS } from '../../lib/irvOptions';
 
 export interface ConditionPopoverProps {
   conditionName: string;
@@ -95,55 +96,11 @@ export const ConditionPopover: React.FC<ConditionPopoverProps> = ({
     if (category === 'custom') return 'Custom';
     const lowerName = conditionName.toLowerCase().trim();
 
-    const standardConditions = [
-      'blinded',
-      'charmed',
-      'deafened',
-      'frightened',
-      'grappled',
-      'incapacitated',
-      'invisible',
-      'paralyzed',
-      'petrified',
-      'poisoned',
-      'prone',
-      'restrained',
-      'stunned',
-      'unconscious',
-      'exhaustion 1',
-      'exhaustion 2',
-      'exhaustion 3',
-      'exhaustion 4',
-      'exhaustion 5',
-      'exhaustion 6',
-    ];
-    if (standardConditions.includes(lowerName)) {
+    if (CONDITION_OPTIONS.includes(lowerName)) {
       return 'Condition';
     }
 
-    const spellEffects = [
-      'hasted',
-      'slowed',
-      'blessed',
-      'baned',
-      'hexed',
-      "hunter's mark",
-      'shield of faith',
-      'spirit guardians',
-      'blurred',
-      'polymorphed',
-      'fly',
-      'stoneskin',
-      'fire shield',
-      'mirror image',
-      'aid (boosted)',
-      'enlarged',
-      'reduced',
-      'mage armor',
-      'guided',
-      'spiritual weapon',
-    ];
-    if (spellEffects.includes(lowerName)) {
+    if (SPELL_EFFECT_OPTIONS.includes(lowerName)) {
       return 'Spell';
     }
 

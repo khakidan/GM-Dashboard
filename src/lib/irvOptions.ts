@@ -35,6 +35,19 @@ export const EFFECT_OPTIONS: string[] = [
   'dodging', 'guided',
 ];
 
+// A narrower subset of EFFECT_OPTIONS specifically for classifying an effect
+// as a "Spell" in tooltips (ConditionPopover.tsx). Deliberately excludes
+// class features and general combat mechanics that appear in EFFECT_OPTIONS
+// but aren't actually spells: 'raging', 'wild shaped', 'concentrating',
+// 'firewall', 'dodging'.
+export const SPELL_EFFECT_OPTIONS: string[] = [
+  'hasted', 'slowed', 'blessed', 'baned', 'hexed',
+  "hunter's mark", 'shield of faith', 'spirit guardians',
+  'spiritual weapon', 'blurred', 'polymorphed', 'fly',
+  'stoneskin', 'fire shield', 'mirror image', 'aid (boosted)',
+  'enlarged', 'reduced', 'mage armor', 'guided',
+];
+
 export const CONCENTRATION_EFFECTS = new Set<string>([
   'hasted', 'slowed', 'blessed', 'baned', 'hexed',
   "hunter's mark", 'shield of faith', 'spirit guardians',
