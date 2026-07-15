@@ -1,4 +1,4 @@
-import { calculateModifier, proficiencyBonusFromLevel, AbilityName } from './abilityScores';
+import { calculateModifier, proficiencyBonusFromLevel, AbilityName, abilitiesInOrder } from './abilityScores';
 
 export type SpellcastingAbility = 'STR' | 'DEX' | 'CON' | 'INT' | 'WIS' | 'CHA' | null;
 
@@ -67,7 +67,7 @@ export function parseSpellcastingAbility(val: string | null | undefined): Spellc
   if (normalized === '' || normalized === 'auto') return undefined;
   if (normalized === 'none') return null;
   const uppercase = normalized.toUpperCase();
-  if (['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'].includes(uppercase)) {
+  if (abilitiesInOrder.includes(uppercase as any)) {
     return uppercase as SpellcastingAbility;
   }
   return undefined;

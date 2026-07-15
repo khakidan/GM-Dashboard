@@ -1,8 +1,8 @@
 import { SpellcastingAbility, parseSpellcastingAbility } from './spellcasting';
 
-export type AbilityName = 
-  'STR' | 'DEX' | 'CON' | 
-  'INT' | 'WIS' | 'CHA';
+export const abilitiesInOrder = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'] as const;
+
+export type AbilityName = typeof abilitiesInOrder[number];
 
 export type SkillName =
   'Athletics' |
@@ -250,7 +250,7 @@ export function parseProficiencies(json: string): Proficiencies {
         ? parsed.jackOfAllTrades 
         : DEFAULT_PROFICIENCIES.jackOfAllTrades;
       const savingThrows = Array.isArray(parsed.savingThrows) 
-        ? parsed.savingThrows.filter((s: any) => ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'].includes(s)) 
+        ? parsed.savingThrows.filter((s: any) => abilitiesInOrder.includes(s))
         : DEFAULT_PROFICIENCIES.savingThrows;
       const skills = (parsed.skills && typeof parsed.skills === 'object') 
         ? parsed.skills 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { AbilityName, AbilityScores, calculateModifier } from '../../lib/abilityScores';
+import { abilitiesInOrder, AbilityName, AbilityScores, calculateModifier } from '../../lib/abilityScores';
 import { StatTile } from './StatTile';
 
 // Formatting helper for modifier and bonus values
@@ -8,8 +8,6 @@ export const formatBonus = (val: number): string => {
   if (val < 0) return `\u2212${Math.abs(val)}`; // True minus sign \u2212
   return '0';
 };
-
-export const abilitiesInOrder: AbilityName[] = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'];
 
 function AbilityScoreInput({
   value,
